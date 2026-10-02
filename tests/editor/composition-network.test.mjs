@@ -150,9 +150,9 @@ test('terminal proof requires actual EOF, fulfilled body cancellation or the ori
  const paddedRequests=[x.q,...Array.from({length:DISPLAY_REQUEST_LIMIT-2},(_,i)=>({...x.q,requestId:i+10,frameId:2,url:origin+'/api/v1/documents/orphan'+i+'/image'}))];
  assert.equal(displayReadProofs(x.rows,paddedRequests).length,1);paddedRequests.push({...x.q,requestId:DISPLAY_REQUEST_LIMIT+10,frameId:2});assert.deepEqual(displayReadProofs(x.rows,paddedRequests),[]);
 });
-function displayInstall(nativeFetch){
+function displayInstall(nativeFetch,profilePath){
  const observations=[],realm=displayRealm({URL,Request,Promise,performance,crypto:displayCrypto,location:{protocol:'http:',origin,href:origin+'/'}});realm.window=realm;realm.fetch=nativeFetch;realm.__validationDisplayAbort=event=>{observations.push(event);return Promise.resolve();};
- runDisplayRealm('('+installDisplayReadObserver.toString()+')()',realm);return {realm,observations};
+ realm.profilePath=profilePath;runDisplayRealm('('+installDisplayReadObserver.toString()+')(profilePath)',realm);return {realm,observations};
 }
 test('actual observer preserves original fetch/read/cancel promises, arguments, receivers and reader values',async()=>{
  const calls=[],fetchThis={},readThis={},cancelThis={},chunk={done:false,value:new Uint8Array(64)},chunkPromise=Promise.resolve(chunk),eofPromise=Promise.resolve({done:true,value:undefined}),cancelPromise=Promise.resolve('cancelled');let reads=0;
@@ -499,4 +499,43 @@ test('queue snapshot is immutable and only demonstrably later same-bucket traffi
  s.current.events.push(...next.rows);s.current.requests.push(next.q);assert.ok(queueDisposition(s));assert.equal(s.snapshot.raw.events.length,4);assert.equal(s.snapshot.raw.requests.length,1);
  const unknown={...next.q,requestId:11,startTime:0,response:undefined};s.current.requests.push(unknown);
  assert.deepEqual(displayReadProofs(s.current.events,s.current.requests),[]);assert.equal(queueDisposition(s),false,'a later unavailable timestamp cannot silently validate the captured proof');assert.equal(s.snapshot.proofs.length,1);
+});
+
+
+// E1's static profile is observed only when explicitly named. This is raw
+// diagnostic evidence, never a new cancellation or original-body proof class.
+const diagnosticProfilePath='/assets/profile-1234Ab_c.json';
+test('profile diagnostics preserve original promises and record only the opted-in same-origin GET body',async()=>{
+ const url=origin+diagnosticProfilePath,chunk={done:false,value:new Uint8Array(7)},eof={done:true,value:undefined},parts=[Promise.resolve(chunk),Promise.resolve(eof)];let calls=0;
+ const reader={read(){return parts[calls++];},cancel(){throw Error('No observer cancellation');}},body={getReader(){return reader;},cancel(){throw Error('No observer cancellation');},tee(){throw Error('No observer tee');}};
+ const response={body,status:200,url,redirected:false,clone(){throw Error('No observer clone');}},original=Promise.resolve(response),controller=new AbortController(),h=displayInstall(()=>original,diagnosticProfilePath);
+ assert.equal(h.realm.fetch(url,{signal:controller.signal}),original);await original;assert.equal(calls,0);assert.equal(body.getReader(),reader);
+ assert.equal(reader.read(),parts[0]);assert.equal(await parts[0],chunk);assert.equal(reader.read(),parts[1]);assert.equal(await parts[1],eof);await h.realm.__validationDisplayObserver.flush();
+ assert.deepEqual(h.observations.map(e=>e.kind),['start','response','reader','profile-read-call','profile-read-call','complete']);
+ const done=h.observations.at(-1);assert.equal(done.bytes,7);assert.equal(done.originalReader,true);assert.equal(done.readCalls,2);assert(!h.observations.some(e=>['abort','cancel'].includes(e.kind)));
+ controller.abort();await h.realm.__validationDisplayObserver.flush();assert.equal(h.observations.at(-1).kind,'abort');assert.equal(h.observations.at(-1).aborted,true);
+ const sample=displaySample(diagnosticProfilePath);assert.equal(displayObservationPath(url),false);assert.equal(displayReadPath(url),false);assert.deepEqual(displayReadProofs(sample.rows,[sample.q]),[]);
+});
+test('profile diagnostics record pending and rejected original cancellations without fabricating EOF',async()=>{
+ let reject;const nativeCancel=new Promise((_,no)=>reject=no),url=origin+diagnosticProfilePath,reader={read(){throw Error('No observer read');},cancel(){return nativeCancel;}},body={getReader(){return reader;},cancel(){return nativeCancel;},tee(){throw Error('No tee');}},response={body,status:200,url,redirected:false,clone(){throw Error('No clone');}},h=displayInstall(()=>Promise.resolve(response),diagnosticProfilePath);
+ await h.realm.fetch(url);assert.equal(body.getReader(),reader);assert.equal(reader.cancel('owned-reason'),nativeCancel);
+ assert.equal(h.observations.at(-1).kind,'profile-cancel-call');assert.equal(h.observations.at(-1).originalReader,true);assert.equal(h.observations.at(-1).readCalls,0);assert(!h.observations.some(e=>e.kind==='cancel'||e.kind==='complete'));
+ const error=new DOMException('Native cancellation rejected','AbortError');reject(error);await assert.rejects(nativeCancel,e=>e===error);await h.realm.__validationDisplayObserver.flush();assert.equal(h.observations.at(-1).kind,'cancel-rejected');assert(!h.observations.some(e=>e.kind==='cancel'||e.kind==='complete'));
+});
+test('profile diagnostics do not observe default, foreign, queried, fragmented, other-profile or non-GET requests',async()=>{
+ for(const [url,method,optIn] of [[origin+diagnosticProfilePath,'GET',undefined],['http://127.0.0.1:54322'+diagnosticProfilePath,'GET',diagnosticProfilePath],[origin+diagnosticProfilePath+'?x=1','GET',diagnosticProfilePath],[origin+diagnosticProfilePath+'#x','GET',diagnosticProfilePath],[origin+'/assets/profile-8765Ab_c.json','GET',diagnosticProfilePath],[origin+diagnosticProfilePath,'POST',diagnosticProfilePath]]){
+  const original=Promise.resolve({body:null}),h=displayInstall(()=>original,optIn);assert.equal(h.realm.fetch(url,{method}),original);await original;await h.realm.__validationDisplayObserver.flush();assert.equal(h.observations.length,0,url);
+ }
+});
+test('context profile diagnostics retain exact original Request/frame identities without granting proof authority',async()=>{
+ const handlers={},scripts=[];let binding;const frame={},otherFrame={},context={on:(event,fn)=>handlers[event]=fn,exposeBinding:async(name,fn)=>binding=fn,addInitScript:async(...args)=>scripts.push(args)},observer=await observeDisplayAborts(context,q=>q.id,diagnosticProfilePath),sample=displaySample(diagnosticProfilePath);
+ const request={id:91,method:()=>sample.q.method,resourceType:()=>sample.q.resourceType,url:()=>sample.q.url,frame:()=>frame,timing:()=>({startTime:101}),redirectedFrom:()=>null,redirectedTo:()=>null};
+ handlers.request(request);handlers.response({request:()=>request,url:()=>sample.q.url,status:()=>200,fromServiceWorker:()=>false});for(const row of sample.rows)await binding({frame:otherFrame},row);
+ const raw=observer.observations();assert.equal(raw.requests.length,1);assert.equal(raw.requests[0].requestId,91);assert.equal(raw.requests[0].frameId,1);assert.equal(raw.events[0].frameId,2);assert.equal(raw.requests[0].response.status,200);assert.deepEqual(observer(),[]);assert.equal(scripts[0][0],installDisplayReadObserver);assert.equal(scripts[0][1],diagnosticProfilePath);
+ for(const suffix of ['?x','#x'])handlers.request({...request,id:92,url:()=>sample.q.url+suffix});handlers.request({...request,id:93,method:()=> 'POST'});assert.equal(observer.observations().requests.length,1);
+});
+test('invalid profile diagnostic opt-ins fail before installing any hooks',async()=>{
+ for(const path of ['', '/api/v1/queue','/assets/profile-short.json',diagnosticProfilePath+'?x',diagnosticProfilePath+'\n',origin+diagnosticProfilePath]){
+  const context={on(){assert.fail('No hook before admission');}};await assert.rejects(observeDisplayAborts(context,()=>1,path),/DISPLAY_PROFILE_PATH/);assert.throws(()=>displayInstall(()=>Promise.resolve({body:null}),path),/DISPLAY_PROFILE_PATH/);
+ }
 });

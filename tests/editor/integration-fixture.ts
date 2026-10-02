@@ -17,6 +17,8 @@ import {integrationCancellation} from './integration-network.mjs';
 import {originalFontReader,sealedBrowserFonts} from './original-font-reader.js';
 import {originalRecoveryReader} from './original-recovery-reader.js';
 import {observeDisplayAborts} from './display-aborts.js';
+// @ts-ignore Run-scoped closed emitted-asset descriptors, also required by the completion monitor.
+import {loadHostIssuers} from './completion/host-final-issuers.mjs';
 // @ts-ignore Test-owned pinned Chromium completion observer.
 import {completionMonitor} from './completion/monitor.mjs';
 // @ts-ignore Independent test-owned teardown steps.
@@ -61,7 +63,17 @@ export async function fixture(page:Page,context:BrowserContext,engine:string,nam
  const id=(r:any)=>{if(!ids.has(r))ids.set(r,++sequence);return ids.get(r)!;};
  const fontObserver=await originalFontReader(context,out,fonts,id);
  const recoveryObserver=await originalRecoveryReader(context,out,id);
- const workflowObserver=await observeDisplayAborts(context,id);
+ // Consume the existing audited complete asset pin; never discover a replacement
+ // pathname or grant authority to an arbitrary computed asset prefix.
+ const profileIssuers=loadHostIssuers();
+ if(profileIssuers.kind!=='SOURCE-BOUND-APPLICATION-ISSUERS-1'||!Array.isArray(profileIssuers.assetFiles)||!Array.isArray(profileIssuers.pins))throw Error('Current profile issuer descriptors required');
+ const profileNames=profileIssuers.assetFiles.filter((name:unknown)=>typeof name==='string'&&/^profile-[A-Za-z0-9_-]{8}\.json$(?![\s\S])/.test(name));
+ const profilePins=profileIssuers.pins.filter((pin:any)=>typeof pin?.path==='string'&&/^dist\/app\/assets\/profile-[A-Za-z0-9_-]{8}\.json$(?![\s\S])/.test(pin.path)),sourcePins=profileIssuers.pins.filter((pin:any)=>pin?.path==='src/text/profile.json');
+ if(profileNames.length!==1||profilePins.length!==1||sourcePins.length!==1||profilePins[0].path!=='dist/app/assets/'+profileNames[0])throw Error('Exactly one pinned built text profile required');
+ const profilePin=profilePins[0],sourcePin=sourcePins[0],profileBytes=await readFile(profilePin.path);
+ if(!Number.isSafeInteger(profilePin.bytes)||profilePin.bytes<=0||profilePin.bytes>65536||profilePin.bytes!==profileBytes.length||sha(profileBytes)!==profilePin.sha256||sourcePin.bytes!==profilePin.bytes||sourcePin.sha256!==profilePin.sha256||!profileBytes.equals(await readFile(sourcePin.path)))throw Error('Built text profile differs from current sealed input');
+ const profileObservation={diagnosticOnly:true,path:profilePin.path.slice('dist/app'.length),bytes:profilePin.bytes,sha256:profilePin.sha256};
+ const workflowObserver=await observeDisplayAborts(context,id,profileObservation.path);
  const guard=await ownedOPFS(context,'p1c6-'+name+'-'+engine),dom=await recordDOMErrors(context);
  const completion=engine==='chromium'?await completionMonitor({page,context,root,out,id,expect,storageProbePath:'/__e1_storage_'+guard.run,fixture:name,mode:name==='busy-actions'?'EMPTY-NATIVE':name==='restored-reads'?'RESTORED-NON-NATIVE':'NATIVE-COMPLETION'}):undefined;
  const instrument=(p:Page)=>{p.on('worker',w=>{workers.add(w);w.once('close',()=>workers.delete(w));});p.on('pageerror',e=>events.push({channel:'pageerror',phase,message:e.message}));p.on('console',m=>{if(m.type()==='error')events.push({channel:'console',phase,message:m.text(),url:m.location().url,page:p.url().replace(/#.*$/,'')});});};
@@ -113,7 +125,7 @@ export async function fixture(page:Page,context:BrowserContext,engine:string,nam
     if(completion?.privateEvent(e))return false;
     return !(engine==='chromium'&&completion?.qualifies(e))&&![...origins].some(o=>integrationCancellation(e,o,engine,downloads,faults,fontProofs,importedHeads,recoveryProofs,workflowProofs));
    });
-   await writeFile(join(out,'observations.json'),JSON.stringify({engine,root,ancillaryIconProof:{noStaticIcon,origins:[...ancillaryOrigins]},phase,events,commands,downloads,effects,dom,faults,fontProofs,importedHeads,recoveryProofs,workflowProofs,workflowObservations,wasmReads,fontTransitions,unmatched,cleanupError,primaryError:primaryError instanceof Error?{message:primaryError.message,stack:primaryError.stack}:primaryError},null,2));await writeFile(join(out,'ownership.json'),JSON.stringify({run:guard.run,ledger:guard.ledger,workers:workers.size,...cleanup},null,2));
+   await writeFile(join(out,'observations.json'),JSON.stringify({engine,root,ancillaryIconProof:{noStaticIcon,origins:[...ancillaryOrigins]},phase,events,commands,downloads,effects,dom,faults,fontProofs,importedHeads,recoveryProofs,workflowProofs,workflowObservations,profileObservation,wasmReads,fontTransitions,unmatched,cleanupError,primaryError:primaryError instanceof Error?{message:primaryError.message,stack:primaryError.stack}:primaryError},null,2));await writeFile(join(out,'ownership.json'),JSON.stringify({run:guard.run,ledger:guard.ledger,workers:workers.size,...cleanup},null,2));
    const problems=[primaryError,cleanupError,workflowObservations.errors.length?Error('Original workflow observation errors: '+JSON.stringify(workflowObservations.errors)):null,recoveryProofs.errors.length?Error('Recovery observation errors: '+JSON.stringify(recoveryProofs.errors)):null,wasmReads.some(r=>!r.matchesSealed)?Error('Incomplete same-response WASM proof: '+JSON.stringify(wasmReads)):null,dom.length?Error('DOM errors: '+JSON.stringify(dom)):null,unmatched.length?Error('Unmatched observations: '+JSON.stringify(unmatched)):null].filter(Boolean);if(problems.length)throw new AggregateError(problems,'Integrated workflow and shutdown failures (all preserved)');
   }
  };

@@ -168,8 +168,10 @@ export function displayReadProofs(events:readonly Observation[],requests:readonl
 
 // Observe only values from the application's original fetch/reader calls.
 // Return the original promises, readers and results; never read, clone or tee.
-export function installDisplayReadObserver(){
+export function installDisplayReadObserver(profilePath?:string){
+ // Opt-in diagnostics only; this path never enters displayReadProofs authority.
  'use strict';
+ if(profilePath!==undefined&&!/^\/assets\/profile-[A-Za-z0-9_-]{8}\.json$(?![\s\S])/.test(profilePath))throw Error('DISPLAY_PROFILE_PATH');
  if(!/^https?:$/.test(location.protocol))return;
  const nativeFetch=window.fetch,document=crypto.randomUUID(),pendingTiles=new Set<number>(),pending=new Set<Promise<unknown>>(),errors:string[]=[];let ordinal=0,rows=0,reportedFailure=false;
  const now=()=>performance.timeOrigin+performance.now(),fail=(e:unknown)=>{
@@ -184,7 +186,8 @@ export function installDisplayReadObserver(){
  Object.defineProperty(window,'__validationDisplayObserver',{value:{async flush(){while(pending.size)await Promise.allSettled([...pending]);if(errors.length)throw Error(errors.join('; '));}}});
  window.fetch=function(this:Window,...args:Parameters<typeof fetch>){
   const input=args[0],url=new URL(input instanceof Request?input.url:String(input),location.href),inputMethod=args[1]?.method??(input instanceof Request?input.method:'GET'),method=typeof inputMethod==='string'?inputMethod.toUpperCase():inputMethod;
-  if(url.origin!==location.origin||!['GET','POST','PUT'].includes(method)||!/^\/api\/v1\//.test(url.pathname))return Reflect.apply(nativeFetch,this,args);
+  const profileRead=method==='GET'&&url.pathname===profilePath&&!url.search&&!url.hash;
+  if(url.origin!==location.origin||!['GET','POST','PUT'].includes(method)||!/^\/api\/v1\//.test(url.pathname)&&!profileRead)return Reflect.apply(nativeFetch,this,args);
   const operation=++ordinal,start=now(),base={operation,url:url.href,method,start},signal=args[1]?.signal??(input instanceof Request?input.signal:null);
   if(url.pathname.endsWith('/display-tile'))pendingTiles.add(operation);
   const emit=(kind:string,fields:Record<string,unknown>={})=>{if(['abort','cancel','complete','rejected','read-rejected'].includes(kind))pendingTiles.delete(operation);send({...base,kind,at:now(),...fields});};
@@ -199,12 +202,12 @@ export function installDisplayReadObserver(){
    const rejectedAssetBody=assetBody&&response.status===404;
    const getReader=body.getReader,cancel=body.cancel,tee=body.tee;let readers=0;
    body.tee=function(this:ReadableStream<Uint8Array>,...args:[]){emit('tee');return Reflect.apply(tee,this,args);};
-   body.cancel=function(this:ReadableStream<Uint8Array>,...args:Parameters<typeof cancel>){if(rejectedAssetBody)emit('asset-cancel-call',{reader:0});const p=Reflect.apply(cancel,this,args);watch(p,()=>emit('cancel',{reader:0}),e=>emit('cancel-rejected',{reader:0,errorName:e?.name}));return p;};
+   body.cancel=function(this:ReadableStream<Uint8Array>,...args:Parameters<typeof cancel>){if(rejectedAssetBody||profileRead)emit(profileRead?'profile-cancel-call':'asset-cancel-call',{reader:0});const p=Reflect.apply(cancel,this,args);watch(p,()=>emit('cancel',{reader:0}),e=>emit('cancel-rejected',{reader:0,errorName:e?.name}));return p;};
    body.getReader=function(this:ReadableStream<Uint8Array>,...args:any[]){
     const originalBody=this===body,reader=Reflect.apply(getReader,this,args),read=reader.read,cancelReader:ReadableStreamGenericReader['cancel']=reader.cancel,number=++readers;let bytes=0,readCalls=0,originalReader=originalBody;
     try{emit('reader',{reader:number});
-    reader.read=function(this:ReadableStreamDefaultReader<Uint8Array>,...args:any[]){originalReader&&=this===reader;if(rejectedAssetBody)emit('asset-read-call',{reader:number,originalReader,readCalls:++readCalls});const p=Reflect.apply(read,this,args) as Promise<ReadableStreamReadResult<Uint8Array>>;watch(p,part=>{if(part.done)emit('complete',{reader:number,bytes,...assetBody?{originalReader}:{}});else{bytes+=part.value.byteLength;if(!Number.isSafeInteger(bytes))emit('observer-error');}},e=>emit('read-rejected',{reader:number,errorName:e?.name}));return p;};
-    reader.cancel=function(this:ReadableStreamDefaultReader<Uint8Array>,...args:any[]){const originalCancelReader=originalReader&&this===reader;if(rejectedAssetBody)emit('asset-cancel-call',{reader:number,originalReader:originalCancelReader,readCalls,bytes});const p=Reflect.apply(cancelReader,this,args);watch(p,()=>emit('cancel',{reader:number,...rejectedAssetBody?{originalReader:originalCancelReader,readCalls,bytes}:{}}),e=>emit('cancel-rejected',{reader:number,errorName:e?.name}));return p;};
+    reader.read=function(this:ReadableStreamDefaultReader<Uint8Array>,...args:any[]){originalReader&&=this===reader;if(rejectedAssetBody||profileRead)emit(profileRead?'profile-read-call':'asset-read-call',{reader:number,originalReader,readCalls:++readCalls});const p=Reflect.apply(read,this,args) as Promise<ReadableStreamReadResult<Uint8Array>>;watch(p,part=>{if(part.done)emit('complete',{reader:number,bytes,...assetBody||profileRead?{originalReader}:{},...profileRead?{readCalls}:{}});else{bytes+=part.value.byteLength;if(!Number.isSafeInteger(bytes))emit('observer-error');}},e=>emit('read-rejected',{reader:number,errorName:e?.name}));return p;};
+    reader.cancel=function(this:ReadableStreamDefaultReader<Uint8Array>,...args:any[]){const originalCancelReader=originalReader&&this===reader;if(rejectedAssetBody||profileRead)emit(profileRead?'profile-cancel-call':'asset-cancel-call',{reader:number,originalReader:originalCancelReader,readCalls,bytes});const p=Reflect.apply(cancelReader,this,args);watch(p,()=>emit('cancel',{reader:number,...rejectedAssetBody||profileRead?{originalReader:originalCancelReader,readCalls,bytes}:{}}),e=>emit('cancel-rejected',{reader:number,errorName:e?.name}));return p;};
     }catch(error){fail(error);}
     return reader;
    } as typeof body.getReader;
@@ -213,13 +216,15 @@ export function installDisplayReadObserver(){
  };
 }
 
-export async function observeDisplayAborts(context:BrowserContext,requestId:(r:Request)=>number){
+export async function observeDisplayAborts(context:BrowserContext,requestId:(r:Request)=>number,profilePath?:string){
+ if(profilePath!==undefined&&!/^\/assets\/profile-[A-Za-z0-9_-]{8}\.json$(?![\s\S])/.test(profilePath))throw Error('DISPLAY_PROFILE_PATH');
+ const diagnosticProfile=(request:Request)=>{const url=new URL(request.url());return request.method()==='GET'&&url.pathname===profilePath&&!url.search&&!url.hash;};
  const events:Observation[]=[],requests:{request:Request;frameId:number}[]=[],frames=new Map<Frame,number>(),responses=new Map<Request,OriginalRequest['response']>(),errors:string[]=[];
  const fail=(e:unknown)=>{if(errors.length<16)errors.push(String(e));},frameId=(frame:Frame)=>{if(!frames.has(frame))frames.set(frame,frames.size+1);return frames.get(frame)!;};
- context.on('request',request=>{if(['GET','POST','PUT'].includes(request.method())&&request.resourceType()==='fetch'&&displayObservationPath(request.url()))try{if(requests.length>=DISPLAY_REQUEST_LIMIT)throw Error('DISPLAY_REQUEST_LIMIT');requestId(request);requests.push({request,frameId:frameId(request.frame())});}catch(e){fail(e);}});
+ context.on('request',request=>{if(['GET','POST','PUT'].includes(request.method())&&request.resourceType()==='fetch'&&(displayObservationPath(request.url())||diagnosticProfile(request)))try{if(requests.length>=DISPLAY_REQUEST_LIMIT)throw Error('DISPLAY_REQUEST_LIMIT');requestId(request);requests.push({request,frameId:frameId(request.frame())});}catch(e){fail(e);}});
  context.on('response',response=>{const request=response.request();if(requests.some(r=>r.request===request))responses.set(request,{url:response.url(),status:response.status(),fromServiceWorker:response.fromServiceWorker()});});
  await context.exposeBinding('__validationDisplayAbort',({frame},event:Omit<Observation,'frameId'>)=>{if(event.kind==='collector-error'){fail('Browser original-read observer failed');return;}if(events.length>=DISPLAY_OBSERVATION_LIMIT){fail('DISPLAY_OBSERVATION_LIMIT');return;}events.push({...event,frameId:frameId(frame)});});
- await context.addInitScript(installDisplayReadObserver);
+ await context.addInitScript(installDisplayReadObserver,profilePath);
  const originals=()=>requests.map(({request,frameId})=>({requestId:requestId(request),frameId,url:request.url(),method:request.method(),resourceType:request.resourceType(),startTime:request.timing().startTime,redirected:!!request.redirectedFrom()||!!request.redirectedTo(),response:responses.get(request)}));
  const proofs=()=>displayReadProofs(events,originals(),errors);
  const flush=async(page:Page)=>{try{await page.evaluate(async()=>{await (window as any).__validationDisplayObserver?.flush();});}catch(e){fail(e);throw e;}};
