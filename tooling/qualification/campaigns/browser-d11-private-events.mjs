@@ -299,7 +299,13 @@ function eventBinding(context, arrow) {
   const match = /^<([a-z][a-z0-9-]*)\b[^<>]*\s@(click|keydown)=$/.exec(opening);
   if (!match || match[2] === 'click' && match[1] !== 'en-button') return null;
   if (!/^(?:\s|>)/.test(quasi.quasis[index + 1].value.cooked)) return null;
-  return { template: tagged, event: match[2], element: match[1] };
+  // A public-action label is optional evidence, never a template sink bypass.
+  // Only plain literal button text with no accessible-name override is named.
+  const ending = quasi.quasis[index + 1].value.cooked;
+  const label = match[1] === 'en-button' && match[2] === 'click'
+    && !/(?:aria[-.]?label|ariaLabel|aria-labelledby)/i.test(opening)
+    ? /^\s*>([A-Za-z0-9][A-Za-z0-9 ._-]{0,79})<\/en-button>/.exec(ending)?.[1] : null;
+  return { template: tagged, event: match[2], element: match[1], ...(label ? { buttonText: label.trim().replace(/\s+/g, ' ') } : {}) };
 }
 
 // An application data field may also be named "render". A direct named
@@ -483,7 +489,18 @@ function commandBoundary(context, klass, arrow, corpus) {
     if (output?.type !== 'ObjectExpression' || output.properties.some(item => item.type !== 'Property' || item.computed || item.value?.type !== 'Identifier' || !names.has(item.value.name))) fail('display row copy has an unknown callback escape');
   }
   if (!events.has('click') || !events.has('keydown')) fail('command execution lacks both reviewed event paths');
-  return { events: sorted(events), consumer: target.path, producer: producer.key.name, callbackField: stored, itemsMethod: items.key.name, capability };
+  const literalField = (value, name) => {
+    const fields = value.properties.filter(field => key(field) === name);
+    return fields.length === 1 ? literal(fields[0].value) : null;
+  };
+  const commandId = literalField(row, 'id'), commandLabel = literalField(row, 'label');
+  const ids = array.elements.map(item => literalField(item, 'id'));
+  const identity = typeof commandId === 'string' && commandId.length > 0 && commandId.length <= 80
+    && typeof commandLabel === 'string' && commandLabel.length > 0 && commandLabel.length <= 80
+    && ids.every(id => typeof id === 'string' && id.length > 0) && new Set(ids).size === ids.length
+    ? { commandId, commandLabel } : null;
+  return { events: sorted(events), consumer: target.path, producer: producer.key.name, callbackField: stored, itemsMethod: items.key.name, capability,
+    ...(identity ? { identity } : {}) };
 }
 
 /** Structural source proof only. It supplies no dependency authority and must
@@ -505,13 +522,24 @@ export function deriveD11PrivateEventSourceProof({ manifest, files, sourceTextBy
       assertStableBinding(context, klass.id?.name);
       const calls = privateCalls(context, klass, method.key.name);
       if (calls.length !== 2) fail('private load boundary must have exactly two accounted callers');
-      const witnesses = [];
+      const witnesses = []; let buttonAction = null, commandAction = null;
       for (const call of calls) {
         const arrow = context.parents.get(call);
-        if (arrow?.type !== 'ArrowFunctionExpression' || arrow.body !== call || arrow.params.length || call.arguments.length) fail('private feature caller is not a plain zero-argument arrow');
+        if (arrow?.type !== 'ArrowFunctionExpression' || arrow.body !== call) fail('private feature caller is not a direct expression arrow');
         const event = eventBinding(context, arrow);
-        if (event) { proveTemplateConsumer(context, event.template, klass, corpus); witnesses.push({ source: context.path, ...span(call), kind: 'lit-event', events: [event.event] }); }
-        else { const command = commandBoundary(context, klass, arrow, corpus); witnesses.push({ source: context.path, ...span(call), kind: 'private-command-event', events: command.events, command }); }
+        const noArguments = arrow.params.length === 0 && call.arguments.length === 0;
+        const parameter = arrow.params[0], argument = call.arguments[0];
+        const forwardedEvent = event?.event === 'click' && event.element === 'en-button' && arrow.params.length === 1 && call.arguments.length === 1
+          && parameter?.type === 'Identifier' && argument?.type === 'Identifier' && parameter.name === argument.name;
+        if (!noArguments && !forwardedEvent) fail('private feature caller is not a plain zero-argument arrow or direct literal-button event forwarding');
+        if (event) {
+          proveTemplateConsumer(context, event.template, klass, corpus);
+          witnesses.push({ source: context.path, ...span(call), kind: 'lit-event', events: [event.event], ...(forwardedEvent ? { eventArgument: { parameter: parameter.name, argument: argument.name } } : {}) });
+          if (event.buttonText) buttonAction = { event: event.event, element: event.element, buttonText: event.buttonText };
+        } else {
+          const command = commandBoundary(context, klass, arrow, corpus); commandAction = command.identity ?? null;
+          witnesses.push({ source: context.path, ...span(call), kind: 'private-command-event', events: command.events, command });
+        }
       }
       if (witnesses.filter(item => item.kind === 'lit-event').length !== 1 || witnesses.filter(item => item.kind === 'private-command-event').length !== 1) fail('private callers do not close both independent event paths');
       const featureSource = resolveSource(context.path, literal(node.source), corpus);
@@ -537,7 +565,7 @@ export function deriveD11PrivateEventSourceProof({ manifest, files, sourceTextBy
         }
       }
       if (emitted.length !== 1 || !outputs.includes(emitted[0].output)) fail('private target has no unique emitted import-site binding');
-      excludedImports.push({ source: context.path, ...span(node), target, outputs, reason: 'verified-private-event-boundary', witness: { kind: 'd11-private-event-import-1', offsetUnits: 'utf16-code-unit', featureSource, className: klass.id.name, privateMethod: method.key.name, calls: witnesses.sort((a, b) => a.start - b.start), emitted } });
+      excludedImports.push({ source: context.path, ...span(node), target, outputs, reason: 'verified-private-event-boundary', witness: { kind: 'd11-private-event-import-1', offsetUnits: 'utf16-code-unit', featureSource, className: klass.id.name, privateMethod: method.key.name, calls: witnesses.sort((a, b) => a.start - b.start), emitted, ...(buttonAction && commandAction ? { publicAction: { ...commandAction, ...buttonAction } } : {}) } });
     }
   } catch (error) { missing.push(error instanceof Error ? error.message : 'D11 private event proof is unavailable'); }
   return { excludedImports: missing.length ? [] : excludedImports, complete: missing.length === 0, missing, ...(conditionalEventDataEffects.length ? { conditionalEventDataEffects } : {}) };

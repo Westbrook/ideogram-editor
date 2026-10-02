@@ -7,29 +7,39 @@ import { join } from 'node:path';
 import { gzipSync } from 'node:zlib';
 
 // Exercise the real collector's CDP interval state and retained bytes. Only the
-// build-loader and supplemental reducer ports are stand-ins. These specimens
-// are not browser evidence, role classification, or a qualification result.
+// build-loader and observation-reducer ports are stand-ins; feature selection
+// uses the real pure helper. The invented action metadata is not a source proof.
+// These specimens are not browser evidence, role classification or qualification.
 const sha = value => 'sha256:' + createHash('sha256').update(value).digest('hex');
 const data = source => 'data:text/javascript;base64,' + Buffer.from(source).toString('base64');
 const origin = 'http://127.0.0.1:4381';
-const sources = { 'assets/main.js': 'export const main = 1;', 'assets/feature.js': 'export const feature = 2;' };
+const sources = { 'assets/main.js': 'export const main = 1;', 'assets/feature.js': 'export const feature = 2;',
+  'assets/storage.js': 'export const storage = 3;' };
 const featureId = 'src/ui/fixture-feature.ts';
+const storageFeatureId = 'src/ui/fixture-storage.ts';
+const exportAction = { commandId: 'export-image', commandLabel: 'Export image', event: 'click', element: 'en-button', buttonText: 'Export image' };
 function build() {
   const files = Object.entries(sources).map(([file, source]) => ({ file, kind: 'js', sha256: sha(source),
     rawBytes: Buffer.byteLength(source), gzipBytes: gzipSync(source).length, computedGzipBytes: gzipSync(source).length,
     modules: [], sources: [], authoringFont: false }));
-  return { sha256: sha('collector lifecycle specimen'), files, duplicateVersions: [],
-    dynamicFeatures: [{ id: featureId, entryFile: 'assets/feature.js', files: ['assets/feature.js'] }],
+  return { kind: 'perf-d11-build-1', sha256: sha('collector lifecycle specimen'), files, duplicateVersions: [],
+    dynamicFeatures: [{ id: featureId, entryFile: 'assets/feature.js', files: ['assets/feature.js'] },
+      { id: storageFeatureId, entryFile: 'assets/storage.js', files: ['assets/storage.js'] }],
     roles: { complete: true, missing: [], startupFiles: ['assets/main.js'], textEngineFiles: [],
-      lazyFeatures: [{ id: featureId, files: ['assets/feature.js'], closureFiles: ['assets/feature.js'] }],
-      excludedImports: [{ reason: 'verified-private-event-boundary', witness: { kind: 'd11-private-event-import-1', featureSource: featureId } }] } };
+      lazyFeatures: [{ id: featureId, files: ['assets/feature.js'], closureFiles: ['assets/feature.js'] },
+        { id: storageFeatureId, files: ['assets/storage.js'], closureFiles: ['assets/storage.js'] }],
+      excludedImports: [{ reason: 'verified-private-event-boundary', target: 'assets/storage.js', outputs: ['assets/main.js'],
+        witness: { kind: 'd11-private-event-import-1', featureSource: storageFeatureId,
+          publicAction: { commandId: 'storage', commandLabel: 'Storage', event: 'click', element: 'en-button', buttonText: 'Storage' } } },
+        { reason: 'verified-private-event-boundary', target: 'assets/feature.js', outputs: ['assets/main.js'],
+          witness: { kind: 'd11-private-event-import-1', featureSource: featureId, publicAction: { ...exportAction } } }] } };
 }
-async function collectorModule() {
+async function collectorModule(specimen = build()) {
   let source = await readFile(new URL('../../tooling/qualification/campaigns/browser-d11.mjs', import.meta.url), 'utf8');
   const replacements = [
-    ["import { loadD11Build } from './browser-d11-build.mjs';", `const loadD11Build = async () => (${JSON.stringify(build())});`],
-    ["import { deriveD11FeatureBoundary, analyzeD11FeatureAbsence, analyzeD11FeatureFirstUse } from './browser-d11-feature-boundary.mjs';", `
-      const deriveD11FeatureBoundary = (_build, featureId) => ({complete:true,missing:[],featureId,exclusiveFiles:['assets/feature.js']});
+    ["import { loadD11Build } from './browser-d11-build.mjs';", `const loadD11Build = async () => (${JSON.stringify(specimen)});`],
+    ["import { selectD11FeatureBoundaryForAction, analyzeD11FeatureAbsence, analyzeD11FeatureFirstUse } from './browser-d11-feature-boundary.mjs';", `
+      import { selectD11FeatureBoundaryForAction } from ${JSON.stringify(new URL('../../tooling/qualification/campaigns/browser-d11-feature-boundary.mjs', import.meta.url).href)};
       const analyzeD11FeatureAbsence = observation => ({status:'PASS',phase:'startup-absence',observationId:observation.id});
       const analyzeD11FeatureFirstUse = (observation, _build, {baseline}) => ({status:baseline?'PASS':'INCONCLUSIVE',phase:'first-use',observationId:observation.id,baselineId:baseline?.observation.id??null});`],
   ];
@@ -78,12 +88,12 @@ class CDP {
     }
   }
 }
-async function fixture(t) {
+async function fixture(t, specimen = build()) {
   const directory = await mkdtemp(join(tmpdir(), 'd11-collector-'));
   t.after(() => rm(directory, { recursive: true, force: true }));
   const output = join(directory, 'evidence'); await mkdir(output);
   const lane = new CDP(); let currentURL = 'about:blank';
-  const { createBrowserD11Collector } = await collectorModule();
+  const { createBrowserD11Collector } = await collectorModule(specimen);
   const collector = await createBrowserD11Collector({ context: { addInitScript: async () => {}, newCDPSession: async () => lane },
     page: { url: () => currentURL }, repo: directory, output, origin, fixture: { seal: { sha256: sha('fixture') } },
     cachePolicy: { httpCacheDisabledByRouting: false } });
@@ -97,6 +107,29 @@ const startupArgs = (id, cache) => ({ id, cache, workload: 'W1', scope: 'startup
   featureBoundary: { featureId, phase: 'startup-absence' } });
 const firstUseArgs = (id, cache) => ({ id, cache, workload: 'W1', scope: 'lazy-feature', featureId, byteAudit: true,
   featureBoundary: { featureId, phase: 'first-use' } });
+
+test('collector selects its fixed Export action with Storage listed first and rejects Storage supplemental scope', async t => {
+  const { collector } = await fixture(t), boundary = collector.resolveFeatureBoundary();
+  assert.equal(boundary.complete, true); assert.equal(boundary.featureId, featureId);
+  assert.deepEqual(boundary.exclusiveFiles, ['assets/feature.js']);
+  await assert.rejects(collector.begin({ ...startupArgs('startup:wrong-feature', 'cold'),
+    featureBoundary: { featureId: storageFeatureId, phase: 'startup-absence' } }), /exact source-proved feature/);
+});
+
+test('collector rejects missing, mismatched and duplicate Export action witnesses before collection', async t => {
+  for (const change of [
+    value => { delete value.roles.excludedImports[1].witness.publicAction; },
+    value => { value.roles.excludedImports[1].witness.publicAction.commandId = 'storage'; },
+    value => { value.roles.excludedImports[1].witness.publicAction.extra = true; },
+    value => { value.roles.excludedImports.push(structuredClone(value.roles.excludedImports[1])); },
+    value => { value.roles.excludedImports[0].witness.publicAction = { ...exportAction }; },
+  ]) {
+    const specimen = build(); change(specimen);
+    const { collector } = await fixture(t, specimen);
+    assert.equal(collector.resolveFeatureBoundary().complete, false);
+    await assert.rejects(collector.begin(startupArgs('startup:unselected', 'cold')), /exact source-proved feature/);
+  }
+});
 
 test('collector preserves request starts, cache hits and independent startup/first-use artifact identities', async t => {
   const { collector, lane, navigate, payload } = await fixture(t);

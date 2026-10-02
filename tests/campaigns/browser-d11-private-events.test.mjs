@@ -278,19 +278,27 @@ test('all actual application render consumers reach the complete private structu
   const profile=verifyD11ApplicationProfile(value);
   assert.equal(profile.inputs.length,Object.keys(value.sourceTextByPath).length+1);
   // Only the output mapping is synthetic here. The complete actual source
-  // corpus exercises every render sink and both real Export event paths;
+  // corpus exercises every render sink and both real Export/Storage roots;
   // finalized-build integration separately authenticates emitted bytes.
-  const source='src/ui/shell.ts',feature='src/ui/export.ts',target='assets/feature.js';
+  const source='src/ui/shell.ts',features=[['src/ui/export.ts','assets/export.js'],['src/ui/storage-library.ts','assets/storage.js']];
   const proof=deriveD11PrivateEventSourceProof({
     ...value,parser,roleContext:structuredClone(D11_ROLE_CONTEXT),
-    manifest:{[feature]:{src:feature,file:target,isDynamicEntry:true}},
-    files:[{file:'assets/shell.js',kind:'js',sources:[source],modules:[source]},{file:target,kind:'js',sources:[feature],modules:[feature]}],
-    outputTextByFile:{'assets/shell.js':"class Shell{#load(){return import('./feature.js')}}",[target]:'export const feature=1;'},
+    manifest:Object.fromEntries(features.map(([src,file])=>[src,{src,file,isDynamicEntry:true}])),
+    files:[{file:'assets/shell.js',kind:'js',sources:[source],modules:[source]},...features.map(([src,file])=>({file,kind:'js',sources:[src],modules:[src]}))],
+    outputTextByFile:{'assets/shell.js':"class Shell{#loadExport(){return import('./export.js')}#loadStorage(){return import('./storage.js')}}",...Object.fromEntries(features.map(([,file])=>[file,'export const feature=1;']))},
   });
   assert.equal(proof.complete,true,JSON.stringify(proof.missing));assert.deepEqual(proof.missing,[]);
-  assert.equal(proof.excludedImports.length,1);
-  assert.equal(proof.excludedImports[0].source,source);assert.equal(proof.excludedImports[0].witness.featureSource,feature);
-  assert.deepEqual(proof.excludedImports[0].witness.calls.map(call=>call.kind).sort(),['lit-event','private-command-event']);
+  assert.equal(proof.excludedImports.length,2);
+  assert.deepEqual(proof.excludedImports.map(row=>row.witness.featureSource).sort(),features.map(([src])=>src).sort());
+  for(const row of proof.excludedImports){
+    assert.equal(row.source,source);
+    assert.deepEqual(row.witness.calls.map(call=>call.kind).sort(),['lit-event','private-command-event']);
+  }
+  const storage=proof.excludedImports.find(row=>row.witness.featureSource==='src/ui/storage-library.ts').witness;
+  assert.deepEqual(storage.calls.find(call=>call.kind==='lit-event').eventArgument,{parameter:'event',argument:'event'});
+  assert.deepEqual(storage.publicAction,{commandId:'storage-library',commandLabel:'Storage library',event:'click',element:'en-button',buttonText:'Storage library'});
+  assert.deepEqual(proof.excludedImports.find(row=>row.witness.featureSource==='src/ui/export.ts').witness.publicAction,
+    {commandId:'export-image',commandLabel:'Export image',event:'click',element:'en-button',buttonText:'Export image'});
   assert.equal(proof.conditionalEventDataEffects.length,profile.eventDataEffects.sites.length);
 });
 
@@ -340,4 +348,65 @@ test('emitted template support preserves strict source grammar and exact target 
   const otherOwner=fixture();otherOwner.outputTextByFile['assets/shell.js']='export const shell=1;';
   otherOwner.files.push({file:'assets/other.js',kind:'js',sources:[],modules:[]});otherOwner.outputTextByFile['assets/other.js']='import(`./feature.js`);';
   assert.deepEqual(rejected(otherOwner).missing,['D11 private event proof: private target has no unique emitted import-site binding']);
+});
+
+test('a literal Lit button forwards its exact event binding without granting dependency authority',()=>{
+  for(const name of ['event','clickEvent']){
+    const f=mutate('src/ui/shell.ts','@click=${()=>this.#load()}','@click=${('+name+':Event)=>this.#load('+name+')}');
+    const proof=deriveD11PrivateEventSourceProof(f);
+    assert.equal(proof.complete,true,JSON.stringify(proof.missing));
+    const witness=proof.excludedImports[0].witness;
+    assert.deepEqual(witness.calls.find(call=>call.kind==='lit-event').eventArgument,{parameter:name,argument:name});
+    assert.equal(Object.hasOwn(witness.calls.find(call=>call.kind==='private-command-event'),'eventArgument'),false);
+    assert.deepEqual(witness.publicAction,{commandId:'feature',commandLabel:'Feature',event:'click',element:'en-button',buttonText:'Feature'});
+    const final=deriveD11PrivateEventBoundaries({...f,invocationContract:null});
+    assert.equal(final.complete,false);assert.deepEqual(final.excludedImports,[]);
+    assert.deepEqual(final.missing,['D11 private event proof: retained invocation contract is absent for a private target']);
+  }
+});
+
+test('event forwarding refuses transformed bindings, unrelated event sinks and extra private callers',()=>{
+  for(const arrow of [
+    '(event=other)=>this.#load(event)','(...event)=>this.#load(event)',
+    '({event})=>this.#load(event)','([event])=>this.#load(event)',
+    '(event,other)=>this.#load(event)','event=>this.#load(other)',
+    'event=>this.#load(event.target)','event=>this.#load()',
+    '()=>this.#load(event)','event=>{this.#load(event)}',
+    'event=>this.#load(...event)','event=>this.#load(event,other)',
+    'event=>this.#load((event))',
+  ])rejected(mutate('src/ui/shell.ts','@click=${()=>this.#load()}','@click=${'+arrow+'}'));
+  rejected(mutate('src/ui/shell.ts','@click=${()=>this.#load()}','@keydown=${event=>this.#load(event)}'));
+  rejected(mutate('src/ui/shell.ts','<en-button @click=${()=>this.#load()}>Feature</en-button>','<button @click=${event=>this.#load(event)}>Feature</button>'));
+  rejected(mutate('src/ui/shell.ts',"run:()=>this.#load()","run:event=>this.#load(event)"));
+  rejected(mutate('src/ui/shell.ts','commands = new Commands(()=>this.#rows());','commands = new Commands(()=>this.#rows()); eager=this.#load(event);'));
+});
+
+test('public action identity comes from the unique literal command and literal button content',()=>{
+  const f=fixture();
+  f.publicAction={commandId:'export-image',commandLabel:'Export image',event:'click',element:'en-button',buttonText:'Export image'};
+  const witness=deriveD11PrivateEventSourceProof(f).excludedImports[0].witness;
+  assert.deepEqual(witness.publicAction,{commandId:'feature',commandLabel:'Feature',event:'click',element:'en-button',buttonText:'Feature'});
+  const renamed=mutate('src/ui/shell.ts',"id:'feature',label:'Feature'","id:'other-action',label:'Other action'");
+  renamed.sourceTextByPath['src/ui/shell.ts']=renamed.sourceTextByPath['src/ui/shell.ts'].replace('>Feature</en-button>','>Other action</en-button>');
+  const proof=deriveD11PrivateEventSourceProof(renamed);assert.equal(proof.complete,true,JSON.stringify(proof.missing));
+  assert.deepEqual(proof.excludedImports[0].witness.publicAction,{commandId:'other-action',commandLabel:'Other action',event:'click',element:'en-button',buttonText:'Other action'});
+});
+
+test('ambiguous command identities or accessible button names cannot supply action metadata',()=>{
+  const specimens=[
+    ["id:'feature',label:'Feature'","id:'feature',id:'other',label:'Feature'"],
+    ["id:'feature',label:'Feature'","id:'feature',label:'Feature',label:'Other'"],
+    ["id:'feature',label:'Feature'","id:unknownId,label:'Feature'"],
+    ["id:'feature',label:'Feature'","id:'feature',label:unknownLabel"],
+    ["run:()=>this.#load()}];","run:()=>this.#load()},{id:'feature',label:'Other',run:()=>0}];"],
+    ['<en-button @click=','<en-button aria-label="Other" @click='],
+    ['<en-button @click=','<en-button aria-labelledby="other" @click='],
+    ['>Feature</en-button>','>${label}</en-button>'],
+    ['}>Feature</en-button>','} title="Other">Feature</en-button>'],
+  ];
+  for(const [before,after] of specimens){
+    const proof=deriveD11PrivateEventSourceProof(mutate('src/ui/shell.ts',before,after));
+    assert.equal(proof.complete,true,JSON.stringify({before,after,missing:proof.missing}));
+    assert.equal(Object.hasOwn(proof.excludedImports[0].witness,'publicAction'),false,after);
+  }
 });

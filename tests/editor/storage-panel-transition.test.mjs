@@ -8,6 +8,7 @@ import {transformWithOxc} from 'vite';
 const data=source=>'data:text/javascript;base64,'+Buffer.from(source).toString('base64');
 const storageURL=data(`export class StorageLibrary {constructor(host,editor,callbacks){this.host=host;this.editor=editor;this.callbacks=callbacks;globalThis.__storagePanelFixture.construct(this);}open(){return globalThis.__storagePanelFixture.open();}releaseDocument(){return globalThis.__storagePanelFixture.release();}dispose(){return this.releaseDocument();}render(){return null;}get lifecycle(){return {models:0,reads:0,pending:0,cleanupFailures:0};}}`);
 const root=process.env.STORAGE_PANEL_SOURCE_ROOT??'.';
+const {ControlAdapter}=await import(data((await transformWithOxc(await readFile(root+'/src/ui/adapters.ts','utf8'),'src/ui/adapters.ts')).code));
 const compiled=(await transformWithOxc(await readFile(root+'/src/ui/shell.ts','utf8'),'src/ui/shell.ts')).code;
 const stateStart=compiled.indexOf('let shellConnectionGeneration'),stateEnd=compiled.indexOf('const statusName',stateStart);
 assert.ok(stateStart>=0&&stateEnd>stateStart,'actual module-level shell/export lifetime state');
@@ -16,22 +17,32 @@ assert.equal([...moduleState.matchAll(/let exportModuleLoading\s*;/g)].length,1,
 let body=compiled.slice(compiled.indexOf('class EditorShell'),compiled.lastIndexOf('scope.register('));
 const pattern=/import\((["'])\.\/storage-library\.js\1\)/g;
 assert.equal([...body.matchAll(pattern)].length,1,'one actual lazy storage boundary');
-body=body.replace(pattern,()=>`import(${JSON.stringify(storageURL)})`);
 const exportPattern=/import\((["'])\.\/export\.js\1\)/g;
 assert.equal([...body.matchAll(exportPattern)].length,1,'one actual lazy export boundary');
-// This prototype fixture projects only the Export private identifier so it can
-// call the unchanged method body without constructing unrelated controllers.
-// It is a control-flow test, not private-brand or startup-constructor proof;
-// the browser suite exercises the real private method through public controls.
+// This prototype fixture projects only the Storage and Export entry identifiers
+// so it can call their unchanged bodies without constructing unrelated owners.
+// It tests source control flow and the real adapter with EventTarget; it is not
+// private-brand, Lit-dispatch, native-control or startup-constructor proof.
 assert.equal([...body.matchAll(/#showExport\b/g)].length,3,'one private Export definition and two lexical callbacks');
 assert.equal([...body.matchAll(/this\.#showExport\(/g)].length,2,'toolbar and command-search Export callbacks remain lexical');
 const privateExportStart=body.search(/^\s*#showExport\(\)\s*\{/m),privateExportEnd=body.search(/^\s*action\(/m);
 assert.ok(privateExportStart>=0&&privateExportEnd>privateExportStart,'actual private Export method boundaries');
 assert.equal([...body.slice(privateExportStart,privateExportEnd).matchAll(exportPattern)].length,1,'native Export import remains within the private method');
-body=body.replaceAll('#showExport','showExport');
+assert.equal([...body.matchAll(/#showStorage\b/g)].length,3,'one private Storage definition and two lexical callbacks');
+assert.equal([...body.matchAll(/this\.#showStorage\(/g)].length,2,'toolbar and command-search Storage callbacks remain lexical');
+const privateStorageStart=body.search(/^\s*#showStorage\(event\)\s*\{/m);
+assert.ok(privateStorageStart>=0&&privateExportStart>privateStorageStart,'actual private Storage method boundaries');
+assert.equal([...body.slice(privateStorageStart,privateExportStart).matchAll(pattern)].length,1,'native Storage import remains within the private method');
+body=body.replace(pattern,()=>`import(${JSON.stringify(storageURL)})`).replaceAll('#showStorage','showStorage').replaceAll('#showExport','showExport');
+const toolbarBindings=[...body.matchAll(/<en-button id="storage-library-trigger"[^]*?@click=\$\{([^]*?)\}>Storage library<\/en-button>/g)];
+const commandBindings=[...body.matchAll(/run:\s*(\(\)\s*=>\s*this\.showStorage\(\))/g)];
+assert.equal(toolbarBindings.length,1,'one actual Storage toolbar event callback');
+assert.equal(commandBindings.length,1,'one actual Storage command callback');
+const storageBindings=await import(data(`export function toolbar(){return ${toolbarBindings[0][1]};}export function command(){return ${commandBindings[0][1]};}`));
 const module=await import(data(`class LitElement{};let editor;export function bind(value){editor=value;}\n${moduleState}\n${body}\nexport {EditorShell};`));
 const deferred=()=>{let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});void promise.catch(()=>{});return {promise,resolve,reject};};
 const flush=async()=>{for(let n=0;n<64;n++)await Promise.resolve();};
+const dispatchSettled=()=>new Promise(resolve=>setTimeout(resolve,0));
 async function until(predicate){const deadline=performance.now()+2000;while(!predicate()){assert.ok(performance.now()<deadline,'Expected shell transition did not occur');await new Promise(resolve=>setImmediate(resolve));}}
 function fixture({panel=null,shellModule=module}={}){
  const gates=[],runs=[],calls=[],failures=[],previous=globalThis.__storagePanelFixture;let constructed=0,shows=0,updates=0,commit=Promise.resolve(),panelGate=Promise.resolve(),read=Promise.resolve(),release=Promise.resolve();
@@ -39,50 +50,102 @@ function fixture({panel=null,shellModule=module}={}){
  const editor={sessionId:'session',documentEpoch:1,session:{identity:()=> 'client'},view:{ready:true,busy:false,document:null,error:''},fail(error){failures.push(error);this.view.error=error.message;},run(_label,work){if(this.view.busy)return Promise.resolve();this.view.busy=true;const task=Promise.resolve().then(work).catch(error=>this.fail(error)).finally(()=>{this.view.busy=false;});runs.push(task);return task;},async listUI(){calls.push('ui');},async listStages(){calls.push('stages');}};
  shellModule.bind(editor);
  const shell=Object.create(shellModule.EditorShell.prototype),dialog={show(){shows++;},focus(){}};
- Object.assign(shell,{panel,isConnected:true,connectionAdmitted:true,connectionGeneration:0,lifecycle:new AbortController(),copyPanelEpoch:0,recoveryCopyAcknowledgement:null,panels:()=>panelGate,requestUpdate(){updates++;},querySelector(){return dialog;},setRasterizeReview(){},imageImport:{begin(){calls.push('import');},releaseDocument:async()=>{}},exportFlow:{begin(){},cancel(){}},newDocumentFlow:{begin(){},cancel(){}},storageFlow:undefined});
+ Object.assign(shell,{adapter:new ControlAdapter(),panel,isConnected:true,connectionAdmitted:true,connectionGeneration:0,lifecycle:new AbortController(),copyPanelEpoch:0,recoveryCopyAcknowledgement:null,panels:()=>panelGate,requestUpdate(){updates++;},querySelector(){return dialog;},setRasterizeReview(){},imageImport:{begin(){calls.push('import');},releaseDocument:async()=>{}},exportFlow:{begin(){},cancel(){}},newDocumentFlow:{begin(){},cancel(){}},storageFlow:undefined});
  Object.defineProperty(shell,'updateComplete',{get:()=>commit});
  const boundary={construct(value){constructed++;shell.storageFlow=value;},async open(){calls.push('open');await read;},async release(){calls.push('release');await release;}};globalThis.__storagePanelFixture=boundary;
- return {shell,editor,calls,failures,gate,get shows(){return shows;},get constructed(){return constructed;},get updates(){return updates;},setCommit(value){commit=value;},setPanels(value){panelGate=value;},setRead(value){read=value;},setRelease(value){release=value;},async idle(){await Promise.allSettled(runs);},async cleanup(){for(const g of gates)g.resolve();commit=panelGate=read=release=Promise.resolve();await Promise.allSettled(runs);await flush();if(previous===undefined)delete globalThis.__storagePanelFixture;else globalThis.__storagePanelFixture=previous;}};
+ return {shell,editor,calls,failures,gate,get shows(){return shows;},get constructed(){return constructed;},get updates(){return updates;},setCommit(value){commit=value;},setPanels(value){panelGate=value;},setRead(value){read=value;},setRelease(value){release=value;},async idle(){await Promise.allSettled(runs);},async cleanup(){shell.adapter.invalidate();await dispatchSettled();for(const g of gates)g.resolve();commit=panelGate=read=release=Promise.resolve();await Promise.allSettled(runs);await flush();if(previous===undefined)delete globalThis.__storagePanelFixture;else globalThis.__storagePanelFixture=previous;}};
 }
 
 test('storage opens without a document and paints the dialog before its owned read finishes',async()=>{
  const f=fixture(),read=f.gate();f.setRead(read.promise);
- try{f.shell.showPanel('storage');await until(()=>f.calls.includes('open'));assert.equal(f.constructed,1);assert.equal(f.shell.panel,'storage');assert.equal(f.shows,1);assert.equal(f.editor.view.busy,true);read.resolve();await f.idle();assert.deepEqual(f.failures,[]);}finally{await f.cleanup();}
+ try{f.shell.showStorage();await until(()=>f.calls.includes('open'));assert.equal(f.constructed,1);assert.equal(f.shell.panel,'storage');assert.equal(f.shows,1);assert.equal(f.editor.view.busy,true);read.resolve();await f.idle();assert.deepEqual(f.failures,[]);}finally{await f.cleanup();}
 });
 test('storage open waits for the actual panel render before starting its read',async()=>{
  const f=fixture(),render=f.gate();f.setCommit(render.promise);
- try{f.shell.showPanel('storage');await until(()=>f.shell.panel==='storage');assert.equal(f.shows,0);assert.deepEqual(f.calls,[]);render.resolve();await f.idle();assert.equal(f.shows,1);assert.deepEqual(f.calls,['open']);}finally{await f.cleanup();}
+ try{f.shell.showStorage();await until(()=>f.shell.panel==='storage');assert.equal(f.shows,0);assert.deepEqual(f.calls,[]);render.resolve();await f.idle();assert.equal(f.shows,1);assert.deepEqual(f.calls,['open']);}finally{await f.cleanup();}
 });
 test('cancelled lazy-panel opening does not publish storage or start its read',async()=>{
  const f=fixture(),panels=f.gate();f.setPanels(panels.promise);
- try{f.shell.showPanel('storage');await flush();f.shell.closePanel();panels.resolve();await f.idle();assert.equal(f.shell.panel,null);assert.equal(f.constructed,0);assert.equal(f.shows,0);assert.deepEqual(f.calls,[]);}finally{await f.cleanup();}
+ try{f.shell.showStorage();await flush();f.shell.closePanel();panels.resolve();await f.idle();assert.equal(f.shell.panel,null);assert.equal(f.constructed,0);assert.equal(f.shows,0);assert.deepEqual(f.calls,[]);}finally{await f.cleanup();}
 });
 test('document transition during opening fences the pending storage request',async()=>{
  const f=fixture(),panels=f.gate();f.setPanels(panels.promise);
- try{f.shell.showPanel('storage');await flush();f.editor.documentEpoch++;panels.resolve();await f.idle();assert.equal(f.shell.panel,null);assert.equal(f.constructed,0);assert.deepEqual(f.calls,[]);}finally{await f.cleanup();}
+ try{f.shell.showStorage();await flush();f.editor.documentEpoch++;panels.resolve();await f.idle();assert.equal(f.shell.panel,null);assert.equal(f.constructed,0);assert.deepEqual(f.calls,[]);}finally{await f.cleanup();}
 });
 test('connection replacement with the same session ID fences pending storage publication',async()=>{
  const f=fixture(),panels=f.gate();f.setPanels(panels.promise);
- try{f.shell.showPanel('storage');await flush();f.editor.session={identity:()=> 'client'};panels.resolve();await f.idle();assert.equal(f.shell.panel,null);assert.equal(f.constructed,0);assert.deepEqual(f.calls,[]);}finally{await f.cleanup();}
+ try{f.shell.showStorage();await flush();f.editor.session={identity:()=> 'client'};panels.resolve();await f.idle();assert.equal(f.shell.panel,null);assert.equal(f.constructed,0);assert.deepEqual(f.calls,[]);}finally{await f.cleanup();}
 });
 test('principal replacement during the actual render does not expose or read storage',async()=>{
  const f=fixture(),render=f.gate();f.setCommit(render.promise);
- try{f.shell.showPanel('storage');await until(()=>f.shell.panel==='storage');f.editor.session.identity=()=> 'other-client';render.resolve();await f.idle();assert.equal(f.shows,0);assert.deepEqual(f.calls,[]);}finally{await f.cleanup();}
+ try{f.shell.showStorage();await until(()=>f.shell.panel==='storage');f.editor.session.identity=()=> 'other-client';render.resolve();await f.idle();assert.equal(f.shows,0);assert.deepEqual(f.calls,[]);}finally{await f.cleanup();}
 });
 test('closing storage retains its panel until actual controller release completes',async()=>{
  const f=fixture(),drain=f.gate();
- try{f.shell.showPanel('storage');await f.idle();f.setRelease(drain.promise);f.shell.closePanel();await flush();assert.equal(f.shell.panel,'storage');assert.deepEqual(f.calls,['open','release']);drain.resolve();await until(()=>f.shell.panel===null);assert.deepEqual(f.failures,[]);}finally{await f.cleanup();}
+ try{f.shell.showStorage();await f.idle();f.setRelease(drain.promise);f.shell.closePanel();await flush();assert.equal(f.shell.panel,'storage');assert.deepEqual(f.calls,['open','release']);drain.resolve();await until(()=>f.shell.panel===null);assert.deepEqual(f.failures,[]);}finally{await f.cleanup();}
 });
 test('failed storage release keeps recovery reachable and never claims a closed panel',async()=>{
  const f=fixture(),drain=f.gate();
- try{f.shell.showPanel('storage');await f.idle();f.setRelease(drain.promise);f.shell.closePanel();drain.reject(Error('STORAGE_RELEASE_INCOMPLETE'));await until(()=>f.failures.length===1&&f.shows===2);assert.equal(f.shell.panel,'storage');assert.equal(f.failures[0].message,'STORAGE_RELEASE_INCOMPLETE');}finally{await f.cleanup();}
+ try{f.shell.showStorage();await f.idle();f.setRelease(drain.promise);f.shell.closePanel();drain.reject(Error('STORAGE_RELEASE_INCOMPLETE'));await until(()=>f.failures.length===1&&f.shows===2);assert.equal(f.shell.panel,'storage');assert.equal(f.failures[0].message,'STORAGE_RELEASE_INCOMPLETE');}finally{await f.cleanup();}
 });
 test('restore-copy handoff drains storage before existing portable Open inventories',async()=>{
  const f=fixture(),drain=f.gate();
- try{f.shell.showPanel('storage');await f.idle();f.setRelease(drain.promise);f.shell.storageFlow.callbacks.onRestoreCopy();await until(()=>f.calls.includes('release'));assert.equal(f.shell.panel,'storage');assert.deepEqual(f.calls,['open','release']);drain.resolve();await f.idle();assert.equal(f.shell.panel,'open');assert.deepEqual(f.calls,['open','release','ui','stages']);assert.equal(f.shows,2);assert.deepEqual(f.failures,[]);}finally{await f.cleanup();}
+ try{f.shell.showStorage();await f.idle();f.setRelease(drain.promise);f.shell.storageFlow.callbacks.onRestoreCopy();await until(()=>f.calls.includes('release'));assert.equal(f.shell.panel,'storage');assert.deepEqual(f.calls,['open','release']);drain.resolve();await f.idle();assert.equal(f.shell.panel,'open');assert.deepEqual(f.calls,['open','release','ui','stages']);assert.equal(f.shows,2);assert.deepEqual(f.failures,[]);}finally{await f.cleanup();}
 });
 test('explicit new-asset handoff drains storage and opens the existing import review',async()=>{
- const f=fixture();try{f.shell.showPanel('storage');await f.idle();f.shell.storageFlow.callbacks.onImport();await f.idle();assert.equal(f.shell.panel,'import');assert.deepEqual(f.calls,['open','release','import']);assert.deepEqual(f.failures,[]);}finally{await f.cleanup();}
+ const f=fixture();try{f.shell.showStorage();await f.idle();f.shell.storageFlow.callbacks.onImport();await f.idle();assert.equal(f.shell.panel,'import');assert.deepEqual(f.calls,['open','release','import']);assert.deepEqual(f.failures,[]);}finally{await f.cleanup();}
+});
+
+test('cold Storage without its private-entry loader returns before changing an existing panel',async()=>{
+ const f=fixture({panel:'import'}),intent=new AbortController();let releases=0;
+ f.shell.exportOpening=intent;f.shell.imageImport.releaseDocument=async()=>{releases++;};
+ try{
+  f.shell.showPanel('storage');await f.idle();
+  assert.equal(f.editor.view.busy,false);assert.equal(intent.signal.aborted,false);assert.equal(releases,0);assert.equal(f.shell.panel,'import');assert.equal(f.shell.copyPanelEpoch,0);assert.equal(f.updates,0);assert.equal(f.constructed,0);assert.equal(f.shows,0);assert.deepEqual(f.calls,[]);assert.deepEqual(f.failures,[]);
+ }finally{await f.cleanup();}
+});
+
+for(const outcome of ['accepted','vetoed','disconnected','invalidated','busy'])test(`Storage toolbar preserves deferred adapter admission when ${outcome}`,async()=>{
+ const f=fixture(),trigger=Object.assign(new EventTarget(),{isConnected:true});
+ trigger.addEventListener('click',storageBindings.toolbar.call(f.shell));
+ if(outcome==='vetoed')trigger.addEventListener('click',event=>event.preventDefault());
+ try{
+  trigger.dispatchEvent(new Event('click',{cancelable:true}));
+  if(outcome==='disconnected')trigger.isConnected=false;
+  if(outcome==='invalidated')f.shell.adapter.invalidate();
+  if(outcome==='busy')f.editor.view.busy=true;
+  assert.equal(f.constructed,0);assert.equal(f.shell.panel,null);await flush();assert.equal(f.constructed,0);assert.deepEqual(f.calls,[]);
+  // idle() only sees already-started operations; wait for the adapter task first.
+  await dispatchSettled();await f.idle();
+  const accepted=outcome==='accepted';assert.equal(f.constructed,accepted?1:0);assert.equal(f.shell.panel,accepted?'storage':null);assert.equal(f.shows,accepted?1:0);assert.deepEqual(f.calls,accepted?['open']:[]);assert.deepEqual(f.failures,[]);
+ }finally{f.editor.view.busy=false;await f.cleanup();}
+});
+
+test('Storage loader waits for the departing Import owner to drain',async()=>{
+ const f=fixture({panel:'import'}),drain=f.gate();let releases=0,loads=0;
+ f.shell.imageImport.releaseDocument=async()=>{releases++;await drain.promise;};
+ try{
+  f.shell.showPanel('storage',async()=>{loads++;return import(storageURL);});await until(()=>releases===1);
+  assert.equal(loads,0);assert.equal(f.constructed,0);assert.equal(f.shell.panel,'import');assert.deepEqual(f.calls,[]);
+  drain.resolve();await f.idle();assert.equal(loads,1);assert.equal(f.constructed,1);assert.equal(f.shell.panel,'storage');assert.deepEqual(f.calls,['open']);assert.deepEqual(f.failures,[]);
+ }finally{await f.cleanup();}
+});
+
+test('cancelled Storage loader completion does not construct or publish a controller',async()=>{
+ const f=fixture(),load=f.gate();let loads=0;
+ try{
+  f.shell.showPanel('storage',async()=>{loads++;await load.promise;return import(storageURL);});await until(()=>loads===1);
+  f.shell.closePanel();load.resolve();await f.idle();assert.equal(f.constructed,0);assert.equal(f.shell.panel,null);assert.equal(f.shows,0);assert.deepEqual(f.calls,[]);assert.deepEqual(f.failures,[]);
+ }finally{await f.cleanup();}
+});
+
+test('Storage command reopens its retained controller without requiring a document',async()=>{
+ const f=fixture(),activate=storageBindings.command.call(f.shell);
+ try{
+  activate();await f.idle();const controller=f.shell.storageFlow;assert.equal(f.constructed,1);
+  f.shell.closePanel();await until(()=>f.shell.panel===null);activate();await f.idle();
+  assert.equal(f.shell.storageFlow,controller);assert.equal(f.constructed,1);assert.equal(f.shell.panel,'storage');assert.equal(f.shows,2);assert.deepEqual(f.calls,['open','release','open']);assert.deepEqual(f.failures,[]);
+ }finally{await f.cleanup();}
 });
 
 // Each Export fixture evaluates fresh actual shell module state. Replace only

@@ -5,11 +5,13 @@ import { writeFile } from 'node:fs/promises';
 import { isAbsolute, join } from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { loadD11Build } from './browser-d11-build.mjs';
-import { deriveD11FeatureBoundary, analyzeD11FeatureAbsence, analyzeD11FeatureFirstUse } from './browser-d11-feature-boundary.mjs';
+import { selectD11FeatureBoundaryForAction, analyzeD11FeatureAbsence, analyzeD11FeatureFirstUse } from './browser-d11-feature-boundary.mjs';
 
 const HASH = /^sha256:[a-f0-9]{64}$/;
 const MAX_RECORDS = 20000, MAX_BODY = 32 * 1048576, MAX_SOURCE = 16 * 1048576;
 const METHOD = 'chromium-precise-coverage+resource-timing+verified-build-v1';
+const EXPORT_PUBLIC_ACTION = Object.freeze({ commandId: 'export-image', commandLabel: 'Export image',
+  event: 'click', element: 'en-button', buttonText: 'Export image' });
 const integer = value => Number.isSafeInteger(value) && value >= 0;
 const hash = bytes => 'sha256:' + createHash('sha256').update(bytes).digest('hex');
 const unique = values => [...new Set(values)];
@@ -192,10 +194,7 @@ export async function createBrowserD11Collector({ context, page, repo, output, o
   const inventoryStamp = () => JSON.stringify({ documentNavigationId, lanes: [...lanes.values()].map(lane => [lane.id, lane.detached === true, [...lane.scripts.keys()]]),
     requests: [...requests.values()].map(row => [row.owner, row.requestId, row.complete, row.failed === true, row.decodedBytes]), pending: pending.size });
   function resolveFeatureBoundary() {
-    const ids = unique((build.roles?.excludedImports ?? []).filter(row => row.reason === 'verified-private-event-boundary' &&
-      row.witness?.kind === 'd11-private-event-import-1').map(row => row.witness.featureSource));
-    if (ids.length !== 1) return { complete: false, missing: ['Exactly one source-proved private-event feature is required for this supplemental action'] };
-    return deriveD11FeatureBoundary(build, ids[0]);
+    return selectD11FeatureBoundaryForAction(build, EXPORT_PUBLIC_ACTION);
   }
   function wire(lane) {
     lane.on('Page.frameNavigated', value => {

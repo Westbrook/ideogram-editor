@@ -354,10 +354,35 @@ test('actual compiled feature graph retains shared costs, rejects unproved refin
   assert(shared.every(file => build.roles.startupFiles.includes(file)), 'Shared startup dependencies must remain charged to the feature.');
   assert(!build.roles.startupFiles.includes(featureEntry));
   assert.equal(shared.reduce((sum, file) => sum + byFile.get(file).gzipBytes, 0), 59_428);
+  // Independently traverse the finalized manifest. These fixed source roots
+  // are the reviewed main/shell/Open path plus the conservatively charged
+  // adapter observer; the two private user-action features are not roots.
+  // Worker/font asset URLs are separately proved and budgeted, not JS imports.
+  const staticFiles = roots => {
+    const found = new Set(), visited = new Set(), pending = [...roots];
+    while (pending.length) {
+      const key = pending.pop(); if (visited.has(key)) continue; visited.add(key);
+      const entry = manifest[key]; assert(entry, 'Manifest fixture root/import missing: ' + key);
+      found.add(entry.file); for (const css of entry.css ?? []) found.add(css);
+      pending.push(...entry.imports ?? []);
+    }
+    return [...found].sort();
+  };
+  const startupExpected = [...staticFiles(['index.html', 'src/ui/shell.ts', 'src/ui/editor-panels.ts', 'src/observability/adapter-upload.ts']), 'inline:bootstrap'].sort();
+  assert.deepEqual(build.roles.startupFiles, startupExpected);
+  const storageEntry = named('storage-library');
+  assert.deepEqual(build.roles.excludedImports.map(item => item.target).sort(), [featureEntry, storageEntry].sort());
+  assert(build.roles.startupUpperBounds.some(item => item.target === named('adapter-upload')));
+  assert(!build.roles.startupUpperBounds.some(item => item.target === storageEntry));
+  assert.deepEqual(build.roles.lazyFeatures.find(row => row.id === 'src/ui/storage-library.ts').files, staticFiles(['src/ui/storage-library.ts']));
+  const gzipTotal = files => files.reduce((sum, file) => sum + byFile.get(file).gzipBytes, 0);
+  const expectedStartupGzip = gzipTotal(startupExpected.filter(file => byFile.get(file).kind === 'js'));
+  const expectedFeatureWithShellGzip = gzipTotal(staticFiles(['src/ui/export.ts', 'src/ui/shell.ts']));
+  assert(expectedFeatureWithShellGzip > 307_200, 'The emitted-edge control must still exercise the unchanged feature ceiling.');
   const audit = observeD11Build(build);
   assert.equal(audit.status, 'PASS', JSON.stringify({ missing: audit.missing, budgets: audit.budgets, violations: audit.violations }));
   assert.equal(audit.features.find(row => row.id === feature.id).gzipBytes, 67_157);
-  assert.equal(audit.measurements.find(row => row.name === 'D11BuildStartupJsGzipBytes').value, 439_719);
+  assert.equal(audit.measurements.find(row => row.name === 'D11BuildStartupJsGzipBytes').value, expectedStartupGzip);
 
   const canonical = value => JSON.stringify(value && typeof value === 'object'
     ? Array.isArray(value) ? value.map(item => JSON.parse(canonical(item)))
@@ -382,8 +407,8 @@ test('actual compiled feature graph retains shared costs, rejects unproved refin
   const mutantAudit = observeD11Build(seal({ ...build, files: reintroduced.files, roles: mutantRoles,
     roleInputs: { ...build.roleInputs, outputTextByFile: reintroduced.outputTextByFile } }));
   assert.equal(mutantAudit.status, 'FAIL');
-  assert.equal(mutantAudit.features.find(row => row.id === feature.id).gzipBytes, 431_492 + delta);
-  assert.equal(mutantAudit.measurements.find(row => row.name === 'D11BuildStartupJsGzipBytes').value, 439_719 + delta);
+  assert.equal(mutantAudit.features.find(row => row.id === feature.id).gzipBytes, expectedFeatureWithShellGzip + delta);
+  assert.equal(mutantAudit.measurements.find(row => row.name === 'D11BuildStartupJsGzipBytes').value, expectedStartupGzip + delta);
   assert.equal(mutantAudit.budgets.find(row => row.name === 'D11BuildLazyFeatureGzipBytes').ceiling, 307_200);
   assert.equal(mutantAudit.budgets.find(row => row.name === 'D11BuildLazyFeatureGzipBytes').outcome, 'FAIL');
 

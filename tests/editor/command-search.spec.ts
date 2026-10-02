@@ -29,6 +29,16 @@ test('Command search exposes actual availability and keyboard routes to New and 
   await evidence.finish();await record('command-search-keyboard',{unavailable:'Export image: no open document',emptyResults:true,newDialogOpened:true,helpOpened:true,focusRestored:true,commands});
 });
 
+test('Command search opens Storage library by keyboard without an open document',async({local})=>{
+  const {page,commands,record}=local;await expect(page.getByText('No document open',{exact:true})).toBeVisible();
+  const dialog=await openSearch(page),query=searchContent(page).getByRole('textbox',{name:'Search commands',exact:true});
+  await query.fill('storage library');await expect(searchContent(page).getByRole('button',{name:'Storage library',exact:true})).toHaveAttribute('aria-disabled','false');
+  await query.press('Enter');await expect(dialog).toBeHidden();const library=page.getByRole('dialog',{name:'Storage library',exact:true});await expect(library).toBeVisible();
+  await expect(editorContent(page).getByRole('table',{name:'Known content by category',exact:true})).toBeVisible();await expect(editorContent(page)).toContainText('Categories can overlap');expect(commands).toEqual([]);
+  await editorContent(page).getByRole('button',{name:'Close',exact:true}).click();await expect(library).toBeHidden();await expect(page.getByText('No document open',{exact:true})).toBeVisible();expect(commands).toEqual([]);
+  await record('command-search-storage',{documentless:true,keyboardRoute:'Enter',inventory:'Known content by category',closed:true,commands});
+});
+
 test('Command search bounds its native query and honors a later click veto',async({local})=>{
   const {page,commands,record}=local,dialog=await openSearch(page),query=searchContent(page).getByRole('textbox',{name:'Search commands',exact:true});
   await expect(query).toHaveAttribute('maxlength','256');await query.fill('x'.repeat(300));expect((await query.inputValue()).length).toBeLessThanOrEqual(256);await expect(searchContent(page).getByText('No matching commands. Change the search text.',{exact:true})).toBeVisible();

@@ -1,11 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { deriveD11FeatureBoundary, analyzeD11FeatureAbsence, analyzeD11FeatureFirstUse } from '../../tooling/qualification/campaigns/browser-d11-feature-boundary.mjs';
+import { selectD11FeatureBoundaryForAction, deriveD11FeatureBoundary, analyzeD11FeatureAbsence, analyzeD11FeatureFirstUse } from '../../tooling/qualification/campaigns/browser-d11-feature-boundary.mjs';
 
 // Deliberately tiny invented metadata exercises only pure reduction. These are
 // not captured builds, public-action observations or qualification receipts.
 const hash = value => 'sha256:' + String(value).padStart(64, '0');
 const featureId = 'src/tools/save-file.ts';
+const exportAction = { commandId: 'export-image', commandLabel: 'Export image', event: 'click', element: 'en-button', buttonText: 'Export image' };
+const storageAction = { commandId: 'storage', commandLabel: 'Storage', event: 'click', element: 'en-button', buttonText: 'Storage' };
 const sessionId = '01234567-89ab-4cde-8fab-0123456789ab';
 const file = (name, kind, identity, extra = {}) => ({ file: 'assets/' + name, kind, sha256: hash(identity), rawBytes: 1000 + identity,
   gzipBytes: 300 + identity, computedGzipBytes: 300 + identity, authoringFont: false, ...extra });
@@ -23,8 +25,17 @@ function specimen() {
     roles: { complete: true, missing: [], startupFiles: ['assets/main.js', 'assets/shared.js'], textEngineFiles: ['assets/engine.js', 'assets/engine.wasm'],
       lazyFeatures: [{ id: featureId, closureFiles: [...closure], files: closure.filter(name => !name.startsWith('assets/engine.')) }],
       excludedImports: [{ reason: 'verified-private-event-boundary', target: 'assets/save.js', outputs: ['assets/main.js'],
-        witness: { kind: 'd11-private-event-import-1', featureSource: featureId, importStart: 100, source: 'src/tools/menu.ts' } }] },
+        witness: { kind: 'd11-private-event-import-1', featureSource: featureId, importStart: 100, source: 'src/tools/menu.ts', publicAction: { ...exportAction } } }] },
   };
+}
+function withStorageFeature(build = specimen()) {
+  const storageId = 'src/tools/storage-panel.ts', entryFile = 'assets/storage.js';
+  build.files.push(file('storage.js', 'js', 11));
+  build.dynamicFeatures.push({ id: storageId, entryFile, files: [entryFile] });
+  build.roles.lazyFeatures.push({ id: storageId, closureFiles: [entryFile], files: [entryFile] });
+  build.roles.excludedImports.push({ reason: 'verified-private-event-boundary', target: entryFile, outputs: ['assets/main.js'],
+    witness: { kind: 'd11-private-event-import-1', featureSource: storageId, importStart: 200, source: 'src/tools/menu.ts', publicAction: { ...storageAction } } });
+  return build;
 }
 const execute = (build, name, extra = {}) => {
   const actual = build.files.find(row => row.file === name);
@@ -69,6 +80,106 @@ function firstUse(build, before = startup(build)) {
 }
 const absence = (observation, build) => analyzeD11FeatureAbsence(observation, build, featureId);
 const used = (state, build) => analyzeD11FeatureFirstUse(state.observation, build, { featureId, baseline: state.baseline });
+
+test('public-action selector chooses Export with a second Storage feature in either witness order', () => {
+  for (const reverse of [false, true]) {
+    const build = withStorageFeature();
+    if (reverse) build.roles.excludedImports.reverse();
+    const before = structuredClone(build), proof = selectD11FeatureBoundaryForAction(build, exportAction);
+    assert.equal(proof.complete, true); assert.equal(proof.featureId, featureId);
+    assert.deepEqual(proof, deriveD11FeatureBoundary(build, featureId));
+    assert.deepEqual(build, before); assert.equal(Object.isFrozen(build), false);
+    assert.equal(Object.isFrozen(proof), true);
+    assert(!proof.closureFiles.includes('assets/storage.js'));
+  }
+});
+
+test('public-action selection does not infer action identity from a source or method name', () => {
+  const build = withStorageFeature(), renamed = 'features/arbitrary-name.mjs';
+  build.dynamicFeatures[0].id = renamed; build.roles.lazyFeatures[0].id = renamed;
+  build.roles.excludedImports[0].witness.featureSource = renamed;
+  build.roles.excludedImports[0].witness.method = '#unrelatedName';
+  assert.equal(selectD11FeatureBoundaryForAction(build, exportAction).featureId, renamed);
+  delete build.roles.excludedImports[0].witness.publicAction;
+  build.roles.excludedImports[0].witness.method = '#exportImage';
+  assert.equal(selectD11FeatureBoundaryForAction(build, exportAction).complete, false);
+  assert.equal(deriveD11FeatureBoundary(build, renamed).complete, true);
+});
+
+test('public-action selection rejects every tuple mismatch without falling back to the lone feature', () => {
+  for (const key of Object.keys(exportAction)) {
+    const build = specimen(); build.roles.excludedImports[0].witness.publicAction[key] += '-mismatch';
+    const proof = selectD11FeatureBoundaryForAction(build, exportAction);
+    assert.equal(proof.complete, false, key); assert(proof.missing.length);
+  }
+});
+
+test('missing, malformed and extra public-action fields cannot select an import witness', () => {
+  const missingKey = { ...exportAction }; delete missingKey.commandId;
+  for (const action of [undefined, null, {}, [], missingKey, { ...exportAction, extra: true },
+    { ...exportAction, buttonText: '' }, { ...exportAction, buttonText: 'x'.repeat(4097) }, Object.create(exportAction)]) {
+    const build = withStorageFeature(); build.roles.excludedImports[0].witness.publicAction = action;
+    assert.equal(selectD11FeatureBoundaryForAction(build, exportAction).complete, false);
+    assert.equal(selectD11FeatureBoundaryForAction(specimen(), action).complete, false);
+  }
+});
+
+test('duplicate matching witnesses fail even for the same feature or a second Storage feature', () => {
+  for (const sameFeature of [true, false]) {
+    const build = withStorageFeature();
+    if (sameFeature) build.roles.excludedImports.push(structuredClone(build.roles.excludedImports[0]));
+    else build.roles.excludedImports[1].witness.publicAction = { ...exportAction };
+    assert.equal(selectD11FeatureBoundaryForAction(build, exportAction).complete, false);
+  }
+});
+
+test('action metadata alone cannot bypass exact private-event reason, kind, feature and importer binding', () => {
+  for (const change of [
+    value => { value.roles.excludedImports[0].reason = 'lexically-deferred'; },
+    value => { value.roles.excludedImports[0].witness.kind = 'unverified'; },
+    value => { value.roles.excludedImports[0].witness.featureSource = 'src/missing.ts'; },
+    value => { value.roles.excludedImports[0].target = 'assets/storage.js'; },
+    value => { value.roles.excludedImports[0].outputs = ['assets/save.js']; },
+    value => { value.roles.complete = false; },
+    value => { value.roles.excludedImports = Array(20001).fill(value.roles.excludedImports[0]); },
+  ]) {
+    const build = withStorageFeature(); change(build);
+    assert.equal(selectD11FeatureBoundaryForAction(build, exportAction).complete, false);
+  }
+});
+
+test('supplemental reducers reject Storage evidence relabeled as the planned Export action', () => {
+  const build = withStorageFeature(), storageId = build.dynamicFeatures[1].id;
+  assert.equal(deriveD11FeatureBoundary(build, storageId).complete, true);
+  assert.equal(selectD11FeatureBoundaryForAction(build, storageAction).featureId, storageId);
+  const before = startup(build); before.featureBoundary.featureId = storageId;
+  const absent = analyzeD11FeatureAbsence(before, build, storageId);
+  assert.equal(absent.status, 'INCONCLUSIVE'); assert.deepEqual(absent.failures, []);
+  assert.deepEqual(absent.missing, ['Supplemental Export evidence requires the unique replayed Export public-action feature']);
+  const state = firstUse(build, before);
+  state.observation.featureId = storageId; state.observation.featureBoundary.featureId = storageId;
+  state.observation.resources = []; state.observation.resourceRequests = [];
+  state.observation.evaluated = [execute(build, 'assets/storage.js')];
+  deliver(state.observation, build, 'assets/storage.js');
+  const result = analyzeD11FeatureFirstUse(state.observation, build, { featureId: storageId, baseline: state.baseline });
+  assert.equal(result.status, 'INCONCLUSIVE'); assert.deepEqual(result.failures, []);
+  assert.deepEqual(result.missing, ['A complete independently retained startup absence proof is required',
+    'Supplemental Export evidence requires the unique replayed Export public-action feature']);
+  assert.deepEqual(result.observed.absentRequiredFiles, []); assert.deepEqual(result.observed.unevaluatedRequiredFiles, []);
+});
+
+test('supplemental reducers require the full unique Export tuple even for a complete feature identity', () => {
+  for (const change of [
+    value => { delete value.roles.excludedImports[0].witness.publicAction; },
+    value => { value.roles.excludedImports[0].witness.publicAction.buttonText = 'Storage'; },
+    value => { value.roles.excludedImports[1].witness.publicAction = { ...exportAction }; },
+  ]) {
+    const build = withStorageFeature(); change(build);
+    assert.equal(deriveD11FeatureBoundary(build, featureId).complete, true);
+    assert.equal(absence(startup(build), build).status, 'INCONCLUSIVE');
+    assert.equal(used(firstUse(build), build).status, 'INCONCLUSIVE');
+  }
+});
 
 test('private-event proof selects the full CSS/font closure and keeps shared and engine sets explicit', () => {
   const build = specimen(), proof = deriveD11FeatureBoundary(build, featureId);

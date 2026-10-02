@@ -4,6 +4,8 @@
 const LIMIT = 20_000;
 const HASH = /^sha256:[a-f0-9]{64}$/;
 const UUID = /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/;
+const EXPORT_PUBLIC_ACTION = Object.freeze({ commandId: 'export-image', commandLabel: 'Export image',
+  event: 'click', element: 'en-button', buttonText: 'Export image' });
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value)
   && [Object.prototype, null].includes(Object.getPrototypeOf(value));
 const integer = value => Number.isSafeInteger(value) && value >= 0;
@@ -48,6 +50,24 @@ function inventory(build, missing) {
     files.set(file.file, file);
   }
   return files;
+}
+
+/** Match one exact public action in an independently replayed build. This pure
+ * selector does not authenticate caller-supplied metadata: the caller must
+ * replay the complete source corpus in a fresh build-verification invocation.
+ * Other private-event features are allowed, but two matching witnesses are
+ * ambiguous even if they name the same feature. */
+export function selectD11FeatureBoundaryForAction(build, publicAction) {
+  const keys = ['commandId', 'commandLabel', 'event', 'element', 'buttonText'];
+  const action = value => exactKeys(value, keys) && keys.every(key => text(value[key]));
+  const incomplete = reason => freeze({ complete: false, missing: [reason] });
+  if (!action(publicAction)) return incomplete('An exact bounded public-action tuple is required');
+  if (!object(build?.roles) || !list(build.roles.excludedImports)) return incomplete('Replayed excluded import witnesses are required for public-action selection');
+  const matches = build.roles.excludedImports.filter(row => object(row) && row.reason === 'verified-private-event-boundary'
+    && object(row.witness) && row.witness.kind === 'd11-private-event-import-1' && action(row.witness.publicAction)
+    && keys.every(key => row.witness.publicAction[key] === publicAction[key]));
+  if (matches.length !== 1) return incomplete('Exactly one replayed private-event witness must match the complete public-action tuple');
+  return deriveD11FeatureBoundary(build, matches[0].witness.featureSource);
 }
 
 /** Select a feature by its replayed private-event import witness, never by an
@@ -205,6 +225,8 @@ function finish(base, missing, failures, observed) {
 export function analyzeD11FeatureAbsence(observation, build, featureId) {
   const boundary = deriveD11FeatureBoundary(build, featureId), evidence = observationEvidence(observation, build, 'startup-absence', featureId);
   const missing = [...boundary.missing, ...evidence.missing], failures = [];
+  const selection = selectD11FeatureBoundaryForAction(build, EXPORT_PUBLIC_ACTION);
+  if (!selection.complete || selection.featureId !== featureId) missing.push('Supplemental Export evidence requires the unique replayed Export public-action feature');
   if (observation?.scope !== 'startup' || observation.startedBeforeNavigation !== true) missing.push('Feature absence requires collection before the actual startup navigation');
   if (observation?.publicAction !== undefined) missing.push('Startup absence cannot include a public first-use action');
   const earlyRequestedFiles = boundary.exclusiveFiles.filter(name => evidence.requested.has(name));
@@ -223,6 +245,8 @@ export function analyzeD11FeatureAbsence(observation, build, featureId) {
 export function analyzeD11FeatureFirstUse(observation, build, { featureId, baseline } = {}) {
   const boundary = deriveD11FeatureBoundary(build, featureId), evidence = observationEvidence(observation, build, 'first-use', featureId);
   const missing = [...boundary.missing, ...evidence.missing], failures = [];
+  const selection = selectD11FeatureBoundaryForAction(build, EXPORT_PUBLIC_ACTION);
+  if (!selection.complete || selection.featureId !== featureId) missing.push('Supplemental Export evidence requires the unique replayed Export public-action feature');
   const before = baseline?.observation, prior = analyzeD11FeatureAbsence(before, build, featureId), reference = observation?.baselineReference;
   if (prior.status !== 'PASS') missing.push('A complete independently retained startup absence proof is required');
   if (prior.status === 'FAIL') failures.push('The paired startup observation already requested or evaluated the deferred feature');
