@@ -77,7 +77,7 @@ async function fixture(t,failure=false,hold=false){
     command:(patch={},body={})=>command(EMPTY_EXPECTED_VERSIONS,{clientId:paired.json.clientId,...patch},body),
     effects:async()=>{const value=JSON.parse(await readFile(join(root,mode==='inpaint'?'request-edits-fixture.json':'candidate-fixture.json'),'utf8'));assert.deepEqual(value.errors,[]);return value.effects;},
   };
-  assert.equal((await terminal(f,f.command({}, {width:512,height:512}))).json.receipt.status,'accepted');return f;
+  const created=f.command({}, {width:512,height:512});assert.equal((await terminal(f,created)).json.receipt.status,'accepted');f.creationCommandId=created.command.commandId;return f;
 }
 async function caption(f,text){
   const staged=await upload(f,Buffer.from(text),'caption','text/plain');
@@ -168,9 +168,9 @@ function released(value){
  assert(value.workRemoved.every(Boolean),'Every encoded worker directory must be removed after terminal cleanup');
  assert.equal(value.raster.activeWorkers,0);assert.equal(value.raster.reservedCPU,0);
 }
-async function seedEncoded(t,failure=false,hold=false){
+async function seedEncoded(t,failure=false,hold=false,placementPatch={}){
  const f=await fixture(t,failure,hold);await layer(f,'picture','hidden-alpha.png');
- const captured=await source(f),{value:c}=await candidate(f,captured),approved=await review(f,placement(c));
+ const captured=await source(f),{value:c}=await candidate(f,captured),approved=await review(f,placement(c,placementPatch));
  return {f,c,approved};
 }
 
@@ -223,7 +223,37 @@ test('a public owner read observes real in-flight acceptance after lease consump
    const read=await f.read('/api/v1/image-edit-reviews/'+approved.reviewId);assert.equal(read.status,200,read.text);assert.deepEqual(read.json,approved);
    const observed=JSON.parse(await readFile(join(f.root,'encoded-acceptance-held.json'),'utf8'));assert.equal(observed.liveReadCount,index+1);assert.deepEqual(observed.leases,held.leases);assert.deepEqual(observed.proofs,held.proofs,'Public owner reads cannot recreate a consumed lease or change active proof ownership');
   }
+  const witnessed=await f.read('/api/v1/image-edit-reviews/'+approved.reviewId+'?acceptCommandId='+request.command.commandId);assert.equal(witnessed.status,200,witnessed.text);assert.deepEqual(witnessed.json,approved);
+  const after=JSON.parse(await readFile(join(f.root,'encoded-acceptance-held.json'),'utf8'));assert.equal(after.liveReadCount,3);assert.deepEqual(after.leases,held.leases);assert.deepEqual(after.proofs,held.proofs,'An exact pending witness still uses only the real active acceptance');
  }finally{await writeFile(join(f.root,'encoded-acceptance-release'),'release',{mode:0o600});}
  const completed=await terminal(f,request);assert.equal(completed.json.receipt.status,'accepted',completed.text);
  const value=await observation(f,request.command.commandId);released(value);assert.deepEqual(value.observations.map(row=>row.evidence.decodeCount),[5,1]);
+});
+
+
+for(const placementKind of ['current-document','new-document'])test('exact accepted '+placementKind+' witness closes the terminal renewal race without recreating proofs',async t=>{
+ const placementPatch=placementKind==='new-document'?{placement:placementKind,newDocumentId:randomUUID()}:{};
+ const {f,approved}=await seedEncoded(t,false,false,placementPatch),base='/api/v1/image-edit-reviews/'+approved.reviewId;
+ const early=await f.read(base+'?acceptCommandId='+randomUUID());assert.equal(early.status,200,early.text);assert.deepEqual(early.json,approved,'A journaled but unadmitted ID only gets the existing live review');
+ for(const suffix of ['?acceptCommandId=','?acceptCommandId=%2F','?acceptCommandId=a&acceptCommandId=b','?unknown=1'])assert.equal((await f.read(base+suffix)).status,400,suffix);
+ assert.equal((await f.read('/api/v1/image-previews/missing?acceptCommandId=a')).status,400);
+ assert.equal((await f.read(base+'?acceptCommandId='+f.creationCommandId)).status,410,'A different command cannot act as acceptance');
+ assert.equal((await f.read(base)).status,200,'A wrong witness must not discard the genuine review proof');
+ const foreign=await pair(f.server);assert.equal((await call(f.server.origin,base+'?acceptCommandId='+f.creationCommandId,{headers:readHeaders(cookieFrom(foreign))})).status,403);
+ const committed=await accept(f,approved),path=base+'?acceptCommandId='+committed.request.command.commandId,before=await observation(f,committed.request.command.commandId);released(before);
+ for(let n=0;n<2;n++){const read=await f.read(path);assert.equal(read.status,200,read.text);assert.deepEqual(read.json,approved,'Exactly the reviewed metadata survives the receipt/UI publication gap');}
+ const after=await observation(f,committed.request.command.commandId);released(after);assert.deepEqual(after.proofs,before.proofs);assert.deepEqual(after.leases,before.leases);assert.deepEqual(after.workerJobs,before.workerJobs);assert.deepEqual(after.violations,[],'Terminal metadata reads cannot reacquire old raw inputs');
+ const rejected=await submit(f,adoption(approved),committed.request.command.documentId,committed.request.command.expectedDocumentRevision);assert.equal(rejected.receipt.status,'rejected');
+ assert.equal((await f.read(base+'?acceptCommandId='+rejected.request.command.commandId)).status,410,'A rejected acceptance is not a terminal witness');assert.equal((await f.read(path)).status,200,'Refusing another witness must preserve the exact accepted result');
+ // The negative guard covers acceptance and every terminal witness read above.
+ // A normal checkpoint intentionally proves retained raw dependencies; record
+ // that separate setup boundary before advancing the public document revision.
+ const checkpoint=f.command({documentId:committed.document.id,expectedDocumentRevision:committed.document.revision,body:{type:'SaveCheckpoint',name:'After accepted review'}});
+ const boundary={checkpointCommandId:checkpoint.command.commandId,acceptedCommandId:committed.request.command.commandId,reviewId:approved.reviewId};
+ const protectedEnd=await observation(f,committed.request.command.commandId);released(protectedEnd);assert.equal(protectedEnd.windowEnd,null,'The guard remained active through the last accepted witness read');
+ await writeFile(join(f.root,'encoded-guard-checkpoint-boundary.json'),JSON.stringify(boundary),{flag:'wx',mode:0o600});
+ const changed=await terminal(f,checkpoint);assert.equal(changed.json.receipt.status,'accepted',changed.text);assert.equal(changed.json.receipt.documentRevision,String(BigInt(committed.document.revision)+1n));
+ const observedBoundary=(await observation(f,committed.request.command.commandId)).windowEnd;assert.deepEqual(observedBoundary,{...boundary,proofs:protectedEnd.proofs,leases:protectedEnd.leases,violations:[]});
+ assert.equal((await f.read(path)).status,410,'A later target revision is not the accepted result');
+ const renewed=await f.post('/api/v1/session/renew',{protocolVersion:1});assert.equal(renewed.status,200);assert.equal((await call(f.server.origin,path,{headers:readHeaders(cookieFrom(renewed))})).status,410,'The old review cannot cross session renewal');
 });

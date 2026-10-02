@@ -596,3 +596,74 @@ for(const boundary of ['owner','revision','generation','dispose'])test('an adopt
   const saved=f.saved.length;gate.release.resolve();await Promise.allSettled([...child.nativeWork]);await closing;await flush();assert.equal(f.saved.length,saved);assert.equal(f.instance.entry()?.draft.source??null,null);assert.equal(f.renditions().length,0);assert.equal(f.created.length,0);assert.deepEqual(f.errors,[]);
  }finally{gate.release.resolve();await Promise.allSettled([closing,...child.nativeWork].filter(Boolean));await f.instance.dispose();}
 });
+
+function retainedOutputPage(f){
+ const nav=find(f.template(),'<nav aria-label="Retained output pages">');assert(nav,'Actual retained-output navigation is rendered');
+ const opening='<p role="status">';assert(nav.strings[0].includes(opening),'The page summary remains a status region');
+ let text='',closed=false;
+ for(let index=0;index<nav.strings.length;index++){
+  const part=index===0?nav.strings[index].split(opening)[1]:nav.strings[index],end=part.indexOf('</p>');
+  if(end!==-1){text+=part.slice(0,end);closed=true;break;}
+  text+=part;assert(['string','number'].includes(typeof nav.values[index]),'Status text uses actual primitive bindings');text+=String(nav.values[index]);
+ }
+ assert(closed,'Rendered page status closes');
+ const disabled=nav.strings.flatMap((part,index)=>part.includes('<en-button ?disabled=')?[nav.values[index]]:[]);
+ assert.equal(disabled.length,3,'First, Previous and Next remain rendered');assert(disabled.every(value=>typeof value==='boolean'));
+ return {text:text.trim(),disabled};
+}
+
+async function retainedOutputPollingFixture(){
+ const f=fixture();await f.initial();
+ const queue=queueObservation('completed');queue.jobs[0].review.request.settings.count=3;queue.jobs[0].review.estimate.count=3;queue.jobs[0].attempts[0].estimate.count=3;
+ const model=f.instance.navigation.controls.model(queue);f.instance.navigation.controls.replace('queue',model);f.instance.queue=model.value;
+ const first=candidateObservation();first.requestedCount=3;first.actualCount=3;first.nextCursor='retained outputs / page 2';
+ await publishCandidates(f,first);assert.equal(f.instance.pollTimer,null,'Fixture does not start autonomous queue polling');
+ const observed=observeRequestAnnouncements(f),statusChanges=[retainedOutputPage(f).text],update=f.host.requestUpdate.bind(f.host);
+ f.host.requestUpdate=function(){update();this.updateComplete=this.updateComplete.then(()=>{const nav=find(f.template(),'<nav aria-label="Retained output pages">');if(nav){const text=retainedOutputPage(f).text;if(statusChanges.at(-1)!==text)statusChanges.push(text);}});};
+ return {...f,first,observed,statusChanges};
+}
+
+test('unchanged held candidate polls keep rendered page status quiet while preserving read ownership and busy controls',{timeout:5000},async()=>{
+ const f=await retainedOutputPollingFixture(),stable=retainedOutputPage(f).text,announcement=requestAnnouncement(f),reads=[];
+ assert.equal(stable,'Retained output page 1. 1 outputs on this page.');assert.deepEqual(retainedOutputPage(f).disabled,[true,true,false]);
+ for(let cycle=0;cycle<3;cycle++){
+  const held=pendingPage();f.editor.json=path=>{reads.push(path);return held.promise;};
+  const pending=f.instance.inspectCandidates('job','attempt');void pending.catch(()=>{});
+  try{
+   await flush();assert.equal(reads.length,cycle+1);assert.equal(reads.at(-1),'/api/v1/jobs/job/candidates?attempt=attempt&after=');
+   const owned=f.instance.inspectMemory().navigation;assert.equal(owned.candidateReads,1);assert.equal(owned.candidates.reads,1);assert(owned.candidates.pending>0);assert.equal(owned.candidates.models,1);
+   assert.equal(retainedOutputPage(f).text,stable,'Automatic pending reads must not publish Loading requested page');assert.deepEqual(retainedOutputPage(f).disabled,[true,true,true]);
+   await f.instance.inspectCandidates('job','attempt');await flush();assert.equal(reads.length,cycle+1,'A pending automatic read is not duplicated');
+   held.resolve(structuredClone(f.first));await pending;await flush();
+   assert.equal(retainedOutputPage(f).text,stable);assert.deepEqual(retainedOutputPage(f).disabled,[true,true,false]);
+   const settled=f.instance.inspectMemory().navigation;assert.equal(settled.candidateReads,0);assert.equal(settled.candidates.reads,0);assert.equal(settled.candidates.pending,0);assert.equal(settled.candidates.models,1);
+  }finally{held.resolve(structuredClone(f.first));await Promise.allSettled([pending]);await flush();}
+ }
+ assert.deepEqual(f.statusChanges,[stable],'Every actual render keeps the same retained-page status text');assert.equal(requestAnnouncement(f),announcement);assert.deepEqual(f.observed.changes,[announcement]);assert.deepEqual(f.observed.focus,[]);assert.equal(f.instance.pollTimer,null);
+});
+
+test('explicit candidate Next announces pending navigation, commits its page, and clears failed navigation without discarding the current page',{timeout:5000},async()=>{
+ const f=await retainedOutputPollingFixture(),reads=[],loading='Loading requested page; current outputs remain available.',firstStatus=retainedOutputPage(f).text;
+ const second=structuredClone(f.first);second.nextCursor='retained outputs / page 3';second.items[0].id='candidate-2';second.items[0].outputIndex=1;second.items[0].outputIdentity='output-2';
+ const held=pendingPage();f.editor.json=path=>{reads.push(path);return held.promise;};
+ const next=f.instance.navigateCandidatePage('job','attempt','next');assert(next&&typeof next.then==='function');void next.catch(()=>{});
+ try{
+  await flush();assert.equal(reads.at(-1),'/api/v1/jobs/job/candidates?attempt=attempt&after='+encodeURIComponent(f.first.nextCursor));
+  assert.equal(retainedOutputPage(f).text,firstStatus+' '+loading);assert.deepEqual(retainedOutputPage(f).disabled,[true,true,true]);assert.equal(f.instance.candidateViews.get('attempt').items[0].id,'candidate');
+  assert.equal(f.instance.inspectMemory().navigation.candidateReads,1);assert.equal(f.instance.inspectMemory().navigation.candidates.reads,1);
+  await f.instance.inspectCandidates('job','attempt');await flush();assert.equal(reads.length,1,'Background polling cannot replace a pending explicit page action');assert.equal(retainedOutputPage(f).text,firstStatus+' '+loading);
+  held.resolve(second);await next;await flush();
+ }finally{held.resolve(second);await Promise.allSettled([next]);await flush();}
+ const secondStatus='Retained output page 2. 1 outputs on this page.',retained=f.instance.candidateViews.get('attempt'),location=f.instance.navigation.candidatePage('attempt');
+ assert.equal(retainedOutputPage(f).text,secondStatus);assert.deepEqual(retainedOutputPage(f).disabled,[false,false,false]);assert.equal(retained.items[0].id,'candidate-2');assert.deepEqual(location,{cursor:f.first.nextCursor,back:['']});assert.deepEqual(f.observed.focus,[]);
+ const failed=pendingPage(),failure=Error('Retained output page unavailable');f.editor.json=async path=>{reads.push(path);await failed.promise;throw failure;};
+ const rejected=f.instance.navigateCandidatePage('job','attempt','next');assert(rejected&&typeof rejected.then==='function');void rejected.catch(()=>{});
+ try{
+  await flush();assert.equal(reads.length,2);assert.equal(reads.at(-1),'/api/v1/jobs/job/candidates?attempt=attempt&after='+encodeURIComponent(second.nextCursor));
+  assert.equal(retainedOutputPage(f).text,secondStatus+' '+loading);assert.deepEqual(retainedOutputPage(f).disabled,[true,true,true]);assert.strictEqual(f.instance.candidateViews.get('attempt'),retained);
+  failed.resolve();await assert.rejects(rejected,/Retained output page unavailable/);await flush();
+  assert.equal(retainedOutputPage(f).text,secondStatus);assert.deepEqual(retainedOutputPage(f).disabled,[false,false,false]);assert.strictEqual(f.instance.candidateViews.get('attempt'),retained);assert.strictEqual(f.instance.navigation.candidatePage('attempt'),location);
+  const settled=f.instance.inspectMemory().navigation;assert.equal(settled.candidateReads,0);assert.equal(settled.candidates.reads,0);assert.equal(settled.candidates.pending,0);assert.equal(settled.candidates.models,1);
+  assert.deepEqual(f.statusChanges,[firstStatus,firstStatus+' '+loading,secondStatus,secondStatus+' '+loading,secondStatus]);assert.deepEqual(f.observed.focus,[]);assert.equal(f.instance.pollTimer,null);
+ }finally{failed.resolve();await Promise.allSettled([rejected]);await flush();}
+});

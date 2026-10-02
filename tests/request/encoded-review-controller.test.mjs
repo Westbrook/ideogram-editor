@@ -114,7 +114,7 @@ async function fixture(t,{nativeLettering=false}={}) {
   const baseline=totals(),displayBaseline=displayPreviewOwnership(),viewOwners=[];
   installPNGDecoder(t);
   lifecycleVisibility.visibilityState='visible';
-  const commands = [], cancellations = [], errors = [], reads = [], signals = [], reviews = new Map(),displayReads=[],starts=[],treatment=nativeLettering?nativeTreatment():null; let current = true, holdJournal = false, holdResult = false, cancelGate, cancelStatus = 'canceled', cancelFailures = [], renewalError, renewalGate, commandReceipt;
+  const commands = [], cancellations = [], errors = [], reads = [], signals = [], reviews = new Map(),displayReads=[],starts=[],treatment=nativeLettering?nativeTreatment():null; let current = true, holdJournal = false, holdResult = false, cancelGate, cancelStatus = 'canceled', cancelFailures = [], renewalError, renewalGate, commandReceipt, receiptGate, receiptError;
   const candidate = { id: 'candidate', version: '2',documentId:'document',jobId:'job',attemptId:'attempt',requestId:'request',outputIdentity:'output', outputIndex: 0, encodedAssetId: 'encoded', preparedAssetId: 'prepared', safety: 'safe', state: 'prepared', hidden: false };
   const documentOwner=cloneOwnedModel('encoded-fixture-document',{id:'document',revision:'7',width:4,height:4,image:treatment?{state:treatment.plan.inventory.imageState,semanticDigest:bytesHash(Buffer.from('native-document')),compositeAssetId:'before'}:{compositeAssetId:null}});viewOwners.push(documentOwner);const document=documentOwner.value;
   const plan = { document: { width: 4, height: 4 }, expectedOutput: { width: 4, height: 4 } };
@@ -141,7 +141,7 @@ async function fixture(t,{nativeLettering=false}={}) {
     async json(path,init) { reads.push(path);signals.push(init?.signal);
       if(treatment&&path.startsWith('/api/v1/jobs/')){const query=new URL(path,'http://127.0.0.1').searchParams;if(query.get('prompt')==='text-treatment'){const offset=Number(query.get('offset')),bytes=treatment.bytes.subarray(offset,offset+32768);return {bytes:bytes.toString('base64'),byteLength:String(treatment.bytes.length),offset:String(offset),nextOffset:offset+bytes.length<treatment.bytes.length?String(offset+bytes.length):null};}return {items:[candidate],request:{raster:{plan,source:{scope:'visible-document',assetId:'source'},mask:{assetId:'mask'}},textTreatment:treatment.envelope},inert:false};}
       if(treatment&&path.startsWith('/api/v1/assets/'))return assetProjection(path.split('/').at(-1));
-      if(path.startsWith('/api/v1/commands/'))return structuredClone(commandReceipt??{kind:'pending',phase:'working'});if(renewalGate)await renewalGate.promise;if(renewalError)throw renewalError;const value = reviews.get(path.split('/').at(-1)); assert(value, path); return structuredClone(value); },
+      if(path.startsWith('/api/v1/commands/')){if(receiptGate)await new Promise((resolve,reject)=>{const aborted=()=>reject(new DOMException('Receipt read aborted.','AbortError'));init.signal.addEventListener('abort',aborted,{once:true});receiptGate.promise.then(()=>{init.signal.removeEventListener('abort',aborted);resolve();});if(init.signal.aborted)aborted();});if(receiptError)throw receiptError;return structuredClone(commandReceipt??{kind:'pending',phase:'working'});}if(renewalGate)await renewalGate.promise;if(renewalError)throw renewalError;const value = reviews.get(new URL(path,'http://127.0.0.1').pathname.split('/').at(-1)); assert(value, path); return structuredClone(value); },
     async cancelCandidateReview(commandId, owner) { cancellations.push({ commandId, owner, at: lifecycleClock.now }); if (cancelGate) await cancelGate.promise; const failure = cancelFailures.shift(); if (failure) throw failure; return { protocolVersion: 1, commandId, status: cancelStatus }; },
   };
   ownFixtureCommands(editor);ownFixtureJSON(editor);
@@ -154,7 +154,7 @@ async function fixture(t,{nativeLettering=false}={}) {
   t.after(async()=>{
     // Release transport barriers before awaiting the actual controller drain;
     // otherwise the cleanup would wait on the fixture's own suspended response.
-    cancelGate?.resolve();renewalGate?.resolve();cancelFailures=[];
+    cancelGate?.resolve();renewalGate?.resolve();receiptGate?.resolve();cancelFailures=[];
     const release=controller.dispose();void release.catch(()=>{});
     for(const command of commands){command.journal();command.result.reject(Error('Fixture closed'));}
     try{await flush();await release;}finally{for(const owner of viewOwners)owner.release();}
@@ -174,7 +174,7 @@ async function fixture(t,{nativeLettering=false}={}) {
     hold({ journal = false, result = false, cancel = false } = {}) { holdJournal = journal; holdResult = result; if (cancel) cancelGate = deferred(); },
     releaseCancel() { cancelGate?.resolve(); }, failCancels(...errors) { cancelFailures = errors; }, cancelStatus(value) { cancelStatus = value; }, loseOwner() { current = false; },
     hidden(){lifecycleVisibility.visibilityState='hidden';}, visible(){lifecycleVisibility.visibilityState='visible';}, hidePanel(){panelVisible=false;}, disconnect(){host.isConnected=false;}, changeDocument(){const owner=cloneOwnedModel('encoded-fixture-document',{...document,id:'replacement-document'});viewOwners.push(owner);editor.view.document=owner.value;}, changeSession(){editor.session={identity:()=> 'replacement-client'};},
-    failRenewal(){renewalError=Error('Review no longer live');}, restoreRenewal(){renewalError=undefined;}, holdRenewal(){renewalGate=deferred();}, releaseRenewal(){renewalGate?.resolve();}, receipt(value){commandReceipt=value;},
+    failRenewal(){renewalError=Error('Review no longer live');}, restoreRenewal(){renewalError=undefined;}, holdRenewal(){renewalGate=deferred();}, releaseRenewal(){renewalGate?.resolve();}, receipt(value){commandReceipt=value;}, holdReceipt(){receiptGate=deferred();}, releaseReceipt(){receiptGate?.resolve();}, failReceipt(){receiptError=Error('Receipt unavailable');},
     loadCandidate(){
       // Only the deferred review figures grant placement readiness; inspection
       // figures remain separate and no ready marker is seeded during setup.
@@ -333,7 +333,7 @@ test('a delayed renewal response fails closed instead of extending freshness fro
 
 test('queued adoption continues public liveness and an exact accepted receipt resolves terminal cleanup race',async t=>{
   const f=await fixture(t);await f.click(currentId);f.loadCandidate();f.hold({result:true});await f.click('request-candidate-accept-prepare-candidate');
-  assert.equal(f.commands[1].body.type,'AdoptReviewedCandidate');lifecycleClock.advance(1000);await flush();assert.equal(f.reads.length,2);
+  assert.equal(f.commands[1].body.type,'AdoptReviewedCandidate');lifecycleClock.advance(1000);await flush();assert.equal(f.reads.length,2);assert.equal(f.reads[1],'/api/v1/image-edit-reviews/review-review-command-1?acceptCommandId='+f.commands[1].commandId);
   f.failRenewal();f.receipt({kind:'receipt',receipt:{commandId:f.commands[1].commandId,status:'accepted'}});lifecycleClock.advance(1000);await flush();
   assert.equal(f.reads.at(-1),'/api/v1/commands/'+f.commands[1].commandId);assert.equal(f.controller.placementReviews.get('candidate').encodedOwner.renewalFailed,undefined);
   assert.equal(lifecycleClock.timers.size,0);f.commands[1].complete();await flush();assert.equal(f.rendered().cards.some(row=>row.id===cardId),false);
@@ -403,4 +403,56 @@ for(const loss of ['hidePanel','disconnect'])test('confirmed native encoded '+lo
   const f=await fixture(t,{nativeLettering:true}),{preview,owner}=await confirmNativeEncodedReview(f),reads=f.reads.length;
   assert(f.mounted(newId));assert.equal(f.mounted(newId).disabled,true);f[loss]();lifecycleClock.advance(1000);await f.settleAction();
   assert.equal(f.reads.length,reads);assert.equal(f.controller.placementReviews.has('candidate'),false);assert.equal(lifecycleClock.timers.size,0);assert.equal(f.cancellations.length,1);assert.equal(f.cancellations[0].commandId,owner.commandId);assert.equal(f.cancellations[0].owner,owner.sessionOwner);assert.equal(f.commands.length,1);assert.equal(f.starts.length,0);assert.equal(preview.letteringPhase,'confirmed');assert.deepEqual(f.errors,[]);
+});
+
+
+test('encoded acceptance drains an older unbound renewal before submission and all later renewals carry its exact command witness',async t=>{
+ const f=await fixture(t);await f.click(currentId);f.loadCandidate();f.holdRenewal();lifecycleClock.advance(1000);await flush();
+ const preview=f.controller.placementReviews.get('candidate'),owner=preview.encodedOwner,pending=owner.renewing;assert(pending);assert.equal(f.reads.at(-1),'/api/v1/image-edit-reviews/'+preview.review.reviewId);
+ f.hold({result:true});await f.click(acceptId);assert.equal(owner.accepting,true);assert.equal(f.commands.length,1,'No adoption can consume the proof while the old request is still owned');assert.equal(f.starts.length,1);assert.equal(f.starts[0][2],123,'The real Accept event starts feedback before draining');
+ await assert.rejects(f.controller.adoptReviewed(preview),/current, unexpired placement review/);assert.equal(f.starts.length,1,'Reentry must not start another adoption');
+ lifecycleClock.advance(1000);await flush();assert.equal(f.reads.length,2,'Do not start another unbound read while acceptance enters');assert.equal(f.commands.length,1);
+ f.releaseRenewal();await pending;await flush();assert.equal(f.commands.length,2);assert.equal(f.commands[1].body.type,'AdoptReviewedCandidate');
+ lifecycleClock.advance(1000);await flush();assert.equal(f.reads.at(-1),'/api/v1/image-edit-reviews/'+preview.review.reviewId+'?acceptCommandId='+f.commands[1].commandId);
+ f.commands[1].complete();await f.settleAction();assert.equal(f.controller.placementReviews.has('candidate'),false);assert.deepEqual(f.errors,[]);
+});
+for(const loss of ['owner','deadline'])test('encoded acceptance cannot submit after '+loss+' is lost while an older renewal drains',async t=>{
+ const f=await fixture(t);await f.click(currentId);f.loadCandidate();f.holdRenewal();lifecycleClock.advance(1000);await flush();
+ const owner=f.controller.placementReviews.get('candidate').encodedOwner,pending=owner.renewing;f.hold({result:true});await f.click(acceptId);assert.equal(f.commands.length,1);const ownedMessage=f.controller.message;
+ if(loss==='owner')f.loseOwner();else{lifecycleClock.advance(3000);await flush();assert.equal(owner.renewalFailed,true);assert.equal(f.signals[1].aborted,true);}
+ f.releaseRenewal();await pending;await f.settleAction();assert.equal(f.commands.length,1,'No orphan acceptance after failed handoff');assert.equal(owner.acceptCommandId,undefined);assert.equal(owner.accepting,false);
+ if(loss==='owner'){
+  assert.deepEqual(f.errors,[],'An obsolete action must not publish an error into another owner');assert.equal(f.controller.message,ownedMessage,'Owner loss suppresses the stale error message too');assert.equal(f.cancellations.length,0);
+  const reads=f.reads.length;lifecycleClock.advance(1000);await f.settleAction();assert.equal(f.cancellations.length,1);assert.equal(f.cancellations[0].commandId,owner.commandId);assert.equal(f.cancellations[0].owner,owner.sessionOwner);assert.equal(f.controller.placementReviews.has('candidate'),false);assert.equal(lifecycleClock.timers.size,0);assert.equal(f.reads.length,reads,'The abandoned review cannot start another read');assert.equal(f.commands.length,1);assert.deepEqual(f.errors,[]);
+ }else{assert.equal(f.errors.length,1);assert.match(f.errors[0].message,/encoded review changed before acceptance/);}
+
+});
+
+for(const nativeLettering of [false,true])test('exact rejected encoded adoption retires its old review for explicit fresh review'+(nativeLettering?' after native confirmation':''),async t=>{
+ const f=await fixture(t,{nativeLettering});if(nativeLettering)await confirmNativeEncodedReview(f);else{await f.click(currentId);f.loadCandidate();}
+ const prior=f.controller.placementReviews.get('candidate'),owner=prior.encodedOwner;f.hold({result:true});await f.click(acceptId);
+ const failed=f.commands[1],error=Error('INVALID_INPUT');f.receipt({protocolVersion:1,kind:'receipt',receipt:{commandId:failed.commandId,status:'rejected'}});failed.result.reject(error);await f.settleAction();
+ assert.equal(f.controller.placementReviews.has('candidate'),false);assert.equal(f.commands.length,2,'No implicit replacement adoption');assert.equal(owner.acceptCommandId,failed.commandId,'The original journal identity is not rewritten');assert.deepEqual(f.cancellations.map(row=>row.commandId),[owner.commandId]);assert.equal(f.errors.length,1);assert.equal(f.errors[0].cause,error);assert.match(f.errors[0].message,/rejected.*review its placement again/);assert.equal(lifecycleClock.timers.size,0);
+ f.hold();if(nativeLettering){await f.click('request-candidate-prepare-candidate');await f.settleAction();}
+ await f.click(currentId);await f.settleAction();const next=f.controller.placementReviews.get('candidate');assert(next);assert.notEqual(next.review.reviewId,prior.review.reviewId);assert.notEqual(next.encodedOwner,owner);assert.equal(f.commands.length,3);assert.equal(f.commands[2].body.type,'ReviewCandidatePlacement');assert.equal(f.rendered().buttons.find(row=>row.id===acceptId).disabled,nativeLettering,'A new native comparison needs confirmation; unchanged decoded inputs retain their existing acknowledgements');
+});
+
+for(const disposition of ['pending','unknown','accepted','different-command','missing-protocol','read-error','deadline','owner-change'])test('encoded adoption error with '+disposition+' preserves the original acceptance identity without another adoption',async t=>{
+ const f=await fixture(t);await f.click(currentId);f.loadCandidate();const preview=f.controller.placementReviews.get('candidate'),owner=preview.encodedOwner;f.hold({result:true});await f.click(acceptId);const failed=f.commands[1],error=Error('COMMAND_RESULT_PROOF_FAILED');
+ let result=disposition==='pending'||disposition==='unknown'?{protocolVersion:1,kind:disposition,commandId:failed.commandId,phase:'working'}:{protocolVersion:1,kind:'receipt',receipt:{commandId:disposition==='different-command'?'other-command':failed.commandId,status:disposition==='accepted'?'accepted':'rejected'}};if(disposition==='missing-protocol')delete result.protocolVersion;f.receipt(result);if(disposition==='read-error')f.failReceipt();if(disposition==='deadline'||disposition==='owner-change')f.holdReceipt();
+ failed.result.reject(error);await flush();if(disposition==='owner-change'){f.loseOwner();f.releaseReceipt();}if(disposition==='deadline'){lifecycleClock.advance(3000);await flush();assert(f.signals.find(signal=>signal?.aborted),'The receipt read remains bounded');}
+ await f.settleAction();assert.equal(owner.acceptCommandId,failed.commandId);assert.equal(owner.accepting,true);assert.equal(f.commands.length,2);assert.equal(f.controller.placementReviews.get('candidate'),preview);assert.equal(f.rendered().buttons.find(row=>row.id===acceptId).disabled,true,'Uncertainty must not expose an enabled retry with a new identity');await assert.rejects(f.controller.adoptReviewed(preview),/current, unexpired placement review/);assert.equal(f.starts.length,1);assert.equal(f.commands.length,2);if(disposition!=='owner-change')assert.deepEqual(f.errors,[error]);
+});
+
+test('encoded adoption failing before journaling can retry the same still-live review explicitly',async t=>{
+ const f=await fixture(t);await f.click(currentId);f.loadCandidate();const preview=f.controller.placementReviews.get('candidate'),owner=preview.encodedOwner;f.hold({journal:true,result:true});await f.click(acceptId);const error=Error('COMMAND_ALLOCATION_LIMIT');f.commands[1].result.reject(error);await f.settleAction();
+ assert.equal(owner.acceptCommandId,undefined);assert.equal(owner.accepting,false);assert.equal(f.reads.filter(path=>path.startsWith('/api/v1/commands/')).length,0);assert.equal(f.rendered().buttons.find(row=>row.id===acceptId).disabled,false);assert.equal(f.controller.placementReviews.get('candidate'),preview);assert.deepEqual(f.errors,[error]);
+ f.hold();await f.click(acceptId);await f.settleAction();assert.equal(f.commands.length,3);assert.equal(f.controller.placementReviews.has('candidate'),false);
+});
+
+
+test('an old rejection lookup cannot retire a replacement review installed before it completes',async t=>{
+ const f=await fixture(t);await f.click(currentId);f.loadCandidate();const prior=f.controller.placementReviews.get('candidate'),owner=prior.encodedOwner;f.hold({result:true});await f.click(acceptId);const failed=f.commands[1];f.holdReceipt();f.receipt({protocolVersion:1,kind:'receipt',receipt:{commandId:failed.commandId,status:'rejected'}});failed.result.reject(Error('INVALID_INPUT'));await flush();
+ f.hold();await f.controller.reviewPlacement(f.candidate,'new-document',()=>true,false,true);await flush();const replacement=f.controller.placementReviews.get('candidate');assert.notEqual(replacement,prior);assert.notEqual(replacement.encodedOwner,owner);f.releaseReceipt();await f.settleAction();
+ assert.equal(f.controller.placementReviews.get('candidate'),replacement);assert.equal(replacement.encodedOwner.cancelRequested,false);assert.deepEqual(f.cancellations.map(row=>row.commandId),[owner.commandId]);assert.equal(f.commands.length,3);assert.equal(owner.acceptCommandId,failed.commandId);assert.equal(f.errors.length,1);assert.equal(f.errors[0].message,'INVALID_INPUT');
 });

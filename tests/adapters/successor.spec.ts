@@ -2,7 +2,7 @@ import {expect,type Locator,type Page} from '@playwright/test';
 import {createHash} from 'node:crypto';
 import {createReadStream,existsSync} from 'node:fs';
 import {stat} from 'node:fs/promises';
-import {resolve} from 'node:path';
+import {basename,resolve} from 'node:path';
 import type {AdapterLibraryEntry,AdapterLibraryPage} from '../../src/protocol/adapters.js';
 import type {QueueView} from '../../src/protocol/queue.js';
 import {test} from './fixture.js';
@@ -28,7 +28,9 @@ test.describe('retained official adapter successor',()=>{
   await page.getByRole('combobox',{name:'Operation',exact:true}).selectOption('Generate with adapters');await text(page,'Prompt','Preserve this exact queued adapter version across a deliberate draft update.');
   await click(page,'Adapter library');const library=page.getByRole('region',{name:'Local adapter library',exact:true}),registration=library.locator('en-card[aria-label="Adapter registration review"]');
   const importVersion=async()=>{
-   await library.locator('en-file-upload[label="Adapter weights"] input[type=file]').setInputFiles(fixturePath);
+   const weightsInput=library.locator('en-file-upload[label="Adapter weights"] input[type=file]');
+   await expect(weightsInput).toBeEnabled();await weightsInput.setInputFiles(fixturePath);
+   await expect(library.getByText(`${basename(fixturePath)} · ${expectedWeights.byteLength} bytes · local file`,{exact:true})).toBeVisible();
    await text(library,'Adapter name','Official successor fixture');await click(library,'Review local adapter import');await expect(registration).toBeVisible({timeout:90_000});await expect(registration).toContainText(expectedWeights.hash);await expect(registration).toContainText('Config not supplied');
    await click(registration,'Register these exact local files');await expect(registration).toHaveCount(0,{timeout:90_000});await expect(library.getByRole('textbox',{name:'Adapter name',exact:true})).toBeEnabled();
   };
@@ -54,7 +56,10 @@ test.describe('retained official adapter successor',()=>{
   const queued=(await read<QueueView>('/api/v1/queue')).jobs[0]!;expect(queued.review.request).toMatchObject({kind:'generate-adapters',adapters:[{version:first.versionId,hash:expectedWeights.hash,scale:'0',runtimeAcknowledged:true}]});
   expect(queued.stagePlan).toEqual([{role:'adapter:0',versionId:first.versionId,original:expectedWeights,transport:expectedWeights}]);
   expect(queued.attempts).toHaveLength(1);expect(queued.attempts.every(attempt=>attempt.state==='not-started')).toBe(true);
-  const firstCard=library.locator('en-card').filter({has:page.getByRole('heading',{name:'Official successor fixture',exact:true})});await expect(firstCard).toHaveCount(1);await click(firstCard,'Import a new version');await importVersion();
+  const firstCard=library.locator('en-card').filter({has:page.getByRole('heading',{name:'Official successor fixture',exact:true})});await expect(firstCard).toHaveCount(1);await click(firstCard,'Import a new version');
+  await expect(library.getByText(`New version of ${first.adapterId}; previous ${first.versionId}. Existing requests keep their exact versions.`,{exact:true})).toBeVisible();
+  await expect(library.getByText('Choose replacement local files. Registration creates a new version; existing drafts and jobs stay unchanged.',{exact:true})).toBeVisible();
+  await importVersion();
   const second=(await read<AdapterLibraryPage>('/api/v1/adapters')).items.find(item=>item.version==='2')!;expect(second).toMatchObject({adapterId:first.adapterId,version:'2',weights:expectedWeights,locallyEligible:true,runtimeVerified:false});expect(second.versionId).not.toBe(first.versionId);
   expect(await read<AdapterLibraryEntry>('/api/v1/adapters/'+first.versionId)).toEqual(first);
   const attachment=()=>library.locator('en-card').filter({has:page.getByRole('spinbutton',{name:'Scale for adapter 1',exact:true})});

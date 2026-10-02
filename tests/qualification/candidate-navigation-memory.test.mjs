@@ -30,3 +30,14 @@ test('latest per-attempt read wins while old native read remains counted until a
 test('actual outstanding reads are bounded even when every new read supersedes the same attempt',async()=>{
  const before=totals(),memory=fixture(),reads=[];for(let i=0;i<8;i++)reads.push(memory.beginCandidateRead('attempt'));assert.throws(()=>memory.beginCandidateRead('attempt'),/REQUEST_CANDIDATE_READ_LIMIT/);assert.equal(memory.lifecycle.candidateReads,8);for(const read of reads)read.close();await memory.release();assert.deepEqual(totals(),before);
 });
+
+test('navigation progress belongs only to its exact current read while every retired read stays charged',async()=>{
+ const before=totals(),memory=fixture(),poll=memory.beginCandidateRead('attempt');
+ assert.equal(memory.candidatePending('attempt'),true);assert.equal(memory.candidateNavigating('attempt'),false);
+ const next=memory.beginCandidateRead('attempt',true);assert.equal(poll.current(),false);assert.equal(memory.candidateNavigating('attempt'),true);
+ poll.close();assert.equal(memory.lifecycle.candidateReads,1);assert.equal(memory.candidateNavigating('attempt'),true,'Older poll cleanup cannot clear the active navigation');
+ const newer=memory.beginCandidateRead('attempt',true);next.close();assert.equal(memory.candidateNavigating('attempt'),true,'Older navigation cleanup cannot clear its successor');
+ memory.clearCandidate('attempt');assert.equal(newer.current(),false);assert.equal(memory.candidatePending('attempt'),false);assert.equal(memory.candidateNavigating('attempt'),false);assert.equal(memory.lifecycle.candidateReads,1,'Invalidation is not physical read completion');
+ const current=memory.beginCandidateRead('attempt');newer.close();assert.equal(current.current(),true);assert.equal(memory.candidatePending('attempt'),true);assert.equal(memory.candidateNavigating('attempt'),false);
+ current.close();await memory.release();assert.deepEqual(totals(),before);
+});

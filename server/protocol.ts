@@ -133,7 +133,7 @@ export class ProtocolRoutes {
     const history=/^\/api\/v1\/documents\/([^/]+)\/(image|history|checkpoints|save-status|closure)$/.exec(path);
     if(history){if(!isId(history[1]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['GET'],kind:'document-'+history[2],id:history[1],query:history[2]==='save-status'?['sessionId']:['history','checkpoints','closure'].includes(history[2])?['after']:[]};}
     const imageEdit=/^\/api\/v1\/(image-previews|image-edit-reviews)\/([^/]+)$/.exec(path);
-    if(imageEdit){if(!isId(imageEdit[2]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['GET'],kind:imageEdit[1],id:imageEdit[2],query:[]};}
+    if(imageEdit){if(!isId(imageEdit[2]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['GET'],kind:imageEdit[1],id:imageEdit[2],query:imageEdit[1]==='image-edit-reviews'?['acceptCommandId']:[]};}
     const ui=/^\/api\/v1\/ui\/([^/]+)$/.exec(path);
     if(ui){if(!isId(ui[1]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['GET','POST'],kind:'ui',id:ui[1],query:[]};}
     const match = /^\/api\/v1\/(commands|documents|snapshots|protocol-content|recovery|namespace-events)\/([^/]+)(\/release)?$/.exec(path);
@@ -342,7 +342,8 @@ export class ProtocolRoutes {
       } else if(route.kind.startsWith('adapter-')){await this.adapters.handle(request,response,route,params,authenticate,assertRoot);
       } else if(['bundle','bundle-review','bundle-mapping','bundle-content','portable-inventory'].includes(route.kind)){await this.portable.handle(request,response,route,params,authenticate,assertRoot);
       } else if(route.kind==='image-previews'||route.kind==='image-edit-reviews'){
-        const result=route.kind==='image-previews'?await this.writer.imagePreview(id,this.assets.auth(session)):await this.writer.imageEditReview(id,this.assets.auth(session));authenticate();sendJSON(response,200,result);
+        const acceptCommandId=params.get('acceptCommandId');if(acceptCommandId!==null&&!isId(acceptCommandId))throw new ProtocolError('MALFORMED_REQUEST');
+        const result=route.kind==='image-previews'?await this.writer.imagePreview(id,this.assets.auth(session)):await this.writer.imageEditReview(id,this.assets.auth(session),acceptCommandId??undefined);authenticate();sendJSON(response,200,result);
       } else if(route.kind==='request-reviews'){const result=await this.writer.requestReviews(id,this.assets.auth(session));authenticate();sendJSON(response,200,{items:result});
       } else if(route.kind==='ui'){
         let result;

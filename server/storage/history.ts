@@ -110,12 +110,20 @@ export class Histories {
     if(row.session_hash!==auth.sessionHash||row.epoch!==this.epoch()||auth.now>=Date.parse(review.expiresAt))throw new StoreError('REVIEW_EXPIRED');return review;
   }
   /** Public authenticated review GET. Internal acceptance checks use review()
-   * directly and cannot renew an abandoned owner's lease. */
-  liveReview(id:string,auth:AssetAuth):ImageEditReview|CandidatePlacementReview {
-    this.check();const review=this.review(id,auth);
-    if(!('kind'in review)||review.kind!=='candidate-placement-review-1'||!review.inputs.encodedRebuild)return review;
+   * directly and cannot renew an abandoned owner's lease. acceptCommandId is an
+   * optional exact terminal witness: an accepted result returns frozen metadata
+   * without renewing consumed proof; unknown/pending still need the live lease
+   * or its real active acceptance. Foreign, mismatched, rejected and stale
+   * witnesses cannot authorize the read or discard another owner's proof. */
+  liveReview(id:string,auth:AssetAuth,acceptCommandId?:string):ImageEditReview|CandidatePlacementReview {
+    this.check();if(acceptCommandId!==undefined&&!isId(acceptCommandId))throw new StoreError('MALFORMED_REQUEST');const review=this.review(id,auth);if(review.reviewId!==id)throw new StoreError('CORRUPT_STORE');
+    if(!('kind'in review)||review.kind!=='candidate-placement-review-1'||!review.inputs.encodedRebuild){if(acceptCommandId!==undefined)throw new StoreError('MALFORMED_REQUEST');return review;}
     const owner=this.db.prepare('SELECT client_id,expires FROM client_bindings WHERE cookie_hash=?').get(auth.sessionHash);
     if(!Number.isSafeInteger(auth.now)||!Number.isSafeInteger(auth.expires)||auth.now>=auth.expires||!owner||owner.client_id!==auth.clientId||auth.now>=Number(owner.expires))throw new StoreError('OWNER_REQUIRED');
+    // A submitted acceptance may commit before the owning UI receives events.
+    // Its exact retained receipt witnesses metadata only; consumed proofs stay consumed.
+    // Wrong witnesses are checked outside the discard catch and cannot retire another lease.
+    if(acceptCommandId!==undefined&&this.acceptedEncodedReview(review,auth,acceptCommandId))return review;
     const binding=this.encodedReviewBinding(review,auth);
     try{
       const {reviewHash,...content}=review,source=this.document(review.documentId);
@@ -131,6 +139,25 @@ export class Histories {
       }
       this.encodedReviewProofs.renew(binding);return review;
     }catch(error){this.encodedReviewProofs.discard(id);throw error;}
+  }
+  private acceptedEncodedReview(review:CandidatePlacementReview,auth:AssetAuth,commandId:string):boolean {
+    const row=this.db.prepare('SELECT hash,canonical,original,receipt FROM commands WHERE id=?').get(commandId),pending=row?null:this.pending(commandId);
+    // onJournaled precedes HTTP admission. Unknown is never accepted evidence;
+    // only the unchanged live proof/active-acceptance checks may authorize it.
+    if(!row&&!pending)return false;
+    const request=row?parseCommand(Buffer.from(String(row.original))):null,command=request?.command??pending!.command;
+    if(row&&(command.commandId!==commandId||canonical(request)!==row.canonical||hashBytes(String(row.canonical))!==row.hash))throw new StoreError('CORRUPT_STORE');
+    if(command.clientId!==auth.clientId)throw new StoreError('OWNER_REQUIRED');
+    const creating=review.placement.placement==='new-document',targetId=creating?review.placement.newDocumentId:review.documentId;
+    if(command.body.type!=='AdoptReviewedCandidate'||command.body.reviewId!==review.reviewId||command.body.reviewHash!==review.reviewHash||command.documentId!==targetId||command.expectedDocumentRevision!==(creating?null:review.documentRevision))throw new StoreError('REVIEW_EXPIRED');
+    if(!row){let authority:AssetAuth;try{authority=this.authority(commandId);}catch(error){if(error instanceof AssetRejection)throw new StoreError('REVIEW_EXPIRED');throw error;}if(authority.sessionHash!==auth.sessionHash)throw new StoreError('OWNER_REQUIRED');return false;}
+    const receipt=JSON.parse(String(row.receipt)) as Receipt;
+    if(receipt.status!=='accepted')throw new StoreError('REVIEW_EXPIRED');
+    const revision=creating?'1':String(BigInt(review.documentRevision)+1n);
+    if(receipt.commandId!==commandId||receipt.transactionId!==command.transactionId||!isSeq(receipt.fromSeq)||!isSeq(receipt.toSeq)||BigInt(receipt.fromSeq)<1n||BigInt(receipt.fromSeq)>BigInt(receipt.toSeq)||receipt.documentRevision!==revision)throw new StoreError('CORRUPT_STORE');
+    const target=targetId?this.document(targetId):null,source=creating?this.document(review.documentId):target;
+    if(!target||target.revision!==revision||!source||source.revision!==(creating?review.documentRevision:revision)||this.db.prepare('SELECT 1 FROM candidate_document_tombstones WHERE document_id IN (?,?)').get(review.documentId,targetId))throw new StoreError('REVIEW_EXPIRED');
+    return true;
   }
   private epoch(){return String(this.db.prepare("SELECT value FROM meta WHERE key='writerEpoch'").get()!.value);}
   private authority(commandId:string):AssetAuth {

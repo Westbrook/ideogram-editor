@@ -195,7 +195,7 @@ export async function openWriter(options: WriterOptions, testing?: WriterTestOpt
     assetAbortChunk: (token:string)=>request<void>('assetAbortChunk',{token}),
     assetCommand: (bytes:Uint8Array,auth:AssetAuth)=>request<Receipt|null>('assetCommand',{bytes,auth}),
     imagePreview:(id:string,auth:AssetAuth)=>request<ReturnType<Histories['preview']>>('imagePreview',{id,auth}),
-    imageEditReview:(id:string,auth:AssetAuth)=>request<ReturnType<Histories['review']>>('imageEditReview',{id,auth}),
+    imageEditReview:(id:string,auth:AssetAuth,acceptCommandId?:string)=>request<ReturnType<Histories['review']>>('imageEditReview',{id,auth,...(acceptCommandId===undefined?{}:{acceptCommandId})}),
     historyCommand:(bytes:Uint8Array,auth:AssetAuth)=>request<Receipt|null>('historyCommand',{bytes,auth}),
     cancelCandidateReview:(id:string,auth:AssetAuth)=>request<Awaited<ReturnType<Histories['cancelCandidateReview']>>>('cancelCandidateReview',{id,auth}),
     cancelExport:(id:string,auth:AssetAuth)=>request<Awaited<ReturnType<Histories['cancelExport']>>>('cancelExport',{id,auth}),

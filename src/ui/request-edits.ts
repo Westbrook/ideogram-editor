@@ -32,7 +32,7 @@ type MaskManifest={plan:{clip?:Rect|null;lostEffectivePixels?:number;authoring:M
 type BuiltMask={asset:Asset;manifest:MaskManifest;url:string;loaded:boolean};
 type MappingPreview={mask:BuiltMask;baseline:BuiltMask;plan:RequestRasterPlan;lostPixels:number;contained:boolean;sourceURL:string;sourceLoaded:boolean;resolution:'already-contained'|'expanded-and-approved'|'clipped-and-approved'};
 type CandidatePreview={token:number;candidate:Candidate;mode:'safe-region'|'full-candidate';placement:'current-document'|'new-document';newDocumentId:string|null;review:ImageEditReview;originalURL:string;preparedURL:string;afterURL:string;nativeOffURL:string;nativeOnURL:string;loaded:Set<string>;owns:()=>boolean};
-type EncodedReviewOwner={payload?:OwnedModel<EncodedReviewOwner>;preparing:boolean;candidateId:string;sessionOwner:CandidateReviewCancellationOwner;owns:()=>boolean;documentId:string;documentRevision:string;commandId?:string;acceptCommandId?:string;expiresAt?:number;lastConfirmedAt?:number;renewalFailed?:boolean;renewing?:Promise<void>;renewAbort?:AbortController;cancelRequested:boolean;canceling?:Promise<void>;cancelAgain:boolean;cancelStartedAt?:number;cancelRetries:number};
+type EncodedReviewOwner={payload?:OwnedModel<EncodedReviewOwner>;preparing:boolean;candidateId:string;sessionOwner:CandidateReviewCancellationOwner;owns:()=>boolean;documentId:string;documentRevision:string;commandId?:string;acceptCommandId?:string;accepting?:boolean;expiresAt?:number;lastConfirmedAt?:number;renewalFailed?:boolean;renewing?:Promise<void>;renewAbort?:AbortController;cancelRequested:boolean;canceling?:Promise<void>;cancelAgain:boolean;cancelStartedAt?:number;cancelRetries:number};
 type CandidatePlacementPreview={token:number;candidate:Candidate;review:CandidatePlacementReview;originalURL:string;letteringAloneURL:string;letteringOffURL:string;letteringOnURL:string;letteringPhase?:'inspection'|'closing'|'release-failed'|'confirmed';comparisonRelease?:()=>Promise<void>;loaded:Set<string>;owns:()=>boolean;encodedOwner?:EncodedReviewOwner};
 type NumericGeometry={x:string;y:string;width:string;height:string;left:string;top:string;right:string;bottom:string};
 const finite=(text:string,label:string)=>{if(!text.trim()||!Number.isFinite(Number(text)))throw Error('Enter a finite '+label+'.');return Number(text);};
@@ -126,7 +126,7 @@ export class RequestEdits {
  private ownEncodedReview(candidateId:string,owns:()=>boolean){
   const target=this.editor.view.document!;
   const owner:EncodedReviewOwner={candidateId,owns,documentId:target.id,documentRevision:target.revision,sessionOwner:{session:this.editor.session,identity:this.editor.session.identity()},preparing:true,cancelRequested:false,cancelAgain:false,cancelRetries:0};
-  owner.payload=this.models.prepare(owner,{candidateId,documentId:target.id,documentRevision:target.revision,identity:owner.sessionOwner.identity,commandId:'x'.repeat(128),acceptCommandId:'x'.repeat(128),numbers:[0,0,0,0],flags:[false,false,false,false]});this.preparingEncoded.add(owner);
+  owner.payload=this.models.prepare(owner,{candidateId,documentId:target.id,documentRevision:target.revision,identity:owner.sessionOwner.identity,commandId:'x'.repeat(128),acceptCommandId:'x'.repeat(128),numbers:[0,0,0,0],flags:[false,false,false,false,false]});this.preparingEncoded.add(owner);
   // Ownership can change while a command or image read is awaiting I/O, without
   // another render. Check for abandoned review ownership every second.
   this.encodedReviewWatch??=setInterval(()=>{
@@ -144,11 +144,11 @@ export class RequestEdits {
   owner.renewalFailed=true;this.cancelEncodedReview(owner);this.message=owner.acceptCommandId?'Review liveness stopped. The submitted adoption is still awaiting its original receipt. Your originals remain kept.':'This encoded review is no longer live. Review the placement again before accepting. Your candidate and originals remain kept.';this.changed();
  }
  private renewEncodedReview(preview:CandidatePlacementPreview,owner:EncodedReviewOwner){
-  if(this.releasing||owner.renewing||owner.renewalFailed||!this.encodedReviewCurrent(owner))return;
+  if(this.releasing||owner.renewing||owner.renewalFailed||owner.accepting&&!owner.acceptCommandId||!this.encodedReviewCurrent(owner))return;
   const abort=new AbortController();owner.renewAbort=abort;
   const io=this.models.operation();owner.renewing=this.track((async()=>{
    try{
-    const startedAt=performance.now(),review=await io.read<CandidatePlacementReview>('/api/v1/image-edit-reviews/'+preview.review.reviewId,()=>!abort.signal.aborted&&this.encodedReviewCurrent(owner),4*1024**2,abort.signal);
+    const startedAt=performance.now(),review=await io.read<CandidatePlacementReview>('/api/v1/image-edit-reviews/'+preview.review.reviewId+(owner.acceptCommandId?'?acceptCommandId='+encodeURIComponent(owner.acceptCommandId):''),()=>!abort.signal.aborted&&this.encodedReviewCurrent(owner),4*1024**2,abort.signal);
     if(!this.encodedReviewCurrent(owner)||this.placementReviews.get(owner.candidateId)!==preview)return;
     if(performance.now()-startedAt>=3000||review.kind!=='candidate-placement-review-1'||review.reviewId!==preview.review.reviewId||review.reviewHash!==preview.review.reviewHash||review.expiresAt!==preview.review.expiresAt||review.documentId!==owner.documentId||review.documentRevision!==owner.documentRevision||!review.inputs.encodedRebuild)throw Error('ENCODED_REVIEW_RENEWAL_CHANGED');
     owner.lastConfirmedAt=startedAt;this.changed();
@@ -383,20 +383,47 @@ export class RequestEdits {
    preview.letteringPhase='confirmed';this.message='Lettering comparison confirmed and its display resources closed. Accept to prepare and save this exact reviewed placement.';this.changed();
   }catch(error){if(this.placementReviews.get(preview.candidate.id)===preview){preview.letteringPhase='release-failed';this.changed();}throw error;}
  }
+ private async retireRejectedEncodedAcceptance(preview:CandidatePlacementPreview,owner:EncodedReviewOwner,io:EditRead){
+  const commandId=owner.acceptCommandId,session=this.editor.session,identity=session.identity();
+  const current=()=>!this.releasing&&this.placementReviews.get(owner.candidateId)===preview&&preview.owns()&&session===this.editor.session&&identity===session.identity()&&session===owner.sessionOwner.session&&identity===owner.sessionOwner.identity&&this.editor.view.document?.id===owner.documentId&&this.editor.view.document.revision===owner.documentRevision;
+  if(!commandId||!current())return false;
+  // A command can throw after acceptance when its event/projection proof fails.
+  // Only an exact rejected receipt authorizes retiring this review for a new one.
+  const abort=new AbortController(),timer=setTimeout(()=>abort.abort(),3000);let rejected=false;
+  try{const result=await io.read<CommandResult>('/api/v1/commands/'+commandId,current,4*1024**2,AbortSignal.any([io.signal,abort.signal]));rejected=result.protocolVersion===1&&result.kind==='receipt'&&result.receipt.commandId===commandId&&result.receipt.status==='rejected';}
+  catch{return false;}finally{clearTimeout(timer);}
+  // Recheck and retire in the same turn: an older lookup must never discard a
+  // replacement review installed while its receipt was being read.
+  if(!rejected||!current())return false;this.discardCandidate(preview.candidate.id);return true;
+ }
  private async adoptReviewed(preview:CandidatePlacementPreview,intentTime=performance.now()){const io=this.models.operation();try{
-  if(this.placementReviews.get(preview.candidate.id)!==preview||!preview.owns()||!this.placementReady(preview))throw Error('Inspect a current, unexpired placement review before accepting.');
+  if(this.placementReviews.get(preview.candidate.id)!==preview||!preview.owns()||!this.placementReady(preview)||preview.encodedOwner?.accepting)throw Error('Inspect a current, unexpired placement review before accepting.');
   const epoch=this.epoch,owner=this.editor.draftOwner,session=this.editor.session,identity=session.identity(),sessionId=this.editor.sessionId,document=this.editor.view.document!,review=preview.review,placement=review.placement;
   if(document.id!==review.documentId||document.revision!==review.documentRevision)throw Error('The target changed. Review placement again.');
   const newId=placement.placement==='new-document'?placement.newDocumentId!:undefined,target=newId?null:document;
   this.editor.beginAdoption({previewId:review.reviewId,candidateId:preview.candidate.id,jobId:preview.candidate.jobId,attemptId:preview.candidate.attemptId,providerRequestId:preview.candidate.requestId,documentId:newId??document.id,...(newId?{}:{revision:document.revision})},review.preparation==='prepared-reuse',intentTime);
   this.message=review.inputs.encodedRebuild?'Rebuilding from the retained originals and exact reviewed mask, then saving the reviewed placement. Your originals remain kept.':review.preparation==='prepared-reuse'?'Reusing the exact prepared result and saving its reviewed placement.':'Preparing the reviewed result and saving adoption. The candidate stays retained if preparation fails.';this.changed();
+  const encodedOwner=preview.encodedOwner;
   try{
-   const events=await io.command({type:'AdoptReviewedCandidate',reviewId:review.reviewId,reviewHash:review.reviewHash,draft:null},target,newId,preview.encodedOwner?commandId=>{preview.encodedOwner!.acceptCommandId=commandId;}:undefined);
+   if(encodedOwner){
+    // Finish the old, unbound renewal before any acceptance can consume its
+    // proofs. The existing liveness deadline still fences a stalled read.
+    encodedOwner.accepting=true;if(encodedOwner.renewing)await encodedOwner.renewing;
+    if(this.placementReviews.get(preview.candidate.id)!==preview||!preview.owns()||!this.placementReady(preview)||!this.encodedReviewCurrent(encodedOwner))throw Error('The encoded review changed before acceptance. Review placement again.');
+   }
+   const events=await io.command({type:'AdoptReviewedCandidate',reviewId:review.reviewId,reviewHash:review.reviewHash,draft:null},target,newId,encodedOwner?commandId=>{encodedOwner.acceptCommandId=commandId;}:undefined);
    if(epoch!==this.epoch||owner!==this.editor.draftOwner||session!==this.editor.session||identity!==session.identity()||sessionId!==this.editor.sessionId||document.id!==this.editor.view.document?.id)return;
    if(!events.some(e=>e.type==='ImageEdited'||e.type==='DocumentCreated'))throw Error('Adoption acknowledgement unavailable. Inspect the retained receipt.');
    this.releaseCandidates();this.message=newId?'Prepared candidate adopted into a new document.':'Prepared candidate adopted in one saved history edit. Undo and Redo reuse its retained pixels.';
    if(newId){const created=events.find(e=>e.type==='DocumentCreated');if(created?.type==='DocumentCreated')this.openAfterAction(created.payload.document.id);}this.changed();
-  }catch(error){this.editor.adoptionFailed(review.reviewId);throw error;}
+  }catch(error){
+   this.editor.adoptionFailed(review.reviewId);
+   if(encodedOwner){
+    let rejected=false;try{rejected=await this.retireRejectedEncodedAcceptance(preview,encodedOwner,io);}catch(cleanup){throw new AggregateError([error,cleanup],'Rejected adoption review cleanup failed.');}
+    if(rejected)throw new Error('The adoption was rejected. Inspect the retained candidate and review its placement again. Your originals remain kept.',{cause:error});
+   }
+   throw error;
+  }finally{if(encodedOwner&&!encodedOwner.acceptCommandId)encodedOwner.accepting=false;}
  }finally{io.release();}}
  private async place(candidate:Candidate,placement:'current-document'|'new-document',owns:()=>boolean,replace=false){const actionOwns=owns,candidateId=candidate.id,candidateVersion=candidate.version,preparedAssetId=candidate.preparedAssetId,treatmentRevision=this.treatmentRevision;owns=()=>actionOwns()&&this.treatmentRevision===treatmentRevision&&this.isCandidateSelected(candidateId)&&this.candidates.get(candidateId)?.version===candidateVersion&&this.candidates.get(candidateId)?.preparedAssetId===preparedAssetId;const io=this.models.operation();try{if(!owns())return;
   const inspection=this.inspections.get(candidate.id),document=this.editor.view.document;if(!inspection||!document)throw Error('Inspect the retained candidate first.');if(!this.inspectionDisplaysOpen(inspection))throw Error('Inspect the frozen source and candidate again before reviewing another placement.');const inspectionOwns=owns,inspectionToken=inspection.token;owns=()=>inspectionOwns()&&this.inspections.get(candidateId)?.token===inspectionToken;const mode=this.candidateMode.get(candidate.id)??'safe-region',expected=inspection.raster?.plan.expectedOutput,actual=inspection.asset.raster!,mismatch=!!expected&&(expected.width!==actual.width||expected.height!==actual.height);if(mode==='safe-region'&&mismatch&&!inspection.actualApproved)throw Error('Review the actual returned dimensions before preparing this candidate.');
@@ -473,7 +500,8 @@ export class RequestEdits {
    <p>Target revision ${review.documentRevision}. Preparation and adoption recheck the captured source, target, locks and ordered layers. Failure keeps the candidate available and leaves the document unchanged.</p>
    ${expired?html`<p role="status">This placement review expired. Review placement again before accepting.</p>`:nothing}
    ${preview.encodedOwner?.renewalFailed?html`<p role="status">${preview.encodedOwner.acceptCommandId?'Review liveness stopped. The submitted adoption is still awaiting its original receipt.':'This encoded review is no longer live. Review the placement again before accepting.'} Your originals remain kept.</p>`:nothing}
-   <en-button id=${'request-candidate-accept-prepare-'+candidate.id} ?disabled=${this.busy||!preview.owns()||!this.placementReady(preview)} @click=${(event:Event)=>{const time=event.timeStamp;this.action(event,()=>this.adoptReviewed(this.currentPlacement(candidateId,token),time));}}>${inputs.encodedRebuild?'Accept and rebuild this placement':'Accept and prepare this placement'}</en-button>
+   ${preview.encodedOwner?.accepting&&preview.encodedOwner.acceptCommandId?html`<p role="status">This adoption was already submitted as ${preview.encodedOwner.acceptCommandId}. Check its original result before reviewing another placement. Your candidate and originals remain kept.</p>`:nothing}
+   <en-button id=${'request-candidate-accept-prepare-'+candidate.id} ?disabled=${this.busy||!preview.owns()||!this.placementReady(preview)||!!preview.encodedOwner?.accepting} @click=${(event:Event)=>{const time=event.timeStamp;this.action(event,()=>this.adoptReviewed(this.currentPlacement(candidateId,token),time));}}>${inputs.encodedRebuild?'Accept and rebuild this placement':'Accept and prepare this placement'}</en-button>
    ${inputs.encodedRebuild?html`<en-button id=${'request-candidate-dismiss-encoded-'+candidate.id} ?disabled=${this.busy} @click=${(event:Event)=>this.action(event,()=>{this.discardCandidate(candidate.id);this.message='Encoded review dismissed. The candidate and originals remain kept.';this.changed();})}>Dismiss encoded review</en-button>`:nothing}
   </en-card>`;
  }

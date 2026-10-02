@@ -23,7 +23,7 @@ function candidateLocation(proposal:CandidatePageProposal){
 export class RequestNavigationMemory {
  readonly controls:UIModelOwner;readonly candidates:UIModelOwner;readonly prompts:UIModelOwner;readonly files:UIModelOwner;
  private entries=new Map<string,{bytes:number;location:CandidatePageLocation}>();private bytes=0;private candidateRevision=0;private fileSizes=new Map<string,number>();private fileBytes=0;
- private candidateReads=new Map<string,object>();private pendingCandidateReads=new Set<object>();
+ private candidateReads=new Map<string,{navigation:boolean}>();private pendingCandidateReads=new Set<object>();
  constructor(host:LitElement,editor:EditorClient){
   this.controls=new UIModelOwner(host,editor,'request-navigation','control',{slots:32});
   this.candidates=new UIModelOwner(host,editor,'request-result-pages','control',{slots:REQUEST_NAVIGATION_LIMITS.pages});
@@ -35,9 +35,10 @@ export class RequestNavigationMemory {
  hold(){const releases:Array<()=>void>=[];try{releases.push(this.controls.hold());releases.push(this.candidates.hold());releases.push(this.prompts.hold());releases.push(this.files.hold());}catch(error){for(const release of releases)release();throw error;}let live=true;return ()=>{if(live){live=false;for(const release of releases)release();}};}
  candidatePage(key:string):CandidatePageLocation|undefined{return this.entries.get(key)?.location;}
  candidatePending(key:string){return this.candidateReads.has(key);}
- beginCandidateRead(key:string){
+ candidateNavigating(key:string){return this.candidateReads.get(key)?.navigation??false;}
+ beginCandidateRead(key:string,navigation=false){
   if(key.length>256||this.pendingCandidateReads.size>=8||this.candidates.releasing)throw Error('REQUEST_CANDIDATE_READ_LIMIT');
-  const payload=reserveModelBytes('request-candidate-read-generation',key.length*2+24),token={};let live=true;
+  const payload=reserveModelBytes('request-candidate-read-generation',key.length*2+32),token={navigation};let live=true;
   this.candidateReads.set(key,token);this.pendingCandidateReads.add(token);
   return {current:()=>live&&this.candidateReads.get(key)===token,close:()=>{if(!live)return;live=false;if(this.candidateReads.get(key)===token)this.candidateReads.delete(key);this.pendingCandidateReads.delete(token);payload.release();}};
  }

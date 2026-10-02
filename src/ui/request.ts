@@ -485,7 +485,7 @@ export class RequestEditing{
   // pending refresh; its actual old read remains owned until cancellation/settle.
   if(after===undefined&&this.navigation.candidatePending(attemptId))return Promise.resolve();
   return this.navigation.candidates.run(async()=>{
-   const gate=this.navigation.beginCandidateRead(attemptId),entryOwns=this.owns(false),page=this.queueNavigation;
+   const gate=this.navigation.beginCandidateRead(attemptId,proposal!==undefined),entryOwns=this.owns(false),page=this.queueNavigation;
    const owns=()=>entryOwns()&&page===this.queueNavigation&&gate.current(),prior=this.navigation.candidatePage(attemptId),cursor=after??prior?.cursor??'';
    let model:OwnedModel<CandidateView>|undefined,pageToken:ReturnType<RequestNavigationMemory['prepareCandidate']>|undefined,indexToken:ReturnType<RequestEdits['prepareCandidates']>|undefined,retained=false;
    try{
@@ -516,8 +516,8 @@ export class RequestEditing{
   }finally{model.release();}
  });}
  private candidatePageControls(jobId:string,attemptId:string,view:CandidateView,act:(event:Event,work:()=>void|Promise<void>)=>void){
-  const location=this.navigation.candidatePage(attemptId),pending=this.navigation.candidatePending(attemptId);if(!location)return nothing;
-  return html`<nav aria-label="Retained output pages"><p role="status">Retained output page ${location.back.length+1}. ${view.items.length} outputs on this page. ${pending?'Loading requested page; current outputs remain available.':''}</p><en-button ?disabled=${pending||!location.cursor} @click=${(event:Event)=>act(event,()=>this.navigateCandidatePage(jobId,attemptId,'first'))}>First retained outputs</en-button><en-button ?disabled=${pending||!location.back.length} @click=${(event:Event)=>act(event,()=>this.navigateCandidatePage(jobId,attemptId,'previous'))}>Previous retained outputs</en-button><en-button ?disabled=${pending||!view.nextCursor} @click=${(event:Event)=>act(event,()=>this.navigateCandidatePage(jobId,attemptId,'next'))}>Next retained outputs</en-button></nav>`;
+  const location=this.navigation.candidatePage(attemptId),pending=this.navigation.candidatePending(attemptId),navigating=this.navigation.candidateNavigating(attemptId);if(!location)return nothing;
+  return html`<nav aria-label="Retained output pages"><p role="status">Retained output page ${location.back.length+1}. ${view.items.length} outputs on this page. ${navigating?'Loading requested page; current outputs remain available.':''}</p><en-button ?disabled=${pending||!location.cursor} @click=${(event:Event)=>act(event,()=>this.navigateCandidatePage(jobId,attemptId,'first'))}>First retained outputs</en-button><en-button ?disabled=${pending||!location.back.length} @click=${(event:Event)=>act(event,()=>this.navigateCandidatePage(jobId,attemptId,'previous'))}>Previous retained outputs</en-button><en-button ?disabled=${pending||!view.nextCursor} @click=${(event:Event)=>act(event,()=>this.navigateCandidatePage(jobId,attemptId,'next'))}>Next retained outputs</en-button></nav>`;
  }
  private returnedDescriptionKey(view:CandidateView|undefined){const p=view?.provenance;return [view?.jobId,view?.documentId,p?.complete,p?.quarantined,p?.inspection,p?.returnedPrompt?.hash,p?.returnedPrompt?.byteLength,p?.returnedPrompt?.mediaType].join(':');}
  private results(jobId:string,attemptId:string){
