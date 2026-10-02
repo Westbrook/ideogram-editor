@@ -1,10 +1,14 @@
 // Test-only controlled loopback transport. No production entry imports this module.
-import {createServer} from 'node:http';import {once} from 'node:events';import {readFileSync,writeFileSync,existsSync} from 'node:fs';import {join} from 'node:path';import assert from 'node:assert/strict';import sharp from 'sharp';
+import {createServer} from 'node:http';import {once} from 'node:events';import {readFileSync,writeFileSync,renameSync,existsSync} from 'node:fs';import {randomUUID} from 'node:crypto';import {join} from 'node:path';import assert from 'node:assert/strict';import sharp from 'sharp';
 import {emulator,fixtureProfile} from '../provider/emulator.mjs';import {QueueDispatcher} from '../../dist/local/server/provider/dispatcher.js';import {ResultObserver} from '../../dist/local/server/provider/observer.js';
 export async function setup(store){
  const path=join(store.root,'e4-fixture.json'),gatePath=join(store.root,'e4-gate.json'),prior=existsSync(path)?JSON.parse(readFileSync(path,'utf8')):{effects:[],requests:[],milestones:[]},effects=prior.effects,requests=new Map(prior.requests),errors=[],milestones=prior.milestones;let origin='',closing=false,pending;
  const gate=()=>existsSync(gatePath)?JSON.parse(readFileSync(gatePath,'utf8')):{status:'IN_PROGRESS',image:false,uncertain:false};
- const write=extra=>writeFileSync(path,JSON.stringify({effects,requests:[...requests],milestones,errors,port:new URL(origin).port,...extra},null,2),{mode:0o600});
+ const write=extra=>{
+  const temporary=join(store.root,'.e4-fixture-'+randomUUID()+'.tmp');
+  writeFileSync(temporary,JSON.stringify({effects,requests:[...requests],milestones,errors,port:new URL(origin).port,...extra},null,2),{mode:0o600,flag:'wx'});
+  renameSync(temporary,path);
+ };
  const png=await sharp({create:{width:512,height:512,channels:4,background:'#2468ac'}}).png().toBuffer();
  const server=createServer(async(req,res)=>{try{const body=Buffer.concat(await Array.fromAsync(req));effects.push({at:Date.now(),method:req.method,path:req.url,bytes:body.length});res.setHeader('Content-Type','application/json');
   if(req.method==='POST'){const id='e4_'+(requests.size+1),value=JSON.parse(body);requests.set(id,{value,endpoint:req.url});write({closed:false});if(gate().uncertain){req.socket.destroy();return;}await new Promise(r=>setTimeout(r,850));const base=origin+req.url+'/requests/'+id;res.end(JSON.stringify({request_id:id,status_url:base+'/status',response_url:base,cancel_url:base+'/cancel'}));}

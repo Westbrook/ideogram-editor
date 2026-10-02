@@ -55,7 +55,7 @@ for(const masked of [false,true])test('V45 '+(masked?'masked transport preserves
  async function savedDraft(predicate:(value:any)=>boolean){
   let found:any;
   await expect.poll(async()=>{
-   await Promise.all(pending);const request=uiRequests.find(value=>value.body.type==='SaveDraft');if(!request)return false;
+   await Promise.all(pending);if(!await page.getByRole('contentinfo').getByText('Accepted edits saved locally · Draft saved locally; not applied to the document',{exact:true}).isVisible())return false;const request=uiRequests.find(value=>value.body.type==='SaveDraft');if(!request)return false;
    const checkpoint=await read('/api/v1/ui/'+request.sessionId);
    for(const draft of checkpoint.drafts.filter((value:any)=>value.kind==='request')){
     const value=(await read('/api/v1/ui/'+request.sessionId+'/request?draftId='+encodeURIComponent(draft.id)+'&generation='+draft.generation)).value;

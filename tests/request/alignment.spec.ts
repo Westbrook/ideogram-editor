@@ -1,5 +1,5 @@
 import {confirmImageImports} from '../editor/image-import-flow.js';
-import {test as base,expect,type Page} from '@playwright/test';
+import {test as base,expect,type Page,type Request} from '@playwright/test';
 import {mkdtemp,realpath,mkdir,writeFile} from 'node:fs/promises';import {tmpdir} from 'node:os';import {join} from 'node:path';
 import {serverProcess} from '../editor/process.js';import {ownedOPFS} from '../editor/owned-opfs.js';import {recordDOMErrors} from '../editor/error-monitor.js';
 import {runs,step,throwFailures,finishFixture,type RunState} from '../editor/harness-lifecycle.js';
@@ -23,11 +23,24 @@ test('independent '+probe+' public boundary',async({page,context,browserName})=>
  await context.exposeBinding('independentCSP',(_s,v)=>csp.push(v));await context.addInitScript(()=>addEventListener('securitypolicyviolation',e=>(window as any).independentCSP({directive:e.effectiveDirective,blocked:e.blockedURI})));
  page.on('console',m=>{if(m.type()==='error')consoleErrors.push(m.text());});
  page.on('request',r=>{if(r.method()==='POST'&&r.url().includes('/api/v1/')){const data=r.postData();if(data&&r.headers()['content-type']?.includes('application/json')){const event={sequence:requests.length+1,path:new URL(r.url()).pathname,body:JSON.parse(data)};requests.push(event);editBinding?.observe({sequence:event.sequence,path:event.path,request:event.body});}}});
- page.on('response',r=>{if(r.request().method()==='POST'&&r.url().includes('/api/v1/ui/'))pending.push(r.json().then(body=>{responses.push(body);}));});
  const dir=await mkdtemp(join(await realpath(tmpdir()),'p22-alignment-')),server=await serverProcess(join(dir,'private'));let effects:any,colors:any[]=[],geometry:any,savedWitness:any;
  const state:RunState={failures:[],roots:[dir],writerClosed:false,contextClosed:false,browserClosed:false,retention:[],receipt,prefix:''};runs.set(context,state);const runtime=context.browser()?.version();
- state.observe=()=>({runtime,requests,responses,requestLifecycle:guard.requests,errors,csp,external,consoleErrors,effects,colors,geometry,savedWitness,editBinding:editBinding?.snapshot(),witnessReads,cleanup:{opfs:guard.ledger,serverClosed:state.writerClosed,privateRootRemoved:state.retention.some((r:any)=>r.root===dir&&r.removed)?dir:null}});
- state.finalCheck=async()=>{if(editBinding?.bound)editBinding.assertCurrent();guard.verify();expect(guard.ledger.filter(e=>e.phase==='refused')).toEqual([]);expect(errors).toEqual([]);expect(csp).toEqual([]);expect(external).toEqual([]);expect(consoleErrors).toEqual([]);};
+ const responseObserver={limit:1024,admitted:0,pending:0,completed:0,failed:0,outside:0,refused:0,overflow:false,sealed:false,drained:false};
+ const responseFailures:{phase:string;error:unknown}[]=[];let responseDrain:Promise<void>|undefined;
+ const responseFailure=(error:unknown)=>{const failure={phase:'response-observation',error};responseFailures.push(failure);state.failures.push(failure);};
+ function observeResponse(request:Request){
+  if(request.method()!=='POST'||!request.url().includes('/api/v1/ui/'))return;
+  if(responseObserver.sealed){responseObserver.outside++;return;}
+  if(pending.length>=responseObserver.limit){responseObserver.refused++;if(!responseObserver.overflow){responseObserver.overflow=true;responseFailure(Error('REQUEST_RESPONSE_OBSERVATION_LIMIT'));}return;}
+  responseObserver.admitted++;responseObserver.pending++;
+  // Request-start admission also owns replies whose headers arrive after sealing.
+  const work=Promise.resolve().then(async()=>{const response=await request.response();if(!response)throw Error('REQUEST_OBSERVED_RESPONSE_UNAVAILABLE: '+request.url());responses.push(await response.json());responseObserver.completed++;}).catch(error=>{responseObserver.failed++;responseFailure(error);}).finally(()=>{responseObserver.pending--;});pending.push(work);
+ }
+ async function flushResponses(){await Promise.all(pending);throwFailures(responseFailures);}
+ function sealResponses(){responseObserver.sealed=true;return responseDrain??=(async()=>{await expect.poll(()=>responseObserver.pending).toBe(0);responseObserver.drained=true;throwFailures(responseFailures);})();}
+ page.on('request',observeResponse);
+ state.observe=()=>({runtime,requests,responses,responseObserver:{...responseObserver},requestLifecycle:guard.requests,errors,csp,external,consoleErrors,effects,colors,geometry,savedWitness,editBinding:editBinding?.snapshot(),witnessReads,cleanup:{opfs:guard.ledger,serverClosed:state.writerClosed,privateRootRemoved:state.retention.some((r:any)=>r.root===dir&&r.removed)?dir:null}});
+ state.finalCheck=async()=>{await step(state,'response-observer-final',async()=>{await expect.poll(()=>responseObserver.pending).toBe(0);throwFailures(responseFailures);});if(editBinding?.bound)editBinding.assertCurrent();guard.verify();expect(guard.ledger.filter(e=>e.phase==='refused')).toEqual([]);expect(errors).toEqual([]);expect(csp).toEqual([]);expect(external).toEqual([]);expect(consoleErrors).toEqual([]);};
  await page.route('**/*',route=>{const u=new URL(route.request().url());if(['http:','https:'].includes(u.protocol)&&u.origin!==server.origin){external.push(u.origin);return route.abort();}return route.continue();});
  try{
   await guard.admit(page,server.origin);await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();
@@ -39,9 +52,9 @@ test('independent '+probe+' public boundary',async({page,context,browserName})=>
    await page.getByRole('combobox',{name:'Operation',exact:true}).selectOption('Edit masked region');await page.getByRole('textbox',{name:'Prompt',exact:true}).fill('Independent translated-source mask check');await page.getByRole('combobox',{name:'Request size',exact:true}).selectOption('auto');await click(page,'Use operation strength default');const legacy=page.getByRole('button',{name:'Legacy source and layer mask recovery',exact:true});await legacy.click();await expect(legacy).toHaveAttribute('aria-expanded','true');await click(page,'Attach selected image asset');await expect(page.getByText(/Source .*version .*3 × 2/)).toBeVisible();await click(page,'Attach selected layer edit mask');await expect(page.getByText(/Mask .*partial coverage/)).toBeVisible();await click(page,'Review current request document');await expect(page.getByText('Request document revision confirmed.',{exact:true})).toBeVisible();await click(page,'Review exact request');
    await expect.poll(async()=>await page.locator('#request-review').count()+await page.locator('#request-errors').count()).toBeGreaterThan(0);
    if(await page.locator('#request-review').count()){
-    await click(page,'Accept this exact review locally');await expect.poll(async()=>{await Promise.all(pending);return responses.filter(x=>x.acceptedReview||x.status==='rejected').length;}).toBeGreaterThan(0);
+    await click(page,'Accept this exact review locally');await expect.poll(async()=>{await flushResponses();return responses.filter(x=>x.acceptedReview||x.status==='rejected').length;}).toBeGreaterThan(0);
    }
-   await Promise.all(pending);await page.screenshot({path:join(receipt,'mapping-outcome.png'),caret:'initial'});
+   await flushResponses();await page.screenshot({path:join(receipt,'mapping-outcome.png'),caret:'initial'});
    const transform=requests.find(r=>r.body.command?.body.type==='ApplyTransform')?.body.command.body.transform;expect(transform).toEqual([1,0,0,1,1,0]);
    const mask=requests.find(r=>r.body.command?.body.type==='SetLayerProperties'&&r.body.command.body.properties.mask)?.body.command.body.properties.mask;expect(mask.mapping).toBe('document-r16-v1');
    await writeFile(join(receipt,'mapping-result.json'),JSON.stringify({transform,layerMask:mask,expected:'Reject until explicit source/mask frame resolution; document X=1 maps to original image X=0 under translation +1.',acceptedReviews:responses.filter(x=>x.acceptedReview),preparedReviews:responses.filter(x=>x.review)},null,2));
@@ -51,7 +64,7 @@ test('independent '+probe+' public boundary',async({page,context,browserName})=>
    await expect(summary.getByRole('link',{name:/^MASK_FRAME_MISMATCH:/})).toBeVisible();
    await expect(page.locator('#request-review')).toHaveCount(0);
    expect(responses.filter(x=>x.review),'Unresolved translated mapping must not prepare a review.').toHaveLength(0);
-   const originalMask=mask.assetId;await click(page,'Attach visible document snapshot');const visibleSource=page.locator('.typed-request').getByText(/^Source .+ · version .+ · visible-document$/);await expect(visibleSource).toHaveCount(1);await expect(visibleSource).toBeVisible();await expect(page.getByText('Source snapshot attached. Reattach its mask before confirming alignment.',{exact:true})).toBeVisible();await click(page,'Attach selected layer edit mask');await expect(page.getByText('Mask frame attached to the visible-document source. Confirm its alignment.',{exact:true})).toBeVisible();await click(page,'Confirm source and mask alignment');await expect(page.getByText('Source and mask alignment confirmed without changing pixels.',{exact:true})).toBeVisible();await click(page,'Review exact request');await expect(page.getByRole('heading',{name:'Immutable request review',exact:true})).toBeVisible();await expect(page.locator('#request-review')).toBeFocused();await click(page,'Accept this exact review locally');await requestFeedback(page,'Request review accepted locally. No job was queued and no provider call was made.');await Promise.all(pending);
+   const originalMask=mask.assetId;await click(page,'Attach visible document snapshot');const visibleSource=page.locator('.typed-request').getByText(/^Source .+ · version .+ · visible-document$/);await expect(visibleSource).toHaveCount(1);await expect(visibleSource).toBeVisible();await expect(page.getByText('Source snapshot attached. Reattach its mask before confirming alignment.',{exact:true})).toBeVisible();await click(page,'Attach selected layer edit mask');await expect(page.getByText('Mask frame attached to the visible-document source. Confirm its alignment.',{exact:true})).toBeVisible();await click(page,'Confirm source and mask alignment');await expect(page.getByText('Source and mask alignment confirmed without changing pixels.',{exact:true})).toBeVisible();await click(page,'Review exact request');await expect(page.getByRole('heading',{name:'Immutable request review',exact:true})).toBeVisible();await expect(page.locator('#request-review')).toBeFocused();await click(page,'Accept this exact review locally');await requestFeedback(page,'Request review accepted locally. No job was queued and no provider call was made.');await flushResponses();
    const accepted=responses.filter(x=>x.acceptedReview);expect(accepted).toHaveLength(1);const review=responses.find(x=>x.review?.id===accepted[0].acceptedReview).review;expect(review.request.source.scope).toBe('visible-document');expect(review.request.mask.assetId).toBe(originalMask);expect(review.request.mask.frame.layer.transform).toEqual([1,0,0,1,1,0]);expect(review.request.mask.frame.alignment.sourceToDocument).toEqual([1,0,0,1,0,0]);expect(review.request.mask.frame.alignment.maskToDocument).toEqual([1,0,0,1,0,0]);expect(review.request.mask.requestPlan.kind).toBe('request-raster-plan-1');expect(review.request.mask.requestPlan.expectedOutput).toEqual({width:3,height:2});expect(review.request.mask.requestPlan.sourcePixels).toEqual(review.request.source.pixels);expect(review.request.mask.requestPlan.effectiveMask.mediaType).toBe('application/x-ideogram-r16le');expect(review.request.mask.requestPlan.reconstructionHalo).toBe(0);expect(review.conversion).toBeNull();expect(review.dispatch).toBe(false);await writeFile(join(receipt,'compatible-result.json'),JSON.stringify({review,accepted},null,2));await page.screenshot({path:join(receipt,'compatible-outcome.png'),caret:'initial'});
 
   }else{
@@ -74,7 +87,7 @@ test('independent '+probe+' public boundary',async({page,context,browserName})=>
    const bound=editBinding.bound!,expected=bound.expected;
    await writeFile(join(receipt,'edit-binding.json'),JSON.stringify(editBinding.snapshot(),null,2));
    await expect.poll(async()=>{
-    await Promise.all(pending);const ack=editBinding!.receipt(responses);if(!ack)return 'Waiting for the bound receipt';
+    await flushResponses();const ack=editBinding!.receipt(responses);if(!ack)return 'Waiting for the bound receipt';
     const request=bound.request,checkpoint=await read(uiPath),draft=request.body.draft,path=uiPath+'/request?draftId='+encodeURIComponent(draft.id)+'&generation='+draft.generation;
     const value=(await read(path)).value,content=await read(path+'&content=1','text'),currentRevision=await read('/api/v1/documents/'+expected.documentId,'version');
     witnessReads.push({at:new Date().toISOString(),requestId:request.requestId,receipt:ack,checkpoint,value,content,revision:currentRevision});
@@ -87,7 +100,7 @@ test('independent '+probe+' public boundary',async({page,context,browserName})=>
   }
   effects=await server.effects();expect(Object.values(effects).every(n=>n===0)).toBe(true);expect(errors).toEqual([]);expect(csp).toEqual([]);expect(external).toEqual([]);expect(consoleErrors).toEqual([]);
  }catch(error){state.failures.push({phase:'body',error});}finally{
-  await step(state,'response-observations',()=>Promise.all(pending));
+  await step(state,'response-observations',sealResponses);page.off('request',observeResponse);
   await step(state,'before-cleanup-observations',()=>writeFile(join(receipt,'before-cleanup.json'),JSON.stringify(state.observe!(),null,2)));
   if(!state.failures.length)await step(state,'logical-cleanup',async()=>{for(const p of context.pages())await p.goto('about:blank');await guard.cleanup();guard.verify();});
   await step(state,'final-effects',async()=>{effects=await server.effects();expect(Object.values(effects).every(n=>n===0)).toBe(true);});
