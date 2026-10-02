@@ -50,6 +50,7 @@ import { tabPanelDefinition } from '@en-reve/elements/definitions/tab-panel.js';
 import { fileUploadDefinition } from '@en-reve/elements/definitions/file-upload.js';
 import { treeDefinition } from '@en-reve/elements/definitions/tree.js';
 import { activityFeedDefinition } from '@en-reve/elements/definitions/activity-feed.js';
+import { checkboxDefinition } from '@en-reve/elements/definitions/checkbox.js';
 import { switchDefinition } from '@en-reve/elements/definitions/switch.js';
 import { sliderDefinition } from '@en-reve/elements/definitions/slider.js';
 import { validationSummaryDefinition } from '@en-reve/elements/definitions/validation-summary.js';
@@ -79,7 +80,7 @@ import { SHA256 } from '../protocol/sha256.js';
 import {renderShellWordmark} from './shell-wordmark.js';
 
 const scope=createElementScope({document,registry:'auto'});
-scope.register([iconDefinition,linkDefinition,colorFieldDefinition,segmentedControlDefinition,accordionItemDefinition,accordionDefinition,alertDefinition,badgeDefinition,cardDefinition,stackDefinition,buttonDefinition,textareaDefinition,textFieldDefinition,numberFieldDefinition,selectDefinition,selectOptionDefinition,splitterDefinition,toolbarDefinition,tabsDefinition,tabDefinition,tabPanelDefinition,fileUploadDefinition,treeDefinition,activityFeedDefinition,switchDefinition,sliderDefinition,validationSummaryDefinition,popoverDefinition]);
+scope.register([iconDefinition,linkDefinition,colorFieldDefinition,segmentedControlDefinition,accordionItemDefinition,accordionDefinition,alertDefinition,badgeDefinition,cardDefinition,stackDefinition,buttonDefinition,textareaDefinition,textFieldDefinition,numberFieldDefinition,selectDefinition,selectOptionDefinition,splitterDefinition,toolbarDefinition,tabsDefinition,tabDefinition,tabPanelDefinition,fileUploadDefinition,treeDefinition,activityFeedDefinition,checkboxDefinition,switchDefinition,sliderDefinition,validationSummaryDefinition,popoverDefinition]);
 const requestOperationChoices=[
  {id:'generate',legacyId:'0',label:'Generate image'},
  {id:'instant',legacyId:'1',label:'Generate with Instant'},
