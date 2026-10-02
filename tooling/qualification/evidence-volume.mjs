@@ -235,6 +235,14 @@ const mutationOnly = sample => !sample.completeTraversal && sample.failures.leng
 export async function observeVolume(allocation, sampleOptions = {}) {
   const windowStartMs = performance.now(), attempts = []; let windowEndMs = windowStartMs, previous = null;
   for (let sequence = 0; sequence < OBSERVATION_POLICY.maxAttempts; sequence++) {
+    if (sequence) {
+      // Separate fully drained mutation scans without extending their original
+      // window. This referenced timer is owned by the pending observation;
+      // monitor.finish() drains it rather than abandoning an issued retry.
+      const retryAt = Math.min(attempts.at(-1).endMs + 100, windowStartMs + OBSERVATION_POLICY.maxWindowMs);
+      let remaining;
+      while ((remaining = retryAt - performance.now()) > 0) await new Promise(resolve => setTimeout(resolve, remaining));
+    }
     const startMs = sequence === 0 ? windowStartMs : performance.now();
     if (sequence && startMs - windowStartMs >= OBSERVATION_POLICY.maxWindowMs) { windowEndMs = startMs; break; }
     const startedAt = new Date().toISOString(); let sample;

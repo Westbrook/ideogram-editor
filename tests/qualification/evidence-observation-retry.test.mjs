@@ -17,11 +17,24 @@ async function fixture(t){
  const allocationPath=join(root,'allocation.json');await writeFile(allocationPath,JSON.stringify({kind:'evidence-volume-allocation-1',allocationId:'retry-fixture',purpose:'qualification-evidence-only',capacityBytes:34359738368,root:volume,issuedAt:'2026-09-30T00:00:00.000Z',owner:'Build'}));
  return {root,volume,allocationPath,allocation:await loadAllocation(allocationPath),output:join(volume,'run')};
 }
-function clock(t){
- let now=0;const timers=new Set();t.mock.method(performance,'now',()=>now);
- t.mock.method(globalThis,'setTimeout',(callback,delay)=>{const timer={callback,delay,unref(){}};timers.add(timer);return timer;});
+function clock(t,{autoRetry=true}={}){
+ let now=0;const timers=new Set(),created=[],waiters=[];t.mock.method(performance,'now',()=>now);
+ const set=value=>{assert(value>=now);now=value;};
+ const fire=(timer,value=timer.due)=>{assert(timers.has(timer));set(value);timers.delete(timer);timer.callback();};
+ const notify=()=>{const timer=[...timers].find(value=>!value.unreferenced);if(timer)for(const resolve of waiters.splice(0))resolve(timer);};
+ const service=timer=>queueMicrotask(()=>{notify();if(autoRetry&&timers.has(timer)&&!timer.unreferenced)fire(timer,Math.max(now,timer.due));});
+ t.mock.method(globalThis,'setTimeout',(callback,delay)=>{
+  const timer={callback,delay,due:now+delay,unreferenced:false,unref(){this.unreferenced=true;return this;}};
+  timers.add(timer);created.push(timer);service(timer);return timer;
+ });
  t.mock.method(globalThis,'clearTimeout',timer=>timers.delete(timer));
- return {set(value){assert(value>=now);now=value;},timers};
+ // The monitor's periodic timer calls unref synchronously; private retry waits
+ // remain referenced. Automatic mode services only those retry waits, retaining
+ // real filesystem traversal and leaving monitor cadence under each test.
+ return {set,advance(value){set(now+value);},get now(){return now;},timers,created,fire,
+  nextRetry(){const timer=[...timers].find(value=>!value.unreferenced);return timer?Promise.resolve(timer):new Promise(resolve=>waiters.push(resolve));},
+  resume(){autoRetry=true;for(const timer of timers)service(timer);}
+ };
 }
 async function assertClosed(handles){for(const handle of handles)await assert.rejects(handle.read(),{code:'ERR_DIR_CLOSED'});}
 function traversal(root,{mutations=0,onEnd=()=>{}}={}){
@@ -69,23 +82,23 @@ async function writeResealed(f,records,audit){
 }
 
 for(const mutations of [0,1,2])test('fresh full scans retain '+mutations+' mutations before the first successful observation',async t=>{
- const f=await fixture(t),time=clock(t),scan=traversal(f.volume,{mutations,onEnd:attempt=>time.set((attempt+1)*100)});
+ const f=await fixture(t),time=clock(t),scan=traversal(f.volume,{mutations,onEnd:()=>time.advance(100)});
  const observation=await observeVolume(f.allocation,scan.sampleOptions),verified=validateEvidenceObservation(observation);
  assert.equal(observation.kind,'evidence-volume-observation-2');assert.equal(observation.maxAttempts,3);assert.equal(observation.maxWindowMs,1000);
  assert.equal(observation.attempts.length,mutations+1);assert.equal(scan.starts,mutations+1);assert.equal(observation.selectedAttempt,mutations);
- assert.equal(observation.windowStartMs,0);assert.equal(observation.windowEndMs,(mutations+1)*100);verifyAttemptChain(observation);
+ assert.equal(observation.windowStartMs,0);assert.equal(observation.windowEndMs,100+mutations*200);verifyAttemptChain(observation);
  for(const [index,attempt]of observation.attempts.entries()){
   assert.equal(attempt.sample.uniqueFiles,index+1);assert.equal(attempt.sample.entries,index+2);assert.equal(attempt.sample.repeatedInodes,0);
   assert.equal(attempt.sample.observedLogicalBytes,8+17*index);assert.equal(attempt.sample.completeTraversal,index===mutations);
   if(index<mutations)assert.equal(attempt.sample.failures[0].code,'EVIDENCE_MUTATION');
  }
  assert.equal(verified.failedAttempts,mutations);assert.deepEqual(verified.chosenSample,observation.attempts[mutations].sample);
- assert.equal(verified.chosenSample.startMs,mutations*100);assert.equal(verified.chosenSample.endMs,(mutations+1)*100);
+ assert.equal(verified.chosenSample.startMs,mutations*200);assert.equal(verified.chosenSample.endMs,100+mutations*200);
  await assertClosed(scan.handles);
 });
 
 test('three full mutation attempts exhaust the fixed bound and retain every failure',async t=>{
- const f=await fixture(t),time=clock(t),scan=traversal(f.volume,{mutations:4,onEnd:attempt=>time.set((attempt+1)*100)});
+ const f=await fixture(t),time=clock(t),scan=traversal(f.volume,{mutations:4,onEnd:()=>time.advance(100)});
  const observation=await observeVolume(f.allocation,scan.sampleOptions),verified=validateEvidenceObservation(observation);
  assert.equal(scan.starts,3);assert.equal(observation.attempts.length,3);assert.equal(observation.selectedAttempt,null);assert.equal(verified.chosenSample,null);
  assert.equal(verified.failedAttempts,3);assert(observation.attempts.every(row=>!row.sample.completeTraversal&&row.sample.failures[0].code==='EVIDENCE_MUTATION'));
@@ -117,14 +130,14 @@ test('a mutation at the deadline retains its drained failure without launching a
 });
 
 test('retained v2 replay accepts an actual recovered full scan and retains its failed predecessor',async t=>{
- let scan;const f=await retain(t,{sampleOptions:(fixture,time)=>{scan=traversal(fixture.volume,{mutations:1,onEnd:attempt=>time.set((attempt+1)*10)});return scan.sampleOptions;},atFinish:20});
+ let scan;const f=await retain(t,{sampleOptions:(fixture,time)=>{scan=traversal(fixture.volume,{mutations:1,onEnd:()=>time.advance(10)});return scan.sampleOptions;},atFinish:120});
  assert.equal(f.audit.kind,'evidence-volume-audit-2');assert.equal(f.audit.status,'PASS');assert.equal(f.audit.unknownSamples,0);assert.equal(f.audit.failedAttempts,1);
  assert.equal(f.audit.attempts,3);assert.equal(f.records[0].observation.attempts.length,2);assert.equal(f.records[0].observation.attempts[0].sample.failures[0].code,'EVIDENCE_MUTATION');
  assert.equal(f.records[0].sample.completeTraversal,true);assert.equal((await verifyEvidenceAudit(f.monitor.reference,f.receiptPath)).status,'PASS');await assertClosed(scan.handles);
 });
 
 test('an exhausted logical observation stays unknown after a later complete scan through retained replay',async t=>{
- const f=await retain(t,{sampleOptions:(fixture,time)=>traversal(fixture.volume,{mutations:3,onEnd:attempt=>time.set((attempt+1)*10)}).sampleOptions,atFinish:30});
+ const f=await retain(t,{sampleOptions:(fixture,time)=>traversal(fixture.volume,{mutations:3,onEnd:()=>time.advance(10)}).sampleOptions,atFinish:230});
  assert.equal(f.records[0].observation.attempts.length,3);assert.equal(f.records[0].observation.selectedAttempt,null);assert.equal(f.records[0].alarm.level,'unknown');
  assert.equal(f.records[1].sample.completeTraversal,true);assert.equal(f.records[1].observation.selectedAttempt,0);
  assert.equal(f.audit.attempts,4);assert.equal(f.audit.failedAttempts,3);assert.equal(f.audit.unknownSamples,1);assert.equal(f.audit.coverageComplete,false);
@@ -141,12 +154,13 @@ test('complete but over-budget scans remain retained unknown observations in off
 test('retained retry success uses its actual 4100ms start rather than its 3500ms window start for coverage',async t=>{
  const f=await fixture(t),time=clock(t);await mkdir(f.output);let rootVisits=0;
  const sampleOptions={async statEntry(path,options){
-  if(path===f.volume){rootVisits++;if(rootVisits===4){await writeFile(join(f.volume,'during-gap'),'mutation');const changed=new Date('2030-01-01T00:00:01.000Z');await utimes(f.volume,changed,changed);time.set(4100);}else if(rootVisits===6)time.set(4200);}
+  if(path===f.volume){rootVisits++;if(rootVisits===4){await writeFile(join(f.volume,'during-gap'),'mutation');const changed=new Date('2030-01-01T00:00:01.000Z');await utimes(f.volume,changed,changed);time.set(4000);}else if(rootVisits===6)time.set(4200);}
   return lstat(path,options);
  }};
  const monitor=await startEvidenceMonitor({allocationPath:f.allocationPath,output:f.output,campaignId:'actual-success-gap',intervalMs:2000,sampleOptions});
  const receiptPath=join(f.output,'receipt.json');await writeFile(receiptPath,JSON.stringify({receiptId:'actual-success-gap',groups:[],evidenceStorage:monitor.reference}));
  time.set(3500);const recovered=await monitor.checkpoint();assert.equal(recovered.observation.windowStartMs,3500);assert.equal(recovered.observation.attempts.length,2);
+ assert.equal(recovered.observation.attempts[0].endMs,4000);assert.deepEqual(time.created.filter(timer=>!timer.unreferenced).map(timer=>timer.delay),[100]);
  assert.equal(recovered.observation.selectedAttempt,1);assert.equal(recovered.sample.startMs,4100);assert.equal(recovered.sample.endMs,4200);
  time.set(4300);const audit=await monitor.finish({receiptPath});assert.equal(audit.maximumGapMs,4100);assert.equal(audit.unknownSamples,0);
  assert.equal(audit.failedAttempts,1);assert.equal(audit.coverageComplete,false);assert.equal(audit.status,'INCONCLUSIVE');assert.equal(audit.qualification,false);
@@ -158,7 +172,7 @@ test('retained retry success uses its actual 4100ms start rather than its 3500ms
 });
 
 test('offline replay rejects omitted or reordered attempts and a selected failed attempt after outer resealing',async t=>{
- const f=await retain(t,{sampleOptions:(fixture,time)=>traversal(fixture.volume,{mutations:1,onEnd:attempt=>time.set((attempt+1)*10)}).sampleOptions,atFinish:20});
+ const f=await retain(t,{sampleOptions:(fixture,time)=>traversal(fixture.volume,{mutations:1,onEnd:()=>time.advance(10)}).sampleOptions,atFinish:120});
  for(const mutate of [observation=>{observation.attempts.shift();},observation=>{observation.attempts.reverse();},observation=>{observation.selectedAttempt=0;}]){
   const records=structuredClone(f.records),audit=structuredClone(f.audit);mutate(records[0].observation);resealAttempts(records[0].observation);
   await writeResealed(f,records,audit);await assert.rejects(verifyEvidenceAudit(f.monitor.reference,f.receiptPath));
@@ -166,7 +180,7 @@ test('offline replay rejects omitted or reordered attempts and a selected failed
 });
 
 test('pure replay rejects rehashed nonretryable predecessors, overlapping attempts and selection drift',async t=>{
- const f=await fixture(t),time=clock(t),scan=traversal(f.volume,{mutations:1,onEnd:attempt=>time.set((attempt+1)*100)}),original=await observeVolume(f.allocation,scan.sampleOptions);
+ const f=await fixture(t),time=clock(t),scan=traversal(f.volume,{mutations:1,onEnd:()=>time.advance(100)}),original=await observeVolume(f.allocation,scan.sampleOptions);
  for(const mutate of [
   value=>{value.attempts[0].sample.failures[0].code='EACCES';},
   value=>{value.attempts[1].startMs=value.attempts[0].endMs-1;},
@@ -326,11 +340,11 @@ test('descendant diagnostics bound and sanitize the actual enumerated member wit
  assert.equal(scan.starts,2);assert.equal(observation.selectedAttempt,1);assert.equal(validateEvidenceObservation(observation).failedAttempts,1);await assertClosed(scan.handles);
 });
 
-for(const elapsed of [999,1000])test('a vanished-child failure at '+elapsed+'ms obeys the existing fixed retry window',async t=>{
+for(const elapsed of [899,900,999,1000])test('a vanished-child failure at '+elapsed+'ms obeys the existing fixed retry window',async t=>{
  const f=await fixture(t),time=clock(t),scan=descendantRace(f,{onFailure:()=>time.set(elapsed)}),observation=await observeVolume(f.allocation,scan.sampleOptions);
  descendantFailure(observation,{phase:'stat-before',member:'seed.bin'});
- assert.equal(observation.windowEndMs,elapsed);assert.equal(scan.starts,elapsed===999?2:1);assert.equal(observation.attempts.length,elapsed===999?2:1);
- assert.equal(observation.selectedAttempt,elapsed===999?1:null);assert.equal(validateEvidenceObservation(observation).chosenSample===null,elapsed===1000);await assertClosed(scan.handles);
+ assert.equal(observation.windowEndMs,Math.min(elapsed+100,1000));assert.equal(scan.starts,elapsed===899?2:1);assert.equal(observation.attempts.length,elapsed===899?2:1);
+ assert.equal(observation.selectedAttempt,elapsed===899?1:null);assert.equal(validateEvidenceObservation(observation).chosenSample===null,elapsed!==899);await assertClosed(scan.handles);
 });
 
 for(const siblingFailure of [false,true])test('a missing descendant drains every original branch '+(siblingFailure?'and a held hard failure prevents retry':'before launching its retry'),async t=>{
@@ -384,4 +398,90 @@ test('retained replay preserves a real vanished-child attempt and accepts only t
  assert.equal(f.audit.unknownSamples,0);assert.equal(f.audit.status,'PASS');assert.equal((await verifyEvidenceAudit(f.monitor.reference,f.receiptPath)).status,'PASS');await assertClosed(scan.handles);
  const records=structuredClone(f.records),audit=structuredClone(f.audit);records[0].observation.attempts[0].sample.failures[0].code='ENOENT';resealAttempts(records[0].observation);
  await writeResealed(f,records,audit);await assert.rejects(verifyEvidenceAudit(f.monitor.reference,f.receiptPath));
+});
+
+async function pendingRetry(time,pending){
+ return Promise.race([time.nextRetry(),pending.then(()=>{throw Error('observation settled without the expected retry wait');})]);
+}
+
+test('a drained mutation owns a referenced 100ms timer and an early wake cannot start its fresh scan',async t=>{
+ const f=await fixture(t),time=clock(t,{autoRetry:false}),target=join(f.volume,'vanishing');await writeFile(target,'removed');
+ const scan=descendantRace(f,{target,onFailure:()=>time.set(25)}),pending=observeVolume(f.allocation,scan.sampleOptions);let settled=false;
+ pending.then(()=>{settled=true;},()=>{settled=true;});
+ try{
+  const first=await pendingRetry(time,pending);assert.equal(first.delay,100);assert.equal(first.due,125);assert.equal(first.unreferenced,false);
+  assert.equal(scan.starts,1);assert.equal(settled,false);await assertClosed(scan.handles);
+  time.fire(first,75);const remainder=await pendingRetry(time,pending);
+  assert.equal(remainder.delay,50);assert.equal(remainder.due,125);assert.equal(remainder.unreferenced,false);assert.equal(scan.starts,1);assert.equal(settled,false);
+  time.fire(remainder,125);const observation=await pending,verified=validateEvidenceObservation(observation);
+  descendantFailure(observation,{phase:'stat-before',member:'vanishing'});
+  assert.deepEqual(observation.attempts.map(row=>[row.startMs,row.endMs]),[[0,25],[125,125]]);
+  assert.equal(scan.starts,2);assert.equal(observation.selectedAttempt,1);assert.equal(verified.chosenSample.observedLogicalBytes,8);
+  assert.equal(verified.chosenSample.uniqueFiles,1);assert.equal(time.created.length,2);assert.equal(time.timers.size,0);await assertClosed(scan.handles);
+ }finally{time.resume();await pending;await assertClosed(scan.handles);}
+});
+
+for(const wake of [1000,1007])test('retry wake at '+wake+'ms preserves the original deadline without starting another scan',async t=>{
+ const f=await fixture(t),time=clock(t,{autoRetry:false}),scan=descendantRace(f,{onFailure:()=>time.set(950)}),pending=observeVolume(f.allocation,scan.sampleOptions);
+ try{
+  const timer=await pendingRetry(time,pending);assert.equal(timer.delay,50);assert.equal(timer.due,1000);assert.equal(timer.unreferenced,false);assert.equal(scan.starts,1);await assertClosed(scan.handles);
+  time.fire(timer,wake);const observation=await pending;
+  descendantFailure(observation,{phase:'stat-before',member:'seed.bin'});
+  assert.equal(observation.windowStartMs,0);assert.equal(observation.windowEndMs,wake);assert.equal(observation.attempts[0].endMs,950);
+  assert.equal(observation.attempts.length,1);assert.equal(scan.starts,1);assert.equal(observation.selectedAttempt,null);assert.equal(validateEvidenceObservation(observation).chosenSample,null);
+  assert.equal(time.created.length,1);assert.equal(time.timers.size,0);await assertClosed(scan.handles);
+ }finally{time.resume();await pending;await assertClosed(scan.handles);}
+});
+
+for(const failure of [false,true])test((failure?'a hard failure':'a first complete scan')+' creates no retry timer',async t=>{
+ const f=await fixture(t),time=clock(t,{autoRetry:false}),scan=traversal(f.volume),options=scan.sampleOptions;
+ if(failure){const original=options.statEntry;options.statEntry=async(path,...args)=>{if(path===join(f.volume,'seed.bin'))throw Object.assign(Error('permission denied'),{code:'EACCES'});return original(path,...args);};}
+ const pending=observeVolume(f.allocation,options);
+ try{
+  const observation=await Promise.race([pending,time.nextRetry().then(()=>{throw Error('a terminal observation scheduled a retry wait');})]);assert.equal(observation.attempts.length,1);assert.equal(scan.starts,1);assert.equal(observation.selectedAttempt,failure?null:0);
+  assert.equal(validateEvidenceObservation(observation).chosenSample===null,failure);assert.equal(time.created.length,0);assert.equal(time.timers.size,0);await assertClosed(scan.handles);
+ }finally{time.resume();await pending;await assertClosed(scan.handles);}
+});
+
+test('the third drained mutation consumes exactly two spacing timers and creates no trailing wait',async t=>{
+ const f=await fixture(t),time=clock(t),scan=traversal(f.volume,{mutations:3,onEnd:()=>time.advance(10)}),observation=await observeVolume(f.allocation,scan.sampleOptions);
+ assert.equal(scan.starts,3);assert.deepEqual(observation.attempts.map(row=>[row.startMs,row.endMs]),[[0,10],[110,120],[220,230]]);
+ assert.equal(observation.selectedAttempt,null);assert.equal(validateEvidenceObservation(observation).failedAttempts,3);
+ assert(observation.attempts.every(row=>!row.sample.completeTraversal&&row.sample.failures[0].code==='EVIDENCE_MUTATION'));
+ assert.deepEqual(time.created.map(timer=>timer.delay),[100,100]);assert(time.created.every(timer=>!timer.unreferenced));assert.equal(time.timers.size,0);
+ verifyAttemptChain(observation);await assertClosed(scan.handles);
+});
+
+test('finish retains the pending retry timer and then drains the issued filesystem branch before closing its journal',async t=>{
+ const f=await fixture(t),time=clock(t,{autoRetry:false});await mkdir(f.output);
+ const target=join(f.volume,'vanishing'),scan=descendantRace(f,{target}),original=scan.sampleOptions.statEntry;
+ let enter,release;const entered=new Promise(resolve=>{enter=resolve;}),gate=new Promise(resolve=>{release=resolve;});let held=false,heldFinished=false;
+ const options={...scan.sampleOptions,async statEntry(path,...args){
+  if(path===join(f.volume,'seed.bin')&&scan.starts===3&&!held){held=true;enter();await gate;heldFinished=true;}
+  return original(path,...args);
+ }};
+ const monitor=await startEvidenceMonitor({allocationPath:f.allocationPath,output:f.output,campaignId:'finish-retry-drain',intervalMs:2000,sampleOptions:options});
+ const receiptPath=join(f.output,'receipt.json');let checkpoint,finish,originalFailure,receiptWritten=false,checkpointSettled=false,finishSettled=false;
+ try{
+  await writeFile(receiptPath,JSON.stringify({receiptId:'finish-retry-drain',groups:[],evidenceStorage:monitor.reference}));receiptWritten=true;
+  assert.equal(scan.starts,1);assert.equal(time.created.length,1);assert.equal(time.created[0].unreferenced,true);
+  await writeFile(target,'remove during checkpoint');checkpoint=monitor.checkpoint();checkpoint.then(()=>{checkpointSettled=true;},()=>{checkpointSettled=true;});
+  const timer=await pendingRetry(time,checkpoint);assert.equal(timer.delay,100);assert.equal(timer.unreferenced,false);assert.equal(scan.starts,2);await assertClosed(scan.handles);
+  finish=monitor.finish({receiptPath});finish.then(()=>{finishSettled=true;},()=>{finishSettled=true;});
+  assert.equal(time.timers.size,1);assert(time.timers.has(timer));assert.equal(checkpointSettled,false);assert.equal(finishSettled,false);
+  time.fire(timer,100);
+  await Promise.race([entered,checkpoint.then(()=>{throw Error('fresh scan settled before its controlled filesystem branch');})]);
+  assert.equal(scan.starts,3);assert.equal(heldFinished,false);assert.equal(checkpointSettled,false);assert.equal(finishSettled,false);assert.equal(time.timers.size,0);
+  release();const recovered=await checkpoint,audit=await finish;
+  assert.equal(heldFinished,true);assert.equal(recovered.observation.attempts.length,2);assert.equal(recovered.observation.selectedAttempt,1);assert.equal(recovered.sample.startMs,100);
+  assert.equal(scan.starts,4);assert.equal(audit.attempts,4);assert.equal(audit.failedAttempts,1);assert.equal(audit.unknownSamples,0);assert.equal(audit.status,'PASS');
+  assert.equal(time.created.length,2);assert.equal(time.timers.size,0);await assertClosed(scan.handles);
+  await retainEvidenceAudit(monitor.reference,f.output);assert.equal((await verifyEvidenceAudit(monitor.reference,receiptPath)).status,'PASS');
+ }catch(error){originalFailure=error;throw error;}finally{
+  release();time.resume();const cleanupFailures=[];
+  try{await checkpoint;}catch(error){cleanupFailures.push(error);}
+  try{if(!finish)finish=monitor.finish({receiptPath:receiptWritten?receiptPath:null});await finish;}catch(error){cleanupFailures.push(error);}
+  try{await assertClosed(scan.handles);}catch(error){cleanupFailures.push(error);}
+  if(cleanupFailures.length)throw new AggregateError(originalFailure?[originalFailure,...cleanupFailures]:cleanupFailures,'Retry-drain fixture cleanup failed');
+ }
 });
