@@ -200,6 +200,10 @@ dt { color: var(--en-color-text-muted); } dd { margin: 0; text-align: right; ove
 en-toolbar::part(base) {flex-wrap:wrap;}
 en-button {max-width:100%;}
 en-button::part(control) {white-space:normal;}
+/* Primary labels and surfaces must change together when an action is enabled.
+   Keep independent press/scale, translation and focus motion; only surface and
+   border paint use this public duration token. */
+en-button[variant="primary"]::part(control) { --en-duration-fast: 0ms; }
 .bar-end {flex-wrap:wrap;}
 /* Receipt updates must not move an enabled native control during a press.
    Keep this status region stable; longer recovery/error content stays scrollable. */

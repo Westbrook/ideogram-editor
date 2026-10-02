@@ -667,3 +667,120 @@ test('explicit candidate Next announces pending navigation, commits its page, an
   assert.deepEqual(f.statusChanges,[firstStatus,firstStatus+' '+loading,secondStatus,secondStatus+' '+loading,secondStatus]);assert.deepEqual(f.observed.focus,[]);assert.equal(f.instance.pollTimer,null);
  }finally{failed.resolve();await Promise.allSettled([rejected]);await flush();}
 });
+
+test('current-owner prepare and acceptance rejection settle review progress while retaining genuine issues and focus',{timeout:5000},async()=>{
+ for(const kind of ['prepare','accept']){
+  const f=fixture();await f.initial();f.prompt()(f.promptEvent('Retained review input'));await flush();
+  f.editor.requestReview=async()=>({review:frozenReview()});if(kind==='accept')await act(f,'prepare-request');
+  const observed=observeRequestAnnouncements(f),held=previewDeferred(),calls=[],failure=Error('STALE_REVISION: Review the current document; your draft is retained.');
+  f.editor.requestReview=body=>{calls.push(body);return held.promise;};
+  try{
+   await act(f,kind==='prepare'?'prepare-request':'accept-request');
+   assert.equal(calls.length,1);assert.equal(calls[0].type,kind==='prepare'?'PrepareRequestReview':'AcceptRequestReview');
+   assert.equal(requestAnnouncement(f),kind==='prepare'?'Saving request draft for review…':'Saving request review acceptance…');
+   assert.equal(pageControl(f,'prepare-request').disabled,true);assert(f.instance.inspectMemory().navigation.controls.pending>0);
+   held.reject(failure);await flush();
+   assert.equal(requestAnnouncement(f),'Request review could not be confirmed. Check the current draft and review before continuing.');
+   assert.equal(pageControl(f,'prepare-request').disabled,false);assert.equal(f.instance.busy,false);assert.equal(f.instance.accepted,false);
+   assert.deepEqual(f.instance.issues,[{field:'review',code:'REVIEW',message:failure.message}]);assert(find(f.template(),'id="request-errors"'));
+   assert.deepEqual(observed.focus,['#request-errors']);assert.equal(observed.changes.length,3,'Initial, pending and one settled notice');
+   assert.equal(f.instance.entry().text,'Retained review input');assertRestoreWorkDrained(f);
+  }finally{held.resolve({review:frozenReview()});await Promise.allSettled([...f.instance.entryTasks]);await flush();await f.instance.dispose();}
+ }
+});
+
+test('review progress settles revision and native prompt supersession without publishing a late review or error',{timeout:5000},async()=>{
+ for(const kind of ['prepare','accept'])for(const boundary of ['revision','generation'])for(const outcome of ['accepted','rejected']){
+  const f=fixture();await f.initial();f.prompt()(f.promptEvent('Original review input'));await flush();
+  f.editor.requestReview=async()=>({review:frozenReview()});if(kind==='accept')await act(f,'prepare-request');
+  const observed=observeRequestAnnouncements(f),held=previewDeferred(),calls=[];
+  f.editor.requestReview=body=>{calls.push(body);return held.promise;};
+  try{
+   await act(f,kind==='prepare'?'prepare-request':'accept-request');assert.equal(calls.length,1);assert.match(requestAnnouncement(f),/^Saving request/);
+   if(boundary==='revision'){f.editor.view.document={...f.editor.view.document,revision:'2'};f.host.requestUpdate();await flush();}
+   else{f.prompt()(f.promptEvent('New current input'));await flush();}
+   const retainedReview=f.instance.review;
+   if(outcome==='rejected')held.reject(Error('Late review rejection'));
+   else held.resolve(kind==='prepare'?{review:{...frozenReview(),id:'late-review'}}:{acceptedReview:'review',requestId:'late-acceptance'});
+   await flush();
+   assert.equal(requestAnnouncement(f),'Request review action settled after the draft or document changed. Review the current draft before continuing.');
+   assert.equal(pageControl(f,'prepare-request').disabled,false);assert.equal(f.instance.busy,false);assert.equal(f.instance.accepted,false);
+   assert.strictEqual(f.instance.review,retainedReview,'An obsolete result does not replace the current review');assert.deepEqual(f.instance.issues,[]);
+   assert.deepEqual(observed.focus,[]);assert.equal(observed.changes.length,3);assertRestoreWorkDrained(f);
+   assert.equal(f.instance.entry().text,boundary==='generation'?'New current input':'Original review input');
+  }finally{held.resolve({review:frozenReview()});await Promise.allSettled([...f.instance.entryTasks]);await flush();await f.instance.dispose();}
+ }
+});
+
+test('old review progress preserves newer notices and ownership while same-key retries can announce again',{timeout:5000},async()=>{
+ for(const successor of ['provider','review']){
+  const f=fixture();await f.initial();f.prompt()(f.promptEvent('First request'));await flush();
+  const observed=observeRequestAnnouncements(f),old=previewDeferred(),next=previewDeferred(),calls=[];
+  f.editor.requestReview=body=>{calls.push(body);assert(calls.length<=2);return calls.length===1?old.promise:next.promise;};
+  try{
+   await act(f,'prepare-request');assert.equal(calls.length,1);const pending=requestAnnouncement(f);assert.equal(pending,'Saving request draft for review…');
+   f.prompt()(f.promptEvent('Second request'));await flush();
+   if(successor==='provider')await publishCandidates(f,candidateObservation());
+   else{await act(f,'prepare-request');assert.equal(calls.length,2);assert.equal(requestAnnouncement(f),pending,'The two distinct live actions deliberately use identical pending text');}
+   const newerNotice=requestAnnouncement(f),changes=observed.changes.length;
+   old.resolve({review:{...frozenReview(),id:'obsolete-review'}});await flush();
+   assert.equal(requestAnnouncement(f),newerNotice);assert.equal(observed.changes.length,changes);assert.equal(f.instance.review,null);assert.deepEqual(f.instance.issues,[]);assert.deepEqual(observed.focus,[]);
+   if(successor==='provider'){
+    assert.match(newerNotice,/completed|prepared/i);assert.equal(pageControl(f,'prepare-request').disabled,false);assertRestoreWorkDrained(f);
+   }else{
+    assert.equal(f.instance.busy,true);assert.equal(pageControl(f,'prepare-request').disabled,true);assert(f.instance.inspectMemory().navigation.controls.pending>0,'The newer action remains owned after the old finally');
+    next.resolve({review:{...frozenReview(),id:'successor-review'}});await flush();
+    assert.equal(f.instance.review.id,'successor-review');assert.equal(requestAnnouncement(f),'Exact request saved and ready for review.');assert.equal(pageControl(f,'prepare-request').disabled,false);assert.deepEqual(observed.focus,['#request-review']);assertRestoreWorkDrained(f);
+   }
+  }finally{old.resolve({review:frozenReview()});next.resolve({review:frozenReview()});await Promise.allSettled([...f.instance.entryTasks]);await flush();await f.instance.dispose();}
+ }
+ for(const kind of ['prepare','accept']){
+  const f=fixture();await f.initial();f.prompt()(f.promptEvent('Unchanged retry input'));await flush();
+  f.editor.requestReview=async()=>({review:frozenReview()});if(kind==='accept')await act(f,'prepare-request');
+  const observed=observeRequestAnnouncements(f),first=previewDeferred(),retry=previewDeferred(),calls=[],generation=f.instance.entry().generation;
+  f.editor.requestReview=body=>{calls.push(body);assert(calls.length<=2);return calls.length===1?first.promise:retry.promise;};
+  try{
+   await act(f,kind==='prepare'?'prepare-request':'accept-request');assert.equal(calls.length,1);const pending=requestAnnouncement(f);
+   await publishCandidates(f,candidateObservation());const provider=requestAnnouncement(f);assert.match(provider,/completed|prepared/i);
+   first.reject(Error('Review delivery refused'));await flush();
+   assert.equal(requestAnnouncement(f),provider,'Current-owner failure must preserve the newer provider notice');assert.equal(f.instance.busy,false);assert.equal(f.instance.entry().generation,generation);
+   assert.deepEqual(observed.focus,['#request-errors']);assert.equal(f.instance.issues[0].message,'Review delivery refused');assertRestoreWorkDrained(f);
+   await act(f,kind==='prepare'?'prepare-request':'accept-request');assert.equal(calls.length,2);assert.equal(f.instance.entry().generation,generation);
+   assert.equal(requestAnnouncement(f),pending,'A retry of the same draft generation or immutable review must publish Saving again');assert.equal(f.instance.busy,true);
+   assert.equal(observed.changes.filter(text=>text===pending).length,2);
+   retry.resolve(kind==='prepare'?{review:{...frozenReview(),id:'retried-review'}}:{acceptedReview:'review',requestId:'retried-acceptance'});await flush();
+   assert.equal(f.instance.busy,false);assert.match(requestAnnouncement(f),kind==='prepare'?/saved and ready for review/:/accepted locally/);assertRestoreWorkDrained(f);
+  }finally{first.resolve({review:frozenReview()});retry.resolve({review:frozenReview()});await Promise.allSettled([...f.instance.entryTasks]);await flush();await f.instance.dispose();}
+ }
+});
+
+test('owner replacement and document release suppress obsolete review settlement and drain its real action ownership',{timeout:5000},async()=>{
+ const {allocationLedger}=await import(allocationsURL);
+ for(const kind of ['prepare','accept'])for(const boundary of ['owner','session','document','identity','connection','releaseDocument','dispose']){
+  const baseline=allocationLedger.snapshot().byKind.control,f=fixture();
+  // Only the fixture UI root outlives controller disposal; constructor-owned
+  // request-edit diagnostics, selection and index must drain with the controller.
+  const retainedUI={...baseline,cpuBytes:baseline.cpuBytes+modelPayloadBytes(f.editor.ui),handles:baseline.handles+1};
+  await f.initial();f.prompt()(f.promptEvent('Previous owner input'));await flush();
+  f.editor.requestReview=async()=>({review:frozenReview()});if(kind==='accept')await act(f,'prepare-request');
+  const observed=observeRequestAnnouncements(f),held=previewDeferred(),calls=[];let closing,closed=false;
+  f.editor.requestReview=body=>{calls.push(body);return held.promise;};
+  try{
+   await act(f,kind==='prepare'?'prepare-request':'accept-request');assert.equal(calls.length,1);assert.match(requestAnnouncement(f),/^Saving request/);
+   if(boundary==='releaseDocument'||boundary==='dispose'){
+    closing=f.instance[boundary]().then(()=>{closed=true;});await flush();assert.equal(closed,false,'Release still awaits the real held action');
+    assert.equal(f.instance.announcement,'');assert.equal(find(f.template(),'id="request-announcements"'),undefined);
+   }else{
+    if(boundary==='owner')f.editor.draftOwner={drafts:new Map()};else if(boundary==='session')f.editor.sessionId='replacement-session';else if(boundary==='document')f.editor.view.document={id:'replacement-document',revision:'1'};else if(boundary==='identity')f.identity('replacement-identity');else f.editor.session={...f.editor.session};
+    f.editor.json=async()=>({items:[]});await f.instance.sync();f.host.requestUpdate();await flush();assert.equal(requestAnnouncement(f),'');
+    await act(f,'request-read-status');assert.match(requestAnnouncement(f),/^Current request status\./);
+   }
+   const newerNotice=f.instance.announcement,changes=observed.changes.length,review=f.instance.review;
+   held.reject(Error('Retired owner rejection'));await flush();await closing;await flush();
+   assert.equal(f.instance.announcement,newerNotice);assert.equal(observed.changes.length,changes);assert.strictEqual(f.instance.review,review);assert.deepEqual(f.instance.issues,[]);assert.deepEqual(observed.focus,[]);assertRestoreWorkDrained(f);
+   if(closing){assert.equal(closed,true);assert.equal(f.instance.inspectMemory().entries,0);assert.equal(find(f.template(),'id="request-announcements"'),undefined);}
+  }finally{held.resolve({review:frozenReview()});await Promise.allSettled([...f.instance.entryTasks]);await closing;await f.instance.dispose();await flush();}
+  const unpinUI=f.editor.pinUI();unpinUI();
+  assert.deepEqual(allocationLedger.snapshot().byKind.control,retainedUI,'All controller control reservations, including review progress, drain back to the separately retained fixture UI root');
+ }
+});

@@ -6,6 +6,8 @@ import {tmpdir} from 'node:os';
 import {serverProcess} from '../editor/process.js';
 import {ownedOPFS} from '../editor/owned-opfs.js';
 import {axeEvidence} from './axe.js';
+import {observeDisplayAborts} from '../editor/display-aborts.js';
+import {integrationCancellation} from '../editor/integration-network.mjs';
 
 const engine=process.env.QUALIFICATION_BROWSER??'chromium';
 if(!['chromium','firefox','webkit'].includes(engine))throw Error('Unsupported qualification browser');
@@ -28,7 +30,11 @@ test('AX01 real missing-font and full-history copy failure recover through exact
   let ownedServer:Awaited<ReturnType<typeof serverProcess>>|undefined,ownedGuard:Awaited<ReturnType<typeof ownedOPFS>>|undefined;
   type RequestFact={id:number;url:string;method:string;phase:string;duringFault:boolean};
   const events:{kind:string;text:string;url:string;phase:string;expected?:boolean;matchingRequestIds?:number[]}[]=[],http:(RequestFact&{status:number})[]=[],faults:unknown[]=[];
-  const unexpectedErrors:unknown[]=[],failures:unknown[]=[],requests=new WeakMap<Request,RequestFact>();
+  type ResponseFact={requestId:number;url:string;method:string;status:number;contentType:string|undefined;contentLength:string|undefined;etag:string|undefined};
+  type FontFailure=RequestFact&{channel:'requestfailed';requestId:number;resourceType:string;failure:ReturnType<Request['failure']>;response:ResponseFact|null;disposition?:string|false};
+  const unexpectedErrors:unknown[]=[],failures:unknown[]=[],requests=new WeakMap<Request,RequestFact>(),nativeIds=new WeakMap<Request,number>(),responses=new WeakMap<Request,ResponseFact>(),fontFailures:FontFailure[]=[];
+  let originalReads:Awaited<ReturnType<typeof observeDisplayAborts>>|undefined,fontFault:{url:string;status:404;reason:string;sha256:string;byteLength:number}|undefined;
+  const requestId=(request:Request)=>{let id=nativeIds.get(request);if(id===undefined){id=++nextRequest;nativeIds.set(request,id);}return id;};
   let phase='setup',fontURL='',faultURL='',faultActive=false,nextRequest=0,held:string|undefined,original:string|undefined,completed=false;
   const safeURL=(url:string)=>{try{const value=new URL(url);return value.origin+value.pathname;}catch{return url;}};
   try{
@@ -37,12 +43,13 @@ test('AX01 real missing-font and full-history copy failure recover through exact
     const server=ownedServer=await serverProcess(root),guard=ownedGuard=await ownedOPFS(context,'axe-exact-dependency-recovery');
     await Promise.all(context.pages().map(page=>page.close()));
     const page=ownedPage=await context.newPage();page.setDefaultTimeout(10_000);
+    originalReads=await observeDisplayAborts(context,requestId);
     page.on('request',request=>{
-      requests.set(request,{id:++nextRequest,url:safeURL(request.url()),method:request.method(),phase,duringFault:faultActive});
+      requests.set(request,{id:requestId(request),url:safeURL(request.url()),method:request.method(),phase,duringFault:faultActive});
       if(request.method()==='HEAD'&&new URL(request.url()).pathname.startsWith('/api/v1/assets/'))fontURL=request.url();
     });
-    page.on('response',response=>{const request=requests.get(response.request());if(!request)unexpectedErrors.push({kind:'unobserved-response',url:safeURL(response.url())});else http.push({...request,status:response.status()});});
-    page.on('requestfailed',request=>{if(safeURL(request.url())===faultURL)unexpectedErrors.push({kind:'font-transport-failed',...requests.get(request),failure:request.failure()});});
+    page.on('response',response=>{const request=requests.get(response.request());if(!request)unexpectedErrors.push({kind:'unobserved-response',url:safeURL(response.url())});else{http.push({...request,status:response.status()});const headers=response.headers();responses.set(response.request(),{requestId:request.id,url:response.url(),method:response.request().method(),status:response.status(),contentType:headers['content-type'],contentLength:headers['content-length'],etag:headers.etag});}});
+    page.on('requestfailed',request=>{if(safeURL(request.url())!==faultURL)return;const fact=requests.get(request);if(!fact)unexpectedErrors.push({kind:'unobserved-font-failure',url:safeURL(request.url())});else fontFailures.push({...fact,url:request.url(),channel:'requestfailed',requestId:fact.id,resourceType:request.resourceType(),failure:request.failure(),response:responses.get(request)??null});});
     page.on('pageerror',error=>unexpectedErrors.push({kind:'pageerror',name:error.name,message:error.message,phase}));
     page.on('console',message=>{if(message.type()==='error')events.push({kind:'console',text:message.text(),url:safeURL(message.location().url),phase});});
     await context.exposeBinding('qualificationCSP',(_source,value)=>unexpectedErrors.push({kind:'csp',value}));
@@ -61,7 +68,8 @@ test('AX01 real missing-font and full-history copy failure recover through exact
     original=join(root,'objects','sha256',font.sha256.slice(0,2),font.sha256);held=join(directory,'exact-font-held');
     const bytes=await readFile(original);expect(createHash('sha256').update(bytes).digest('hex')).toBe(font.sha256);
     phase='exact-font-removed';faultURL=safeURL(fontURL);await rename(original,held);faultActive=true;
-    faults.push({phase,kind:'rename-owned-immutable-file',sha256:font.sha256,byteLength:bytes.byteLength,heldOutsidePrivateObjectStore:true});
+    fontFault={url:faultURL,status:404,reason:'Own exact font object removed; retained canonical pixels remain present.',sha256:font.sha256,byteLength:bytes.byteLength};
+    faults.push({phase,kind:'rename-owned-immutable-file',...fontFault,heldOutsidePrivateObjectStore:true});
     await click(page,'Edit text');await expect(text).toHaveValue('Retained exact font\nAccepted appearance survives.');
     await expect(page.getByText('Missing exact font bytes. Frozen appearance is retained when available. Relink or preview a substitution before reflow.',{exact:true})).toBeVisible();
     await evidence.scan('missing-exact-font');
@@ -100,11 +108,25 @@ test('AX01 real missing-font and full-history copy failure recover through exact
     const cleanup=async(label:string,work:()=>Promise<unknown>)=>{try{await work();}catch(error){failures.push(new Error(label,{cause:error}));}};
     await cleanup('restore-exact-font',async()=>{if(held&&original){try{await access(original);}catch{await rename(held,original);held=undefined;}}});
     const browserVersion=(ownedBrowser??ownedContext?.browser())?.version();
+    // Drain only already emitted observer bindings before the existing close;
+    // never wait for a response, read a body, or manufacture completion.
+    if(ownedPage&&originalReads)await cleanup('original-read-observation-flush',()=>originalReads!.flush(ownedPage!));
     if(ownedPage)await cleanup('close-page',()=>ownedPage!.close());
     if(ownedGuard)await cleanup('owned-opfs-cleanup',async()=>{await ownedGuard!.cleanup();ownedGuard!.verify();});
     if(ownedServer)await cleanup('close-server',()=>ownedServer!.close());
     if(ownedContext)await cleanup('close-context',()=>ownedContext!.close());
     if(ownedBrowser)await cleanup('close-browser',()=>ownedBrowser!.close());
+    const originalReadObservations=originalReads?.observations(),originalReadProofs=originalReads?.()??[];
+    if(originalReadObservations?.errors.length)unexpectedErrors.push({kind:'original-read-observer-failed',errors:originalReadObservations.errors});
+    // Only this exact owned font and four existing response dispositions apply.
+    // Raw failures remain retained. A GET needs its original reader proof;
+    // a header or a later successful font read cannot qualify it.
+    for(const event of fontFailures){
+      const response=event.response,missing=!!fontFault&&event.duringFault&&response?.status===404,restored=!!fontFault&&response?.status===200&&response.etag==='"sha256:'+fontFault.sha256+'"'&&response.contentLength===String(fontFault.byteLength);
+      const kind=event.url===fontFault?.url&&(missing||restored)?integrationCancellation(event,ownedServer!.origin,engine,[],missing?[fontFault]:[],[],[],{proofs:[],sse:[]},originalReadProofs):false;
+      const expectedKind=event.method==='HEAD'?(missing?'own-missing-font-bodyless-head':'documented-response-cancellation'):event.method==='GET'?(missing?'own-rejected-asset-original-reader-cancellation':'exact-original-asset-response-eof'):false;
+      event.disposition=kind&&kind===expectedKind?kind:false;if(!event.disposition)unexpectedErrors.push({kind:'font-transport-failed',...event});
+    }
     const expected=(row:typeof http[number])=>row.duringFault&&row.url===faultURL&&row.status===404&&['GET','HEAD'].includes(row.method);
     for(const row of http)if(row.status>=400&&!expected(row))unexpectedErrors.push({kind:'unexpected-http-error',...row});
     // Console callbacks and response callbacks have no guaranteed order. Only
@@ -113,7 +135,7 @@ test('AX01 real missing-font and full-history copy failure recover through exact
     for(const event of events){event.matchingRequestIds=http.filter(row=>expected(row)&&row.url===event.url).map(row=>row.id);event.expected=/^Failed to load resource:/.test(event.text)&&event.matchingRequestIds.length>0;if(!event.expected)unexpectedErrors.push(event);}
     if(unexpectedErrors.length)failures.push(new Error('Unexpected browser or HTTP errors: '+JSON.stringify(unexpectedErrors)));
     const passed=completed&&info.errors.length===0&&failures.length===0;
-    await cleanup('write-fault-receipt',()=>writeFile(join(out,'fault-receipt.json'),JSON.stringify({engine,browserVersion,planned,limitations,phase,passed,faults,events,http,unexpectedErrors,root,failures:failures.map(error=>error instanceof Error?{message:error.message,stack:error.stack,cause:String(error.cause??'')}:String(error)),softErrors:info.errors},null,2)));
+    await cleanup('write-fault-receipt',()=>writeFile(join(out,'fault-receipt.json'),JSON.stringify({engine,browserVersion,planned,limitations,phase,passed,faults,events,http,fontFailures,originalReadObservations,originalReadProofs,unexpectedErrors,root,failures:failures.map(error=>error instanceof Error?{message:error.message,stack:error.stack,cause:String(error.cause??'')}:String(error)),softErrors:info.errors},null,2)));
     if(passed&&!failures.length)await cleanup('remove-owned-success-root',()=>rm(directory,{recursive:true}));
   }
   if(failures.length)throw new AggregateError(failures,'Accessibility exact-resource recovery failed');

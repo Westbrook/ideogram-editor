@@ -90,6 +90,9 @@ test('AX01 populated jobs/results, actual restart/adoption; AX09 pending, termin
   await adopt.focus();await adopt.press('Enter');await expect.poll(async()=>(await read<any>('/api/v1/documents/'+completed.documentId)).projection.value.revision).not.toBe(before);
   await expect(page.getByRole('treeitem',{name:/Image · Edited output 1 · visible/})).toBeVisible();await scan('adopted-result');
 
+  // Adoption changes the document revision; explicitly confirm that current
+  // document before preparing another request from the retained draft.
+  await click(page,'Review current request document');await expect(page.getByText('Request document revision confirmed.',{exact:true})).toBeVisible();
   const recovering=await dispatch(await enqueue('AX01 retained request survives writer restart'));
   phase(recovering.attempts.at(-1)!.requestId!,'running');await providerPhase(recovering,'running');
   const posts=effects.filter(effect=>effect.method==='POST'&&effect.path==='/ideogram/v4').length;
