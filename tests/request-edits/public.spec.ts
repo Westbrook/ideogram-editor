@@ -419,14 +419,34 @@ test(maskReReviewTitle,async({page,context,browserName})=>{
     const secondResults=await resultImages(),retainedMask=maskLoads,originalViewport=page.viewportSize();if(!originalViewport)throw Error('The placement layout fixture requires its configured viewport.');
     const heading=placement.getByRole('heading',{name:'New-document adoption review',exact:true}),adopt=button(page,'request-candidate-adopt-'+candidate.id);
     const retainedPlacement=async()=>{expect(await resultImages()).toEqual(secondResults);expect(await mask.evaluate((image,witness)=>image===witness.image,retainedMask)).toBe(true);await expect(mask).toHaveAttribute('src',first.src);expect(await retainedMask.evaluate(witness=>({src:witness.image?.currentSrc,loads:witness.loads,allTrusted:witness.allTrusted,connected:witness.image?.isConnected,complete:witness.image?.complete,width:witness.image?.naturalWidth,height:witness.image?.naturalHeight}))).toEqual(second);};
+    const layoutEvidence:unknown[]=[];evidence.placementLayouts=layoutEvidence;
     try{
       for(const width of [1440,390,320]){
         await page.setViewportSize({width,height:originalViewport.height});
         if(width<1440){const requestLink=page.getByRole('link',{name:'Go to Request',exact:true});await requestLink.focus();await expect(requestLink).toBeFocused();await requestLink.press('Enter');await expect(page.locator('#request')).toBeFocused();}
         await expect(page.locator('#request')).toBeVisible();await expect(heading).toBeVisible();await heading.scrollIntoViewIfNeeded();await expect(adopt).toBeVisible();await expect(adopt).toBeEnabled();await adopt.scrollIntoViewIfNeeded();await adopt.focus();await expect(adopt).toBeFocused();
         const geometry=await placement.evaluate(element=>{const measure=(node:Element)=>{const box=node.getBoundingClientRect();return {left:box.left,right:box.right,width:box.width,clientWidth:node.clientWidth,scrollWidth:node.scrollWidth};};return {viewport:innerWidth,panel:measure(element.closest('#request')!),request:measure(element.closest('.typed-request')!),queue:measure(element.closest('#durable-queue')!),review:measure(element),heading:measure(element.querySelector('h4')!),images:[...element.querySelectorAll('img')].map(measure)};}),control=await adopt.evaluate(element=>{const box=element.getBoundingClientRect();return {left:box.left,right:box.right,width:box.width};});
+        const layout={width,geometry,control,overflow:null as unknown};layoutEvidence.push(layout);
+        await step(state,'placement-overflow-'+width,async()=>{layout.overflow=await page.evaluate(id=>{
+          const placement:Element|null=window.document.getElementById(id);if(!placement)return {missing:true};
+          const limit=256,depthLimit=24,nodes:unknown[]=[];let omittedSubtreeRoots=0,depthLimited=0,stringsTruncated=0;
+          const bounded=(value:string|null):string|null=>{if(value!==null&&value.length>160)stringsTruncated++;return value?.slice(0,160)??null;};
+          const identity=(element:Element|null)=>element?{tag:element.tagName,id:bounded(element.id),class:bounded(element.getAttribute('class')),part:bounded(element.getAttribute('part')),slot:bounded(element.getAttribute('slot'))}:null;
+          const fields=['display','visibility','position','box-sizing','overflow-x','overflow-y','width','height','min-width','max-width','padding-inline-start','padding-inline-end','border-inline-start-width','border-inline-end-width','margin-inline-start','margin-inline-end','grid-template-columns','gap','flex-wrap','flex-shrink','outline-width','outline-offset','outline-style','box-shadow','transform','scroll-margin-inline-start','scroll-margin-inline-end'];
+          const pseudoFields=['content','display','position','width','height','left','right','top','bottom','inset-inline-start','inset-inline-end','transform','outline-width','outline-offset','box-shadow'];
+          const styles=(element:Element,pseudo?:string)=>{const style:CSSStyleDeclaration=getComputedStyle(element,pseudo);return Object.fromEntries((pseudo?pseudoFields:fields).map(key=>[key,bounded(style.getPropertyValue(key))]));};
+          const bounds=placement.getBoundingClientRect();
+          const measure=(element:Element)=>{const box:DOMRect=element.getBoundingClientRect(),slot:HTMLSlotElement|null=element.assignedSlot;return {identity:identity(element),assignedSlot:identity(slot),connected:element.isConnected,focused:element.matches(':focus'),focusVisible:element.matches(':focus-visible'),rect:{left:box.left,right:box.right,top:box.top,bottom:box.bottom,width:box.width,height:box.height},clientWidth:element.clientWidth,scrollWidth:element.scrollWidth,scrollLeft:element.scrollLeft,extendsReview:box.width>0&&(box.left<bounds.left-1||box.right>bounds.right+1),style:styles(element),before:styles(element,'::before'),after:styles(element,'::after')};};
+          const visit=(element:Element,parent:number|null,depth:number,shadow:boolean):void=>{if(nodes.length>=limit){omittedSubtreeRoots++;return;}if(depth>=depthLimit){depthLimited++;return;}const index=nodes.length;nodes.push({index,parent,depth,shadow,...measure(element)});const root:ShadowRoot|null=element.shadowRoot;
+            for(const children of [element.children,root?.children]){if(!children)continue;for(let childIndex=0;childIndex<children.length;childIndex++){if(nodes.length>=limit){omittedSubtreeRoots+=children.length-childIndex;break;}visit(children[childIndex],index,depth+1,children===root?.children);}}
+          };
+          visit(placement,null,0,false);let focused:Element|null=window.document.activeElement;for(let depth=0;depth<depthLimit&&focused?.shadowRoot?.activeElement;depth++)focused=focused.shadowRoot.activeElement;
+          const containers=Object.fromEntries([['panel',placement.closest('#request')],['request',placement.closest('.typed-request')],['queue',placement.closest('#durable-queue')],['review',placement]].map(([name,element])=>[name,element instanceof Element?measure(element):null]));
+          const focusedRoot:Node|undefined=focused?.getRootNode();
+          return {atMs:performance.now(),containers,focused:focused?measure(focused):null,focusedHost:focusedRoot instanceof ShadowRoot?measure(focusedRoot.host):null,focusTruncated:!!focused?.shadowRoot?.activeElement,nodeLimit:limit,depthLimit,nodes,omittedSubtreeRoots,depthLimited,stringsTruncated};
+        },'request-candidate-placement-'+candidate.id);});
         expect(geometry.images).toHaveLength(secondResults.length+1);expect(geometry.panel.left).toBeGreaterThanOrEqual(-1);expect(geometry.panel.right).toBeLessThanOrEqual(geometry.viewport+1);
-        for(const container of [geometry.panel,geometry.request,geometry.queue,geometry.review]){expect(container.width).toBeGreaterThan(0);expect(container.scrollWidth).toBeLessThanOrEqual(container.clientWidth+1);}
+        for(const [name,container] of [['panel',geometry.panel],['request',geometry.request],['queue',geometry.queue],['review',geometry.review]] as const){expect(container.width,name+' width').toBeGreaterThan(0);expect(container.scrollWidth,name+' horizontal overflow').toBeLessThanOrEqual(container.clientWidth+1);}
         for(const box of [geometry.request,geometry.queue,geometry.review,geometry.heading,control,...geometry.images]){expect(box.width).toBeGreaterThan(0);expect(box.left).toBeGreaterThanOrEqual(Math.max(0,geometry.panel.left)-1);expect(box.right).toBeLessThanOrEqual(Math.min(geometry.viewport,geometry.panel.right)+1);}
         for(const box of [geometry.heading,control,...geometry.images]){expect(box.left).toBeGreaterThanOrEqual(geometry.review.left-1);expect(box.right).toBeLessThanOrEqual(geometry.review.right+1);}
         await retainedPlacement();
@@ -605,11 +625,13 @@ test(nativeDeferredAdoptionTitle,async({page,context,browserName})=>{
     await page.locator('#text-treatment-placement').getByRole('combobox').selectOption('current-document');
     async function reviewTextSource(){
       await keyboard(button(page,'text-treatment-prepare'));
+      await expect(page.locator('#text-treatment-review').getByRole('heading',{name:'Review text inputs',exact:true})).toBeVisible();
       const individual=page.locator('#text-treatment-review details');
       await expect(individual).toBeVisible();if(await individual.getAttribute('open')===null)await individual.locator('summary').click();
       await expect(button(page,'text-treatment-confirm')).toBeEnabled();
       expect(await page.locator('#text-treatment-review img').evaluateAll((images:HTMLImageElement[])=>images.length===3&&images.every(image=>image.complete&&image.naturalWidth===512&&image.naturalHeight===512))).toBe(true);
       await keyboard(button(page,'text-treatment-confirm'));
+      await expect(page.locator('#text-treatment-review').getByRole('heading',{name:'Confirmed text treatment',exact:true})).toBeVisible();
     }
     await reviewTextSource();
     const preparedReviews=uiRequests.filter(request=>request.body?.type==='PrepareRequestReview').length;
@@ -646,7 +668,9 @@ test(nativeDeferredAdoptionTitle,async({page,context,browserName})=>{
     await click(page,'Review lettering choices for this output');
     await keyboard(button(page,'candidate-text-load-'+candidate.id));
     await page.locator('#candidate-text-action-'+candidate.id).getByRole('combobox').selectOption('keep-native-overlay');
+    await expect(page.locator('#candidate-text-treatment-'+candidate.id).getByText('No lettering adoption choices are confirmed.',{exact:true})).toBeVisible();
     await keyboard(button(page,'candidate-text-confirm-'+candidate.id));
+    await expect(page.locator('#candidate-text-treatment-'+candidate.id).getByText('Lettering choices confirmed. Review the actual placement or its lettering comparisons before adopting.',{exact:true})).toBeVisible();
     const candidateCard=page.locator('.request-candidate-review[data-candidate-id="'+candidate.id+'"]');
     async function confirmActualLettering(){
       const deferred=page.locator('#request-candidate-deferred-review-'+candidate.id);
@@ -677,7 +701,10 @@ test(nativeDeferredAdoptionTitle,async({page,context,browserName})=>{
       expect(commands.filter(command=>command.body.type==='AdoptReviewedCandidate')).toHaveLength(before);expect(commands.filter(command=>command.body.type==='PrepareCandidateAdoption'||command.body.type==='AdoptCandidate')).toEqual([]);
       return {reviewId,reviewHash,displayed,retained,comparisons,lettering:reviewed.lettering,displayConsumersClosedBeforeAccept:true,timedCQualification:false};
     }
+    const deferredCard=page.locator('#request-candidate-deferred-review-'+candidate.id),priorCurrentReviewId=await deferredCard.evaluateAll(nodes=>nodes[0]?.getAttribute('data-review-id')??null);
     await keyboard(button(page,'request-candidate-review-current-'+candidate.id));
+    await expect(deferredCard).toHaveAttribute('data-review-id',/\S+/);if(priorCurrentReviewId!==null)await expect(deferredCard).not.toHaveAttribute('data-review-id',priorCurrentReviewId);
+    await expect(deferredCard.getByRole('heading',{name:'Current-document placement review',exact:true})).toBeVisible();await expect(button(page,'request-candidate-confirm-lettering-'+candidate.id)).toBeEnabled();
     const placement=commands.filter(command=>command.body.type==='ReviewCandidatePlacement').at(-1);expect(placement.body.placement).toBe('current-document');expect(placement.body.preparation).toBeUndefined();
     expect(placement.body.textTreatment.plan).toEqual(job.review.textTreatment);expect(placement.body.textTreatment.choice.action).toBe('keep-native-overlay');
     const currentComparison=await confirmActualLettering();
@@ -733,8 +760,13 @@ test(nativeDeferredAdoptionTitle,async({page,context,browserName})=>{
     expect(commands.filter(command=>command.body.type==='AdoptReviewedCandidate')).toHaveLength(adoptionsBeforeRecovery);
     await page.locator('#candidate-text-action-'+candidate.id).getByRole('combobox').selectOption('new-document');
     await page.locator('#candidate-text-copy-'+nativeLayer.id).getByRole('checkbox').check();
+    await expect(lettering.getByText('No lettering adoption choices are confirmed.',{exact:true})).toBeVisible();
     await keyboard(button(page,'candidate-text-confirm-'+candidate.id));
+    await expect(lettering.getByText('Lettering choices confirmed. Review the actual placement or its lettering comparisons before adopting.',{exact:true})).toBeVisible();
+    const priorEncodedReviewId=await deferredCard.evaluateAll(nodes=>nodes[0]?.getAttribute('data-review-id')??null);
     await keyboard(button(page,'request-candidate-review-encoded-new-'+candidate.id));
+    await expect(deferredCard).toHaveAttribute('data-review-id',/\S+/);if(priorEncodedReviewId!==null)await expect(deferredCard).not.toHaveAttribute('data-review-id',priorEncodedReviewId);
+    await expect(deferredCard).toHaveAttribute('data-preparation','encoded-rebuild');await expect(deferredCard.getByRole('heading',{name:'New-document placement review',exact:true})).toBeVisible();await expect(button(page,'request-candidate-confirm-lettering-'+candidate.id)).toBeEnabled();
     const newPlacement=commands.filter(command=>command.body.type==='ReviewCandidatePlacement').at(-1);
     expect(newPlacement.body.placement).toBe('new-document');expect(newPlacement.body.mode).toBe('safe-region');expect(newPlacement.body.preparation).toBe('encoded-rebuild');expect(newPlacement.body.newDocumentId).toBeTruthy();
     expect(newPlacement.expectedDocumentRevision).toBe(staleTarget.revision);expect(newPlacement.body.textTreatment.plan).toEqual(placement.body.textTreatment.plan);expect(newPlacement.body.textTreatment.choice.approvalId).not.toBe(placement.body.textTreatment.choice.approvalId);
