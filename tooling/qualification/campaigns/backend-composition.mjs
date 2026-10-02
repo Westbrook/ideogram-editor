@@ -94,6 +94,8 @@ function checked(out, name, fn) { fn(); out.assertions.push({ name, passed: true
  * journal and retained branch growth are reported instead of erased behind it. */
 export async function createCompositionFixture(context, cell) {
   const common = await import('./backend-common.mjs');
+  // Undo reads canonical stored image metadata; object insertion order is not state.
+  const { canonical } = await product(context, 'src/protocol/json.js');
   const f = await common.createProductFixture({ ...context, compositionFixture: true });
   let baseline, baselineDocument;
   try { await common.createDocument(f); baseline = await f.writer.imageState(f.documentId); baselineDocument = await f.writer.document(f.documentId); }
@@ -101,7 +103,7 @@ export async function createCompositionFixture(context, cell) {
   const initialWriter = f.writer, descriptor = f.compositionWorker.descriptor, underlyingClose = f.close.bind(f);
   try {
   const owner = createWarmOwner(f.writer,f.root,descriptor), inputRefs = await captureWarmInputRefs(f.writer,f.documentId);
-  const observe = async () => {const [document,image,queue] = await Promise.all([f.writer.document(f.documentId),f.writer.imageState(f.documentId),f.writer.queueView()]);return {imageHash:warmDigest(image),historyHead:document.historyHead,revision:document.revision,activeJobs:queue.counts.active,inputs:await observeWarmInputs(f.root,inputRefs,context.signal),inventory:warmInventory(f.root)};};
+  const observe = async () => {const [document,image,queue] = await Promise.all([f.writer.document(f.documentId),f.writer.imageState(f.documentId),f.writer.queueView()]);return {imageHash:warmDigest(canonical(image)),historyHead:document.historyHead,revision:document.revision,activeJobs:queue.counts.active,inputs:await observeWarmInputs(f.root,inputRefs,context.signal),inventory:warmInventory(f.root)};};
   const initial = await observe(), entry=context.fixture?.corpus?.files?.find(value=>value.id===identifier(cell));
   const input=entry?{sha256:String(entry.sha256).startsWith('sha256:')?entry.sha256:'sha256:'+entry.sha256,byteLength:String(entry.byteLength)}:null;
   const state = f.compositionState = { id: identifier(cell), sample: {}, samples: 0, baseline, baselineHead: baselineDocument.historyHead, descriptor, lastCommand: null, owner, observe, initial, input, reset:null, previous:null };

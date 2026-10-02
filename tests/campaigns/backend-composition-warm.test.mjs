@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createCompositionFixture, makeCompositionFixture, runCell } from '../../tooling/qualification/campaigns/backend-composition.mjs';
 import { compositionState, validateInputDescriptor } from '../../tooling/qualification/campaigns/backend-composition-worker-ops.mjs';
+import { inspectWarmProof, warmCell, warmDigest } from '../../tooling/qualification/campaigns/backend-warm-proof.mjs';
 
 const repo = fileURLToPath(new URL('../../', import.meta.url));
 const sha = bytes => 'sha256:' + createHash('sha256').update(bytes).digest('hex');
@@ -65,7 +66,11 @@ test('WJ01 retained samples use one writer and public Undo, with replay only on 
     const firstRecord = first.evidence.find(item => item.commandId); assert(firstRecord);
     assert.notEqual((await writer.imageState(fixture.documentId)).composition.id, baseline.composition?.id);
     await assert.rejects(fixture.resetCell({ id: 'WJ02' }), /owns one cell/);
-    await resetWithRealUndo(fixture, cell, baseline, descriptor, writer);
+    const reset = await resetWithRealUndo(fixture, cell, baseline, descriptor, writer);
+    const restored = await writer.imageState(fixture.documentId);
+    assert.notDeepEqual(Object.keys(restored), Object.keys(baseline), 'Public Undo reads the canonical stored state rather than the initializer key order');
+    assert.notEqual(warmDigest(restored), warmDigest(baseline), 'Generic byte/packet digest remains insertion-order-sensitive');
+    assert.equal(reset.warmReset.after.imageHash, initial.warmReset.baseline.imageHash, 'Complete image-state identity survives the actual public Undo serialization');
     const second = await runCell({ ...context, productFixture: fixture }, cell);
     assert.equal(second.status, 'pass', JSON.stringify(second)); retainedResult(second, descriptor); assert.equal(second.warmInput.verdict.serial,2); assert(second.warmInput.verdict.retainedGrowth.after.events_v2>first.warmInput.verdict.retainedGrowth.after.events_v2);
     const secondRecord = second.evidence.find(item => item.commandId); assert(secondRecord); assert.notEqual(secondRecord.commandId, firstRecord.commandId);
@@ -155,4 +160,61 @@ test('WJ24 semantic facts consume nonempty native layers only inside their admit
   other = 0; failText = true;
   await assert.rejects(compositionState(store, { documentId: 'document' }, { repo }), error => error === failure);
   assert.equal(memory.bytes, 0, 'A native source failure releases the real borrowed owner');
+});
+
+
+// Exercise the actual fixture observation path with controlled image returns.
+// These synthetic image/proof values test the contract; they are not retained
+// campaign evidence or a claim that a native image operation ran.
+test('WJ image observations ignore only object-key order and reject complete-state mutations', async t => {
+  const context = await preparedContext(t, 'WJ01'), cell = { id: 'WJ01' };
+  const { product } = await import('../../tooling/qualification/campaigns/backend-common.mjs');
+  const { canonical } = await product(context, 'src/protocol/json.js');
+  const fixture = await createCompositionFixture(context, cell), writer = fixture.writer, originalImageState = writer.imageState;
+  try {
+    const initial = await fixture.resetCell(cell, { cache: 'warm', ordinal: 1, prime: false });
+    const layer = id => ({ id, version: '1', kind: 'text', name: id, assetId: 'asset-' + id,
+      source: { hash: sha(Buffer.from(id)), byteLength: '1', mediaType: 'application/json' },
+      layerToDocument: [1, 0, 0, 1, 0, 0], opacity: 1, visible: true, locked: false, blend: 'normal', mask: null });
+    const image = { schemaVersion: 5, width: 100, height: 100, layers: [layer('a'), layer('b')],
+      composition: { id: 'composition', value: { hash: sha(Buffer.from('graph')), byteLength: '5', mediaType: 'application/json' }, bindings: { a: 'a', b: 'b' } } };
+    const original = structuredClone(image);
+    const reverseKeys = value => Array.isArray(value) ? value.map(reverseKeys) : value && typeof value === 'object'
+      ? Object.fromEntries(Object.keys(value).reverse().map(key => [key, reverseKeys(value[key])])) : value;
+    let selected = image;
+    writer.imageState = async id => { assert.equal(id, fixture.documentId); return structuredClone(selected); };
+    const observe = async value => { selected = value; return fixture.compositionState.observe(); };
+    const baseline = await observe(image), reorderedImage = reverseKeys(image), reordered = await observe(reorderedImage);
+    assert.deepEqual(reorderedImage, image); assert.notEqual(warmDigest(reorderedImage), warmDigest(image));
+    assert.equal(baseline.imageHash, warmDigest(canonical(image)), 'The selected product canonical serializer covers the complete image');
+    assert.equal(reordered.imageHash, baseline.imageHash);
+    const reset = { ...initial.warmReset, baseline, after: reordered };
+    const packet = { kind: 'backend-warm-input-proof-1', family: 'WJ', cell: warmCell(cell),
+      sample: { cache: 'warm', ordinal: 1, prime: false }, serial: 1, previous: null,
+      owner: reset.owner, input: reset.input, baseline, before: reordered, after: reordered,
+      cache: { kind: 'retained-writer-connection-and-module-loader-1', decodedResultCache: 'not-used-by-selected-operation',
+        derivedResultCache: 'per-operation-or-not-used', operatingSystemPageCache: 'unobserved' } };
+    const options = { cell, sample: packet.sample, reset, fixture: context.fixture,
+      operation: { observations: { sealedCorpus: true, originalHash: reset.input.sha256, originalBytes: Number(reset.input.byteLength),
+        guardedNetworkEffects: { submit: 0, upload: 0, poll: 0, cancel: 0, fetch: 0, socket: 0, dns: 0, datagram: 0 } } } };
+    assert.equal(inspectWarmProof(packet, options).complete, true);
+    const mutations = [
+      ['dimension', value => value.width++],
+      ['schema version', value => value.schemaVersion = 4],
+      ['native layer version', value => value.layers[0].version = '2'],
+      ['native source bytes', value => value.layers[0].source.hash = sha(Buffer.from('changed'))],
+      ['layer order', value => value.layers.reverse()],
+      ['transform array order', value => value.layers[0].layerToDocument.reverse()],
+      ['boolean type', value => value.layers[0].visible = 'true'],
+      ['composition binding', value => value.composition.bindings.a = 'b'],
+      ['field omitted', value => delete value.layers[0].locked],
+      ['field added', value => value.layers[0].future = null],
+    ];
+    for (const [name, mutate] of mutations) {
+      const changed = structuredClone(image); mutate(changed); const observed = await observe(changed);
+      assert.notEqual(observed.imageHash, baseline.imageHash, name);
+      assert.throws(() => inspectWarmProof({ ...packet, before: observed }, { ...options, reset: { ...reset, after: observed } }), /WJ baseline image\/native state changed/, name);
+    }
+    assert.deepEqual(image, original, 'Observation neither rewrites nor omits source fields');
+  } finally { writer.imageState = originalImageState; await fixture.close(); }
 });

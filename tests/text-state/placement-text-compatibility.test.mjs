@@ -7,7 +7,7 @@ import {randomUUID,createHash} from 'node:crypto';
 import {chromium} from '@playwright/test';
 import {priorWriter} from '../text-state/prior-writer.mjs';
 import {isolated} from '../text-state/helpers.mjs';
-import {setup,copy,preview,workspace,doc,edit,binary} from '../portable/helpers.mjs';
+import {copy,preview,workspace,doc,edit,binary} from '../portable/helpers.mjs';
 import {ownedOPFS} from '../editor/owned-opfs.ts';
 import {canonical} from '../../dist/local/server/storage/canonical.js';
 const oldCommit='d3c6046a44d29d89ccdcb219cc37d40f02bad84f';
@@ -37,11 +37,16 @@ test('actual d3c profile304 PF5 text retains exact source fonts pixels and legac
  const released=await legacy.post('/api/v1/text-admission/'+result.admissionId+'/release',{protocolVersion:1});assert.equal(released.status,200,released.text);
  const state=(await legacy.read('/api/v1/documents/document_1/image')).json,legacySource=JSON.parse(await readFile(file(legacy.root,state.layers[0].source)));assert.equal(legacySource.render.rendererProfile.id,profile.id);
  const archive=await old.copy(legacy);await legacy.server.close();
- const f=await setup(t),review=(await preview(f,archive.bytes)).review;assert.equal(review.formatVersion,5);assert.equal(review.editable,true,JSON.stringify(review));await workspace(f,{type:'ImportBundle',reviewId:review.reviewId,reviewHash:review.reviewHash});
+ // Keep the current product server in its own process, as for the historical
+ // server above. The Playwright/legacy-build driver is not product RSS.
+ const f=await isolated(t);assert.notEqual(f.process.pid,process.pid);
+ t.diagnostic(JSON.stringify({phase:'current-before-bundle-import',server:f.process,fixtureSHA256:createHash('sha256').update(await readFile(f.process.fixture)).digest('hex'),serverMemory:(await f.memory()).usage,driverMemory:process.memoryUsage(),scope:'Point-in-time diagnostic; not a resource qualification'}));
+ const review=(await preview(f,archive.bytes)).review;assert.equal(review.formatVersion,5);assert.equal(review.editable,true,JSON.stringify(review));await workspace(f,{type:'ImportBundle',reviewId:review.reviewId,reviewHash:review.reviewHash});
  const imported=(await f.read('/api/v1/documents/'+review.documentId+'/image')).json;assert.equal(imported.layers[0].source.hash,state.layers[0].source.hash);
  const layer=imported.layers[0];assert.deepEqual(layer.layerToDocument,[1,0,0,1,0,0]);
  const moved=await edit(f,{type:'ApplyTransform',layerId:layer.id,layerVersion:layer.version,transform:[1,0,0,1,-2.5,8.25],draft:null},review.documentId);await edit(f,{type:'Undo',historyHead:moved.document.historyHead},review.documentId);await edit(f,{type:'Redo',historyNode:moved.document.historyHead},review.documentId);
  const current=await copy(f,review.documentId),roundtrip=(await preview(f,current.bytes)).review;assert.equal(roundtrip.formatVersion,9);assert.equal(roundtrip.editable,true);await workspace(f,{type:'ImportBundle',reviewId:roundtrip.reviewId,reviewHash:roundtrip.reviewHash});
  const restored=(await f.read('/api/v1/documents/'+roundtrip.documentId+'/image')).json;assert.equal(restored.schemaVersion,2);assert.deepEqual(restored.layers[0].layerToDocument,[1,0,0,1,-2.5,8.25]);assert.equal(restored.layers[0].source.hash,state.layers[0].source.hash);assert.deepEqual((await binary(f,'/api/v1/assets/'+(await doc(f,roundtrip.documentId)).image.compositeAssetId+'/content')).bytes,(await binary(f,'/api/v1/assets/'+(await doc(f,review.documentId)).image.compositeAssetId+'/content')).bytes);
  t.diagnostic(JSON.stringify({priorExecutable:oldCommit,priorProfile:profile.id,legacyArchive:archive.bundle.blob,currentArchive:current.bundle.blob,retainedSource:state.layers[0].source,actualWorkerCloseSignals:closed.length,ownedStorage:guard.ledger,oldFixtureFiles:await Promise.all((await readdir(join(app,'assets'))).map(async name=>({name,sha256:createHash('sha256').update(await readFile(join(app,'assets',name))).digest('hex')})))}));
+ await f.server.close();
 });
