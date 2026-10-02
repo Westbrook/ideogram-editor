@@ -7,8 +7,9 @@ import {editScopes, withTemporaryEdit} from '../dev.mjs';
 import {evaluateCohort, nearestRank} from '../statistics.mjs';
 import {createBrowserPlan} from '../container/browser-plan.mjs';
 import {prepareInputs, installInputs} from '../container/inputs.mjs';
-import {json, sha256, hashFile, fileManifest, verifyManifest, sourcePaths, createWorkspace, toolchain, cleanEnvironment, execute, assertSuccess, observedEnvironment, createRun} from './common.mjs';
+import {json, sha256, hashFile, fileManifest, verifyManifest, sourcePaths, createWorkspace, toolchain, cleanEnvironment, admitSchema18Input, execute, assertSuccess, observedEnvironment, createRun} from './common.mjs';
 import {readFocused, discoverNodeFiles} from './selectors.mjs';
+import {freshFixtureFiles} from '../suite-prerequisites.mjs';
 import {runNodeSelection, runBrowserSelection} from './suites.mjs';
 import {browserCacheIdentity} from './verify-browsers.mjs';
 import {loadD11Build} from '../campaigns/browser-d11-build.mjs';
@@ -139,7 +140,7 @@ export async function auditBuild(source, {d11Output} = {}) {
     missing: ['H evaluated module list, Resource Timing and runtime font accounting']};
 }
 
-export async function runDeveloperGroup({sourceRoot, paths, expectedSource, directory, cache, ordinal, warmCaches, pinned, focused, registry, browserDownloadHost, inputPacket, abortSignal, primeOnly = false}) {
+export async function runDeveloperGroup({sourceRoot, paths, expectedSource, directory, cache, ordinal, warmCaches, pinned, focused, registry, browserDownloadHost, inputPacket, schema18Input = null, abortSignal, primeOnly = false}) {
   await mkdir(directory, {recursive: true}); const startedAt = new Date().toISOString(), start = performance.now();
   const result = {id: primeOnly ? 'warm-cache-prime' : `${cache}-${ordinal}`, cache, ordinal, scored: !primeOnly, startedAt,
     commands: [], phases: [], edits: [], suites: [], status: 'running', qualification: false};
@@ -150,6 +151,7 @@ export async function runDeveloperGroup({sourceRoot, paths, expectedSource, dire
   try {
     context = await createWorkspace(sourceRoot, paths); result.workspace = context.workspace; result.source = context.sourceManifest;
     if (expectedSource && expectedSource !== result.source.sha256) throw Error('Source drift between command groups');
+    if (schema18Input || !primeOnly && freshFixtureFiles(result.source.files.map(file => file.path)).length) result.schema18Input = await admitSchema18Input(process.env.IE_SCHEMA18_EXECUTABLE_PACKET, schema18Input);
     if (!primeOnly) {
       const fixtureStart = performance.now();
       if (!inputPacket) { inputPacket = join(context.workspace, 'fixture-inputs'); await prepareInputs({root: sourceRoot, output: inputPacket}); }
@@ -160,7 +162,7 @@ export async function runDeveloperGroup({sourceRoot, paths, expectedSource, dire
     result.cacheState = {nodeModules: 'absent', build: 'absent', npm: cache === 'cold' ? 'empty' : primeOnly ? 'empty-prime' : 'campaign-owned-primed', browsers: cache === 'cold' ? 'empty' : primeOnly ? 'empty-prime' : 'campaign-owned-primed', npmCache, browserCache};
     const lock = sha256(await readFile(join(source, 'package-lock.json'))), pkg = JSON.parse(await readFile(join(source, 'package.json')));
     result.cacheKey = sha256(json({source: result.source.sha256, lock, node: pinned.node, npm: pinned.npm, typescript: pkg.devDependencies.typescript,
-      vite: pkg.devDependencies.vite, playwright: pkg.devDependencies['@playwright/test'], environment: observedEnvironment(), commands: developerCommandPlan(), selection: focused}));
+      vite: pkg.devDependencies.vite, playwright: pkg.devDependencies['@playwright/test'], environment: observedEnvironment(), commands: developerCommandPlan(), selection: focused, schema18Input: result.schema18Input ?? null}));
     if (!primeOnly && cache === 'warm' && warmCaches.key !== result.cacheKey) throw Error('Warm cache key mismatch; retain this attempt and start a fresh complete matched cohort');
     async function command(id, args, extra = {}, executable = pinned.executable, timeoutMs = 300000) {
       const observed = await execute({id: `${String(result.commands.length + 1).padStart(3, '0')}.${id}`, command: [executable, ...args], cwd: source,
@@ -220,7 +222,25 @@ export async function runDeveloperGroup({sourceRoot, paths, expectedSource, dire
         });
       }
       const inventory = await discoverNodeFiles(source); result.nodeInventory = inventory;
-      for (const group of ['unit', 'integration']) for (const mode of ['focused', 'full']) await phase(`${mode}-${group}`, async () => { result.suites.push(await runNodeSelection({source, directory, group, mode, focused, inventory, command, pinned, abortSignal: signal})); });
+      for (const group of ['unit', 'integration']) for (const mode of ['focused', 'full']) {
+        const files = mode === 'focused' ? focused[group].map(row => row.file) : inventory.filter(row => row.method === (group === 'unit' ? 'U' : 'L')).map(row => row.file);
+        const needsSchema18 = freshFixtureFiles(files).length > 0;
+        let check;
+        if (needsSchema18) {
+          check = {suite: `${mode}-${group}`, before: await admitSchema18Input(process.env.IE_SCHEMA18_EXECUTABLE_PACKET, result.schema18Input)};
+          (result.schema18Checks ??= []).push(check);
+        }
+        // Only the selected consuming suite receives this explicitly admitted
+        // same-host path. The installer owns its private per-root copies.
+        const suiteCommand = needsSchema18 ? (id, args, extra = {}, ...rest) => command(id, args, {...extra, IE_SCHEMA18_EXECUTABLE_PACKET: check.before.descriptor.path}, ...rest) : command;
+        let suiteError;
+        try { await phase(`${mode}-${group}`, async () => { result.suites.push(await runNodeSelection({source, directory, group, mode, focused, inventory, command: suiteCommand, pinned, abortSignal: signal})); }); }
+        catch (error) { suiteError = error; throw error; }
+        finally {
+          if (check) try { check.after = await admitSchema18Input(process.env.IE_SCHEMA18_EXECUTABLE_PACKET, check.before); }
+          catch (error) { check.failure = String(error); if (!suiteError) throw error; }
+        }
+      }
       await phase(`browser-${cache}`, async () => {
         if (cache === 'cold') await command('browser-install', ['node_modules/@playwright/test/cli.js', 'install', 'chromium', 'firefox', 'webkit']);
         const expectedPath = join(directory, 'expected-browsers.json');
@@ -330,13 +350,15 @@ async function runDeveloperCommandCampaignObserved({sourceRoot = root, output, r
     if (!inputPacket) { inputPacket = join(run.directory, 'fixture-inputs'); receipt.fixturePreparation = await prepareInputs({root: sourceRoot, output: inputPacket}); }
     receipt.inputPacket = inputPacket;
     const paths = sourcePaths(sourceRoot), focused = await readFocused(sourceRoot); receipt.focused = focused;
+    const schema18Input = freshFixtureFiles(paths).length ? await admitSchema18Input(process.env.IE_SCHEMA18_EXECUTABLE_PACKET) : null;
+    if (schema18Input) receipt.schema18Input = schema18Input;
     const warmCaches = {npm: join(run.workspace, 'warm-npm-cache'), browsers: join(run.workspace, 'warm-browsers')};
     // Explicit unscored prime with real npm ci and all-three browser install.
-    receipt.prime = await runDeveloperGroup({sourceRoot, paths, directory: join(run.directory, 'warm-prime'), cache: 'warm', ordinal: 0, warmCaches, pinned, focused, registry, browserDownloadHost, abortSignal, primeOnly: true});
+    receipt.prime = await runDeveloperGroup({sourceRoot, paths, directory: join(run.directory, 'warm-prime'), cache: 'warm', ordinal: 0, warmCaches, pinned, focused, registry, browserDownloadHost, schema18Input, abortSignal, primeOnly: true});
     await run.save(receipt);
     if (receipt.prime.status !== 'completed') throw Error('Warm-cache priming failed; retained without substituting a scored sample');
     for (const group of commandSchedule()) {
-      const observed = await runDeveloperGroup({sourceRoot, paths, expectedSource: receipt.prime.source.sha256, directory: join(run.directory, group.id), ...group, warmCaches, pinned, focused, registry, browserDownloadHost, inputPacket, abortSignal});
+      const observed = await runDeveloperGroup({sourceRoot, paths, expectedSource: receipt.prime.source.sha256, directory: join(run.directory, group.id), ...group, warmCaches, pinned, focused, registry, browserDownloadHost, inputPacket, schema18Input, abortSignal});
       receipt.groups.push(observed); await run.save(receipt);
       // Preserve the failed group and stop. A new cohort is an explicit new run,
       // never a hidden replacement of an unsuccessful or slow sample.

@@ -8,7 +8,7 @@ import {createHash} from 'node:crypto';
 import {commandSchedule, commandBudgets, developerCommandPlan, summarizeCommands, observeD11Build} from '../../tooling/qualification/developer-campaigns/commands.mjs';
 import {caseIdentity, classifySuite, validateBrowserSelection, validateFocused, nodeClassification, exactPattern, nativeNodeBrowserFiles, contractsForCase} from '../../tooling/qualification/developer-campaigns/selectors.mjs';
 import BrowserReporter from '../../tooling/qualification/developer-campaigns/browser-reporter.mjs';
-import {cleanEnvironment, execute, json} from '../../tooling/qualification/developer-campaigns/common.mjs';
+import {admitSchema18Input, cleanEnvironment, execute, json} from '../../tooling/qualification/developer-campaigns/common.mjs';
 import {browserCacheIdentity} from '../../tooling/qualification/developer-campaigns/verify-browsers.mjs';
 import {campaignPlan, parseCampaignOptions} from '../../tooling/qualification/developer-campaigns/run.mjs';
 
@@ -232,4 +232,148 @@ test('campaign clean environment preserves only the explicitly configured D11 ar
     const clean = await cleanEnvironment({workspace: join(directory, name), npmCache, browserCache, env: {IE_D11_NPM_CACHE: value}});
     assert.equal(clean.IE_D11_NPM_CACHE, value);
   }
+});
+
+// Tiny synthetic continuity specimens, never executable archives or qualified
+// migration inputs. Admission cannot confer product pin or restore authority.
+async function schema18InputFixture(t) {
+  const directory = await mkdtemp(join(await realpath(tmpdir()), 'developer-schema18-input-'));
+  t.after(() => rm(directory, {recursive: true, force: true}));
+  const members = [];
+  async function member(role) {
+    const bytes = Buffer.from('synthetic-only:' + role), path = join(directory, `${members.length}.sealed`);
+    await writeFile(path, bytes);
+    members.push({role, path, bytes: bytes.length, sha256: digest(bytes).slice(7)});
+    return {path, hash: digest(bytes), byteLength: String(bytes.length)};
+  }
+  const sourceArchive = await member('sourceArchive'), sourceManifest = await member('sourceManifest'), compiledClosures = [];
+  for (const name of ['local', 'rollback']) compiledClosures.push({name,
+    archive: await member(`compiledClosures/${name}/archive`), manifest: await member(`compiledClosures/${name}/manifest`)});
+  const receipt = await member('verifiedFreshRestore/receipt'), identity = digest('synthetic-identity-only');
+  const packet = {kind: 'schema18-executable-packet-1', storageVersion: 18, packetId: 'synthetic-unqualified-schema18', capabilityHash: identity,
+    sourceArchive, sourceManifest, compiler: {name: 'synthetic', version: '0', identity}, toolchain: {node: '26.10.0', npm: '12.1.0', identity},
+    dependencies: {lockfileHash: identity, vendorManifestHash: identity, identity}, native: {profileHash: identity, artifactManifestHash: identity},
+    platform: {os: process.platform, arch: process.arch, identity}, compiledClosures,
+    verifiedFreshRestore: {receipt, sourceArchiveHash: sourceArchive.hash, compiledClosureHash: identity, capabilityHash: identity, result: 'synthetic-not-verified'}};
+  const path = join(directory, 'packet.json');
+  await writeFile(path, json(packet));
+  return {directory, path, packet, members};
+}
+
+test('schema18 admission records every existing closure byte without asserting product qualification', async t => {
+  const fixture = await schema18InputFixture(t), before = await readFile(fixture.path), admitted = await admitSchema18Input(fixture.path);
+  assert.equal(admitted.kind, 'developer-schema18-input-1');
+  assert.deepEqual(admitted.descriptor, {path: fixture.path, bytes: before.length, sha256: digest(before).slice(7)});
+  assert.equal(admitted.packetId, fixture.packet.packetId);
+  assert.deepEqual(admitted.platform, fixture.packet.platform);
+  assert.deepEqual(admitted.members, fixture.members);
+  assert.equal(admitted.qualification, false);
+  assert.equal(admitted.authority, 'readability-and-byte-continuity-only; existing private-root installer verifies product pin and restore');
+  assert.deepEqual(await admitSchema18Input(fixture.path, admitted), admitted);
+  assert.deepEqual(await readFile(fixture.path), before);
+  // Both the typed four-field restore record and the issued producer's extra
+  // scalar capability hash are supported without weakening byte continuity.
+  delete fixture.packet.verifiedFreshRestore.capabilityHash;
+  await writeFile(fixture.path, json(fixture.packet));
+  assert.deepEqual((await admitSchema18Input(fixture.path)).members, admitted.members);
+});
+
+test('campaign clean environment still drops ambient schema18 input and accepts only an explicit admitted override', async t => {
+  const fixture = await schema18InputFixture(t), admitted = await admitSchema18Input(fixture.path);
+  const options = {npmCache: join(fixture.directory, 'npm'), browserCache: join(fixture.directory, 'browsers'),
+    env: {IE_SCHEMA18_EXECUTABLE_PACKET: fixture.path, NODE_OPTIONS: '--import untrusted.mjs'}};
+  const clean = await cleanEnvironment({...options, workspace: join(fixture.directory, 'ambient')});
+  assert.equal(Object.hasOwn(clean, 'IE_SCHEMA18_EXECUTABLE_PACKET'), false);
+  assert.equal(Object.hasOwn(clean, 'NODE_OPTIONS'), false);
+  const selected = await cleanEnvironment({...options, workspace: join(fixture.directory, 'explicit'),
+    extra: {IE_SCHEMA18_EXECUTABLE_PACKET: admitted.descriptor.path}});
+  assert.equal(selected.IE_SCHEMA18_EXECUTABLE_PACKET, admitted.descriptor.path);
+  assert.equal(Object.hasOwn(selected, 'NODE_OPTIONS'), false);
+});
+
+test('schema18 admission rejects absent, relative, aliased and linked descriptor locations', async t => {
+  const fixture = await schema18InputFixture(t);
+  for (const path of [undefined, null, '', 'packet.json', fixture.directory + '/./packet.json', fixture.directory + '//packet.json', fixture.directory + '/child/../packet.json'])
+    await assert.rejects(admitSchema18Input(path), {code: 'CAMPAIGN_PREREQUISITE'}, String(path));
+  await assert.rejects(admitSchema18Input(join(fixture.directory, 'missing.json')), {code: 'ENOENT'});
+  await assert.rejects(admitSchema18Input(fixture.directory), {code: 'CAMPAIGN_PREREQUISITE'});
+  const link = join(fixture.directory, 'descriptor-link'), parent = join(fixture.directory, 'parent-link');
+  await symlink(fixture.path, link); await symlink(fixture.directory, parent);
+  for (const path of [link, join(parent, 'packet.json')]) await assert.rejects(admitSchema18Input(path), {code: 'CAMPAIGN_PREREQUISITE'});
+});
+
+test('schema18 admission rejects missing, corrupt, truncated or aliased bytes anywhere in the closure', async t => {
+  const mutations = [
+    ['missing source', f => rm(f.packet.sourceArchive.path), {code: 'ENOENT'}],
+    ['same-length corrupt compiled archive', async f => {
+      const path = f.packet.compiledClosures[1].archive.path, bytes = await readFile(path); bytes[0] ^= 1; await writeFile(path, bytes);
+    }, /reference bytes differ/],
+    ['truncated restore receipt', async f => {
+      const path = f.packet.verifiedFreshRestore.receipt.path, bytes = await readFile(path); await writeFile(path, bytes.subarray(1));
+    }, /reference type\/length differs/],
+    ['noncanonical manifest reference', async f => {
+      f.packet.sourceManifest.path = f.directory + '/./1.sealed'; await writeFile(f.path, json(f.packet));
+    }, /invalid absolute sealed reference/],
+    ['linked compiled manifest parent', async f => {
+      const parent = join(f.directory, 'linked-parent'); await symlink(f.directory, parent);
+      f.packet.compiledClosures[1].manifest.path = join(parent, '5.sealed'); await writeFile(f.path, json(f.packet));
+    }, /regular unlinked file/],
+  ];
+  for (const [name, mutate, rejection] of mutations) {
+    const fixture = await schema18InputFixture(t); await mutate(fixture);
+    await assert.rejects(admitSchema18Input(fixture.path), rejection, name);
+  }
+});
+
+test('schema18 admission rejects unsupported descriptors, malformed sealed references and a different host platform', async t => {
+  const fixture = await schema18InputFixture(t), mutations = [
+    ['unsupported kind', p => { p.kind = 'schema19-executable-packet-1'; }],
+    ['wrong storage version', p => { p.storageVersion = 19; }],
+    ['missing required field', p => { delete p.sourceManifest; }],
+    ['unexpected descriptor field', p => { p.unlisted = true; }],
+    ['different operating system', p => { p.platform.os = process.platform === 'linux' ? 'darwin' : 'linux'; }],
+    ['different architecture', p => { p.platform.arch = 'not-this-architecture'; }],
+    ['missing platform', p => { p.platform = null; }],
+    ['empty compiled inventory', p => { p.compiledClosures = []; }],
+    ['duplicate closure name', p => { p.compiledClosures[1].name = p.compiledClosures[0].name; }],
+    ['unbounded closure inventory', p => { p.compiledClosures = Array.from({length: 33}, (_, index) => ({...p.compiledClosures[0], name: 'closure' + index})); }],
+    ['invalid closure name', p => { p.compiledClosures[0].name = '../escape'; }],
+    ['unexpected closure field', p => { p.compiledClosures[0].extra = true; }],
+    ['unexpected reference field', p => { p.sourceArchive.extra = true; }],
+    ['missing reference', p => { p.compiledClosures[1].archive = null; }],
+    ['relative reference', p => { p.sourceArchive.path = 'source.archive'; }],
+    ['invalid hash', p => { p.sourceArchive.hash = 'sha256:bad'; }],
+    ['negative byte length', p => { p.sourceArchive.byteLength = '-1'; }],
+    ['noncanonical byte length', p => { p.sourceArchive.byteLength = '01'; }],
+    ['oversized reference', p => { p.sourceArchive.byteLength = String(8n * 1024n ** 3n + 1n); }],
+    ['missing restore receipt', p => { delete p.verifiedFreshRestore.receipt; }],
+    ['invalid restore capability hash', p => { p.verifiedFreshRestore.capabilityHash = 'sha256:bad'; }],
+    ['different restore capability hash', p => { p.verifiedFreshRestore.capabilityHash = 'sha256:' + 'f'.repeat(64); }],
+  ];
+  for (const [name, mutate] of mutations) {
+    const packet = structuredClone(fixture.packet); mutate(packet); await writeFile(fixture.path, json(packet));
+    await assert.rejects(admitSchema18Input(fixture.path), {code: 'CAMPAIGN_PREREQUISITE'}, name);
+  }
+  await writeFile(fixture.path, '{'); await assert.rejects(admitSchema18Input(fixture.path), /descriptor is not JSON/);
+  await writeFile(fixture.path, ' '.repeat(65537)); await assert.rejects(admitSchema18Input(fixture.path), /at most 64 KiB/);
+});
+
+test('schema18 continuity binds descriptor path and bytes and snapshots retained expectations before awaiting IO', async t => {
+  const fixture = await schema18InputFixture(t), admitted = await admitSchema18Input(fixture.path);
+  const supplied = structuredClone(admitted), pending = admitSchema18Input(fixture.path, supplied);
+  // The call has reached its first await; changing caller-owned expectations
+  // must neither alter the admission snapshot nor manufacture a mismatch.
+  supplied.descriptor.sha256 = 'f'.repeat(64); supplied.members[0].path = '/changed-after-call'; supplied.platform.arch = 'changed-after-call';
+  assert.deepEqual(await pending, admitted);
+  const other = join(fixture.directory, 'same-bytes.json'); await writeFile(other, await readFile(fixture.path));
+  await assert.rejects(admitSchema18Input(other, admitted), /selected descriptor differs/);
+  await writeFile(fixture.path, JSON.stringify(fixture.packet));
+  await assert.rejects(admitSchema18Input(fixture.path, admitted), /descriptor or closure differs from retained input/);
+  await writeFile(fixture.path, json(fixture.packet));
+  const path = fixture.packet.compiledClosures[1].archive.path, bytes = await readFile(path); bytes[0] ^= 1;
+  await writeFile(path, bytes);
+  await assert.rejects(admitSchema18Input(fixture.path, admitted), /reference bytes differ/);
+  fixture.packet.compiledClosures[1].archive.hash = digest(bytes); await writeFile(fixture.path, json(fixture.packet));
+  assert.notDeepEqual(await admitSchema18Input(fixture.path), admitted);
+  await assert.rejects(admitSchema18Input(fixture.path, admitted), /descriptor or closure differs from retained input/);
 });

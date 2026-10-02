@@ -235,7 +235,9 @@ test('resolved local arguments and returns cannot hide a computed callable', asy
     const value = await specimen(); value.sourceTextByPath['src/lexical-values.ts'] = text;
     const proof = deriveD11NativePreparationClosure(value);
     assert.equal(proof.complete, false, text);
-    assert.match(proof.missing.join('; '), /computed (callable alias|DOM\/controller ownership) is unresolved/, text);
+    if (text === 'const get=()=>condition?values[index]:(()=>1);const work=get();work.call(null);') {
+      assert(['D11 Worker activation: computed callable alias is unresolved', 'D11 Worker activation: local callable forwarding is unresolved'].includes(proof.missing.join('; ')), text);
+    } else assert.match(proof.missing.join('; '), /computed (callable alias|DOM\/controller ownership) is unresolved/, text);
   }
 });
 
@@ -292,5 +294,68 @@ test('cyclic target equations converge without losing computed or later argument
     const value=await specimen();value.sourceTextByPath['src/cyclic-values.ts']=text;
     const proof=deriveD11NativePreparationClosure(value);
     assert.equal(proof.complete,false,text);assert.match(proof.missing.join('; '),/computed callable alias is unresolved/,text);
+  }
+});
+
+
+test('destructuring member writes preserve lexical and callable provenance', async () => {
+  for (const text of [
+    'function move(es,i,j){const first=es.findIndex(x=>x);[es[i],es[j]]=[es[j],es[i]];return es}',
+    'function move(next,index,target){[next.references[index],next.references[target]]=[next.references[target],next.references[index]];return next}',
+    'let value;const object={};[value,object.value]=[1,2];String(value);',
+    'const object={};({value:object.value}={value:3});String(object.value);',
+  ]) {
+    const value=await specimen();value.sourceTextByPath['src/assignment-values.ts']=text;
+    const proof=deriveD11NativePreparationClosure(value);
+    assert.equal(proof.complete,true,text+': '+proof.missing.join('; '));
+  }
+  for (const text of [
+    '[object.run]=[callbacks[key]];object.run();',
+    '({run:object.run}={run:callbacks[key]});object.run();',
+    '[object.run]=[callbacks[key]];const alias=object;alias.run();',
+    'const object={};const wrapper={object};[object.run]=[callbacks[key]];wrapper.object.run();',
+    'const object={};const wrapper={nested:{object}};[object.run]=[callbacks[key]];wrapper.nested.object.run();',
+    'const object={};const wrapper=[object];[object.run]=[callbacks[key]];const alias=wrapper[0];alias.run();',
+    '[object.nested.run]=[callbacks[key]];const alias=object.nested;alias.run();',
+    'const object={};function get(){return object}[object.run]=[callbacks[key]];get().run();',
+    'let work;[object.value,work]=[1,callbacks[key]];work();',
+    '[object.run=callbacks[key]]=[];object.run();',
+    '({run:object.run=callbacks[key]}={});object.run();',
+    'const work=callbacks[key];const invoke=fn=>fn();[object.run]=[invoke];object.run(work);',
+    '[object.run]=[callbacks[key]];const run=object.run;run.call(null);',
+  ]) {
+    const value=await specimen();value.sourceTextByPath['src/assignment-values.ts']=text;
+    const proof=deriveD11NativePreparationClosure(value);
+    assert.equal(proof.complete,false,text);assert.match(proof.missing.join('; '),/computed callable alias is unresolved/,text);
+  }
+  for (const text of ['[object.run]=unknown;', '({run:object.run}=unknown);']) {
+    const value=await specimen();value.sourceTextByPath['src/assignment-values.ts']=text;
+    const proof=deriveD11NativePreparationClosure(value);
+    assert.equal(proof.complete,false,text);assert.match(proof.missing.join('; '),/owner binding pattern is unsupported/,text);
+  }
+});
+
+
+test('computed member writes remain explicit conditional effects without exclusion authority', async () => {
+  const baseline=deriveD11NativePreparationClosure(await specimen());
+  assert.equal(baseline.complete,true,baseline.missing.join('; '));
+  assert.equal(baseline.witness.conditionalMemberEffects.kind,'d11-conditional-member-assignments-1');
+  assert(baseline.witness.conditionalMemberEffects.sites.length>0);
+  for (const text of [
+    '[object[key]]=[callbacks[index]];object.run();',
+    'const object={run:0,hidden:callbacks[k]};const i="run",j="hidden";[object[i],object[j]]=[object[j],object[i]];object.run();',
+  ]) {
+    const value=await specimen();value.sourceTextByPath['src/conditional-write.ts']=text;
+    const proof=deriveD11NativePreparationClosure(value);
+    assert.equal(proof.complete,true,proof.missing.join('; '));
+    const sites=proof.witness.conditionalMemberEffects.sites.filter(row=>row.source==='src/conditional-write.ts');
+    assert.equal(sites.length,1);assert.equal(sites[0].requirement,'reviewed-data-only-array-reordering');
+    assert.match(sites[0].sourceSha256,/^sha256:[a-f0-9]{64}$/);
+    assert.match(sites[0].assignmentSha256,/^sha256:[a-f0-9]{64}$/);
+    assert.equal(Object.hasOwn(proof,'excludedWorkers'),false);
+    const result=deriveD11WorkerActivation({...value,roleContext:D11_ROLE_CONTEXT,files:[],outputTextByFile:{},
+      conditionalMemberEffects:{kind:'d11-conditional-member-assignments-1',sites:[]},
+      applicationSourceProfile:{kind:'verified-d11-application-profile-1',profile:'reviewed-d11-startup-corpus-1',memberAssignmentEffects:{kind:'reviewed-d11-data-member-assignments-1',sites:[]}}});
+    assert.equal(result.complete,false);assert.deepEqual(result.excludedWorkers,[]);
   }
 });

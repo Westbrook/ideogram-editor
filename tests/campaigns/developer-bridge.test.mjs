@@ -4,8 +4,10 @@ import {mkdtemp, realpath, mkdir, writeFile, readFile, rm, symlink} from 'node:f
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {createHash} from 'node:crypto';
-import {createDeveloperAdapter, selectDeveloperStage, normalizeDeveloperObservation, developerBuildByteNames, developerBuildByteObservation} from '../../tooling/qualification/developer-campaigns/bridge.mjs';
+import {createDeveloperAdapter, selectDeveloperStage, normalizeDeveloperObservation, developerBuildByteNames, developerBuildByteObservation, runDeveloperStage} from '../../tooling/qualification/developer-campaigns/bridge.mjs';
 import {observeD11Build} from '../../tooling/qualification/developer-campaigns/commands.mjs';
+import {admitSchema18Input} from '../../tooling/qualification/developer-campaigns/common.mjs';
+import {caseIdentity} from '../../tooling/qualification/developer-campaigns/selectors.mjs';
 
 const cell = (id, operation, parameters = {}) => ({id, operation, parameters, handler: 'developer', requiredMeasurements: []});
 const I1 = cell('I1/command-groups', 'developer.command-group');
@@ -207,4 +209,121 @@ test('source drift and changed sealed state refuse continuation', async t => {
 test('a second worker cannot own the same developer state concurrently', async t => {
   const f = await fixture(t), adapter = f.own(await createDeveloperAdapter(f.context, f.injected));
   await assert.rejects(createDeveloperAdapter(f.context, f.injected), {code: 'CAMPAIGN_PREREQUISITE'});
+});
+
+
+// Tiny test-only closure: admission is byte continuity, never a qualified
+// rollback executable. Product authority remains with the real root installer.
+async function schema18Fixture(root) {
+  const directory = join(root, 'schema18-input'); await mkdir(directory);
+  let index = 0;
+  const hash = value => 'sha256:' + createHash('sha256').update(value).digest('hex');
+  const member = async () => { const bytes = Buffer.from('synthetic-' + index), path = join(directory, `${index++}.sealed`); await writeFile(path, bytes); return {path, hash: hash(bytes), byteLength: String(bytes.length)}; };
+  const identity = hash('synthetic-metadata'), sourceArchive = await member(), sourceManifest = await member();
+  const packet = {kind: 'schema18-executable-packet-1', storageVersion: 18, packetId: 'synthetic-test-only', capabilityHash: identity,
+    sourceArchive, sourceManifest, compiler: {name: 'typescript', version: 'synthetic', identity}, toolchain: {node: '26.10.0', npm: '12.1.0', identity},
+    dependencies: {lockfileHash: identity, vendorManifestHash: identity, identity}, native: {profileHash: identity, artifactManifestHash: identity},
+    platform: {os: process.platform, arch: process.arch, identity}, compiledClosures: [{name: 'local', archive: await member(), manifest: await member()}],
+    verifiedFreshRestore: {receipt: await member(), sourceArchiveHash: sourceArchive.hash, compiledClosureHash: identity, capabilityHash: identity, result: 'synthetic-not-verified'}};
+  const path = join(directory, 'packet.json'); await writeFile(path, JSON.stringify(packet)); return {path, packet};
+}
+function selectSchema18(t, path) {
+  const previous = process.env.IE_SCHEMA18_EXECUTABLE_PACKET;
+  t.after(() => {if (previous === undefined) delete process.env.IE_SCHEMA18_EXECUTABLE_PACKET; else process.env.IE_SCHEMA18_EXECUTABLE_PACKET = previous;});
+  if (path === undefined) delete process.env.IE_SCHEMA18_EXECUTABLE_PACKET; else process.env.IE_SCHEMA18_EXECUTABLE_PACKET = path;
+}
+
+test('I1 binds the admitted external schema18 closure to state and its actual single-group invocation', async t => {
+  const f = await fixture(t), packet = await schema18Fixture(f.root), calls = [];
+  f.source.files.push({path: 'tests/composition/schema.test.mjs'}); selectSchema18(t, packet.path);
+  const admitted = await admitSchema18Input(packet.path);
+  f.injected.runDeveloperGroup = async options => {calls.push(options); return successful();};
+  const adapter = f.own(await createDeveloperAdapter(f.context, f.injected));
+  await adapter.prepareCell(I1); await adapter.resetCell(I1, attempt()); await adapter.execute(I1, attempt());
+  assert.equal(calls.length, 1); assert.deepEqual(calls[0].schema18Input, admitted);
+  const retained = JSON.parse(await readFile(join(f.root, 'state', 'bridge-state.json'))).state;
+  assert.deepEqual(retained.schema18Input, admitted); assert.equal(retained.schema18Input.qualification, false);
+  await adapter.close();
+  const resumed = f.own(await createDeveloperAdapter({...f.context, output: join(f.root, 'resumed')}, f.injected));
+  await resumed.prepareCell(I1);
+  delete process.env.IE_SCHEMA18_EXECUTABLE_PACKET;
+  await assert.rejects(resumed.resetCell(I1, attempt('cold', 2)), /explicit canonical absolute descriptor/);
+  process.env.IE_SCHEMA18_EXECUTABLE_PACKET = packet.path;
+  const other = join(f.root, 'same-descriptor.json'); await writeFile(other, await readFile(packet.path));
+  process.env.IE_SCHEMA18_EXECUTABLE_PACKET = other;
+  await assert.rejects(resumed.resetCell(I1, attempt('cold', 2)), /selected descriptor differs/);
+  process.env.IE_SCHEMA18_EXECUTABLE_PACKET = packet.path;
+  packet.packet.compiledClosures[0].archive.hash = 'sha256:' + 'f'.repeat(64); await writeFile(packet.path, JSON.stringify(packet.packet));
+  await assert.rejects(resumed.resetCell(I1, attempt('cold', 2)), /reference bytes differ/);
+  assert.equal(calls.length, 1);
+});
+
+test('actual P C4 and C5 migration selections reject absent schema18 input before launching their suite', async t => {
+  selectSchema18(t, undefined);
+  const order = ['setup', 'clean-install', 'full-types', 'production-build', 'incremental-public-leaf', 'incremental-domain-type', 'focused-unit', 'full-unit', 'focused-integration', 'full-integration'];
+  for (const [stage, file, cellId] of [['focused-unit', 'tests/composition/schema.test.mjs', 'C4/focused-unit'], ['full-integration', 'tests/protocol/recovery.test.mjs', 'C5/full-integration']]) {
+    const f = await fixture(t), directory = join(f.root, 'stage');
+    const folder = join(f.repo, ...file.split('/').slice(0, -1)); await mkdir(folder, {recursive: true});
+    await writeFile(join(f.repo, file), '// Discovery-only source; this test must never launch it.');
+    const state = {source: {files: []}, p: {source: f.repo, completed: order.slice(0, order.indexOf(stage)), suites: [], receipts: [], npmCache: join(f.root, 'npm'), browserCache: join(f.root, 'browsers')}};
+    let saves = 0;
+    const result = await runDeveloperStage({cell: cell(cellId, 'developer.command'), stage, state, save: async () => {saves++;}, sourceRoot: f.repo, directory,
+      pinned: {executable: process.execPath}, focused: {unit: [{file, name: 'required'}], integration: []}, ensureInputs: () => {throw Error('Historical input preparation is not this fixture');}});
+    assert.equal(result.status, 'inconclusive'); assert.match(result.failure, /IE_SCHEMA18_EXECUTABLE_PACKET/);
+    assert.deepEqual(result.commands, []); assert.deepEqual(result.suites, []); assert.deepEqual(result.phases, []);
+    assert.equal(state.p.failure.stage, stage); assert.ok(saves > 0);
+    assert.equal(JSON.parse(await readFile(join(directory, 'stage.json'))).status, 'inconclusive');
+  }
+});
+
+
+test('a real P command failure retains precedence when the later schema18 recheck is unavailable', async t => {
+  const f = await fixture(t), packet = await schema18Fixture(f.root), file = 'tests/composition/schema.test.mjs';
+  selectSchema18(t, packet.path);
+  await mkdir(join(f.repo, 'tests/composition'), {recursive: true}); await writeFile(join(f.repo, file), '// Discovery only.');
+  const state = {source: {files: []}, p: {source: f.repo, completed: ['setup', 'clean-install', 'full-types', 'production-build', 'incremental-public-leaf', 'incremental-domain-type'],
+    suites: [], receipts: [], npmCache: join(f.root, 'npm'), browserCache: join(f.root, 'browsers')}};
+  // Admission precedes command selection. The nonexistent executable produces a
+  // real bounded launch failure; removing the selection here independently makes
+  // the subsequent continuity check unavailable without launching any test child.
+  const pinned = {get executable() {delete process.env.IE_SCHEMA18_EXECUTABLE_PACKET; return join(f.root, 'missing-executable');}};
+  const result = await runDeveloperStage({cell: cell('C4/focused-unit', 'developer.command'), stage: 'focused-unit', state, save: async () => {},
+    sourceRoot: f.repo, directory: join(f.root, 'stage'), pinned, focused: {unit: [{file, name: 'required'}]}, ensureInputs: () => {throw Error('Unexpected input setup');}});
+  assert.equal(result.status, 'failed'); assert.match(result.failure, /Command failed/);
+  assert.equal(result.commands.length, 1); assert.equal(result.commands[0].outcome, 'FAIL'); assert.equal(result.phases[0].outcome, 'FAIL');
+  assert.match(result.schema18RecheckFailure, /IE_SCHEMA18_EXECUTABLE_PACKET/);
+  assert.equal(state.p.failure.failure, result.failure);
+});
+
+
+test('actual P suite child receives the admitted schema18 path and preserves clean environment isolation', async t => {
+  const f = await fixture(t), packet = await schema18Fixture(f.root), file = 'tests/composition/schema.test.mjs', name = 'selected schema18 input reaches child';
+  selectSchema18(t, packet.path);
+  const oldSecret = process.env.DEVELOPER_SCHEMA18_UNRELATED_SECRET;
+  process.env.DEVELOPER_SCHEMA18_UNRELATED_SECRET = 'synthetic-must-not-reach-child';
+  t.after(() => {if (oldSecret === undefined) delete process.env.DEVELOPER_SCHEMA18_UNRELATED_SECRET; else process.env.DEVELOPER_SCHEMA18_UNRELATED_SECRET = oldSecret;});
+  const files = {
+    // Reexport the actual reporter and import the actual guard. No weakened
+    // synthetic reporting or substitute network policy grants a passing suite.
+    'tooling/qualification/developer-campaigns/node-reporter.mjs': 'export {default} from ' + JSON.stringify(new URL('../../tooling/qualification/developer-campaigns/node-reporter.mjs', import.meta.url).href) + ';',
+    'tests/session/no-egress.mjs': 'import ' + JSON.stringify(new URL('../session/no-egress.mjs', import.meta.url).href) + ';',
+    [file]: `import test from 'node:test'; import assert from 'node:assert/strict'; import {readFile} from 'node:fs/promises';
+      test(${JSON.stringify(name)}, async () => {
+        assert.equal(process.env.IE_SCHEMA18_EXECUTABLE_PACKET, ${JSON.stringify(packet.path)});
+        assert.equal(process.env.DEVELOPER_SCHEMA18_UNRELATED_SECRET, undefined);
+        assert.equal(process.env.NODE_OPTIONS, undefined);
+        const packet = JSON.parse(await readFile(process.env.IE_SCHEMA18_EXECUTABLE_PACKET, 'utf8'));
+        for (const ref of [packet.sourceArchive, packet.sourceManifest, ...packet.compiledClosures.flatMap(row => [row.archive, row.manifest]), packet.verifiedFreshRestore.receipt])
+          assert.equal(String((await readFile(ref.path)).length), ref.byteLength);
+      });`,
+  };
+  for (const [path, contents] of Object.entries(files)) {await mkdir(join(f.repo, ...path.split('/').slice(0, -1)), {recursive: true}); await writeFile(join(f.repo, path), contents);}
+  const state = {source: {files: []}, p: {source: f.repo, completed: ['setup', 'clean-install', 'full-types', 'production-build', 'incremental-public-leaf', 'incremental-domain-type'],
+    suites: [], receipts: [], npmCache: join(f.root, 'npm'), browserCache: join(f.root, 'browsers')}};
+  const result = await runDeveloperStage({cell: cell('C4/focused-unit', 'developer.command'), stage: 'focused-unit', state, save: async () => {},
+    sourceRoot: f.repo, directory: join(f.root, 'stage'), pinned: {executable: process.execPath}, focused: {unit: [{file, name, id: caseIdentity('U', file, name)}]}, ensureInputs: () => {throw Error('Unexpected setup');}});
+  assert.equal(result.status, 'completed', result.failure); assert.equal(result.commands.length, 1); assert.equal(result.commands[0].outcome, 'PASS');
+  assert.equal(result.suites[0].executed, 1); assert.equal(result.suites[0].summaries[0].outcome, 'PASS');
+  assert.deepEqual(result.schema18InputAfter, result.schema18Input); assert.deepEqual(state.schema18Input, result.schema18Input);
+  assert.equal(result.schema18Input.qualification, false); assert.equal(result.schema18Input.descriptor.path, packet.path);
 });

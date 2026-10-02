@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { parseContainerSelection, selectContainerNodePlan } from '../../tooling/qualification/container/selection.mjs';
+import { parseContainerSelection, selectContainerNodePlan, containerPacketEnvironment } from '../../tooling/qualification/container/selection.mjs';
+import { executionEnvironment } from '../../tooling/qualification/core.mjs';
 import { createBrowserPlan } from '../../tooling/qualification/container/browser-plan.mjs';
 
 const base = ['session', 'store', 'protocol', 'assets', 'raster', 'history'];
@@ -130,4 +131,31 @@ test('special-test defaults execute feature/helper selectors once and the browse
   assert.deepEqual(migration.phases.map(phase => phase.id), ['inspect', 'execute']);
   assert.equal(migration.harnessAndDocsArePromotionTargets, false);
   assert.equal(inventory.firstFailurePolicy.continueAfterNonPass, false);
+});
+
+test('container forwards the supplied schema18 packet through both child environment boundaries only', () => {
+  const supplied = {
+    IE_SCHEMA18_EXECUTABLE_PACKET: '/schema18-packet/packet.json',
+    FAL_KEY: 'fixture-secret', HTTPS_PROXY: 'https://example.invalid',
+    NODE_OPTIONS: '--require /unexpected-code', IE_UNRELATED_PACKET: '/unrelated/packet.json',
+  };
+  const forwarded = containerPacketEnvironment(supplied);
+  assert.deepEqual(forwarded, { IE_SCHEMA18_EXECUTABLE_PACKET: '/schema18-packet/packet.json' });
+  const child = executionEnvironment({ PATH: '/usr/bin:/bin', ...forwarded }, '/pinned/bin', '/evidence');
+  assert.equal(child.IE_SCHEMA18_EXECUTABLE_PACKET, supplied.IE_SCHEMA18_EXECUTABLE_PACKET);
+  for (const key of ['FAL_KEY', 'HTTPS_PROXY', 'NODE_OPTIONS', 'IE_UNRELATED_PACKET']) {
+    assert.equal(Object.hasOwn(forwarded, key), false, key);
+    assert.equal(Object.hasOwn(child, key), false, key);
+  }
+  assert.equal(supplied.FAL_KEY, 'fixture-secret', 'The ambient input is not mutated');
+});
+
+test('container packet forwarding does not invent defaults or normalize unvalidated paths', () => {
+  const missing = containerPacketEnvironment({ FAL_KEY: 'fixture-secret' });
+  assert.deepEqual(missing, {});
+  assert.equal(Object.hasOwn(executionEnvironment(missing, '/pinned/bin', '/evidence'), 'IE_SCHEMA18_EXECUTABLE_PACKET'), false);
+  for (const path of ['', 'relative/packet.json', '/schema18-packet/../packet.json']) {
+    const child = executionEnvironment(containerPacketEnvironment({ IE_SCHEMA18_EXECUTABLE_PACKET: path }), '/pinned/bin', '/evidence');
+    assert.equal(child.IE_SCHEMA18_EXECUTABLE_PACKET, path, 'The existing held() consumer must validate the original value');
+  }
 });

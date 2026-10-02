@@ -196,6 +196,36 @@ const fail = message => { throw Error('D11 application profile: ' + message); };
 const scoped = path => path === 'index.html' || path.startsWith('src/');
 const identity = (path, text) => ({ path, rawBytes: Buffer.byteLength(text), sha256: 'sha256:' + createHash('sha256').update(text).digest('hex') });
 
+// These are the complete seven member-destructuring effects in the reviewed
+// corpus. They are source excerpts, not a general permutation exemption. Their
+// data producers and native numeric index origins were reviewed together with
+// the full corpus; changed surrounding code must fail that review before this
+// table is consulted. Offsets use JavaScript string indices, matching the AST.
+const memberAssignmentExpressions = [
+  ['src/ui/adapter-library.ts', '[next[index-1],next[index]]=[next[index]!,next[index-1]!]'],
+  ['src/ui/adapter-library.ts', '[next[index+1],next[index]]=[next[index]!,next[index+1]!]'],
+  ['src/ui/composition.ts', '[es[i],es[j]]=[es[j],es[i]]'],
+  ['src/ui/composition.ts', '[a[i-1],a[i]]=[a[i],a[i-1]]'],
+  ['src/ui/request-v45-edit.ts', '[next.references[index],next.references[target]]=[next.references[target],next.references[index]]'],
+  ['src/ui/shell.ts', '[ids[i],ids[i+1]]=[ids[i+1],ids[i]]'],
+  ['src/ui/shell.ts', '[ids[i],ids[i-1]]=[ids[i-1],ids[i]]'],
+];
+
+// Internal only: the public verifier calls this after every corpus, finalized
+// receipt, and bootstrap identity check. No caller-supplied effects are read.
+function reviewedMemberAssignmentEffects(verifiedSources) {
+  const sites = memberAssignmentExpressions.map(([source, expression]) => {
+    const text = verifiedSources.get(source), start = text.indexOf(expression);
+    if (start < 0 || text.indexOf(expression, start + 1) !== -1) fail('reviewed member assignment is absent or ambiguous: ' + source);
+    return { source, start, end: start + expression.length,
+      sourceSha256: identity(source, text).sha256,
+      assignmentSha256: identity(source, expression).sha256,
+      effect: 'data-only-array-reordering' };
+  });
+  sites.sort((left, right) => left.source.localeCompare(right.source) || left.start - right.start);
+  return { kind: 'reviewed-d11-data-member-assignments-1', sites };
+}
+
 /** Verify one finite current-source review. Caller-computed hashes or a receipt
  * are necessary join evidence, never authority for an alternative corpus.
  * The bootstrap body comes from the independently derived emitted prelude;
@@ -210,6 +240,7 @@ export function verifyD11ApplicationProfile({ sourceTextByPath, sourceInputs, bo
     receipts.set(input.path, { path: input.path, rawBytes: input.rawBytes, sha256: input.sha256 });
   }
   if (!isDeepStrictEqual([...receipts.keys()].filter(scoped).sort(), D11_APPLICATION_SOURCE_PATHS)) fail('finalized application source inventory differs');
+  const verifiedSources = new Map();
   let total = 0;
   for (const expected of reviewedRows) {
     const text = sourceTextByPath[expected.path];
@@ -217,9 +248,10 @@ export function verifyD11ApplicationProfile({ sourceTextByPath, sourceInputs, bo
     const actual = identity(expected.path, text);
     if (!isDeepStrictEqual(actual, expected)) fail('reviewed application source differs: ' + expected.path);
     if (!isDeepStrictEqual(receipts.get(expected.path), expected)) fail('finalized application source differs: ' + expected.path);
+    verifiedSources.set(expected.path, text);
   }
   if (typeof bootstrapText !== 'string' || Buffer.byteLength(bootstrapText) !== bootstrap.rawBytes || !isDeepStrictEqual(identity(bootstrap.path, bootstrapText), bootstrap)) fail('reviewed inline bootstrap differs');
-  return { kind: 'verified-d11-application-profile-1', profile: 'reviewed-d11-startup-corpus-1', inputs: [...reviewedRows.map(row => ({ ...row })), { ...bootstrap }] };
+  return { kind: 'verified-d11-application-profile-1', profile: 'reviewed-d11-startup-corpus-1', inputs: [...reviewedRows.map(row => ({ ...row })), { ...bootstrap }], memberAssignmentEffects: reviewedMemberAssignmentEffects(verifiedSources) };
 }
 
 export const verifyD11ApplicationSourceProfile = verifyD11ApplicationProfile;

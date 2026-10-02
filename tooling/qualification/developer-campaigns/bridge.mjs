@@ -11,9 +11,10 @@ import {prepareInputs, verifyInputs, installInputs} from '../container/inputs.mj
 import {PrerequisiteError} from '../campaigns/common.mjs';
 import {buildIdentity} from '../campaigns/identity.mjs';
 import {sourceIdentity} from '../core.mjs';
-import {json, sha256, hashFile, fileManifest, sourcePaths, createWorkspace, toolchain, cleanEnvironment, execute, assertSuccess, verifyManifest, safeRelative} from './common.mjs';
+import {json, sha256, hashFile, fileManifest, sourcePaths, createWorkspace, toolchain, cleanEnvironment, admitSchema18Input, execute, assertSuccess, verifyManifest, safeRelative} from './common.mjs';
 import {auditBuild, auditDependencies, commandBudgets, observeD11Build, runDeveloperGroup} from './commands.mjs';
 import {readFocused, discoverNodeFiles} from './selectors.mjs';
+import {freshFixtureFiles} from '../suite-prerequisites.mjs';
 import {runNodeSelection, runBrowserSelection} from './suites.mjs';
 import {browserCacheIdentity} from './verify-browsers.mjs';
 
@@ -371,8 +372,21 @@ export async function runDeveloperStage({cell, stage, state, save, sourceRoot, d
         if (edit.restoredArtifacts.sha256 !== record.artifacts.sha256) throw Error(`Restored artifact identity differs: ${scope.id}`);
       });
     } else if (/^(focused|full)-(unit|integration)$/.test(stage)) {
-      const [mode, group] = stage.split('-');
-      await phase(stage, async () => result.suites.push(await runNodeSelection({source, directory, group, mode, focused, inventory: await discoverNodeFiles(source), command, pinned, abortSignal})));
+      const [mode, group] = stage.split('-'), inventory = await discoverNodeFiles(source);
+      const files = mode === 'focused' ? focused[group].map(row => row.file) : inventory.filter(row => row.method === (group === 'unit' ? 'U' : 'L')).map(row => row.file);
+      const needsSchema18 = freshFixtureFiles(files).length > 0;
+      if (needsSchema18) {
+        result.schema18Input = await admitSchema18Input(process.env.IE_SCHEMA18_EXECUTABLE_PACKET, state.schema18Input ?? null);
+        state.schema18Input ??= result.schema18Input; await save();
+      }
+      const suiteCommand = needsSchema18 ? (id, args, extra = {}, ...rest) => command(id, args, {...extra, IE_SCHEMA18_EXECUTABLE_PACKET: result.schema18Input.descriptor.path}, ...rest) : command;
+      let suiteError;
+      try { await phase(stage, async () => result.suites.push(await runNodeSelection({source, directory, group, mode, focused, inventory, command: suiteCommand, pinned, abortSignal}))); }
+      catch (error) { suiteError = error; throw error; }
+      finally {
+        if (needsSchema18) try { result.schema18InputAfter = await admitSchema18Input(process.env.IE_SCHEMA18_EXECUTABLE_PACKET, result.schema18Input); }
+        catch (error) { result.schema18RecheckFailure = String(error); if (!suiteError) throw error; }
+      }
     } else if (stage === 'browser-cache') {
       const cold = cell.parameters.cache === 'cold';
       await phase(`browser-${cold ? 'cold' : 'warm'}`, async () => {
@@ -436,7 +450,7 @@ export async function createDeveloperAdapter(context, injected = {}) {
   const stateDirectory = await privateDirectory(config.developerStateDirectory, {create: true});
   if (stateDirectory === repo || stateDirectory.startsWith(repo + sep)) throw new PrerequisiteError('Developer state must be outside the live subject checkout');
   if (config.developerInstall !== true) throw new PrerequisiteError('Developer execution requires configuration.developerInstall:true for isolated installs');
-  const dependencies = {sourceSeal: developerSourceSeal, toolchain, readFocused, createWorkspace, prepareInputs, verifyInputs, runDeveloperGroup, runDeveloperStage, runNativeHandoff, ...injected};
+  const dependencies = {sourceSeal: developerSourceSeal, toolchain, readFocused, createWorkspace, prepareInputs, verifyInputs, runDeveloperGroup, runDeveloperStage, runNativeHandoff, admitSchema18Input, ...injected};
   const statePath = join(stateDirectory, 'bridge-state.json'), lockPath = join(stateDirectory, 'bridge.lock');
   let lock;
   try { lock = await open(lockPath, 'wx', 0o600); }
@@ -456,6 +470,12 @@ export async function createDeveloperAdapter(context, injected = {}) {
       if (checked.manifestSha256 !== state.inputPacket.manifestSha256) throw Error('Developer input packet identity changed');
     }
     return state.inputPacket;
+  };
+  const ensureSchema18Input = async () => {
+    if (!freshFixtureFiles(state.source.files.map(file => file.path)).length) return null;
+    const input = await dependencies.admitSchema18Input(process.env.IE_SCHEMA18_EXECUTABLE_PACKET, state.schema18Input ?? null);
+    if (!state.schema18Input) { state.schema18Input = input; await save(); }
+    return input;
   };
   const sourceCheck = async () => {
     const actual = await dependencies.sourceSeal(repo);
@@ -511,14 +531,14 @@ export async function createDeveloperAdapter(context, injected = {}) {
           state.hWarmPrimeAttempt.status = 'PASS'; state.hWarmCaches = {...caches, identity: JSON.parse(await readFile(join(directory, 'browsers.json'))), receipt: {path, ...await hashFile(path)}};
           primeEvidence.push(evidence); await save(); await context.trace?.({event: 'developer-explicit-unscored-prime', observation: evidence});
         }
-        if (selected.kind === 'I1') await ensureInputs();
+        if (selected.kind === 'I1') { await ensureInputs(); await ensureSchema18Input(); }
         if (selected.kind === 'I1' && attempt.cache === 'warm' && !state.i1.warmCaches) {
           if (config.developerWarmPrime !== true || state.i1.primeAttempt) throw new PrerequisiteError('Warm I1 requires one explicit, previously unattempted cache prime');
           const caches = {npm: join(stateDirectory, 'i1-warm-npm'), browsers: join(stateDirectory, 'i1-warm-browsers')};
           state.i1.primeAttempt = {directory: join(context.output, 'i1-explicit-warm-prime'), status: 'running'}; await save();
           const prime = await dependencies.runDeveloperGroup({sourceRoot: repo, paths: state.source.files.map(file => file.path), expectedSource: state.source.sha256,
             directory: join(context.output, 'i1-explicit-warm-prime'), cache: 'warm', ordinal: 0, warmCaches: caches, pinned, focused,
-            registry: config.developerRegistry, browserDownloadHost: config.developerBrowserDownloadHost, inputPacket: state.inputPacket.path, abortSignal: context.signal, primeOnly: true});
+            registry: config.developerRegistry, browserDownloadHost: config.developerBrowserDownloadHost, inputPacket: state.inputPacket.path, schema18Input: await ensureSchema18Input(), abortSignal: context.signal, primeOnly: true});
           primeEvidence.push(prime); await context.trace?.({event: 'developer-explicit-unscored-prime', observation: prime});
           if (prime.status !== 'completed') throw Error('Explicit I1 warm-cache prime failed');
           abort(context.signal); state.i1.primeAttempt.status = 'PASS';
@@ -568,7 +588,7 @@ export async function createDeveloperAdapter(context, injected = {}) {
           marker = {id, status: 'running', output: directory}; samples.push(marker); await save();
           if (selected.kind === 'I1') observation = await dependencies.runDeveloperGroup({sourceRoot: repo, paths: state.source.files.map(file => file.path), expectedSource: state.source.sha256,
             directory, cache: attempt.cache, ordinal: attempt.ordinal, warmCaches: state.i1.warmCaches ?? {}, pinned, focused, registry: config.developerRegistry, browserDownloadHost: config.developerBrowserDownloadHost,
-            inputPacket: (await ensureInputs()).path, abortSignal: context.signal});
+            inputPacket: (await ensureInputs()).path, schema18Input: await ensureSchema18Input(), abortSignal: context.signal});
           else {
             const runSample = dependencies.runArchiveSample ?? (await import('./archive.mjs')).runArchiveSample;
             if (typeof runSample !== 'function') throw new PrerequisiteError('Single-start archive adapter is unavailable');

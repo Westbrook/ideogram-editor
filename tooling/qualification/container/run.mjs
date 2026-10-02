@@ -8,7 +8,7 @@ import { createGateLog } from './gate-log.mjs';
 import { createBrowserPlan } from './browser-plan.mjs';
 import { retainBrowserEvidence } from './browser-evidence.mjs';
 import { verifyInstalledInputs } from './inputs.mjs';
-import { parseContainerSelection, selectContainerNodePlan } from './selection.mjs';
+import { parseContainerSelection, selectContainerNodePlan, containerPacketEnvironment } from './selection.mjs';
 import { executionEnvironment } from '../core.mjs';
 import { executeGate } from '../run.mjs';
 
@@ -50,6 +50,7 @@ function recordInterruption() {
 const env = {
   PATH: `${join(root, '.toolchain/bin')}:${process.env.PATH}`, HOME: process.env.HOME, TMPDIR: '/tmp', CI: '1', LANG: 'C.UTF-8',
   ...(process.env.IE_EVIDENCE_ALLOCATION ? { IE_EVIDENCE_ALLOCATION: process.env.IE_EVIDENCE_ALLOCATION } : {}),
+  ...containerPacketEnvironment(process.env),
   PLAYWRIGHT_BROWSERS_PATH: process.env.PLAYWRIGHT_BROWSERS_PATH ?? '/opt/playwright',
   npm_config_cache: '/tmp/ideogram-qualification-npm-cache',
   npm_config_userconfig: '/tmp/ideogram-qualification-empty-npmrc',

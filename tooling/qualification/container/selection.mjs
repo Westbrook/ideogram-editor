@@ -22,3 +22,10 @@ export function selectContainerNodePlan(root, { scope, browserOnly }) {
   const selector = browserOnly ? 'build-server' : scope === 'features' ? 'all' : 'base';
   return selectGates(functionalGates(root), selector);
 }
+
+// Forward only the explicitly supplied packet location. The existing installer
+// remains responsible for canonical paths, sealed bytes and platform authority.
+export function containerPacketEnvironment(environment) {
+  return environment.IE_SCHEMA18_EXECUTABLE_PACKET === undefined ? {} :
+    { IE_SCHEMA18_EXECUTABLE_PACKET: environment.IE_SCHEMA18_EXECUTABLE_PACKET };
+}

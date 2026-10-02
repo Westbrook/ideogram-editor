@@ -43,7 +43,7 @@ function parse(path, text, parser) {
   if (typeof text !== 'string' || Buffer.byteLength(text) > 16 * 1048576) fail('bounded retained source is absent: ' + path);
   const parsed = parser.parseSync(path, text, { lang: /\.[cm]?tsx?$/.test(path) ? 'ts' : 'js', sourceType: 'module' });
   if (parsed.errors?.length || parsed.program?.type !== 'Program') fail('retained source cannot be parsed: ' + path);
-  return tree(parsed.program);
+  return { ...tree(parsed.program), path, text };
 }
 
 function klass(parsed, name, inherited = false) {
@@ -222,7 +222,40 @@ function ownerBindings(source) {
     }
     return changed;
   };
-  for (const node of source.nodes) if (node.type === 'AssignmentExpression' && ['Identifier', 'ObjectPattern', 'ArrayPattern'].includes(unwrap(node.left)?.type)) add(node.left, node.right);
+  // Assignment patterns may write properties; declaration/parameter patterns
+  // may not. Project literal destructuring sources to their leaves, preserving
+  // both lexical assignments and member writes instead of inventing bindings.
+  const memberAssignments = [];
+  const assignment = (target, value, origin) => {
+    target = unwrap(target); value = unwrap(value); step(); if (!target) return;
+    if (target.type === 'AssignmentPattern') { assignment(target.left, value, origin); assignment(target.left, target.right, origin); return; }
+    if (!value) return;
+    if (target.type === 'Identifier') { add(target, value); return; }
+    if (target.type === 'MemberExpression') { memberAssignments.push({ target, value, origin }); return; }
+    if (target.type === 'ArrayPattern' && value.type === 'ArrayExpression' && !value.elements.some(item => { step(); return item?.type === 'SpreadElement'; })) {
+      for (const [index, item] of target.elements.entries()) {
+        if (item?.type === 'RestElement') for (const rest of value.elements.slice(index)) assignment(item.argument, rest, origin);
+        else assignment(item, value.elements[index], origin);
+      }
+      return;
+    }
+    if (target.type === 'ObjectPattern' && value.type === 'ObjectExpression' && value.properties.every(item => { step(); return item.type === 'Property' && item.kind === 'init' && key(item) !== null; })) {
+      for (const item of target.properties) {
+        if (item.type === 'RestElement') { for (const property of value.properties) assignment(item.argument, property.value, origin); }
+        else {
+          if (key(item) === null) fail('computed assignment projection is unresolved');
+          const selected = value.properties.filter(property => { step(); return key(property) === key(item); });
+          if (!selected.length) assignment(item.value, null, origin);
+          for (const property of selected) assignment(item.value, property.value, origin);
+        }
+      }
+      return;
+    }
+    // Keep existing identifier-only pattern treatment; an unknown member-source
+    // projection remains refused by the strict declaration-pattern reader.
+    add(target, value);
+  };
+  for (const node of source.nodes) if (node.type === 'AssignmentExpression' && ['Identifier', 'ObjectPattern', 'ArrayPattern'].includes(unwrap(node.left)?.type)) assignment(node.left, node.right, node);
   const returns = new Map(source.nodes.filter(node => functions.has(node.type)).map(fn => [fn, fn.type === 'ArrowFunctionExpression' && fn.body.type !== 'BlockStatement' ? [fn.body] : []]));
   for (const node of source.nodes) if (node.type === 'ReturnStatement' && node.argument) {
     let parent = source.parents.get(node); while (parent && !functions.has(parent.type)) parent = source.parents.get(parent);
@@ -248,6 +281,7 @@ function ownerBindings(source) {
       }
     }
   }
+  for (const { target, value } of memberAssignments) member(key(target), [value]);
   const memberValues = node => [...(members.get(key(node)) ?? []), ...(key(node) === null ? [] : members.get(null) ?? [])];
   // Return graphs can be cyclic even for ordinary scalar data (for example a
   // recursive JSON parser feeding a computed property). Solve the finite target
@@ -327,7 +361,60 @@ function ownerBindings(source) {
     if (!changed) break;
     if (pass === source.nodes.length) fail('owner argument census did not settle');
   }
-  return { all, resolve, targets, returns, step };
+  // Static property writes also carry computed-value provenance. Keep their
+  // receiver identity separate from the broad member target union: reordering
+  // array entries must not label every unrelated method with the same name.
+  const receiverIds = new Map(); let nextReceiverId = 0;
+  const receiverId = value => { if (!receiverIds.has(value)) receiverIds.set(value, ++nextReceiverId); return receiverIds.get(value); };
+  const receivers = root => {
+    const found = new Set(), seen = new Map(), pending = [[root, []]];
+    while (pending.length) {
+      let [node, suffix] = pending.pop(); node = unwrap(node); if (!node) continue; step();
+      const path = JSON.stringify(suffix), prior = seen.get(node) ?? new Set(); if (prior.has(path)) continue; prior.add(path); seen.set(node, prior);
+      if (path.length > 4096) fail('member receiver path is unresolved');
+      if (node.type === 'Identifier') {
+        const binding = resolve(node); found.add((binding ? 'b' + receiverId(binding) : 'g' + node.name) + path);
+        for (const value of binding?.values ?? []) pending.push([value, suffix]);
+      } else if (node.type === 'MemberExpression' && key(node) !== null) pending.push([node.object, [String(key(node)), ...suffix]]);
+      else if (node.type === 'ThisExpression') {
+        let at = source.parents.get(node); while (at && !['ClassDeclaration', 'ClassExpression'].includes(at.type)) at = source.parents.get(at);
+        if (!at) fail('member receiver this binding is unresolved'); found.add('t' + receiverId(at) + path);
+      } else if (['ObjectExpression', 'ArrayExpression', 'NewExpression'].includes(node.type)) {
+        found.add('v' + receiverId(node) + path);
+        if (suffix.length && node.type === 'ObjectExpression') for (const property of node.properties) {
+          step();
+          if (property.type === 'SpreadElement') pending.push([property.argument, suffix]);
+          else if (key(property) === null || String(key(property)) === suffix[0]) {
+            const values = property.kind === 'get' ? returns.get(property.value) ?? [] : [property.value];
+            for (const value of values) pending.push([value, suffix.slice(1)]);
+          }
+        }
+        if (suffix.length && node.type === 'ArrayExpression' && /^(0|[1-9][0-9]*)$/.test(suffix[0])) {
+          const index = Number(suffix[0]);
+          if (node.elements.some(item => { step(); return item?.type === 'SpreadElement'; })) fail('spread receiver index is unresolved');
+          if (Number.isSafeInteger(index) && index < node.elements.length) pending.push([node.elements[index], suffix.slice(1)]);
+        }
+      } else if (node.type === 'CallExpression') { for (const fn of targets(node.callee)) for (const value of returns.get(fn) ?? []) pending.push([value, suffix]); }
+      else if (node.type === 'ConditionalExpression') pending.push([node.consequent, suffix], [node.alternate, suffix]);
+      else if (node.type === 'LogicalExpression') pending.push([node.left, suffix], [node.right, suffix]);
+      else if (node.type === 'AssignmentExpression') pending.push([node.right, suffix]);
+      else if (node.type === 'SequenceExpression') pending.push([node.expressions.at(-1), suffix]);
+      else if (node.type === 'AwaitExpression') pending.push([node.argument, suffix]);
+    }
+    return found;
+  };
+  const staticWrites = memberAssignments.filter(({ target }) => key(target) !== null).map(({ target, value }) => {
+    const owners = receivers(target.object); if (!owners.size) fail('member assignment receiver is unresolved');
+    return { name: key(target), owners, value };
+  });
+  const assignedMemberValues = node => {
+    if (key(node) === null || !staticWrites.length) return [];
+    const owners = receivers(node.object), values = [];
+    for (const write of staticWrites) { step(); if (write.name === key(node) && [...write.owners].some(owner => { step(); return owners.has(owner); })) values.push(write.value); }
+    return values;
+  };
+  const conditionalAssignments = [...new Set(memberAssignments.filter(({ target }) => key(target) === null).map(({ origin }) => origin))];
+  return { all, resolve, targets, returns, step, assignedMemberValues, conditionalAssignments };
 }
 
 function opaqueOwnerCensus(source) {
@@ -341,6 +428,7 @@ function opaqueOwnerCensus(source) {
       if (node.type === 'MemberExpression') {
         if (kind === 'callable' && node.computed || kind === 'dom' && self(node, 'host')) return true;
         if (kind === 'dom') pending.push(node.object);
+        pending.push(...bindings.assignedMemberValues(node));
       } else if (node.type === 'CallExpression') {
         if (kind === 'dom' && ['querySelector', 'querySelectorAll', 'getElementById', 'closest', 'getElementsByTagName', 'getElementsByClassName'].includes(key(unwrap(node.callee)))) return true;
         for (const fn of bindings.targets(node.callee)) pending.push(...(bindings.returns.get(fn) ?? []));
@@ -372,6 +460,11 @@ function opaqueOwnerCensus(source) {
       if (bindings.targets(node.object).length) fail('local callable forwarding is unresolved');
     }
   }
+  // Computed property writes are not generically declared safe. Their exact
+  // source effects remain conditional until final admission discharges every
+  // row using the independently reviewed whole-corpus contract.
+  return bindings.conditionalAssignments.map(node => ({ source: source.path, start: node.start, end: node.end,
+    sourceSha256: hash(source.text), assignmentSha256: hash(source.text.slice(node.start, node.end)), requirement: 'reviewed-data-only-array-reordering' }));
 }
 
 function ownReceiver(parsed, owner, name, creation, activatingMethod) {
@@ -468,7 +561,10 @@ export function deriveD11NativePreparationClosure({ sourceTextByPath, parser } =
     const parsed = new Map();
     for (const path of Object.keys(sourceTextByPath).filter(path => /\.[cm]?[jt]sx?$/.test(path) && !/\.d\.ts$/.test(path)).sort()) parsed.set(path, parse(path, sourceTextByPath[path], parser));
     for (const path of Object.values(PATHS)) if (!parsed.has(path)) fail('required source is absent: ' + path);
-    for (const source of parsed.values()) { constructorCensus(source); opaqueOwnerCensus(source); }
+    const conditionalSites = [];
+    for (const source of parsed.values()) { constructorCensus(source); conditionalSites.push(...opaqueOwnerCensus(source)); }
+    conditionalSites.sort((left, right) => left.source.localeCompare(right.source) || left.start - right.start);
+    const conditionalMemberEffects = { kind: 'd11-conditional-member-assignments-1', sites: conditionalSites };
     const native = parsed.get(PATHS.native), client = parsed.get(PATHS.client), durable = parsed.get(PATHS.durable);
     htmlBinding(native); htmlBinding(parsed.get(PATHS.shell));
     const n = klass(native, 'NativeTextEditing'), c = klass(client, 'TextRenderer'), d = klass(durable, 'DurableTextPreparation');
@@ -533,13 +629,33 @@ export function deriveD11NativePreparationClosure({ sourceTextByPath, parser } =
     if (engineBinding?.type !== 'VariableDeclarator' || engineBinding.init !== engineCall || engineDeclaration?.type !== 'VariableDeclaration' || workerModule.parent(engineDeclaration) !== workerModule.root) fail('worker engine entry is not eager module evaluation');
     const sourceInputs = [...parsed.keys()].sort().map(path => ({ path, rawBytes: Buffer.byteLength(sourceTextByPath[path]), sha256: hash(sourceTextByPath[path]) }));
     return finish({ source: PATHS.client, start: worker.start, end: worker.end, workerSource: PATHS.worker,
-      witness: { kind: 'd11-native-preview-state-gate-1', sourceInputs, event,
+      witness: { kind: 'd11-native-preview-state-gate-1', sourceInputs, event, conditionalMemberEffects,
         startup: ['constructor and instance fields', 'sync and restoreSession for any retained draft data', 'render and overlay', 'Open document', 'Save checkpoint'],
         coldState: 'preview absent; only the exact Preview click path initializes it',
         applyGate: { source: PATHS.native, start: guard.start, end: guard.end },
         activation: 'prepare -> Promise executor -> queueMicrotask -> #start -> module Worker; scheduling is eager once prepare is called',
         engine: 'worker evaluation starts createTextEngine before message dispatch; the full emitted engine/WASM graph remains independently accounted' } });
   } catch (error) { missing.push(error.message); return finish({}); }
+}
+
+/** A pure equality check, never an authority mint. Only final admission calls
+ * it with a freshly verified invocation contract's full application profile. */
+export function assertD11MemberAssignmentEffects(conditional, applicationSourceProfile) {
+  const reviewed = applicationSourceProfile?.memberAssignmentEffects;
+  if (conditional?.kind !== 'd11-conditional-member-assignments-1' || !isDeepStrictEqual(Object.keys(conditional).sort(), ['kind', 'sites']) || !Array.isArray(conditional.sites) || conditional.sites.length > 4096 ||
+      applicationSourceProfile?.kind !== 'verified-d11-application-profile-1' || applicationSourceProfile.profile !== 'reviewed-d11-startup-corpus-1' ||
+      !Array.isArray(applicationSourceProfile.inputs) || reviewed?.kind !== 'reviewed-d11-data-member-assignments-1' || !isDeepStrictEqual(Object.keys(reviewed).sort(), ['kind', 'sites']) || !Array.isArray(reviewed.sites) || reviewed.sites.length > 4096) fail('computed member effects lack the reviewed corpus contract');
+  const keys = ['assignmentSha256', 'end', 'requirement', 'source', 'sourceSha256', 'start'];
+  const sites = conditional.sites.map(row => {
+    if (!row || !isDeepStrictEqual(Object.keys(row).sort(), keys) || typeof row.source !== 'string' || !Number.isSafeInteger(row.start) || !Number.isSafeInteger(row.end) || row.start < 0 || row.end <= row.start ||
+        !/^sha256:[a-f0-9]{64}$/.test(row.sourceSha256) || !/^sha256:[a-f0-9]{64}$/.test(row.assignmentSha256) || row.requirement !== 'reviewed-data-only-array-reordering') fail('computed member obligation is malformed');
+    const inputs = applicationSourceProfile.inputs.filter(input => input.path === row.source);
+    if (inputs.length !== 1 || inputs[0].sha256 !== row.sourceSha256) fail('computed member obligation source is not reviewed');
+    const { requirement, ...identity } = row; return { ...identity, effect: 'data-only-array-reordering' };
+  });
+  const ordered = rows => [...rows].sort((left, right) => left.source.localeCompare(right.source) || left.start - right.start);
+  if (new Set(sites.map(row => row.source + ':' + row.start + ':' + row.end)).size !== sites.length || !isDeepStrictEqual(ordered(sites), ordered(reviewed.sites))) fail('computed member effects differ from the reviewed complete inventory');
+  return sites;
 }
 
 /** Exclude only the proved emitted Worker constructor site from startup
@@ -556,6 +672,7 @@ export function deriveD11WorkerActivation(args = {}) {
     const invocation = verifyD11InvocationContract(args.invocationContract, { lock: args.lock, dependencyInputs: args.dependencyInputs, emittedModules, compilation: args.compilation, sourceTextByPath: args.sourceTextByPath, sourceInputs: args.sourceInputs, outputTextByFile: args.outputTextByFile });
     if (invocation.effects?.nativeEditingBridgeStartup !== 'no-preview-or-apply-dispatch') fail('native editing bridge invocation effect is not archive-bound');
     if (invocation.effects?.applicationSourceProfile !== 'reviewed-d11-startup-corpus-1' || invocation.applicationSourceProfile?.profile !== 'reviewed-d11-startup-corpus-1') fail('application ownership census is not bound to the reviewed current corpus');
+    const memberAssignmentEffects = assertD11MemberAssignmentEffects(proof.witness.conditionalMemberEffects, invocation.applicationSourceProfile);
     assertD11EventCorpus({ sourceTextByPath: args.sourceTextByPath, parser, requiredAbsentGlobals: invocation.requiredAbsentGlobals });
     for (const file of files.filter(file => file.kind === 'js')) constructorCensus(parse(file.file === 'inline:bootstrap' ? 'bootstrap.js' : file.file, outputTextByFile?.[file.file], parser));
     const importers = files.filter(file => file.kind === 'js' && [...file.sources ?? [], ...file.modules ?? []].includes(proof.source));
@@ -573,7 +690,7 @@ export function deriveD11WorkerActivation(args = {}) {
     if (target.startsWith('../') || !files.some(file => file.file === target && file.kind === 'js')) fail('emitted Worker target is absent');
     excludedWorkers.push({ source: proof.source, start: proof.start, end: proof.end, target, outputs: [importer.file],
       emittedSite: { file: importer.file, start: emitted.start, end: emitted.end }, reason: 'native-preview-state-gate',
-      witness: { ...proof.witness, invocationProfile: invocation.profile, applicationSourceProfile: invocation.applicationSourceProfile, roleContext: args.roleContext } });
+      witness: { ...proof.witness, memberAssignmentEffects, invocationProfile: invocation.profile, applicationSourceProfile: invocation.applicationSourceProfile, roleContext: args.roleContext } });
     return finish();
   } catch (error) { missing.push(error.message); return finish(); }
 }

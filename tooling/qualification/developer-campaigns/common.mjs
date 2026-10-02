@@ -67,6 +67,63 @@ export async function toolchain(root) {
   if (result.status !== 0 || result.stdout.trim() !== config.npm) throw Error('Pinned npm CLI unavailable');
   return {node: config.node, npm: config.npm, npmCli, executable: process.execPath, executableIdentity: await hashFile(process.execPath)};
 }
+/** Same-host input continuity only. Product pin/platform/restore authority and
+ * private per-test-root installation remain in tests/recovery/schema18-packet. */
+export async function admitSchema18Input(path, expected = null) {
+  expected = expected === null ? null : structuredClone(expected);
+  const refuse = message => { throw Object.assign(Error('Schema18 input: ' + message), {code: 'CAMPAIGN_PREREQUISITE'}); };
+  const absolute = value => typeof value === 'string' && isAbsolute(value) && resolve(value) === value;
+  if (!absolute(path)) refuse('IE_SCHEMA18_EXECUTABLE_PACKET must name an explicit canonical absolute descriptor');
+  if (expected && expected.descriptor?.path !== path) refuse('selected descriptor differs from the retained input');
+  const readDescriptor = async () => {
+    const before = await lstat(path), stamp = stat => json([stat.dev, stat.ino, stat.mode, stat.nlink, stat.size, stat.mtimeMs, stat.ctimeMs]);
+    if (!before.isFile() || before.isSymbolicLink() || before.size > 65536 || await realpath(path) !== path) refuse('descriptor must be an ordinary canonical file at most 64 KiB');
+    const handle = await open(path, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
+    const bytes = Buffer.alloc(before.size);
+    try {
+      if (stamp(await handle.stat()) !== stamp(before)) refuse('descriptor changed before reading');
+      let offset = 0;
+      while (offset < bytes.length) { const row = await handle.read(bytes, offset, bytes.length - offset, null); if (!row.bytesRead) refuse('descriptor shortened'); offset += row.bytesRead; }
+      if ((await handle.read(Buffer.alloc(1), 0, 1, null)).bytesRead) refuse('descriptor grew');
+      if (stamp(await handle.stat()) !== stamp(before)) refuse('descriptor changed while reading');
+    } finally { await handle.close(); }
+    if (stamp(await lstat(path)) !== stamp(before) || await realpath(path) !== path) refuse('descriptor path changed while reading');
+    return bytes;
+  };
+  const bytes = await readDescriptor(), descriptor = {path, bytes: bytes.length, sha256: sha256(bytes)};
+  let packet; try { packet = JSON.parse(bytes.toString('utf8')); } catch { refuse('descriptor is not JSON'); }
+  const object = value => value && typeof value === 'object' && !Array.isArray(value);
+  const fields = ['kind', 'storageVersion', 'packetId', 'capabilityHash', 'sourceArchive', 'sourceManifest', 'compiler', 'toolchain', 'dependencies', 'native', 'platform', 'compiledClosures', 'verifiedFreshRestore'];
+  if (!object(packet) || Object.keys(packet).some(key => ![...fields, 'gitCommit'].includes(key)) || fields.some(key => !Object.hasOwn(packet, key)) || packet.kind !== 'schema18-executable-packet-1' || packet.storageVersion !== 18 || typeof packet.packetId !== 'string') refuse('unsupported descriptor shape');
+  if (!object(packet.platform) || packet.platform.os !== process.platform || packet.platform.arch !== process.arch) refuse('packet is not for this process platform');
+  if (!Array.isArray(packet.compiledClosures) || !packet.compiledClosures.length || packet.compiledClosures.length > 32 || new Set(packet.compiledClosures.map(row => row?.name)).size !== packet.compiledClosures.length) refuse('invalid compiled closure inventory');
+  const refs = [['sourceArchive', packet.sourceArchive], ['sourceManifest', packet.sourceManifest]];
+  for (const closure of packet.compiledClosures) {
+    if (!object(closure) || Object.keys(closure).sort().join(',') !== 'archive,manifest,name' || typeof closure.name !== 'string' || !/^[A-Za-z0-9_-]{1,128}$/.test(closure.name)) refuse('invalid compiled closure');
+    refs.push(['compiledClosures/' + closure.name + '/archive', closure.archive], ['compiledClosures/' + closure.name + '/manifest', closure.manifest]);
+  }
+  // The actual producer also retains capabilityHash beside the four typed
+  // restore fields. It is scalar metadata, not another filesystem reference.
+  const restoreKeys = object(packet.verifiedFreshRestore) ? Object.keys(packet.verifiedFreshRestore).sort().join(',') : '';
+  if (!['compiledClosureHash,receipt,result,sourceArchiveHash', 'capabilityHash,compiledClosureHash,receipt,result,sourceArchiveHash'].includes(restoreKeys) ||
+      Object.hasOwn(packet.verifiedFreshRestore, 'capabilityHash') && (!/^sha256:[a-f0-9]{64}$/.test(packet.verifiedFreshRestore.capabilityHash ?? '') || packet.verifiedFreshRestore.capabilityHash !== packet.capabilityHash)) refuse('invalid restore receipt reference');
+  refs.push(['verifiedFreshRestore/receipt', packet.verifiedFreshRestore.receipt]);
+  const members = [];
+  for (const [role, ref] of refs) {
+    if (!object(ref) || Object.keys(ref).sort().join(',') !== 'byteLength,hash,path' || !absolute(ref.path) || typeof ref.hash !== 'string' || !/^sha256:[a-f0-9]{64}$/.test(ref.hash) || typeof ref.byteLength !== 'string' || !/^(0|[1-9][0-9]*)$/.test(ref.byteLength) || BigInt(ref.byteLength) > 8n * 1024n ** 3n) refuse('invalid absolute sealed reference: ' + role);
+    const stat = await lstat(ref.path);
+    if (!stat.isFile() || stat.isSymbolicLink() || BigInt(stat.size) !== BigInt(ref.byteLength)) refuse('reference type/length differs: ' + role);
+    const actual = await hashFile(ref.path);
+    if (String(actual.bytes) !== ref.byteLength || 'sha256:' + actual.sha256 !== ref.hash) refuse('reference bytes differ: ' + role);
+    members.push({role, path: ref.path, ...actual});
+  }
+  if (sha256(await readDescriptor()) !== descriptor.sha256) refuse('descriptor changed during closure admission');
+  const result = {kind: 'developer-schema18-input-1', descriptor, packetId: packet.packetId, platform: packet.platform, members, qualification: false,
+    authority: 'readability-and-byte-continuity-only; existing private-root installer verifies product pin and restore'};
+  if (expected && json(result) !== json(expected)) refuse('descriptor or closure differs from retained input');
+  return result;
+}
+
 export async function cleanEnvironment({workspace, npmCache, browserCache, registry, browserDownloadHost, extra = {}, env = process.env}) {
   for (const key of Object.keys(extra)) if (!/^(?:QUALIFICATION_|IE_|TEXT_|SPECTRUM_|ADAPTER_|REQUEST_|QUEUE_|EDITOR_)/.test(key) && !(key === 'EN_SETUP_CACHE' && extra[key] === 'off') && !(key === 'PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD' && extra[key] === '1')) throw Error(`Disallowed campaign environment field: ${key}`);
   const home = join(workspace, 'home'); await mkdir(home, {recursive: true});
