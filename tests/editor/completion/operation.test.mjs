@@ -142,3 +142,23 @@ test('exact owned storage probe partition cannot hide a WASM error or applicatio
  const origin='http://127.0.0.1:34567',path='/__e1_storage_owned',url=origin+path,q={id:1,url,method:'GET',resourceType:'document',originalRequestObject:true,frameExposure:{ownerPage:false,ownerContext:true,pageId:2},redirectedFrom:null,redirectedTo:null},p={requestId:1,url,status:200,originalRequestObject:true,originalPairConfirmed:true,fromServiceWorker:false,actualHeaders:{'content-type':'text/html'}},t={requestId:1,url,kind:'finished',originalRequestObject:true};const x={origin,requests:[q],responses:[p],terminals:[t],network:[],server:[],storageProbePath:path};assert.equal(wireEpoch(x).storageProbes.length,1);assert.equal(wireEpoch(x).requests.length,0);
  for(const mutate of [v=>v.requests[0].method='POST',v=>v.requests[0].resourceType='fetch',v=>v.requests[0].frameExposure.ownerPage=true,v=>v.requests[0].frameExposure.ownerContext=false,v=>delete v.requests[0].frameExposure.pageId,v=>v.responses[0].originalPairConfirmed=false,v=>v.responses[0].actualHeaders['content-type']='application/wasm',v=>v.responses[0].status=500,v=>v.terminals[0].kind='failed',v=>v.server.push({kind:'request',url:path}),v=>v.network.push({name:'Network.requestWillBeSent',params:{requestId:'probe',request:{url}}})]){const v=clone(x);mutate(v);assert.throws(()=>wireEpoch(v));}const unknown=clone(x);unknown.storageProbePath='/different';assert.equal(wireEpoch(unknown).requests.length,1);assert.equal(wireEpoch(unknown).storageProbes.length,0);
 });
+
+// Exercise the real monitor guard through exact, scoped public-text fixture queries.
+test('actual monitor admits native work only after the exact saved contentinfo text',async()=>{
+ const h=await monitorHarness(),order=[];h.publicText.elsewhere.push('Unrelated status');
+ h.onReadState(()=>{assert.deepEqual(h.textQueries[0],{scope:'contentinfo',text:'Accepted edits saved locally · Draft saved locally; not applied to the document',exact:true});order.push('saved-state');});
+ await h.monitor.operation('Preview',async()=>{assert(order.length>0);order.push('native-work');await h.nativeSuccess();});
+ assert.equal(order.at(-1),'saved-state');assert.equal(order.filter(step=>step==='native-work').length,1);assert.equal(h.record().epochs[0].operations[0].completed,true);
+});
+for(const [label,mutate] of Object.entries({
+ 'unsaved footer':h=>{h.publicText.contentinfo=['Accepted edits saved locally · Unsaved UI draft'];},
+ 'missing footer':h=>{h.publicText.contentinfo=[];},
+ 'saved phrase on another surface':h=>{h.publicText.contentinfo=['Accepted edits saved locally · Unsaved UI draft'];h.publicText.elsewhere=['Accepted edits saved locally · Draft saved locally; not applied to the document'];},
+ 'standalone draft fragment':h=>{h.publicText.contentinfo=['Draft saved locally; not applied to the document'];},
+ 'decorated saved footer':h=>{h.publicText.contentinfo=['Accepted edits saved locally · Draft saved locally; not applied to the document stale'];},
+ 'simultaneous unsaved indicator':h=>{h.publicText.elsewhere=['Unsaved UI draft'];},
+}))test('actual monitor refuses '+label+' before saved-state or native work',async()=>{
+ const h=await monitorHarness();mutate(h);let reads=0,work=0;h.onReadState(()=>reads++);
+ await assert.rejects(()=>h.monitor.operation('Preview',async()=>{work++;await h.nativeSuccess();}),/text fixture/);
+ assert.equal(reads,0);assert.equal(work,0);h.monitor.save();assert.deepEqual(h.record().epochs[0].operations,[]);assert.deepEqual(h.record().epochs[0].proofs,[]);
+});
