@@ -6,7 +6,7 @@ import { randomUUID } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
 import { setup, call, pair, mutationHeaders, cookieFrom } from '../protocol/helpers.mjs';
 import { importRaster, terminal, binary } from '../raster/helpers.mjs';
-import { command, encode } from '../store/helpers.mjs';
+import { command, encode, childFor } from '../store/helpers.mjs';
 import { openWriter } from '../../dist/local/server/storage/writer.js';
 
 const pause=()=>new Promise(resolve=>setTimeout(resolve,5));
@@ -78,6 +78,39 @@ test('resource-paused export can be canceled without retrying admission or chang
  const f=await seed(t);await f.server.close();const w=await writer(f,{quotaBytes:'1073741824'});const c=make(f,'cancel_waiting_resources');await w.historyCommand(encode(c),f.auth);
  await eventually(async()=>(await w.commandState(c.command.commandId)).pending?.phase==='waiting-for-resources','Export did not pause at real disk admission');
  const result=await w.cancelExport(c.command.commandId,f.auth);await canceled(f,w,c,result);assert.deepEqual(await workNames(f,c.command.commandId),[]);{const diagnosticRead=await w.readDiagnostics();try{assert.equal(diagnosticRead.value.rasters.activeWorkers,0);}finally{diagnosticRead.release();}}
+});
+
+test('an exact export retry survives another running export after restart and leaves unrelated waiting work paused',async t=>{
+ const f=await seed(t),running=make(f,'a_export_retry_running'),unrequested=make(f,'m_export_still_waiting'),target=make(f,'z_export_retry_target'),commands=[running,unrequested,target];await f.server.close();
+ const guarded=async options=>{
+  const child=await childFor(f.owner,f.root,options);let closing;
+  const close=()=>closing??=(async()=>{try{await child.assertNoEffects();}finally{await child.close();}})();
+  f.owner.after(async()=>{try{if(options?.setupModule)await release(f);}finally{await close();}});
+  assert.equal(child.startup.type,'ready');await child.call('protocolDefaults');return {child,close};
+ };
+ let owned=await guarded({quotaBytes:'1073741824'}),w=owned.child;
+ const state=id=>w.call('commandState',id),terminalState=id=>eventually(async()=>(await state(id)).record,'Export did not become terminal');
+ const preparations=()=>sql(f.root,db=>db.prepare('SELECT * FROM history_preparations ORDER BY id').all()).map(row=>({...row}));
+ for(const c of commands){assert.equal(await w.call('historyCommand',encode(c),f.auth),null);await eventually(async()=>(await state(c.command.commandId)).pending?.phase==='waiting-for-resources','Export did not pause at real disk admission');}
+ const saved=preparations();assert.equal(saved.length,3);for(const [index,c] of commands.entries()){assert.equal(saved[index].id,c.command.commandId);assert.equal(saved[index].original,encode(c).toString('utf8'));assert.equal(saved[index].phase,'waiting-for-resources');assert.deepEqual(JSON.parse(saved[index].frozen),f.document);assert.equal(countEvents(f.root,c.command.commandId),0);}
+ await owned.close();await arm(f,'worker-admission',running.command.commandId);owned=await guarded({setupModule:fixture});w=owned.child;
+ const marker=await reached(f);assert.equal(marker.slot,'history:'+running.command.commandId);assert.ok(marker.threadId>0);assert.ok(Number.isSafeInteger(marker.jobId)&&marker.jobId>0);assert.deepEqual(preparations(),saved);
+ await assert.rejects(w.call('historyCommand',encode(target),{...f.auth,clientId:'foreign_client'}),{code:'OWNER_REQUIRED'});
+ await assert.rejects(w.call('historyCommand',encode({...target,command:{...target.command,body:{...target.command.body,options:{...encoder,matte:'#000000'}}}}),f.auth),{code:'COMMAND_ID_REUSE'});assert.deepEqual(preparations(),saved);
+ // Equivalent wire whitespace cannot replace the original command or frozen inputs.
+ assert.equal(await w.call('historyCommand',Buffer.from(JSON.stringify(target,null,2)),f.auth),null);
+ const pending=(await state(target.command.commandId)).pending;assert.equal(pending.phase,'preparing');assert.equal(pending.hash,saved[2].hash);assert.equal(pending.operationId,saved[2].operation_id);assert.deepEqual(pending.command,target.command);
+ assert.deepEqual(preparations(),saved.map(row=>row.id===target.command.commandId?{...row,phase:'preparing'}:row));
+ {const raster=JSON.parse(await w.call('diagnosticJSON','all')).rasters;assert.equal(raster.activeWorkers,1);assert.equal(raster.workerService.slot,marker.slot);assert.equal(raster.workerService.identity.threadId,marker.threadId);assert.equal(raster.workerService.identity.generation,marker.generation);}
+ await w.assertNoEffects();
+ for(const c of commands){assert.equal((await state(c.command.commandId)).record,null);assert.equal(countEvents(f.root,c.command.commandId),0);}
+ await release(f);const first=await terminalState(running.command.commandId),accepted=await terminalState(target.command.commandId);assert.equal(first.receipt.status,'accepted');assert.equal(accepted.receipt.status,'accepted');assert.equal(accepted.receipt.documentRevision,f.document.revision);assert.equal(accepted.hash,saved[2].hash);assert.deepEqual(accepted.command,target.command);
+ const terminalRow=sql(f.root,db=>db.prepare('SELECT original,canonical,hash FROM commands WHERE id=?').get(target.command.commandId));for(const key of ['original','canonical','hash'])assert.equal(terminalRow[key],saved[2][key]);
+ assert.deepEqual(preparations(),[saved[1]]);assert.equal((await state(unrequested.command.commandId)).record,null);assert.equal(countEvents(f.root,unrequested.command.commandId),0);assert.equal(countEvents(f.root,running.command.commandId),1);assert.equal(countEvents(f.root,target.command.commandId),1);
+ const event=sql(f.root,db=>JSON.parse(db.prepare('SELECT json FROM events_v2 WHERE command_id=?').get(target.command.commandId).json));assert.equal(event.type,'AssetRegistered');assert.equal(event.payload.asset.id,saved[2].operation_id);const exported=await readFile(pathFor(f.root,event.payload.asset.blob));assert.ok(exported.length>0);
+ assert.deepEqual(await w.call('historyCommand',encode(target),f.auth),accepted.receipt);assert.deepEqual(await w.call('document','document_1'),f.document);assert.deepEqual(await w.call('imageState','document_1'),f.image);assert.deepEqual(await readFile(pathFor(f.root,f.imported.input.blob)),f.sourceBytes);assert.deepEqual(await readFile(pathFor(f.root,f.imported.asset.raster.pixels)),f.sourcePixels);
+ const canceledWaiting=await w.call('cancelExport',unrequested.command.commandId,f.auth);assert.equal(canceledWaiting.status,'canceled');assert.deepEqual((await state(unrequested.command.commandId)).record.receipt,canceledWaiting.receipt);assert.equal(countEvents(f.root,unrequested.command.commandId),0);
+ await owned.close();owned=await guarded();w=owned.child;assert.deepEqual(await w.call('historyCommand',encode(target),f.auth),accepted.receipt);assert.equal((await state(target.command.commandId)).pending,null);assert.equal(countEvents(f.root,target.command.commandId),1);assert.deepEqual(await readFile(pathFor(f.root,event.payload.asset.blob)),exported);assert.deepEqual(await w.call('document','document_1'),f.document);await w.assertNoEffects();
 });
 
 test('cancel at real raster worker admission terminates only its worker and removes its work after drain',async t=>{

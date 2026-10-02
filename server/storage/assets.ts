@@ -132,7 +132,12 @@ export class Assets {
     const previous=this.db.prepare('SELECT hash,receipt FROM commands WHERE id=?').get(c.commandId);const hash=hashBytes(canonical({protocolVersion:1,command:c}));
     if(previous){if(previous.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');return JSON.parse(String(previous.receipt)) as Receipt;}
     if(this.db.prepare('SELECT id FROM portable_preparations WHERE id=?').get(c.commandId)||this.db.prepare('SELECT id FROM raster_preparations WHERE id=?').get(c.commandId)||this.db.prepare('SELECT id FROM history_preparations WHERE id=?').get(c.commandId))throw new StoreError('COMMAND_ID_REUSE');
-    const pending=this.pending(c.commandId);if(pending){if(pending.command.clientId!==auth.clientId)throw new StoreError('OWNER_REQUIRED');if(pending.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');this.paused.delete(c.commandId);this.schedule(true);return null;}
+    const pending=this.pending(c.commandId);if(pending){
+      if(pending.command.clientId!==auth.clientId)throw new StoreError('OWNER_REQUIRED');if(pending.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');
+      // Keep this exact retry eligible when occupied IO slots defer scheduling.
+      this.transaction(()=>this.db.prepare("UPDATE asset_preparations SET phase='preparing' WHERE id=?").run(c.commandId));
+      this.paused.delete(c.commandId);this.schedule();return null;
+    }
     const body=c.body;if(!('stagingId' in body))throw new StoreError('UNSUPPORTED_COMMAND');
     const s=this.stage(body.stagingId);
     if(body.type==='FinalizeStaging'){

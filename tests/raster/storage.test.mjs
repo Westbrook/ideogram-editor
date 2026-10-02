@@ -8,7 +8,7 @@ import {join} from 'node:path';
 import {DatabaseSync} from 'node:sqlite';
 import {randomUUID} from 'node:crypto';
 import {openWriter} from '../../dist/local/server/storage/writer.js';
-import {rootFor,command,encode} from '../store/helpers.mjs';
+import {rootFor,command,encode,childFor} from '../store/helpers.mjs';
 import {EMPTY_EXPECTED_VERSIONS} from '../../dist/local/src/protocol/store.js';
 import {setup} from '../protocol/helpers.mjs';
 import {original,importRaster,operate,envelope,digest,layer} from './helpers.mjs';
@@ -52,4 +52,59 @@ test('schema4 migration preserves exact approvede8b9f1a data and its prior-code 
  await installSchema18Packet(root);const w=await openWriter({root});assert.equal((await w.lookup(c.command.commandId)).receipt.status,'accepted');await w.close();db=new DatabaseSync(join(root,'metadata.sqlite'),{readOnly:true});assert.equal(db.prepare('PRAGMA user_version').get().user_version,19);for(const table of tables)assert.deepEqual(db.prepare('SELECT * FROM '+table+' ORDER BY 1,2').all(),before[table]);const migration=JSON.parse(db.prepare('SELECT receipt FROM schema_migrations WHERE version=4').get().receipt);db.close();
  const backup=new DatabaseSync(join(root,migration.backup),{readOnly:true});assert.equal(backup.prepare('PRAGMA user_version').get().user_version,3);assert.equal(backup.prepare('PRAGMA integrity_check').get().integrity_check,'ok');for(const table of tables)assert.deepEqual(backup.prepare('SELECT * FROM '+table+' ORDER BY 1,2').all(),before[table]);backup.close();
  const rollback=await rootFor(t);await cp(join(root,'objects'),join(rollback,'objects'),{recursive:true});await writeFile(join(rollback,'metadata.sqlite'),await readFile(join(root,migration.backup)),{mode:0o600});await writeFile(join(old,'rollback.mjs'),`import{openWriter}from'./dist/local/server/storage/writer.js';const w=await openWriter({root:process.argv[2]});if((await w.lookup('${c.command.commandId}')).receipt.fromSeq!=='1')throw Error('lost receipt');await w.close();`);execFileSync(process.execPath,[join(old,'rollback.mjs'),rollback]);
+});
+
+
+test('exact nonfirst raster retry survives restart and occupied IO slots without retrying other waiting work',async t=>{
+ const root=await rootFor(t);let child;
+ const open=async options=>{child=await childFor(t,root,options);assert.equal(child.startup.type,'ready');};
+ const close=async()=>{const owned=child;child=undefined;if(owned)try{await owned.assertNoEffects();}finally{await owned.close();}};
+ const eventually=async(read,message)=>{const deadline=performance.now()+30000;while(performance.now()<deadline){const value=await read();if(value)return value;await pause();}throw Error(message);};
+ const terminal=id=>eventually(async()=> (await child.call('commandState',id)).record,'Exact raster command did not become terminal');
+ const requests=[];
+ const rows=()=>{const db=new DatabaseSync(join(root,'metadata.sqlite'),{readOnly:true});try{return Object.fromEntries(requests.map(c=>{const row=db.prepare('SELECT * FROM raster_preparations WHERE id=?').get(c.command.commandId);return [c.command.commandId,row?{...row}:null];}));}finally{db.close();}};
+ try{
+  await open();await child.call('protocolDefaults');
+  const bytes=await readFile(new URL('./fixtures/white.png',import.meta.url)),stage={protocolVersion:1,stagingId:randomUUID(),purpose:'image',expectedBytes:String(bytes.length),sha256:digest(bytes),mediaType:'image/png'};
+  await child.call('assetCreate',stage,auth);const token=await child.call('assetBeginChunk',stage.stagingId,'0',bytes.length,auth);await child.call('assetChunk',token,bytes,auth);
+  const finalized=command(EMPTY_EXPECTED_VERSIONS,{documentId:null,body:{type:'FinalizeStaging',stagingId:stage.stagingId,expectedSha256:stage.sha256}});
+  await child.call('assetCommand',encode(finalized),auth);const registered=await terminal(finalized.command.commandId),source=(await child.call('events',String(BigInt(registered.receipt.fromSeq)-1n))).events[0].payload.asset;
+  await close();await open({quotaBytes:'1073741824'});
+  for(const commandId of ['retry_raster_a','retry_raster_b','retry_raster_c']){
+   const c=command(EMPTY_EXPECTED_VERSIONS,{commandId,documentId:null,body:{type:'PrepareRaster',assetId:source.id}});requests.push(c);
+   assert.equal(await child.call('rasterCommand',encode(c),auth),null);
+   await eventually(async()=> (await child.call('commandState',commandId)).pending?.phase==='waiting-for-resources','Real disk admission did not retain the raster');
+   assert.equal(await child.call('lookup',commandId),null);
+  }
+  const persisted=rows();await close();await open();
+  const first=await terminal(requests[0].command.commandId);assert.equal(first.receipt.status,'accepted');
+  const middle=requests[1],selected=requests[2],middleId=middle.command.commandId,selectedId=selected.command.commandId;
+  assert.deepEqual(rows()[middleId],persisted[middleId]);assert.deepEqual(rows()[selectedId],persisted[selectedId]);
+  await assert.rejects(child.call('rasterCommand',encode(selected),{...auth,clientId:'other'}),{code:'OWNER_REQUIRED'});
+  await assert.rejects(child.call('rasterCommand',encode({...selected,command:{...selected.command,clientId:'other'}}),{...auth,clientId:'other'}),{code:'COMMAND_ID_REUSE'});
+  await assert.rejects(child.call('rasterCommand',encode({...selected,command:{...selected.command,sessionId:'changed'}}),auth),{code:'COMMAND_ID_REUSE'});
+  assert.deepEqual(rows()[selectedId],persisted[selectedId]);
+  // Retrying C must not spend the retry on the lexicographically earlier B.
+  assert.equal(await child.call('rasterCommand',encode(selected),auth),null);
+  const selectedRecord=await terminal(selectedId);assert.equal(selectedRecord.receipt.status,'accepted');assert.deepEqual(selectedRecord.command,selected.command);
+  assert.equal((await child.call('assetProjection',persisted[selectedId].operation_id)).asset.qualification,'raster-preview');assert.deepEqual(rows()[middleId],persisted[middleId]);
+  await eventually(async()=>JSON.parse(await child.call('diagnosticJSON','all')).assets.activeTransfers===0,'Completed raster did not release IO');
+  const holds=[];
+  try{
+   for(let i=0;i<2;i++){const s={protocolVersion:1,stagingId:randomUUID(),purpose:'caption',expectedBytes:'1',sha256:digest('x'),mediaType:'text/plain'};await child.call('assetCreate',s,auth);holds.push(await child.call('assetBeginChunk',s.stagingId,'0',1,auth));}
+   assert.equal(await child.call('rasterCommand',encode(middle),auth),null);
+   assert.equal((await child.call('commandState',middleId)).pending.phase,'preparing');
+   assert.deepEqual(rows()[middleId],{...persisted[middleId],phase:'preparing'});
+   assert.equal(await child.call('lookup',middleId),null);
+   await child.call('assetAbortChunk',holds.shift());
+   const record=await terminal(middleId);assert.equal(record.receipt.status,'accepted');assert.deepEqual(record.command,middle.command);
+   assert.equal((await child.call('assetProjection',persisted[middleId].operation_id)).asset.qualification,'raster-preview');
+  }finally{for(const hold of holds)await child.call('assetAbortChunk',hold);}
+  for(const c of requests){const record=await terminal(c.command.commandId);assert.deepEqual(record.command,c.command);assert.equal(record.hash,persisted[c.command.commandId].hash);assert.deepEqual(await child.call('rasterCommand',encode(c),auth),record.receipt);}
+  {const db=new DatabaseSync(join(root,'metadata.sqlite'),{readOnly:true});try{for(const c of requests){assert.equal(db.prepare('SELECT original FROM commands WHERE id=?').get(c.command.commandId).original,persisted[c.command.commandId].original);assert.equal(db.prepare('SELECT count(*) AS n FROM events_v2 WHERE command_id=?').get(c.command.commandId).n,1);}}finally{db.close();}}
+  const receipts=await Promise.all(requests.map(c=>child.call('lookup',c.command.commandId)));await close();await open();
+  for(let i=0;i<requests.length;i++){assert.deepEqual(await child.call('lookup',requests[i].command.commandId),receipts[i]);assert.deepEqual(await child.call('rasterCommand',encode(requests[i]),auth),receipts[i].receipt);}
+  assert.deepEqual((await child.call('assetProjection',source.id)).asset,source);
+  assert.deepEqual(await readFile(join(root,'objects','sha256',source.blob.hash.slice(7,9),source.blob.hash.slice(7))),bytes);
+ }finally{await close();}
 });

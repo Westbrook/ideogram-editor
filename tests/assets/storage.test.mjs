@@ -4,12 +4,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { randomUUID,createHash } from 'node:crypto';
-import { writeFile,readFile,symlink,unlink,mkdir,readdir } from 'node:fs/promises';
+import { writeFile,readFile,symlink,unlink,mkdir,readdir,truncate } from 'node:fs/promises';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
-import { rootFor,command,encode,expectedBytes,refFor } from '../store/helpers.mjs';
+import { rootFor,command,encode,expectedBytes,refFor,childFor } from '../store/helpers.mjs';
 import { setup,pair,call,cookieFrom,readHeaders,mutationHeaders } from '../protocol/helpers.mjs';
 import { openWriter } from '../../dist/local/server/storage/writer.js';
+import { inspectTree } from '../../dist/local/server/storage/files.js';
 import { startLocalServer } from '../../dist/local/server/http.js';
 import { EMPTY_EXPECTED_VERSIONS } from '../../dist/local/src/protocol/store.js';
 const hash=b=>'sha256:'+createHash('sha256').update(b).digest('hex');
@@ -70,6 +71,81 @@ test('durable preparation waits for shared reader slots and retains original com
   assert.equal(await w.lookup(c.command.commandId),null);
   await w.assetRelease(one.handle);await w.assetRelease(two.handle);let result;for(let i=0;i<200;i++){result=await w.lookup(c.command.commandId);if(result)break;await new Promise(r=>setTimeout(r,5));}assert.equal(result.receipt.status,'accepted');assert.equal((await w.events('1')).events[0].payload.asset.id,pending.operationId);
   assert.deepEqual((await w.lookup(original.c.command.commandId)).receipt,original.r.receipt);
+});
+
+test('exact asset retry survives restart and occupied slots without rearming unrelated waiting commands',async t=>{
+  const root=await rootFor(t);let w;t.after(()=>w?.close());
+  const writer=async(options={})=>{
+    const child=await childFor(t,root,options);assert.equal(child.startup.type,'ready');
+    const methods=['protocolDefaults','assetCreate','assetBeginChunk','assetChunk','assetCommand','assetPending','commandState','assetGet','lookup','events','assetVerify','assetRelease','assetContent','assetProjection','originalCommand'];
+    return {...Object.fromEntries(methods.map(method=>[method,(...args)=>child.call(method,...args)])),close:async()=>{await child.assertNoEffects();await child.close();}};
+  };
+  w=await writer();await w.protocolDefaults();
+  const readerBytes=Buffer.from('retry reader slots'),original=await own(w,readerBytes),reader=(await w.events('0')).events[0].payload.asset;
+  const entries=[];
+  for(const suffix of ['a','b','c']){
+    const bytes=Buffer.from('retained retry '+suffix),stage=upload(bytes);await w.assetCreate(stage,auth);
+    const token=await w.assetBeginChunk(stage.stagingId,'0',bytes.length,auth);await w.assetChunk(token,bytes,auth);
+    const request=command(EMPTY_EXPECTED_VERSIONS,{commandId:'retry_asset_'+suffix,documentId:null,body:{type:'FinalizeStaging',stagingId:stage.stagingId,expectedSha256:stage.sha256}});
+    entries.push({bytes,stage,request,encoded:Buffer.from(' \n'+JSON.stringify(request,null,2)+'\n')});
+  }
+  const rows=()=>{const db=new DatabaseSync(join(root,'metadata.sqlite'),{readOnly:true});try{return db.prepare('SELECT * FROM asset_preparations ORDER BY id').all().map(row=>({...row}));}finally{db.close();}};
+  const until=async(read,ready,label)=>{for(let i=0;i<200;i++){const value=await read();if(ready(value))return value;await new Promise(r=>setTimeout(r,5));}assert.fail(label);};
+  const waiting=async()=>{for(const entry of entries)await until(()=>w.assetPending(entry.request.command.commandId),value=>value?.phase==='waiting-for-resources','Asset did not reach real quota pressure');};
+  const accepted=entry=>until(()=>w.lookup(entry.request.command.commandId),value=>value?.receipt.status==='accepted','Exact asset retry did not finish');
+  await w.close();w=undefined;
+  // Derive quota from retained bytes plus production's 1 GiB margin and 64 MiB
+  // emergency reserve. Keep 8 MiB for journal growth; a 16 MiB private sparse
+  // filler triggers real admission without filling the host or editing rows.
+  const limited={quotaBytes:String(inspectTree(root)+1024n**3n+64n*1024n**2n+8n*1024n**2n)};
+  const filler=join(root,'asset-retry-quota-filler');await writeFile(filler,'',{mode:0o600});await truncate(filler,16*1024**2);
+  w=await writer(limited);
+  for(const entry of entries)assert.equal(await w.assetCommand(entry.encoded,auth),null);
+  await waiting();const before=rows();assert.equal(before.length,3);
+  for(const entry of entries){
+    const row=before.find(value=>value.id===entry.request.command.commandId);assert.equal(row.original,entry.encoded.toString());assert.equal(row.hash,hash(Buffer.from(row.canonical)));
+    assert.deepEqual(JSON.parse(row.canonical),entry.request);assert.equal(row.staging_id,entry.stage.stagingId);
+    assert.equal(await w.lookup(row.id),null);assert.equal((await w.assetGet(entry.stage.stagingId,auth)).state,'complete');
+  }
+  await w.close();w=undefined;w=await writer(limited);await waiting();assert.deepEqual(rows(),before);
+  const [first,middle,last]=entries;
+  // Failed authority/identity checks must not alter any pending phase or bytes.
+  await assert.rejects(w.assetCommand(encode({...last.request,command:{...last.request.command,clientId:'other'}}),{...auth,clientId:'other'}),{code:'OWNER_REQUIRED'});
+  await assert.rejects(w.assetCommand(encode({...last.request,command:{...last.request.command,sessionId:'changed'}}),auth),{code:'COMMAND_ID_REUSE'});
+  assert.deepEqual(rows(),before);
+  await unlink(filler);
+  assert.equal(await w.assetCommand(middle.encoded,auth),null);const middleResult=await accepted(middle);
+  assert.deepEqual(rows(),before.filter(row=>row.id!==middle.request.command.commandId));
+  assert.equal(await w.lookup(first.request.command.commandId),null);assert.equal(await w.lookup(last.request.command.commandId),null);
+  // Both real content handles own shared IO slots before the last row is retried.
+  const one=await w.assetVerify(reader.id),two=await w.assetVerify(reader.id);
+  assert.equal(await w.assetCommand(last.encoded,auth),null);
+  assert.equal((await w.commandState(last.request.command.commandId)).pending.phase,'preparing');
+  const deferred=await w.assetPending(last.request.command.commandId),lastBefore=before.find(row=>row.id===last.request.command.commandId);
+  assert.equal(deferred.phase,'preparing');assert.equal(deferred.operationId,lastBefore.operation_id);
+  assert.deepEqual(rows(),before.filter(row=>row.id!==middle.request.command.commandId).map(row=>row.id===last.request.command.commandId?{...row,phase:'preparing'}:row));
+  assert.equal(await w.lookup(last.request.command.commandId),null);
+  // A normal slot-release callback, with no second retry, must finish this row.
+  await w.assetRelease(one.handle);const lastResult=await accepted(last);
+  assert.deepEqual(rows(),before.filter(row=>row.id===first.request.command.commandId));assert.equal(await w.lookup(first.request.command.commandId),null);
+  assert.deepEqual(Buffer.from(await w.assetContent(reader.id,two.handle,'0',readerBytes.length)),readerBytes);await w.assetRelease(two.handle);
+  assert.equal(await w.assetCommand(first.encoded,auth),null);const firstResult=await accepted(first);
+  assert.deepEqual(rows(),[]);
+  const results=[firstResult,middleResult,lastResult];
+  for(let i=0;i<entries.length;i++){
+    const entry=entries[i],row=before.find(value=>value.id===entry.request.command.commandId),result=results[i];
+    assert.equal(result.hash,row.hash);assert.deepEqual(result.command,entry.request.command);assert.equal(await w.originalCommand(row.id,auth.clientId),entry.encoded.toString());
+    assert.deepEqual(await w.assetCommand(entry.encoded,auth),result.receipt);
+    const asset=(await w.assetProjection(row.operation_id)).asset;assert.equal(asset.blob.hash,entry.stage.sha256);assert.equal(asset.blob.byteLength,String(entry.bytes.length));
+    assert.equal((await w.assetGet(entry.stage.stagingId,auth)).state,'finalized');
+    const proof=await w.assetVerify(asset.id);assert.deepEqual(Buffer.from(await w.assetContent(asset.id,proof.handle,'0',entry.bytes.length)),entry.bytes);await w.assetRelease(proof.handle);
+  }
+  assert.deepEqual((await w.lookup(original.c.command.commandId)).receipt,original.r.receipt);
+  const events=(await w.events('0')).events;assert.equal(events.length,4);
+  for(const row of before){const owned=events.filter(event=>event.commandId===row.id);assert.equal(owned.length,1);assert.equal(owned[0].type,'AssetRegistered');assert.equal(owned[0].payload.asset.id,row.operation_id);}
+  await w.close();w=undefined;w=await writer(limited);
+  for(let i=0;i<entries.length;i++){assert.deepEqual((await w.lookup(entries[i].request.command.commandId)).receipt,results[i].receipt);assert.equal(await w.originalCommand(entries[i].request.command.commandId,auth.clientId),entries[i].encoded.toString());}
+  assert.deepEqual((await w.events('0')).events,events);assert.deepEqual(rows(),[]);
 });
 
 test('malformed owned manifest is a durable rejection and does not strand or accept the pending original',async t=>{

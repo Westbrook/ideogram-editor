@@ -161,7 +161,16 @@ export class Histories {
     const prior=this.db.prepare('SELECT hash,receipt FROM commands WHERE id=?').get(c.commandId);
     if(prior){if(prior.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');return JSON.parse(String(prior.receipt));}
     for(const table of ['asset_preparations','raster_preparations','portable_preparations'])if(this.db.prepare(`SELECT id FROM ${table} WHERE id=?`).get(c.commandId))throw new StoreError('COMMAND_ID_REUSE');
-    const pending=this.pending(c.commandId);if(pending){if(pending.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');if(['ReviewCandidatePlacement','AdoptReviewedCandidate','ReviewImageEdit','ResampleImage','CreateFlattenedCopy','AdoptCandidate','ImportFont','CreateTextLayer','CreateTextFromReturnedDescription','CommitTextEdit','ReplaceTextFont','RasterizeTextDerivative'].includes(c.body.type))this.authorities.set(c.commandId,{auth:{...auth},started:performance.now()});this.paused.delete(c.commandId);this.schedule(true);return null;}
+    const pending=this.pending(c.commandId);if(pending){
+      if(pending.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');
+      if(['ReviewCandidatePlacement','AdoptReviewedCandidate','ReviewImageEdit','ResampleImage','CreateFlattenedCopy','AdoptCandidate','ImportFont','CreateTextLayer','CreateTextFromReturnedDescription','CommitTextEdit','ReplaceTextFont','RasterizeTextDerivative'].includes(c.body.type))this.authorities.set(c.commandId,{auth:{...auth},started:performance.now()});
+      // Retain this exact retry across a busy worker or unavailable IO slot.
+      // Ordinary availability callbacks must not depend on a one-shot scan of waiting work.
+      this.db.exec('BEGIN IMMEDIATE');try{
+        this.check();this.db.prepare("UPDATE history_preparations SET phase='preparing' WHERE id=?").run(c.commandId);this.db.exec('COMMIT');
+      }catch(e){if(this.db.isTransaction)this.db.exec('ROLLBACK');throw e;}
+      this.paused.delete(c.commandId);this.schedule();return null;
+    }
     if(Number(this.db.prepare('SELECT (SELECT count(*) FROM asset_preparations)+(SELECT count(*) FROM raster_preparations)+(SELECT count(*) FROM history_preparations)+(SELECT count(*) FROM portable_preparations) AS n').get()!.n)>=64)throw new StoreError('QUEUE_FULL');
     this.db.exec('BEGIN IMMEDIATE');try{
       this.db.prepare('INSERT INTO history_preparations VALUES (?,?,?,?,?,?,?)').run(c.commandId,hash,Buffer.from(bytes).toString('utf8'),serialized,randomUUID(),'preparing',canonical(c.body.type==='ExportDocument'?this.document(c.documentId!):null));

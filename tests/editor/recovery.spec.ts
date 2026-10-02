@@ -140,8 +140,41 @@ test('real snapshot gap recovery publishes the complete current document after o
  }finally{await f.server.close();}
 });
 
-test('new-port restart discovers owned pending commands with exact original bytes before same-ID receipt recovery',async({page,context})=>{
+test('new-port restart discovers owned pending commands with exact original bytes before same-ID receipt recovery',async({page,context},testInfo)=>{
  const f=await setup(page,context),holds:any[]=[],originals=new Map<string,string>(),failures:unknown[]=[];let restarted:Awaited<ReturnType<typeof serverProcess>>|undefined,originalPath='',originalHash='',originalLength='',originalBytes:Buffer|undefined;
+ // Case-local public response evidence; never retain headers, sessions or full payloads.
+ const retryEvidence:{expectedCommandId:string;expectedTransactionId:string;expectedWireHash:string;expectedWireBytes:number;cohortCommandIds:string[];observations:Record<string,string|number|boolean|null>[];dropped:number;oversized:number;invalidLength:number;parseFailures:number;bodyReadFailures:number;truncatedFields:number}={expectedCommandId:'',expectedTransactionId:'',expectedWireHash:'',expectedWireBytes:0,cohortCommandIds:[],observations:[],dropped:0,oversized:0,invalidLength:0,parseFailures:0,bodyReadFailures:0,truncatedFields:0};
+ const captureReads:Promise<void>[]=[],captureLimit=64,bodyLimit=65536;
+ let stopRetryCapture=()=>{};
+ const scalar=(value:unknown):string|number|boolean|null=>{if(typeof value==='string'){if(value.length>256)retryEvidence.truncatedFields++;return value.slice(0,256);}return typeof value==='number'&&Number.isFinite(value)||typeof value==='boolean'?value as number|boolean:null;};
+ const startRetryCapture=(origin:string)=>{
+  const observed=new Map<import('@playwright/test').Request,Record<string,string|number|boolean|null>>();
+  const onRequest=(request:import('@playwright/test').Request)=>{
+   const url=new URL(request.url()),method=request.method();
+   if(url.origin!==origin||!(method==='POST'&&url.pathname==='/api/v1/commands'||method==='GET'&&/^\/api\/v1\/commands\/[^/]+$/.test(url.pathname)))return;
+   if(retryEvidence.observations.length>=captureLimit){retryEvidence.dropped++;return;}
+   const row:Record<string,string|number|boolean|null>={ordinal:retryEvidence.observations.length,method,path:scalar(url.pathname),responseObserved:false};
+   retryEvidence.observations.push(row);observed.set(request,row);
+   if(method==='GET'){row.lookupCommandId=scalar(url.pathname.slice('/api/v1/commands/'.length));return;}
+   const wire=request.postData();if(wire===null){retryEvidence.parseFailures++;return;}
+   row.wireBytes=Buffer.byteLength(wire);row.wireHash='sha256:'+createHash('sha256').update(wire).digest('hex');
+   if(Number(row.wireBytes)>bodyLimit){retryEvidence.oversized++;return;}
+   try{const command=JSON.parse(wire)?.command;row.commandId=scalar(command?.commandId);row.transactionId=scalar(command?.transactionId);row.commandType=scalar(command?.body?.type);}catch{retryEvidence.parseFailures++;}
+  };
+  const onResponse=(response:import('@playwright/test').Response)=>{
+   const row=observed.get(response.request());if(!row)return;
+   row.responseObserved=true;row.httpStatus=response.status();
+   const read=(async()=>{
+    const length=response.headers()['content-length'];if(!/^(0|[1-9][0-9]*)$/.test(length??'')){retryEvidence.invalidLength++;return;}
+    if(Number(length)>bodyLimit){retryEvidence.oversized++;return;}
+    let bytes:Buffer;try{bytes=await response.body();}catch{retryEvidence.bodyReadFailures++;return;}
+    row.responseBytes=bytes.length;if(bytes.length>bodyLimit){retryEvidence.oversized++;return;}
+    try{const result=JSON.parse(bytes.toString('utf8')),receipt=result?.receipt;row.protocolVersion=scalar(result?.protocolVersion);row.kind=scalar(result?.kind);row.resultCommandId=scalar(result?.commandId);row.phase=scalar(result?.phase);row.operationId=scalar(result?.operationId);row.receiptStatus=scalar(receipt?.status);row.receiptCommandId=scalar(receipt?.commandId);row.receiptTransactionId=scalar(receipt?.transactionId);row.fromSeq=scalar(receipt?.fromSeq);row.toSeq=scalar(receipt?.toSeq);row.code=scalar(receipt?.code??result?.error?.code??result?.code);}catch{retryEvidence.parseFailures++;}
+   })();void read.catch(()=>{});captureReads.push(read);
+  };
+  page.on('request',onRequest);page.on('response',onResponse);
+  stopRetryCapture=()=>{page.off('request',onRequest);page.off('response',onResponse);};
+ };
  const restoreOriginal=async()=>{if(!originalBytes)return;expect('sha256:'+createHash('sha256').update(originalBytes).digest('hex')).toBe(originalHash);expect(String(originalBytes.length)).toBe(originalLength);await writeFile(originalPath,originalBytes,{mode:0o600});expect(await readFile(originalPath)).toEqual(originalBytes);originalBytes=undefined;};
  const readCohort=()=>{const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});try{db.exec('BEGIN');return {pending:db.prepare('SELECT id,hash,canonical,original,phase FROM raster_preparations ORDER BY id').all() as {id:string;hash:string;canonical:string;original:string;phase:string}[],receipts:db.prepare('SELECT id FROM commands ORDER BY id').all().filter(row=>originals.has(String(row.id)))};}finally{db.close();}};
  const assertCohort=(phase:'preparing'|'waiting-for-resources')=>{
@@ -171,11 +204,14 @@ test('new-port restart discovers owned pending commands with exact original byte
  await next.click();await pageRows(8);await expect(first).toBeEnabled();await expect(previous).toBeEnabled();await expect(next).toBeDisabled();
  await previous.click();await pageRows(32);await expect(first).toBeDisabled();await expect(previous).toBeDisabled();
  await next.click();await pageRows(8);await first.click();await pageRows(32);await next.click();await pageRows(8);
- const retryId=[...originals.keys()].sort()[32],retryWires:string[]=[];page.on('request',r=>{if(new URL(r.url()).pathname==='/api/v1/commands'&&r.method()==='POST')retryWires.push(r.postData()!);});
+ const retryId=[...originals.keys()].sort()[32],retryWires:string[]=[];retryEvidence.expectedCommandId=retryId;retryEvidence.expectedTransactionId=JSON.parse(originals.get(retryId)!).command.transactionId;retryEvidence.expectedWireHash='sha256:'+createHash('sha256').update(originals.get(retryId)!).digest('hex');retryEvidence.expectedWireBytes=Buffer.byteLength(originals.get(retryId)!);retryEvidence.cohortCommandIds=[...originals.keys()].sort();startRetryCapture(restarted.origin);page.on('request',r=>{if(new URL(r.url()).pathname==='/api/v1/commands'&&r.method()==='POST')retryWires.push(r.postData()!);});
  // Exact-byte restoration does not itself release any new-epoch paused ID.
  await restoreOriginal();assertCohort('waiting-for-resources');
  await retry.first().click();await expect(page.getByText('PrepareRaster accepted and saved locally.',{exact:true})).toBeVisible();expect(retryWires).toEqual([originals.get(retryId)]);expect(JSON.parse(retryWires[0]).command.commandId).toBe(retryId);await pageRows(7);await expect(next).toBeDisabled();await first.click();await pageRows(32);await next.click();await pageRows(7);expect(Object.values(await restarted.effects()).every(x=>x===0)).toBe(true);
  }catch(error){failures.push(error);}finally{
+  try{stopRetryCapture();}catch(error){failures.push(error);}
+  for(const result of await Promise.allSettled(captureReads))if(result.status==='rejected')failures.push(result.reason);
+  try{await testInfo.attach('same-id-raster-retry-responses',{body:JSON.stringify(retryEvidence,null,2),contentType:'application/json'});}catch(error){failures.push(error);}
   try{await restoreOriginal();}catch(error){failures.push(error);}
   for(const hold of holds)try{hold.request.destroy();}catch(error){failures.push(error);}
   // kill() already owns the original process's one shutdown path. Attempt

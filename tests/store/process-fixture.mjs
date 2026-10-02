@@ -6,7 +6,7 @@ const gate = new SharedArrayBuffer(4);
 let writer;
 try {
   writer = await openWriter({ root, quotaBytes: options.quotaBytes }, { phase: options.phase, gate, maxPageCount: options.maxPageCount,
-    effectCounters: globalThis.__storeNetworkCounters.shared,
+    effectCounters: globalThis.__storeNetworkCounters.shared, setupModule: options.setupModule,
     onFailure: failure => process.send({ type: 'failure', failure }),
     onBarrier: phase => process.send({ type: 'barrier', phase }) });
   process.send({ type: 'ready', epoch: writer.epoch });
