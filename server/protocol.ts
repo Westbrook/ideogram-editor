@@ -304,7 +304,7 @@ export class ProtocolRoutes {
           try{handle=await this.writer.openTextContent(ref);authenticate();
             response.writeHead(200,{'Content-Type':'text/plain; charset=utf-8','Content-Length':ref.byteLength,ETag:'"'+ref.hash+'"','Cache-Control':'no-store','Content-Security-Policy':"sandbox; default-src 'none'; frame-ancestors 'none'",'X-Content-Type-Options':'nosniff'});
             for(let at=0n;at<BigInt(ref.byteLength);){await assertRoot();authenticate();if(response.destroyed)return;const n=Number(BigInt(ref.byteLength)-at>32768n?32768n:BigInt(ref.byteLength)-at),bytes=await this.writer.content(handle,String(at),n);try{authenticate();await writeProtocolBytes(response,bytes);}finally{this.writer.releaseResourceBytes(bytes);}at+=BigInt(n);}response.end();
-          }catch(error){releaseResponse();throw error;}finally{if(handle)await this.writer.dropContent(handle);this.streams--;}
+          }catch(error){releaseResponse();throw error;}finally{try{if(handle)await this.writer.dropContent(handle);}finally{this.streams--;}}
         }
       }
       else if(route.kind==='text-admission'||route.kind==='text-release'){const value=await consumeControlBytes(request,bytes=>parseControlJSON(bytes)) as any;if(value.protocolVersion!==1||Object.keys(value).length!==1)throw new ProtocolError('MALFORMED_REQUEST');await assertRoot();const current=authenticate();sendJSON(response,200,await this.writer.textAdmission(id,this.assets.auth(current),route.kind==='text-release')??{released:true});}

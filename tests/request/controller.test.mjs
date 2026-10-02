@@ -1,4 +1,8 @@
 import test from 'node:test';import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';import {deflateSync,inflateSync} from 'node:zlib';
+import {newDraft} from '../../dist/local/src/request/core.js';
+import {displayPreviewURL,displayProtocolURL} from '../display-module.mjs';
+const {displayPreviewOwnership}=await import(displayPreviewURL),{displayPath,DISPLAY_HEADERS,DISPLAY_PROFILE}=await import(displayProtocolURL);
 import {RequestEditing,allocationsURL,createOwnedModel,modelPayloadBytes,readOwnedJSON} from './request-controller-module.mjs';
 const ownedControllers=new Set(),fixtureCleanups=new Set();test.afterEach(async()=>{try{await Promise.all([...ownedControllers].map(controller=>controller.dispose()));}finally{ownedControllers.clear();for(const cleanup of fixtureCleanups)cleanup();fixtureCleanups.clear();}});const flush=async()=>{for(let i=0;i<100;i++)await Promise.resolve();};const tick=()=>new Promise(r=>setTimeout(r,5));
 function find(t,part){if(!t||typeof t!=='object')return; if(t.strings){const i=t.strings.findIndex(s=>s.includes(part));if(i>=0)return {strings:t.strings.slice(i),values:t.values.slice(i)};}for(const v of Array.isArray(t)?t:t.values??[]){const f=find(v,part);if(f)return f;}}
@@ -420,7 +424,7 @@ test('loaded request synchronization remains live after a downstream edit synchr
  f.instance.requestEdits.sync=async()=>{await sync();if(++syncs===1)throw failure;};
  f.instance.preview=async()=>{previews++;return preview();};
  await assert.rejects(f.instance.sync(),error=>error===failure);const entry=f.instance.entry();assert(entry);
- await f.instance.sync();await flush();assert.equal(reads,1);assert.equal(syncs,2);assert.equal(previews,1);assert.equal(f.instance.entry(),entry);assertRestoreWorkDrained(f);
+ await f.instance.sync();await flush();assert.equal(reads,1);assert.equal(syncs,2);assert.equal(previews,2);assert.equal(f.instance.entry(),entry);assertRestoreWorkDrained(f);
 });
 
 test('initial saved request cleanup refusal is retained until document release retries the actual reader',{timeout:5000},async()=>{
@@ -439,4 +443,122 @@ test('initial saved request cleanup refusal is retained until document release r
  f.editor.session.transport=async()=>{promptReads++;return new Response('',{headers:{'content-length':'0'}});};
  await f.instance.sync();await flush();assert.equal(f.instance.entry().id,'saved-request');assert.deepEqual([metadataReads,promptReads,historyReads],[2,2,1]);assertRestoreWorkDrained(f);
  }finally{refuse=false;await f.instance.releaseDocument();}
+});
+
+
+// These cases use the actual two Request controllers, display reader/scheduler,
+// response admission and URL ownership. Only transport and native PNG decode
+// are fixture boundaries; they do not qualify browser pixels or server caching.
+const previewDeferred=()=>{let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b;});return {promise,resolve,reject};};
+const previewHash=value=>'sha256:'+createHash('sha256').update(value).digest('hex');
+function previewPNG(){
+ const crc32=bytes=>{let crc=0xffffffff;for(const byte of bytes){crc^=byte;for(let bit=0;bit<8;bit++)crc=(crc>>>1)^((crc&1)?0xedb88320:0);}return (crc^0xffffffff)>>>0;};
+ const chunk=(name,bytes)=>{const type=Buffer.from(name),out=Buffer.alloc(bytes.length+12);out.writeUInt32BE(bytes.length);type.copy(out,4);bytes.copy(out,8);out.writeUInt32BE(crc32(Buffer.concat([type,bytes])),bytes.length+8);return out;};
+ const header=Buffer.alloc(13);header.writeUInt32BE(3);header.writeUInt32BE(2,4);header[8]=8;header[9]=6;
+ return Buffer.concat([Buffer.from([137,80,78,71,13,10,26,10]),chunk('IHDR',header),chunk('IDAT',deflateSync(Buffer.alloc(26))),chunk('IEND',Buffer.alloc(0))]);
+}
+function previewProjection(id){const projection=assetProjection(id),asset=projection.projection.value;asset.blob.hash=previewHash(id+'-encoded');asset.raster.pixels.hash=previewHash(id+'-pixels');asset.raster.pixelIdentity=asset.raster.pixels.hash;asset.raster.manifest.hash=previewHash(id+'-manifest');return projection;}
+function previewSource(id){const asset=previewProjection(id).projection.value;return {assetId:id,version:asset.version,blob:asset.blob,pixels:asset.raster.pixels,width:3,height:2,scope:'asset',documentRevision:'1'};}
+async function previewController(t,{restore=false,gateAt=1,holdCancellation=false}={}){
+ const savedDraft=newDraft({hash:previewHash(''),byteLength:'0',mediaType:'text/plain'});savedDraft.source=previewSource('source');
+ const f=fixture(undefined,restore?[{id:'saved-preview',kind:'request',documentId:'doc',generation:'1',expectedDocumentRevision:'1'}]:[]),reads=[],created=[],revoked=[],errors=[],children=[],work=[],cancelGate=previewDeferred(),entered=previewDeferred();
+ let rendition=0,cancels=0,gateController,gateClosed=false;
+ const bytes=previewPNG(),oldBitmap=Object.getOwnPropertyDescriptor(globalThis,'createImageBitmap');
+ Object.defineProperty(globalThis,'createImageBitmap',{configurable:true,writable:true,value:async blob=>{const value=Buffer.from(await blob.arrayBuffer());assert.deepEqual(value,bytes);const n=value.readUInt32BE(33),compressed=value.subarray(41,41+n);assert.equal(inflateSync(compressed).length,26);return {width:3,height:2,close(){}};}});
+ t.mock.method(URL,'createObjectURL',()=>{const url='blob:request-source-pair-'+created.length;created.push(url);return url;});
+ t.mock.method(URL,'revokeObjectURL',url=>revoked.push(url));
+ const track=promise=>{work.push(promise);void promise.catch(()=>{});return promise;};
+ const finish=()=>{if(gateController&&!gateClosed){gateClosed=true;gateController.enqueue(bytes);gateController.close();}};
+ t.after(async()=>{finish();cancelGate.resolve();try{await f.instance.dispose();await Promise.allSettled(work);await flush();assertRestoreWorkDrained(f);assert.equal(displayPreviewOwnership().activeReads,0);assert.equal(displayPreviewOwnership().previewURLs,0);assert.deepEqual(revoked.slice().sort(),created.slice().sort(),'Every independently owned preview URL releases exactly once');}finally{if(oldBitmap)Object.defineProperty(globalThis,'createImageBitmap',oldBitmap);else delete globalThis.createImageBitmap;}});
+ f.instance.error=error=>errors.push(error);
+ f.editor.json=async path=>path.endsWith('/request-reviews')?{items:[]}:path.includes('/request?')?{value:savedDraft}:previewProjection(path.split('/').at(-1));
+ f.editor.session.transport=async(path,init)=>{
+  if(path.includes('/request?')&&path.endsWith('&content=1'))return new Response('',{headers:{'content-length':'0'}});
+  const url=new URL(path,'http://127.0.0.1'),match=/^\/api\/v1\/assets\/([A-Za-z0-9_-]+)(\/display)?$/.exec(url.pathname);assert(match,'Only source descriptor/rendition reads: '+path);
+  const projection=previewProjection(match[1]),asset=projection.projection.value;reads.push({path,signal:init?.signal,identity:f.editor.session.identity()});
+  if(!match[2]){const json=JSON.stringify(projection);return new Response(json,{headers:{'content-length':String(Buffer.byteLength(json))}});}
+  assert.equal(path,displayPath(asset.id,{kind:'preview',basis:'pixels',identity:asset.raster.pixelIdentity,edge:1024}));
+  const headers={'content-type':'image/png','content-length':String(bytes.length),etag:'"'+previewHash(bytes)+'"',[DISPLAY_HEADERS.profile]:DISPLAY_PROFILE,[DISPLAY_HEADERS.source]:asset.raster.pixelIdentity,[DISPLAY_HEADERS.basis]:'pixels',[DISPLAY_HEADERS.width]:'3',[DISPLAY_HEADERS.height]:'2',[DISPLAY_HEADERS.sourceWidth]:'3',[DISPLAY_HEADERS.sourceHeight]:'2',[DISPLAY_HEADERS.lod]:'0'};
+  if(++rendition!==gateAt)return new Response(bytes,{headers});
+  const body=new ReadableStream({start(controller){gateController=controller;},cancel(){cancels++;gateClosed=true;return holdCancellation?cancelGate.promise:undefined;}});
+  const response=new Response(body,{headers});entered.resolve();return response;
+ };
+ if(!restore){await f.initial();f.instance.mutateEntry(previewSource('source'),next=>{next.draft.source=previewSource('source');});await flush();}
+ const sync=f.instance.requestEdits.sync.bind(f.instance.requestEdits);
+ f.instance.requestEdits.sync=()=>{children.push({entry:f.instance.entry(),identity:f.editor.session.identity()});return sync();};
+ return {...f,reads,created,revoked,errors,children,entered:entered.promise,finish,fail:error=>{assert(gateController&&!gateClosed);gateClosed=true;gateController.error(error);},cancelGate,cancels:()=>cancels,start:()=>track(f.instance.sync()),track,renditions:()=>reads.filter(row=>row.path.includes('/display?'))};
+}
+
+for(const leg of ['source','child'])test('request preview pair joins repeated renders during the '+leg+' read',async t=>{
+ const f=await previewController(t,{gateAt:leg==='source'?1:2}),first=f.start();await f.entered;await flush();
+ const joined=Array.from({length:16},()=>f.start());await flush();
+ assert.equal(f.renditions().length,leg==='source'?1:2);assert.equal(f.children.length,leg==='source'?0:1);assert.equal(f.created.length,leg==='source'?0:1);
+ f.finish();await Promise.all([first,...joined]);await flush();assert.equal(f.renditions().length,2);assert.equal(f.children.length,1);assert.equal(f.created.length,2);assert.notEqual(f.instance.previewURL,f.instance.requestEdits.sourceURL);assert.deepEqual(f.errors,[]);
+ await f.start();assert.equal(f.renditions().length,2,'Settled previews do not reread on an unrelated render');assertRestoreWorkDrained(f);
+});
+
+test('restored request publication joins the same preview pair as a render reentry',async t=>{
+ const f=await previewController(t,{restore:true}),update=f.host.requestUpdate.bind(f.host);let reentry;
+ f.host.requestUpdate=()=>{update();if(f.instance.loaded&&!reentry)reentry=f.start();};
+ const initial=f.start();await f.entered;await flush();assert(reentry);assert.equal(f.renditions().length,1);assert.equal(f.children.length,0);
+ f.finish();await Promise.all([initial,reentry]);assert.equal(f.instance.entry().id,'saved-preview');assert.equal(f.renditions().length,2);assert.equal(f.children.length,1);assert.deepEqual(f.errors,[]);
+});
+
+test('a changed request source cancels the old read before starting its own complete pair',async t=>{
+ const f=await previewController(t),first=f.start();await f.entered;await flush();
+ f.instance.mutateEntry(previewSource('next'),next=>{next.draft.source=previewSource('next');});const successor=f.start();await Promise.all([first,successor]);
+ assert.equal(f.cancels(),1);assert.equal(f.renditions().length,3);assert.equal(f.renditions()[0].signal.aborted,true);assert(f.renditions().slice(1).every(row=>row.path.startsWith('/api/v1/assets/next/display?')));assert.equal(f.children.length,1);assert.equal(f.children[0].entry,f.instance.entry());assert.equal(f.created.length,2);assert.deepEqual(f.errors,[]);
+});
+
+test('an unrelated prompt generation joins the active source without canceling or rereading it',async t=>{
+ const f=await previewController(t),first=f.start();await f.entered;await flush();
+ f.instance.mutateEntry('later prompt',next=>{next.text='later prompt';});const successor=f.start();await flush();assert.equal(f.cancels(),0);assert.equal(f.renditions().length,1);assert.equal(f.children.length,0);
+ f.finish();await Promise.all([first,successor]);assert.equal(f.renditions().length,2);assert.equal(f.children.length,1);assert.equal(f.children[0].entry,f.instance.entry());assert.equal(f.instance.entry().text,'later prompt');assert.deepEqual(f.errors,[]);
+});
+
+for(const boundary of ['identity','connection','revision'])test('same-entry request preview successor survives an authority-only '+boundary+' change',async t=>{
+ const f=await previewController(t),first=f.start(),entry=f.instance.entry();await f.entered;await flush();
+ if(boundary==='identity')f.identity('successor');else if(boundary==='connection')f.editor.session={...f.editor.session};else f.editor.view.document={...f.editor.view.document,revision:'2'};
+ const successor=f.start();await Promise.all([first,successor]);assert.equal(f.instance.entry(),entry);assert.equal(f.cancels(),1);assert.equal(f.renditions().length,3);assert.equal(f.children.length,1);assert.equal(f.created.length,2);assert.deepEqual(f.errors,[]);
+});
+
+for(const boundary of ['dispose','releaseDocument'])for(const leg of ['source','child'])test('request preview '+boundary+' waits for canceled '+leg+' ownership without restarting the child',async t=>{
+ const f=await previewController(t,{gateAt:leg==='source'?1:2,holdCancellation:true}),first=f.start();let joined,closing,closed=false;
+ try{
+  await f.entered;await flush();joined=f.start();assert.equal(f.created.length,leg==='source'?0:1);assert.deepEqual(f.revoked,[]);
+  closing=f.track(f.instance[boundary]().then(()=>{closed=true;}));await flush();assert.equal(f.cancels(),1);assert.equal(closed,false);assert.equal(f.children.length,leg==='source'?0:1);assert(f.instance.inspectMemory().entryTasks>0);
+  f.cancelGate.resolve();const results=await Promise.allSettled([first,joined,closing]);assert.equal(results[0].status,leg==='source'?'fulfilled':'rejected');if(leg==='child')assert.equal(results[0].reason.name,'AbortError');assert.equal(results[1].status,'fulfilled');assert.equal(results[2].status,'fulfilled');
+  assert.equal(closed,true);assert.equal(f.children.length,leg==='source'?0:1);assert.equal(f.created.length,leg==='source'?0:1);assert.deepEqual(f.revoked,f.created);assert.deepEqual(f.errors,[]);assertRestoreWorkDrained(f);
+ }finally{f.finish();f.cancelGate.resolve();await Promise.allSettled([first,joined,closing].filter(Boolean));}
+});
+
+test('one preview-pair failure is published once to concurrent renders and allows a later explicit sync',async t=>{
+ const f=await previewController(t),failure=Error('child preview refused'),child=f.instance.requestEdits.sync.bind(f.instance.requestEdits),held=previewDeferred(),childEntered=previewDeferred();let calls=0,failures=0;const joined=[];
+ f.instance.requestEdits.sync=async()=>{await child();if(++calls===1){childEntered.resolve();await held.promise;throw failure;}};
+ const first=f.track(f.start().catch(error=>{assert.equal(error,failure);failures++;}));
+ try{
+  await f.entered;f.finish();await childEntered.promise;
+  joined.push(...Array.from({length:16},()=>f.track(f.start().catch(()=>{failures++;}))));await flush();assert.equal(calls,1);held.resolve();await Promise.all([first,...joined]);assert.equal(failures,1);assert.equal(calls,1);assert.equal(f.renditions().length,2);
+  await f.start();assert.equal(calls,2);assert.equal(f.renditions().length,2);assert.deepEqual(f.errors,[]);assertRestoreWorkDrained(f);
+ }finally{f.finish();held.resolve();await Promise.allSettled([first,...joined]);}
+});
+
+
+test('a failed request source preview keeps its failure without render-driven rereads',async t=>{
+ const f=await previewController(t),failure=Error('source preview refused'),first=f.start();await f.entered;await flush();const joined=Array.from({length:16},()=>f.start());await flush();
+ f.fail(failure);await Promise.all([first,...joined]);assert.deepEqual(f.errors,[failure]);assert.equal(f.renditions().length,2);assert.equal(f.children.length,1);assert.equal(f.instance.previewURL,'');assert(f.instance.requestEdits.sourceURL);assert.equal(f.created.length,1);
+ await Promise.all(Array.from({length:16},()=>f.start()));assert.equal(f.renditions().length,2);assert.deepEqual(f.errors,[failure]);assertRestoreWorkDrained(f);
+});
+
+
+test('a changed source waits through the old child read before its successor pair',async t=>{
+ const f=await previewController(t,{gateAt:2}),first=f.start();await f.entered;await flush();
+ f.instance.mutateEntry(previewSource('next'),next=>{next.draft.source=previewSource('next');});const successor=f.start();await flush();assert.equal(f.renditions().length,2);assert.equal(f.children.length,1);
+ f.finish();await Promise.all([first,successor]);assert.equal(f.renditions().length,4);assert(f.renditions().slice(2).every(row=>row.path.startsWith('/api/v1/assets/next/display?')));assert.equal(f.children.length,2);assert.equal(f.children.at(-1).entry,f.instance.entry());assert.equal(f.created.length,4);assert.deepEqual(f.revoked,f.created.slice(0,2));assert.deepEqual(f.errors,[]);
+});
+
+test('a replacement request owner drains its predecessor preview before child synchronization',async t=>{
+ const f=await previewController(t),first=f.start(),oldEntry=f.instance.entry();await f.entered;await flush();f.editor.draftOwner={drafts:new Map()};
+ const successor=f.start();await Promise.all([first,successor]);assert.notEqual(f.instance.entry(),oldEntry);assert.equal(f.cancels(),1);assert.equal(f.children.length,1);assert.equal(f.children[0].entry,f.instance.entry());assert.equal(f.created.length,0);
+ await f.instance.source('next','asset');await f.start();assert.equal(f.renditions().length,3);assert(f.renditions().slice(1).every(row=>row.path.startsWith('/api/v1/assets/next/display?')));assert.equal(f.created.length,2);assert.deepEqual(f.errors,[]);assertRestoreWorkDrained(f);
 });

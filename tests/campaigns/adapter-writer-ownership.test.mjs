@@ -249,3 +249,47 @@ test('a real queued HTTP response remains an active owner after its writer RPC s
   assert.equal(released.handleClassification.activeOwners.responseBuffers, 0);
   assert.equal(released.unusedHandles, 0);
 });
+
+
+test('asset proof release stays admitted at the full writer RPC limit without widening ordinary admission', options, async t => {
+  const f = await fixture(t), writer = f.writer, original = Buffer.from('Proof survives unrelated writer pressure.');
+  const asset = await caption(writer, original);
+  const first = await writer.assetVerify(asset.id), second = await writer.assetVerify(asset.id);
+  let replacement, retainedBytes;
+  try {
+    // No await separates these calls: all 64 RPCs remain pending in this
+    // sender turn even if the real worker has begun processing them.
+    const pending = Array.from({ length: 64 }, () => writer.assetProjection(asset.id));
+    const overflow = writer.assetProjection(asset.id);
+    const released = writer.assetRelease(first.handle);
+    const outcomes = await Promise.allSettled([...pending, overflow, released]);
+    for (const outcome of outcomes.slice(0, 64)) {
+      assert.equal(outcome.status, 'fulfilled');
+      assert.equal(outcome.value.asset.id, asset.id);
+      assert.equal(outcome.value.asset.blob.hash, asset.blob.hash);
+    }
+    assert.equal(outcomes[64].status, 'rejected');
+    assert.equal(outcomes[64].reason.code, 'QUEUE_FULL', 'Ordinary RPC admission retains its exact limit');
+    assert.equal(outcomes[65].status, 'fulfilled', 'Owned proof release must reach the worker while ordinary admission is full');
+    const remaining = await writer.adapterResourceSnapshot();
+    assert.equal(remaining.worker.owners.assets.contentReaders, 1);
+    assert.equal(remaining.worker.owners.objects.retainedProofs, 1);
+    // The released proof frees its real shared IO slot. A new proof can
+    // coexist with the untouched second reader, whose original bytes remain valid.
+    replacement = await writer.assetVerify(asset.id);
+    const reused = await writer.adapterResourceSnapshot();
+    assert.equal(reused.worker.owners.assets.contentReaders, 2);
+    retainedBytes = await writer.assetContent(asset.id, second.handle, '0', original.length);
+    assert.equal(Buffer.compare(retainedBytes, original), 0);
+  } finally {
+    if (retainedBytes) writer.releaseResourceBytes(retainedBytes);
+    await writer.assetRelease(first.handle);
+    await writer.assetRelease(second.handle);
+    if (replacement) await writer.assetRelease(replacement.handle);
+  }
+  const after = await settled(writer);
+  assert.equal(after.worker.owners.assets.contentReaders, 0);
+  assert.equal(after.worker.owners.objects.retainedProofs, 0);
+  assert.equal(after.worker.owners.objects.proofReservations, 0);
+  assert.equal(after.unusedHandles, 0);
+});

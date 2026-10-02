@@ -1,5 +1,5 @@
 import {confirmImageImports} from '../editor/image-import-flow.js';
-import {test as base,expect,type Page} from '@playwright/test';
+import {test as base,expect,type Page,type BrowserContext,type Request,type Response,type ConsoleMessage} from '@playwright/test';
 import {mkdtemp,realpath,mkdir,writeFile,readFile} from 'node:fs/promises';import {tmpdir} from 'node:os';import {join} from 'node:path';
 import {serverProcess} from '../editor/process.js';import {ownedOPFS} from '../editor/owned-opfs.js';import {recordDOMErrors} from '../editor/error-monitor.js';
 import {runs,step,throwFailures,finishFixture,type RunState} from '../editor/harness-lifecycle.js';
@@ -15,14 +15,30 @@ async function requestFeedback(page:Page,text:string){
  await expect(feedback).toHaveText(text);await expect(feedback).toBeVisible();await expect(status).toHaveText(text);await expect(status).toHaveAttribute('aria-live','polite');await expect(status).toHaveAttribute('aria-atomic','true');
 }
 async function number(page:Page,name:string,value:string){const f=page.getByRole('spinbutton',{name,exact:true});await f.fill(value);await f.press('Tab');}
-for(const scenario of ['review','recovery','source','adapters'] as const)test('public request '+scenario+' binds exact accepted values with no dispatch',async({page,context,browserName})=>{
+// Pass-through metadata only. Join retained request identities; bounded loss is explicit.
+function observeRequestTransport(context:BrowserContext,page:Page){
+ const limit=1024,rows:Record<string,unknown>[]=[],ids=new WeakMap<Request,number>();let nextId=0,sequence=0,requests=0,responses=0,consoleErrors=0,dropped=0,readFailures=0,truncatedFields=0,stopped=false;
+ const bounded=(value:string,limit:number)=>{if(value.length<=limit)return value;truncatedFields++;return value.slice(0,limit);};
+ const location=(raw:string,includeDisplayQuery=true)=>{if(!raw)return {available:false};try{const url=new URL(raw),display=includeDisplayQuery&&/^\/api\/v1\/assets\/[^/]+\/display(?:-tile)?$/.test(url.pathname),query:[string,string][]=[];let omittedQueryValues=0;
+  for(const [key,value]of url.searchParams){if(display&&['identity','basis','edge','lod','x','y'].includes(key)&&query.length<8)query.push([key,bounded(value,128)]);else omittedQueryValues++;}
+  return {available:true,origin:bounded(url.origin,256),path:bounded(url.pathname,512),displayQuery:query,omittedQueryValues};
+ }catch{return {available:false,invalid:true};}};
+ const id=(request:Request)=>{let value=ids.get(request);if(value===undefined){value=++nextId;ids.set(request,value);}return value;};
+ const record=(event:string,read:()=>Record<string,unknown>)=>{const current=++sequence;if(stopped)return;if(rows.length>=limit){dropped++;return;}try{rows.push({sequence:current,at:Date.now(),event,...read()});}catch{readFailures++;}};
+ const request=(value:Request)=>{requests++;record('request',()=>({requestId:id(value),method:bounded(value.method(),16),resourceType:bounded(value.resourceType(),32),location:location(value.url())}));};
+ const response=(value:Response)=>{responses++;record('response',()=>{const request=value.request(),requestObserved=ids.has(request);return {requestId:id(request),requestObserved,status:value.status(),method:bounded(request.method(),16),resourceType:bounded(request.resourceType(),32),location:location(request.url())};});};
+ const consoleError=(value:ConsoleMessage)=>{if(value.type()!=='error')return;consoleErrors++;record('console-error',()=>{const source=value.location();return {location:location(source.url,false),lineNumber:Number.isFinite(source.lineNumber)?source.lineNumber:null,columnNumber:Number.isFinite(source.columnNumber)?source.columnNumber:null};});};
+ context.on('request',request);context.on('response',response);page.on('console',consoleError);
+ return {snapshot:()=>({schemaVersion:1,scope:'Synchronous public Playwright metadata; no response bodies or headers read.',limit,requests,responses,consoleErrors,dropped,readFailures,truncatedFields,stopped,rows}),stop(){if(stopped)return;stopped=true;context.off('request',request);context.off('response',response);page.off('console',consoleError);}};
+}
+for(const scenario of ['review','recovery','source','adapters'] as const)test('public request '+scenario+' binds exact accepted values with no dispatch',async({page,context,browserName},testInfo)=>{
  const guard=await ownedOPFS(context,'p2-request-'+scenario),errors=await recordDOMErrors(context),csp:unknown[]=[],requests:any[]=[],responses:any[]=[],external:string[]=[],consoleErrors:string[]=[],publicEvents:unknown[]=[];
  await context.exposeBinding('requestEvent',(_source,value)=>publicEvents.push(value));await context.addInitScript(()=>{for(const type of ['click','keydown','focusin','en-input','en-change','compositionstart','compositionend'])addEventListener(type,e=>{const target=e.target as HTMLElement;if(!target.closest?.('.typed-request'))return;setTimeout(()=>(window as any).requestEvent({type,target:target.id||target.tagName,key:(e as KeyboardEvent).key,cancelled:e.defaultPrevented,active:document.activeElement?.id,issues:(document.querySelector('#request-errors') as any)?.items}),0);});});
  await context.exposeBinding('requestCSP',(_source,value)=>csp.push(value));await context.addInitScript(()=>addEventListener('securitypolicyviolation',e=>(window as any).requestCSP({directive:e.effectiveDirective,blocked:e.blockedURI})));
  page.on('console',m=>{if(m.type()==='error')consoleErrors.push(m.text());});page.on('request',r=>{if(r.method()==='POST'&&r.url().includes('/api/v1/ui/'))requests.push(JSON.parse(r.postData()!));});
- const dir=await mkdtemp(join(await realpath(tmpdir()),'ie-p2-request-')),server=await serverProcess(join(dir,'private'));let effects:unknown,runtime:unknown;const responseWork:Promise<void>[]=[];
+ const dir=await mkdtemp(join(await realpath(tmpdir()),'ie-p2-request-')),server=await serverProcess(join(dir,'private'));let effects:unknown,runtime:unknown;const responseWork:Promise<void>[]=[],transportDiagnostics=observeRequestTransport(context,page);
  const state:RunState={failures:[],roots:[dir],writerClosed:false,contextClosed:false,browserClosed:false,retention:[],receipt,prefix:scenario+'-'};runs.set(context,state);
- state.observe=()=>({runtime,errors,csp,external,consoleErrors,publicEvents,requests,responses,requestLifecycle:guard.requests,effects,cleanup:{opfs:guard.ledger,serverClosed:state.writerClosed,privateRootRemoved:state.retention.some((r:any)=>r.root===dir&&r.removed)?dir:null}});
+ state.observe=()=>({runtime,errors,csp,external,consoleErrors,publicEvents,requests,responses,requestLifecycle:guard.requests,transportDiagnostics:transportDiagnostics.snapshot(),effects,cleanup:{opfs:guard.ledger,serverClosed:state.writerClosed,privateRootRemoved:state.retention.some((r:any)=>r.root===dir&&r.removed)?dir:null}});
  state.finalCheck=async()=>{guard.verify();expect(guard.ledger.filter(e=>e.phase==='refused')).toEqual([]);expect(errors).toEqual([]);expect(csp).toEqual([]);expect(external).toEqual([]);expect(consoleErrors).toEqual([]);};
  await page.route('**/*',route=>{const u=new URL(route.request().url());if(['http:','https:'].includes(u.protocol)&&u.origin!==server.origin){external.push(u.origin);return route.abort();}return route.continue();});
  page.on('response',r=>{if(r.request().method()==='POST'&&r.url().includes('/api/v1/ui/'))responseWork.push(r.json().then(body=>{responses.push(body);}));});await mkdir(receipt,{recursive:true});
@@ -74,6 +90,7 @@ for(const scenario of ['review','recovery','source','adapters'] as const)test('p
   if(!state.failures.length)await step(state,'logical-cleanup',async()=>{for(const p of context.pages())await p.goto('about:blank');await guard.cleanup();guard.verify();});
   await step(state,'final-effects',async()=>{effects=await server.effects();expect(Object.values(effects as object).every(n=>n===0)).toBe(true);});
   state.writerClosed=await step(state,'writer-close',()=>server.close());
+  await step(state,'transport-diagnostics',async()=>{transportDiagnostics.stop();await testInfo.attach('request-transport.json',{body:Buffer.from(JSON.stringify(transportDiagnostics.snapshot(),null,2)),contentType:'application/json'});});
   throwFailures(state.failures);
  }
 });

@@ -218,7 +218,7 @@ export class RequestEditing{
  private async syncEntries(){if(this.loaded)this.assertPromptSaved();this.syncAnnouncements();const documentId=this.editor.view.document?.id,revision=this.editor.view.document?.revision,owner=this.editor.draftOwner;if(!documentId||!revision||!owner||!this.editor.view.ready)return;
   if(this.preferredQueuedDraftId&&this.preferredQueuedOwner!==owner){this.preferredQueuedDraftId=null;this.preferredQueuedOwner=undefined;}
   if(this.owner!==owner||this.documentId!==documentId)this.queueEditReview=null;
-  if(this.owner===owner&&this.documentId===documentId&&this.loaded){void this.preview();await this.requestEdits.sync();return;}
+  if(this.owner===owner&&this.documentId===documentId&&this.loaded){await this.syncPreviews();return;}
   if(this.entryRestoreFailure&&this.entryRestoreCurrent(this.entryRestoreFailure))return;
   if(this.entryLoadingTarget&&this.entryRestoreCurrent(this.entryLoadingTarget))return;
   const session=this.editor.session,identity=session.identity(),sessionId=this.editor.sessionId,target:EntryRestoreAuthority={owner,session,identity,sessionId,documentId,revision,documentEpoch:this.editor.documentEpoch};
@@ -247,7 +247,7 @@ export class RequestEditing{
    this.navigation.controls.replace('historical',history);this.historical=history.value.items.filter(item=>item.review.documentId===documentId);history=undefined;this.navigation.controls.replace('message',status);this._message=status.value;status=undefined;
    this.v45Edits.dispose();this.cancelPreviewReads();this.clearEntries();for(const [key,model]of prepared)this.retainEntry(key,model,true);prepared.clear();this.owner=owner;this.documentId=documentId;if(preferred){this.op=preferred.draft.operation;this.mode=preferred.draft.prompt.mode;this.preferredQueuedDraftId=null;this.preferredQueuedOwner=undefined;}this.loaded=true;published=true;this.composing=false;this.busy=false;
    this.resetQueuePage();this.queue=null;this.clearCandidateViews();this.candidateHistory=null;this.clearPromptPage();if(this.candidateImage)revokeDisplayPreviewURL(this.candidateImage.url);this.candidateImage=null;this.cap='';this.capPending=false;this.capDraft=null;this.capChangeBlocked=false;this.riskReview=null;this.sessionReview=false;this.queueAction=null;this.queueBusy=false;this.acceptanceId='';this.review=null;this.accepted=false;
-   this.changed();await this.requestEdits.sync();
+   this.changed();await this.syncPreviews();
   }catch(error){this.rememberEntryCleanup(error);if(owns()){if(!published)this.entryRestoreFailure=target;throw error;}if(error instanceof PromptReaderCleanupError)throw error;}finally{releaseUI?.();history?.release();status?.release();for(const model of prepared.values())model.release();if(serial===this.entryLoading){this.loading=false;this.entryLoadingTarget=null;}}
  }
  private assertPromptSaved(){if(this.promptInput?.refused)throw Error(REQUEST_PROMPT_REFUSAL);}
@@ -311,6 +311,20 @@ export class RequestEditing{
  private choice(label:string,value:string,items:string[],set:(next:Entry,v:string)=>void){const owns=this.owns(false),id=({'Expansion':'expansion','Rendering speed':'speed','Acceleration':'acceleration','Output format':'format','Request size':'size'} as Record<string,string>)[label]??'prompt-mode';return html`<en-select id=${'request-'+id} label=${label} .value=${value} .error=${id==='size'?this.fieldError('size'):''} @en-change=${(e:Event)=>{if(!owns())return;if(label!=='Request prompt type'){this.field(e,set,value);return;}const host=e.currentTarget as HTMLElement&{value:string};this.adapter.settled(e,()=>host.value,mode=>{if(!owns())return;try{if(mode!=='plain'&&mode!=='raw')throw Error('Use the explicit approved Composition action.');this.modeChanged(mode);}catch(error){this.adapter.write(host,'value',this.mode);this.error(error);}});}}>${items.map(v=>html`<en-select-option value=${v}>${v}</en-select-option>`)}</en-select>`;}
  private invalidateMapping(draft:Draft){if(draft.kind==='request-draft-v45-1'&&draft.operation==='generate-v45')return;const mask=draft.mask;if('preparedInputs' in draft)draft.preparedInputs=null;if(mask){delete mask.requestPlan;mask.fullAcknowledged=false;mask.cropAcknowledged=false;}}
  private numeric(field:keyof Fields,label:string){const draft=this.legacyDraft();if(!draft)return nothing;const owns=this.owns(false),accept=(ev:Event)=>owns()&&this.field(ev,(next,v)=>{if(next.draft.kind!=='request-draft-1')throw Error('Request operation changed.');next.draft.fields[field]=v;if(field==='width'||field==='height')this.invalidateMapping(next.draft);});return html`<en-number-field id=${'request-'+field} label=${label} .value=${draft.fields[field]} .error=${this.fieldError(field)} @en-input=${accept} @en-change=${accept}></en-number-field>`;}
+ private previewSync:{task:Promise<void>;owns:()=>boolean;entry:Entry|undefined;key:string}|null=null;
+ private async syncPreviews():Promise<void>{
+  const owns=this.owns(),entry=this.entry(),source=this.editDraft()?.source,key=source?this.epoch+':'+source.blob.hash:'',prior=this.previewSync;
+  if(prior){
+   // Join the complete pair, including a pending child preview. A draft edit
+   // alone does not invalidate the source read; a different source/owner does.
+   if(!prior.owns()||prior.key!==key){this.sourcePreviewRead?.abort();this.previewKey='';}
+   try{await prior.task;}catch{/* The initiating caller owns this failure. */}
+   if(!owns()||entry===prior.entry&&prior.owns()&&prior.key===key)return;
+   return this.syncPreviews();
+  }
+  const scope=this.owns(false),task=Promise.resolve().then(async()=>{if(!owns())return;await this.preview();if(owns())await this.requestEdits.sync();}).finally(()=>{if(this.previewSync?.task===task)this.previewSync=null;});
+  this.previewSync={task,owns:scope,entry,key};return task;
+ }
  private preview(){return this.entryWork(()=>this.previewSource());}
  private async previewSource(){const source=this.editDraft()?.source,key=source?this.epoch+':'+source.blob.hash:'';if(key===this.previewKey)return;this.sourcePreviewRead?.abort();this.sourcePreviewRead=null;this.previewKey=key;if(this.previewURL)revokeDisplayPreviewURL(this.previewURL);this.previewURL='';this.changed();if(!source)return;const abort=new AbortController();this.sourcePreviewRead=abort;const owner=this.editor.draftOwner,session=this.editor.session,identity=session.identity(),owns=()=>!abort.signal.aborted&&key===this.previewKey&&owner===this.editor.draftOwner&&session===this.editor.session&&identity===session.identity();try{const transport=session.transport.bind(session),url=await withDisplaySource(transport,source.assetId,{owner:'request-source-descriptor',signal:abort.signal,owns},async display=>{if(display.width!==source.width||display.height!==source.height)throw Error('Source preview dimensions changed.');return createDisplayPreviewURL(transport,display,{owner:'request-source-preview',edge:1024,signal:abort.signal,owns});});if(!owns()){revokeDisplayPreviewURL(url);return;}this.previewURL=url;this.changed();}catch(e){if(owns())this.error(e);}finally{if(this.sourcePreviewRead===abort)this.sourcePreviewRead=null;}}
  private entryCalculation<T>(value:unknown,calculate:()=>T){const scratch=reservePromptPayload('request-entry-calculation',jsonPayloadUnits(value)*20+modelPayloadBytes(value)*2+4096);try{return calculate();}finally{scratch.release();}}

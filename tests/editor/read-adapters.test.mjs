@@ -11,6 +11,66 @@ import {canonical} from '../../dist/local/server/storage/canonical.js';
 import {largeTransaction} from '../protocol/fixtures.mjs';
 const bootstrap=async(server,cookie)=>call(server.origin,'/api/v1/session/bootstrap',{method:'POST',headers:{Origin:server.origin,Cookie:cookie},body:{protocolVersion:1,pairingToken:new URL(server.issuePairingURL()).hash.slice(9)}});
 
+test('text-content cleanup rejection releases its stream slot without suppressing the error or relaxing the cap', {timeout:10000,concurrency:false}, async()=>{
+ const {EventEmitter}=await import('node:events');
+ const {ProtocolRoutes}=await import('../../dist/local/server/protocol.js');
+ const {ProtocolError}=await import('../../dist/local/server/errors.js');
+ const {newDraft}=await import('../../dist/local/src/request/family.js');
+ const defer=()=>{let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});return {promise,resolve,reject};};
+ // Exercise the actual route, typed draft reader and stream ownership with a
+ // controlled writer rejection. This does not simulate worker queue pressure.
+ const bytes=Buffer.from('Exact retained text'),ref={hash:'sha256:'+createHash('sha256').update(bytes).digest('hex'),byteLength:String(bytes.length),mediaType:'text/plain'};
+ const draftBytes=Buffer.from(JSON.stringify(newDraft(ref))),blob={hash:'sha256:'+createHash('sha256').update(draftBytes).digest('hex'),byteLength:String(draftBytes.length),mediaType:'application/json'};
+ const draft={id:'request_cleanup',kind:'request',generation:'1',assetId:'draft_asset'};
+ const drops=[],pending=[];let notifyDrop,opened=0;
+ const writer={
+  uiRead:async()=>({drafts:[draft]}),
+  assetProjection:async id=>{assert.equal(id,draft.assetId);return {asset:{blob}};},
+  consumeMetadata:async(value,consume)=>{assert.deepEqual(value,blob);return consume(draftBytes);},
+  openTextContent:async value=>{assert.deepEqual(value,ref);return 'text_'+(++opened);},
+  content:async(_handle,offset,length)=>bytes.subarray(Number(offset),Number(offset)+length),
+  releaseResourceBytes(){},
+  dropContent(handle){const gate=defer(),notify=notifyDrop;notifyDrop=undefined;const drop={handle,...gate};drops.push(drop);assert.equal(typeof notify,'function','unexpected content cleanup');notify(drop);return gate.promise;},
+ };
+ const now=Date.now(),session={clientId:'client_1',cookieHash:'a'.repeat(64),expires:now+3600000,idle:now+3600000};
+ const routes=new ProtocolRoutes(writer,()=>now),path='/api/v1/ui/session_1/request',route=routes.match(path);
+ assert.equal(route.kind,'request-draft-view');
+ const params=new URLSearchParams({draftId:draft.id,generation:draft.generation,content:'1'});
+ const invoke=()=>{
+  const response=Object.assign(new EventEmitter(),{
+   destroyed:false,closed:false,writableFinished:false,chunks:[],
+   writeHead(status,headers){this.status=status;this.headers=headers;},
+   write(chunk,callback){this.chunks.push(Buffer.from(chunk));callback();return true;},
+   end(){this.writableFinished=true;this.emit('finish');},
+  });
+  const settled=routes.handle({method:'GET',url:path},response,route,params,()=>session,async()=>{}).then(()=>null,error=>error);
+  pending.push(settled);return {response,settled};
+ };
+ const hold=async()=>{
+  assert.equal(notifyDrop,undefined);const entered=defer();notifyDrop=entered.resolve;const request=invoke();
+  const drop=await Promise.race([entered.promise,request.settled.then(error=>{throw error??Error('Route returned before content cleanup');})]);
+  assert.equal(request.response.status,200);assert.equal(request.response.writableFinished,true);
+  assert.deepEqual(Buffer.concat(request.response.chunks),bytes);assert.equal(request.response.headers.ETag,'"'+ref.hash+'"');
+  return {...request,drop};
+ };
+ try{
+  const held=[];for(let i=0;i<16;i++)held.push(await hold());
+  assert.equal(opened,16);assert.equal(routes.streams,16,'unfinished cleanup still owns all sixteen slots');
+  const blocked=invoke(),busy=await blocked.settled;
+  assert.equal(busy.code,'LOCAL_BUSY');assert.equal(busy.status,429);assert.equal(busy.retry,'read-or-transfer');
+  assert.equal(blocked.response.status,undefined);assert.equal(opened,16);assert.equal(drops.length,16);
+  const cleanupError=new ProtocolError('SERVER_UNAVAILABLE',undefined,'read-or-transfer');
+  held[0].drop.reject(cleanupError);assert.equal(await held[0].settled,cleanupError,'the exact cleanup rejection survives route handling');
+  assert.equal(routes.streams,15,'a rejected cleanup must release exactly its own HTTP slot');
+  const replacement=await hold();assert.equal(routes.streams,16);assert.equal(opened,17);
+  replacement.drop.resolve();assert.equal(await replacement.settled,null);assert.equal(routes.streams,15);
+  for(const request of held.slice(1)){request.drop.reject(cleanupError);assert.equal(await request.settled,cleanupError);}
+  assert.equal(routes.streams,0);
+  const healthy=await hold();assert.equal(routes.streams,1);healthy.drop.resolve();assert.equal(await healthy.settled,null);assert.equal(routes.streams,0);
+  assert.equal(opened,18);assert.equal(drops.length,18);assert.equal(new Set(drops.map(drop=>drop.handle)).size,18,'each opened handle is dropped exactly once');
+ }finally{for(const drop of drops)drop.resolve();await Promise.all(pending);}
+});
+
 test('exact accepted result remains readable after snapshot advancement, restart and renewal; read leases never extend authority',async t=>{
  let now=Date.now();const f=await setup(t,{now:()=>now}),c=f.command();const before=await f.post('/api/v1/commands',c);assert.equal(before.json.receipt.status,'accepted');
  for(let i=1;i<251;i++)assert.equal((await f.post('/api/v1/commands',f.command({expectedDocumentRevision:String(i),body:{type:'SaveCheckpoint',name:'snapshot '+i}}))).status,200);

@@ -118,7 +118,7 @@ export async function openWriter(options: WriterOptions, testing?: WriterTestOpt
   function request<T>(method: string, args: Record<string, unknown> = {},diagnostic?:DiagnosticIngress<unknown>): Promise<T> {
     const refuse=(error:unknown):Promise<T>=>{diagnostic?.settledWithoutValue();return Promise.reject(error);};
     if (ended || (closing && method !== 'close')) return refuse(new StoreError('CLOSED'));
-    if (pending.size >= 64 && method !== 'close' && method !== 'displayRelease' && method !== 'compositionRelease' && method !== 'compositionContentDrop' && method !== 'dropContent') return refuse(new StoreError('QUEUE_FULL'));
+    if (pending.size >= 64 && method !== 'close' && method !== 'displayRelease' && method !== 'assetRelease' && method !== 'compositionRelease' && method !== 'compositionContentDrop' && method !== 'dropContent') return refuse(new StoreError('QUEUE_FULL'));
     try { if (method !== 'close') owner.check(); } catch (error) { return refuse(safeError(error)); }
     return new Promise<T>((resolve, reject) => {
       const releaseRequest=method==='adapterResourceSnapshot'?()=>{}:adapterResources.handle('writer-sender','pending-request');
