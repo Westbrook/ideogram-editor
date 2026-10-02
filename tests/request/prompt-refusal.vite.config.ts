@@ -9,7 +9,7 @@ const here=dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
  root:resolve(here,'prompt-refusal-fixture'),
  resolve:{alias:{'@request-prompt-source':resolve(sourceRoot,'src')},dedupe:['lit','signal-polyfill','signal-utils']},
- server:{host:'127.0.0.1',port:4187,strictPort:true,fs:{strict:true,allow:[sourceRoot,resolve('.'),here]}},
+ server:{host:'127.0.0.1',port:0,strictPort:true,hmr:false,fs:{strict:true,allow:[sourceRoot,resolve('.'),here]}},
  cacheDir:resolve(process.env.REQUEST_PROMPT_BROWSER_OUTPUT??'artifacts/request-prompt-refusal-browser','vite-cache'),
  build:{target:'esnext',outDir:resolve(process.env.REQUEST_PROMPT_BROWSER_OUTPUT??'artifacts/request-prompt-refusal-browser','fixture'),emptyOutDir:true},
 });

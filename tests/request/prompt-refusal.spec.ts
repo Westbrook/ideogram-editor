@@ -1,5 +1,21 @@
-import {test,expect,type Page,type Locator} from '@playwright/test';
+import {test as base,expect,type Page,type Locator} from '@playwright/test';
+import {createServer,type ViteDevServer} from 'vite';
+import {fileURLToPath} from 'node:url';
+import {resolve} from 'node:path';
 import type {Snapshot} from './prompt-refusal-fixture/types.js';
+
+const test=base.extend<{}, {fixtureOrigin:string}>({
+ fixtureOrigin:[async({},use,workerInfo)=>{
+  let server:ViteDevServer|undefined;
+  try{
+   server=await createServer({configFile:fileURLToPath(new URL('./prompt-refusal.vite.config.ts',import.meta.url)),cacheDir:resolve(workerInfo.project.outputDir,'vite-cache-'+workerInfo.workerIndex)});
+   await server.listen();
+   const address=server.httpServer?.address();
+   if(!address||typeof address==='string'||address.address!=='127.0.0.1'||!Number.isInteger(address.port)||address.port<=0||address.port>65535)throw new Error('Owned prompt fixture server did not expose a bound loopback TCP port');
+   await use('http://127.0.0.1:'+address.port);
+  }finally{await server?.close();}
+ },{scope:'worker',timeout:60_000}],
+});
 
 // This suite uses native browser editing for the first four cases. The last
 // case deliberately dispatches synthetic composition events and does not claim
@@ -11,11 +27,11 @@ async function seed(page:Page,text:string){await prompt(page).fill(text);await e
 async function selection(input:Locator,start:number,end=start){await input.focus();await input.evaluate((element,range)=>{const native=element as HTMLTextAreaElement;native.setSelectionRange(range.start,range.end,'forward');},{start,end});}
 async function insert(page:Page,text:string){await page.keyboard.insertText(text);}
 async function retry(page:Page,text:string){await page.evaluate(()=>window.promptFixture.releasePressure());await page.getByRole('button',{name:'Retry saving this prompt',exact:true}).click();await expect.poll(()=>lastSaved(page)).toBe(text);await expect.poll(async()=>(await snapshot(page)).refused).toBe(false);await expect(prompt(page)).toHaveValue(text);}
-test.beforeEach(async({page},testInfo)=>{
+test.beforeEach(async({page,fixtureOrigin},testInfo)=>{
  const external:string[]=[],browserErrors:string[]=[];
  page.on('pageerror',error=>browserErrors.push(error.message));
- await page.route('**/*',route=>{const url=new URL(route.request().url());if(['http:','https:'].includes(url.protocol)&&url.origin!=='http://127.0.0.1:4187'){external.push(url.origin);return route.abort();}return route.continue();});
- await page.goto('/');await expect(page.getByRole('status',{name:'Fixture readiness',exact:true})).toHaveText(/^Ready: (scoped|global)$/);
+ await page.route('**/*',route=>{const url=new URL(route.request().url());if(['http:','https:'].includes(url.protocol)&&url.origin!==fixtureOrigin){external.push(url.origin);return route.abort();}return route.continue();});
+ await page.goto(fixtureOrigin);await expect(page.getByRole('status',{name:'Fixture readiness',exact:true})).toHaveText(/^Ready: (scoped|global)$/);
  await expect(prompt(page)).toBeVisible();
  (testInfo as typeof testInfo&{fixtureObservations?:unknown}).fixtureObservations={external,browserErrors};
 });

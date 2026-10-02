@@ -5,15 +5,23 @@ Use the repository-pinned Node 26.10.0, npm 12.1.0, Playwright 1.63.0 and its
 matching Chromium, Firefox and WebKit installations. Do not install a different
 browser revision to make a gate pass. All output defaults to ignored artifacts.
 
-From the repository root, after assembling this packet with its prerequisites:
+From the repository root, with the pinned toolchain selected and an explicit
+evidence allocation covering a fresh output leaf, use the shared runner:
 
-  export REQUEST_PROMPT_SOURCE_ROOT=/absolute/path/to/complete/assembled/tree
-  export REQUEST_PROMPT_BROWSER_OUTPUT=artifacts/request-prompt-refusal-browser
-  .toolchain/bin/node node_modules/typescript/bin/tsc -p artifacts/allocation-followup-staging/request-prompt-refusal/tests/request/prompt-refusal.tsconfig.json
-  .toolchain/bin/node node_modules/@playwright/test/cli.js test --config artifacts/allocation-followup-staging/request-prompt-refusal/tests/request/prompt-refusal.playwright.config.ts
+  export IE_EVIDENCE_ALLOCATION=/absolute/path/to/evidence-allocation.json
+  npm run validate -- run --groups preflight --browsers all --browser-groups request-prompt-refusal --output /absolute/path/to/allocated/fresh-run
 
-The config starts an owned Vite server on literal IPv4 127.0.0.1:4187 with
-strictPort and reuseExistingServer=false. The selected source root must contain
+The worker owns a Vite server on literal IPv4 127.0.0.1 with port0, strictPort
+and HMR disabled. It awaits listen, validates the actual bound TCP address, and
+uses only that exact origin for navigation and the existing network refusal
+check. Each worker cache stays below its allocated project output; finally
+awaits owned server close. No fixed port is probed/reused by this fixture and no
+foreign process is stopped. Pinned Vite internally probes ephemeral candidates
+then binds the selected port. That final bind can still race and fails closed;
+the fixture adds no probe, retry, or server reuse.
+REQUEST_PROMPT_SOURCE_ROOT may select the complete assembled source tree; the
+shared runner supplies REQUEST_PROMPT_BROWSER_OUTPUT for each engine. The selected
+source tree must contain
 the complete effective src graph, including request-prompt-memory.ts. It is not
 a correction overlay; every product import and the fixture ledger use that one
 tree. The repository's installed frozen public En Reve packages are unchanged.
