@@ -784,3 +784,47 @@ test('owner replacement and document release suppress obsolete review settlement
   assert.deepEqual(allocationLedger.snapshot().byKind.control,retainedUI,'All controller control reservations, including review progress, drain back to the separately retained fixture UI root');
  }
 });
+
+test('queue command protects its receipt refresh from an already scheduled poll and resumes polling afterward',async t=>{
+ const f=await paginationFixture(t),receipt=pendingPage(),refresh=pendingPage(),body={type:'RecoverJob',jobId:'newest',attemptId:'attempt-newest',expectedVersion:'1'};
+ const observed=observeRequestAnnouncements(f),reads=f.reads.length;let settled=false,error;
+ f.editor.command=()=>receipt.promise;f.setReader(()=>refresh.promise);
+ f.instance.action(event(),async()=>{try{await f.instance.queueCommand(body);}catch(value){error=value;throw value;}finally{settled=true;}});await f.advance(0);
+ try{
+  assert.equal(f.instance.queueBusy,true);assert.equal(f.reads.length,reads);assert.notEqual(f.instance.pollTimer,null,'A real earlier queue refresh scheduled the timer');
+  receipt.resolve([{type:'QueueStateChanged',payload:{}}]);await flush();assert.equal(f.reads.length,reads+1,'The saved command starts its own original refresh');
+  await f.advance(150);assert.equal(f.reads.length,reads+1,'The prior timer cannot invalidate the held command refresh');assert.equal(f.instance.pollTimer,null);assert.equal(settled,false);
+  f.instance.poll();await f.advance(300);assert.equal(f.reads.length,reads+1,'Busy commands cannot schedule another background read');
+  refresh.resolve(f.pages.get(''));await flush();assert.equal(settled,true);assert.equal(error,undefined);assert.equal(f.instance.queueBusy,false);assert.deepEqual(f.instance.issues,[]);assert.deepEqual(observed.focus,[]);
+  assert.match(f.instance.message,/^Queue change saved locally\./);assert(!observed.changes.some(value=>value.includes('could not be confirmed')));
+  f.setReader(null);const resumed=f.reads.length;assert.notEqual(f.instance.pollTimer,null,'Settled command restores background observation');await f.advance(150);assert.equal(f.reads.length,resumed+1);assert.deepEqual(observed.focus,[]);
+ }finally{receipt.resolve([]);refresh.resolve(f.pages.get(''));await flush();await Promise.allSettled([...f.instance.entryTasks]);await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
+});
+
+test('a poll already reading before a queue command cannot inspect candidates while that command owns the queue',async t=>{
+ const f=await paginationFixture(t),old=pendingPage(),receipt=pendingPage(),body={type:'RecoverJob',jobId:'newest',attemptId:'attempt-newest',expectedVersion:'1'};
+ const view=structuredClone(f.pages.get(''));view.jobs[0].attempts[0].requestId='existing-provider-request';let candidateReads=0;
+ const json=f.editor.json.bind(f.editor);f.editor.json=path=>path.includes('/candidates')?(candidateReads++,candidateObservation()):json(path);f.setReader(()=>old.promise);
+ await f.advance(150);assert.equal(f.instance.polling,true);f.editor.command=()=>receipt.promise;const command=f.instance.queueCommand(body);
+ try{
+  old.resolve(view);await flush();assert.equal(f.instance.queueBusy,true);assert.equal(f.instance.polling,false);assert.equal(candidateReads,0,'An older background continuation yields to the explicit action');assert.equal(f.instance.pollTimer,null);
+  f.setReader(null);receipt.resolve([{type:'QueueStateChanged',payload:{}}]);await command;await flush();assert.equal(f.instance.queueBusy,false);assert.notEqual(f.instance.pollTimer,null);assert.deepEqual(f.focus,[]);
+ }finally{old.resolve(view);receipt.resolve([]);await command;await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
+});
+
+test('queue command keeps genuine refresh rejection and validation focus while restoring later polling',async t=>{
+ const f=await paginationFixture(t),observed=observeRequestAnnouncements(f),failure=Error('Exact queue response failure'),body={type:'RecoverJob',jobId:'newest',attemptId:'attempt-newest',expectedVersion:'1'};let caught;
+ f.setReader(()=>{throw failure;});f.instance.action(event(),async()=>{try{await f.instance.queueCommand(body);}catch(error){caught=error;throw error;}});await f.advance(0);await flush();
+ try{
+  assert.strictEqual(caught,failure,'No broad abort or error suppression');assert.equal(f.instance.queueBusy,false);assert.match(f.instance.message,/^Queue change could not be confirmed\./);assert.deepEqual(f.instance.issues,[{field:'review',code:'REVIEW',message:failure.message}]);assert.deepEqual(observed.focus,['#request-errors']);
+  f.setReader(null);const reads=f.reads.length;await f.advance(150);assert.equal(f.reads.length,reads+1);assert.deepEqual(observed.focus,['#request-errors'],'Later background observation adds no focus action');
+ }finally{await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
+});
+
+test('retired queue command cannot restart polling or disturb a successor action',async t=>{
+ const f=await paginationFixture(t),receipt=pendingPage(),body={type:'RecoverJob',jobId:'newest',attemptId:'attempt-newest',expectedVersion:'1'};f.editor.command=()=>receipt.promise;
+ const command=f.instance.queueCommand(body);await flush();await f.advance(150);assert.equal(f.instance.pollTimer,null);
+ const replacement={};f.instance.queueAction=replacement;f.editor.draftOwner={drafts:new Map()};const reads=f.reads.length;
+ try{receipt.resolve([{type:'QueueStateChanged',payload:{}}]);await command;await flush();assert.strictEqual(f.instance.queueAction,replacement);assert.equal(f.instance.queueBusy,true);assert.equal(f.instance.pollTimer,null);await f.advance(300);assert.equal(f.reads.length,reads);assert.deepEqual(f.focus,[]);}
+ finally{receipt.resolve([]);await command;await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
+});
