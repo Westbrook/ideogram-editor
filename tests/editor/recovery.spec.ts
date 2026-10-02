@@ -141,13 +141,28 @@ test('real snapshot gap recovery publishes the complete current document after o
 });
 
 test('new-port restart discovers owned pending commands with exact original bytes before same-ID receipt recovery',async({page,context})=>{
- const f=await setup(page,context),holds:any[]=[],originals=new Map<string,string>(),failures:unknown[]=[];let restarted:Awaited<ReturnType<typeof serverProcess>>|undefined;
+ const f=await setup(page,context),holds:any[]=[],originals=new Map<string,string>(),failures:unknown[]=[];let restarted:Awaited<ReturnType<typeof serverProcess>>|undefined,originalPath='',originalHash='',originalLength='',originalBytes:Buffer|undefined;
+ const restoreOriginal=async()=>{if(!originalBytes)return;expect('sha256:'+createHash('sha256').update(originalBytes).digest('hex')).toBe(originalHash);expect(String(originalBytes.length)).toBe(originalLength);await writeFile(originalPath,originalBytes,{mode:0o600});expect(await readFile(originalPath)).toEqual(originalBytes);originalBytes=undefined;};
+ const readCohort=()=>{const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});try{db.exec('BEGIN');return {pending:db.prepare('SELECT id,hash,canonical,original,phase FROM raster_preparations ORDER BY id').all() as {id:string;hash:string;canonical:string;original:string;phase:string}[],receipts:db.prepare('SELECT id FROM commands ORDER BY id').all().filter(row=>originals.has(String(row.id)))};}finally{db.close();}};
+ const assertCohort=(phase:'preparing'|'waiting-for-resources')=>{
+  const cohort=readCohort();expect(originals.size).toBe(40);expect(cohort.pending.map(row=>row.id)).toEqual([...originals.keys()].sort());expect(cohort.pending.map(row=>row.phase)).toEqual(Array(40).fill(phase));expect(cohort.receipts).toEqual([]);
+  for(const row of cohort.pending){expect(row.original).toBe(originals.get(row.id));const request=JSON.parse(row.original);expect(request.command.commandId).toBe(row.id);expect(request.command.clientId).toBe(f.last.command.clientId);expect(JSON.parse(row.canonical)).toEqual(request);expect(row.hash).toBe('sha256:'+createHash('sha256').update(row.canonical).digest('hex'));}
+ };
  try{
- const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});const rows=db.prepare('SELECT json FROM assets').all() as {json:string}[];db.close();const original=rows.map(x=>JSON.parse(x.json)).find(x=>x.qualification==='pending-decoder');expect(original).toBeTruthy();
+ const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});const rows=db.prepare('SELECT json FROM assets').all() as {json:string}[];db.close();const assets=rows.map(x=>JSON.parse(x.json)),original=assets.find(x=>x.qualification==='pending-decoder');expect(original).toBeTruthy();
+ // The restart fault must leave the actual displayed canonical content intact.
+ const displayedId=await page.locator('canvas[data-asset]').getAttribute('data-asset'),displayed=assets.find(asset=>asset.id===displayedId);expect(displayed?.qualification).toBe('canonical-raster');
+ for(const ref of [displayed.blob,displayed.raster.manifest,displayed.raster.pixels])expect(original.blob.hash).not.toBe(ref.hash);
  for(let i=0;i<2;i++){const stagingId=randomUUID();expect((await call(f.server.origin,'/api/v1/assets/staging',{method:'POST',body:{protocolVersion:1,stagingId,purpose:'caption',expectedBytes:'1',sha256:'sha256:'+createHash('sha256').update('x').digest('hex'),mediaType:'text/plain'},headers:f.headers()})).status).toBe(201);const h=exchange(f.server.origin,'/api/v1/assets/staging/'+stagingId,{method:'PUT',defer:true,headers:{...f.headers(),'Content-Type':'application/octet-stream','Content-Length':'1','Upload-Offset':'0'}});h.response.catch(()=>{});h.request.flushHeaders();holds.push(h);}
  await page.waitForTimeout(30);
  for(let i=0;i<40;i++){const c=command(f.last.command.expectedEntityVersions,{clientId:f.last.command.clientId,documentId:null,expectedDocumentRevision:null,body:{type:'PrepareRaster',assetId:original.id}}),wire=JSON.stringify(c,null,2);originals.set(c.command.commandId,wire);expect((await call(f.server.origin,'/api/v1/commands',{method:'POST',raw:Buffer.from(wire),headers:f.headers()})).status).toBe(202);}
- const old=f.server.origin;await f.server.kill();holds.forEach(h=>h.request.destroy());restarted=await serverProcess(f.root);expect(restarted.origin).not.toBe(old);
+ // The exact durable cohort, not the earlier upload delay or HTTP 202, is the
+ // precondition. Recheck after the old writer exits so no receipt can race it.
+ assertCohort('preparing');const old=f.server.origin;await f.server.kill();holds.forEach(h=>h.request.destroy());assertCohort('preparing');
+ // Missing encoded bytes survive restart. Every preparing row must fail its
+ // real source proof in this new epoch and pause before restoring those bytes.
+ originalPath=join(f.root,'objects','sha256',original.blob.hash.slice(7,9),original.blob.hash.slice(7));originalHash=original.blob.hash;originalLength=original.blob.byteLength;const backup=await readFile(originalPath);expect('sha256:'+createHash('sha256').update(backup).digest('hex')).toBe(originalHash);expect(String(backup.length)).toBe(originalLength);originalBytes=backup;await unlink(originalPath);
+ restarted=await serverProcess(f.root);expect(restarted.origin).not.toBe(old);await expect.poll(()=>readCohort().pending.map(row=>row.phase)).toEqual(Array(40).fill('waiting-for-resources'));assertCohort('waiting-for-resources');
  const reads:Promise<void>[]=[],readIds=new Set<string>();page.on('response',r=>{const match=new URL(r.url()).pathname.match(/commands\/([^/]+)\/original$/);if(match&&originals.has(match[1])){readIds.add(match[1]);const read=r.text().then(text=>{expect(text).toBe(originals.get(match[1]));});void read.catch(()=>{});reads.push(read);}});
  await page.goto(await restarted.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await expect.poll(()=>readIds.size).toBe(40);await Promise.all(reads);expect([...readIds].sort()).toEqual([...originals.keys()].sort());
  const pending=page.getByRole('group',{name:'Pending operations',exact:true}),retry=pending.getByRole('button',{name:'Check and retry original',exact:true}),first=pending.getByRole('button',{name:'First pending page',exact:true}),previous=pending.getByRole('button',{name:'Previous pending page',exact:true}),next=pending.getByRole('button',{name:'Next pending page',exact:true});
@@ -157,8 +172,11 @@ test('new-port restart discovers owned pending commands with exact original byte
  await previous.click();await pageRows(32);await expect(first).toBeDisabled();await expect(previous).toBeDisabled();
  await next.click();await pageRows(8);await first.click();await pageRows(32);await next.click();await pageRows(8);
  const retryId=[...originals.keys()].sort()[32],retryWires:string[]=[];page.on('request',r=>{if(new URL(r.url()).pathname==='/api/v1/commands'&&r.method()==='POST')retryWires.push(r.postData()!);});
+ // Exact-byte restoration does not itself release any new-epoch paused ID.
+ await restoreOriginal();assertCohort('waiting-for-resources');
  await retry.first().click();await expect(page.getByText('PrepareRaster accepted and saved locally.',{exact:true})).toBeVisible();expect(retryWires).toEqual([originals.get(retryId)]);expect(JSON.parse(retryWires[0]).command.commandId).toBe(retryId);await pageRows(7);await expect(next).toBeDisabled();await first.click();await pageRows(32);await next.click();await pageRows(7);expect(Object.values(await restarted.effects()).every(x=>x===0)).toBe(true);
  }catch(error){failures.push(error);}finally{
+  try{await restoreOriginal();}catch(error){failures.push(error);}
   for(const hold of holds)try{hold.request.destroy();}catch(error){failures.push(error);}
   // kill() already owns the original process's one shutdown path. Attempt
   // every still-open owner even when another owner's cleanup has failed.

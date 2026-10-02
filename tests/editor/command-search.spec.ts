@@ -35,7 +35,7 @@ test('Command search opens Storage library by keyboard without an open document'
   await query.fill('storage library');await expect(searchContent(page).getByRole('button',{name:'Storage library',exact:true})).toHaveAttribute('aria-disabled','false');
   await query.press('Enter');await expect(dialog).toBeHidden();const library=page.getByRole('dialog',{name:'Storage library',exact:true});await expect(library).toBeVisible();
   await expect(editorContent(page).getByRole('table',{name:'Known content by category',exact:true})).toBeVisible();await expect(editorContent(page)).toContainText('Categories can overlap');expect(commands).toEqual([]);
-  await editorContent(page).getByRole('button',{name:'Close',exact:true}).click();await expect(library).toBeHidden();await expect(page.getByText('No document open',{exact:true})).toBeVisible();expect(commands).toEqual([]);
+  await editorContent(page).locator('[slot="footer"]').getByRole('button',{name:'Close',exact:true}).click();await expect(library).toBeHidden();await expect(page.getByText('No document open',{exact:true})).toBeVisible();expect(commands).toEqual([]);
   await record('command-search-storage',{documentless:true,keyboardRoute:'Enter',inventory:'Known content by category',closed:true,commands});
 });
 
