@@ -47,8 +47,10 @@ async function fixture(t,{historical=[]}={}){
   async ownedRequestReview(body){reviews.push(structuredClone(body));return own(body.type==='PrepareRequestReview'?{review:{id:'review-'+reviews.length,token:'exact-token',endpoint:'ideogram/v4',request:{kind:'generate'},prompt:{hash:'sha256:'+('1'.repeat(64)),byteLength:'12'},estimate:{unknown:[]}}}:{acceptedReview:body.reviewId,requestId:'acceptance-exact'});},
   async withCommandEvents(body,consume,document){assert.equal(document,null);commands.push(structuredClone(body));const model=own([{type:'JobQueued'}]);try{return await consume(model.value);}finally{model.release();}},
  };
- const controls=new Map();
- const host=new ElementFixture('ideogram-editor',{},dom);Object.assign(host,{updateComplete:Promise.resolve(),querySelectorAll(){return modals;},querySelector(selector){return selector==='#prompt'?(prompt.isConnected?prompt:null):selector==='#request-review'?reviewRegion:selector==='#request-errors'?errors:controls.get(selector.slice(1))??null;},requestUpdate(){this.updateComplete=Promise.resolve().then(()=>{rendered=flow.render();const field=find(rendered,'<en-textarea id="prompt"');prompt.isConnected=!!field;if(field){const index=field.strings.findIndex(part=>part.includes('.value='));const value=field.values[index];if(typeof value==='string')prompt.value=value;}});}});
+ const controls=new Map(),foreignControls=new Map(),typedRequest=new ElementFixture('section',{class:'typed-request'},dom);
+ const ownedControl=selector=>selector==='#prompt'?(prompt.isConnected?prompt:null):selector==='#request-review'?reviewRegion:selector==='#request-errors'?errors:controls.get(selector.slice(1))??null;
+ typedRequest.querySelector=ownedControl;
+ const host=new ElementFixture('ideogram-editor',{},dom);Object.assign(host,{updateComplete:Promise.resolve(),querySelectorAll(){return modals;},querySelector(selector){return selector==='.typed-request'?(typedRequest.isConnected?typedRequest:null):foreignControls.get(selector.slice(1))??ownedControl(selector);},requestUpdate(){this.updateComplete=Promise.resolve().then(()=>{rendered=flow.render();const field=find(rendered,'<en-textarea id="prompt"');prompt.isConnected=!!field;if(field){const index=field.strings.findIndex(part=>part.includes('.value='));const value=field.values[index];if(typeof value==='string')prompt.value=value;}});}});
  flow=new RequestEditing(host,editor);
  const stopPoll=()=>{if(flow.pollTimer)clearTimeout(flow.pollTimer);flow.pollTimer=null;};
  t.after(async()=>{if(closed)return;closed=true;stopPoll();await flow.dispose();await turn();assert.equal(registrations.size,0,'Draft registrations released');ui.release();for(const model of models)assert.throws(()=>model.pin(),/MODEL_MEMORY_RELEASED/);assert.deepEqual(usage(),baseline,'Controller ownership is released');});
@@ -63,7 +65,7 @@ async function fixture(t,{historical=[]}={}){
   const callback=options.callback??handler(rendered,scope===reviewRegion?'<en-card id="request-review"':'<div data-request-shortcut-scope','@keydown=');
   callback(event);dispatch=false;event.currentTarget=null;return event;
  };
- return {flow,editor,host,dom,modals,region,reviewRegion,prompt,reviews,commands,saved,type,keyboard,errors,controls,async input(id,value,event='@en-input'){let node=controls.get(id);if(!node){node=new ElementFixture(id==='request-seed'?'en-text-field':['request-size','request-dimensions'].includes(id)?'en-select':'en-number-field',{id},dom);controls.set(id,node);}node.value=value;controlProperty(rendered,id,event)(actionEvent(node));await flush();return node;},summary(target,callback=handler(rendered,'<en-validation-summary id="request-errors"','@en-action=')){const event={detail:{data:{target}},defaultPrevented:false,preventDefault(){this.defaultPrevented=true;}};callback(event);return event;},render:()=>rendered,stopPoll,identity(value){identity=value;},async click(id){const node=new ElementFixture('en-button',{id},dom);handler(rendered,'<en-button id="'+id+'"')(actionEvent(node));await turn();},composition(start){handler(rendered,'<section aria-label="Typed request draft"',start?'@compositionstart=':'@compositionend=')();}};
+ return {flow,editor,host,dom,modals,region,reviewRegion,prompt,reviews,commands,saved,type,keyboard,errors,controls,foreignControls,typedRequest,async input(id,value,event='@en-input'){let node=controls.get(id);if(!node){node=new ElementFixture(id==='request-seed'?'en-text-field':['request-size','request-dimensions'].includes(id)?'en-select':'en-number-field',{id},dom);controls.set(id,node);}node.value=value;controlProperty(rendered,id,event)(actionEvent(node));await flush();return node;},summary(target,callback=handler(rendered,'<en-validation-summary id="request-errors"','@en-action=')){const event={detail:{data:{target}},defaultPrevented:false,preventDefault(){this.defaultPrevented=true;}};callback(event);return event;},render:()=>rendered,stopPoll,identity(value){identity=value;},async click(id){const node=new ElementFixture('en-button',{id},dom);handler(rendered,'<en-button id="'+id+'"')(actionEvent(node));await turn();},composition(start){handler(rendered,'<section aria-label="Typed request draft"',start?'@compositionstart=':'@compositionend=')();}};
 }
 
 for(const modifier of ['ctrlKey','metaKey'])test(modifier+' Enter prepares, focuses an unaccepted review, then queues only the explicitly accepted exact review',async t=>{
@@ -196,4 +198,21 @@ for(const scenario of [
  remaining.forEach((attachment,index)=>assert.equal(controlProperty(f.render(),'request-adapter-scale-'+index,'.value'),attachment.scale));assert.deepEqual(f.reviews,[]);assert.deepEqual(f.commands,[]);
  accordion.open=false;const focused=remove.focuses;f.summary(scenario.target,stale);await flush();assert.equal(accordion.open,false);assert.deepEqual(opened,[true]);assert.equal(remove.focuses,focused,'A corrected summary cannot reveal or focus the former removal control');
  await f.click('prepare-request');assert(!f.flow.issueItems.some(item=>item.message.startsWith(scenario.code+':')));assert(f.flow.issueItems.some(item=>item.message.startsWith('ADAPTER_UNAVAILABLE:')),'Structural correction does not grant local eligibility');assert.equal(control(f.render(),scenario.inline),undefined);assert.deepEqual(f.flow.entry().draft.adapters,remaining);assert.deepEqual(f.reviews,[]);assert.deepEqual(f.commands,[]);
+});
+
+for(const field of ['width','height','dimensions'])test('validation focus stays in the typed request with an earlier foreign '+field+' control',async t=>{
+ const f=await fixture(t),id='request-'+field;
+ if(field==='dimensions'){f.flow.operationChanged('Generate with Ideogram v4.5');f.flow.mutateEntry(undefined,next=>Object.assign(next.draft.fields,{size:'custom',width:'1025',height:'1024'}));await flush();f.controls.set(id,new ElementFixture('en-select',{id},f.dom));}
+ else await f.input(id,field==='width'?'':'900');
+ const node=f.controls.get(id),foreign=new ElementFixture(field==='dimensions'?'en-select':'en-number-field',{id},f.dom);foreign.hidden=true;f.foreignControls.set(id,foreign);
+ assert.equal(f.host.querySelector('#'+id),foreign,'The earlier hidden Composition field wins a host-wide lookup');assert.equal(f.typedRequest.querySelector('#'+id),node);
+ await f.click('prepare-request');assert(f.flow.issueItems.some(item=>item.target===id));assert.equal(f.dom.activeElement,f.errors);
+ assert.equal(f.summary(id).defaultPrevented,true);assert.equal(f.dom.activeElement,node);assert.equal(node.focuses,1);assert.equal(foreign.focuses,0);assert.deepEqual(f.reviews,[]);assert.deepEqual(f.commands,[]);
+});
+
+for(const missing of ['region','control','issue'])test('validation focus does not fall back to a foreign target when the owned '+missing+' is absent',async t=>{
+ const f=await fixture(t),id='request-width',node=await f.input(id,'');await f.click('prepare-request');const foreign=new ElementFixture('en-number-field',{id},f.dom);f.foreignControls.set(id,foreign);
+ if(missing==='region')f.typedRequest.isConnected=false;else if(missing==='control')f.controls.delete(id);
+ const target=missing==='issue'?'request-height':id;if(missing==='issue'){foreign.id=target;f.foreignControls.set(target,foreign);f.controls.set(target,new ElementFixture('en-number-field',{id:target},f.dom));}
+ assert.equal(f.host.querySelector('#'+target),foreign);const before=f.dom.activeElement;assert.equal(f.summary(target).defaultPrevented,true);assert.equal(f.dom.activeElement,before);assert.equal(node.focuses,0);assert.equal(foreign.focuses,0);if(missing==='issue')assert.equal(f.controls.get(target).focuses,0);assert.deepEqual(f.reviews,[]);assert.deepEqual(f.commands,[]);
 });
