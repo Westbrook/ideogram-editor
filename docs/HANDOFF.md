@@ -1,5 +1,14 @@
 # Continue Ideogram Editor in another harness
 
+## Qualification boundary after publication
+
+The full editor remains published and live-smoke verified from main `17cb1ec459d03f739057192fc3df9da2426a62b6`; only handoff documentation has changed on the implementation branch since that source. All product changes, including the shared Spectrum theme, are centralized in main. The independent report records the completed three-unit Pages addition at65/135; this is not original product qualification completion.
+
+After closed363 diagnosis, root explicitly admitted one fresh unchanged four-owner D11 attempt using original allocation03 and every original guard. Run364 exited2 before source/dependency capture or gates: the initial complete scan took2,839.713ms against the1,000ms observation window; its final complete scan took706.029ms. Neither scan had an I/O failure or mutation. The successful final sample does not repair initial admission. The independently sealed disposition is `artifacts/integration-corrections/closed-run364-disposition-01/disposition.json`, SHA256 `cc2ae13b5aea7fb6b77b3b1a683a980483e29ec07b1ab623afdc5cd5efadc6c8`. Coverage stays Node586/26 and browser13/125, with no inferred drift from uncaptured fields.
+
+Local qualification is blocked at this evidence-observation boundary. No further automatic retry, warm-up scan, allocation rotation, evidence removal or limit relaxation is authorized by this checkpoint. No concrete scanner defect was established. Re-establish admissible observation conditions before resuming the existing D11/app/R18 sequence. The existing hosted container workflow also deliberately refuses before execution because reviewed platform-matching schema18 packet provisioning is undefined; the tooling-only fast workflow cannot close these owners. Do not bypass either prerequisite or treat unavailable prescribed hardware, genuine LoRA fixtures or V4.5 retention terms as supplied. The completed publication and all prior failure/qualification records remain independently reviewable.
+
+
 ## Current continuation — Full editor UI published
 
 The user's full-UI Pages request is complete. Source `17cb1ec459d03f739057192fc3df9da2426a62b6` is on main and the implementation branch. The actual production shell, request/canvas/layers/activity panels and shared Spectrum 2 inspired En Reve theme are published at https://westbrook.github.io/ideogram-editor/. The local editor uses the same theme source. Pages has an explicitly disconnected session; documents, saving and providers require the local application. The preserved native text/PNG demo is reachable through “Try native text” (`?view=text-demo`). No local-provider behavior or credentials are enabled by publication.
