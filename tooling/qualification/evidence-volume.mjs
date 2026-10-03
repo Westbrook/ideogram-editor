@@ -141,8 +141,10 @@ export async function sampleVolume(allocation, { maxEntries = LIMIT, statEntry =
   const startedAt = new Date().toISOString(), startMs = performance.now(), seen = new Set();
   let logicalBytes = 0n, allocatedBytes = 0n, entries = 0, files = 0, hardLinks = 0, concurrentChanges = 0, blocksAvailable = true;
   const failures = [];
-  // Four traversal branches share one entry counter and inode set. When all
-  // slots are busy, recurse inline: no waiting semaphore or whole-tree queue.
+  // Four traversal branches share one entry counter and inode set. Keep one
+  // entry of lookahead: spawn only children with a known sibling and walk the
+  // last child inline, so single-child ancestors do not reserve idle slots.
+  // When slots are busy, recurse inline: no semaphore or whole-tree queue.
   // Every directory waits for its descendants before the original post-stat.
   let branches = 0, traversalFailed = false, traversalFailure;
   const rememberFailure = error => {
@@ -175,18 +177,23 @@ export async function sampleVolume(allocation, { maxEntries = LIMIT, statEntry =
       phase = 'open-directory'; const directory = await openDirectory(path);
       phase = 'read-directory';
       const lineage = [...ancestors, { path, before }];
+      let pendingEntry;
       for await (const entry of directory) {
         if (traversalFailed) throw traversalFailure;
-        if (branches < 3) {
-          branches++;
-          let child;
-          child = walk(join(path, entry.name), depth + 1, lineage)
-            .catch(rememberFailure)
-            .finally(() => { branches--; children.delete(child); });
-          children.add(child);
-        } else await walk(join(path, entry.name), depth + 1, lineage);
+        if (pendingEntry) {
+          if (branches < 3) {
+            branches++;
+            let child;
+            child = walk(join(path, pendingEntry.name), depth + 1, lineage)
+              .catch(rememberFailure)
+              .finally(() => { branches--; children.delete(child); });
+            children.add(child);
+          } else await walk(join(path, pendingEntry.name), depth + 1, lineage);
+        }
+        pendingEntry = entry;
       }
-      await Promise.allSettled(children);
+      if (pendingEntry) await walk(join(path, pendingEntry.name), depth + 1, lineage);
+      if (children.size) await Promise.allSettled(children);
       if (traversalFailed) throw traversalFailure;
     }
     phase = 'stat-after'; const after = await statEntry(path, { bigint: true });
@@ -206,7 +213,7 @@ export async function sampleVolume(allocation, { maxEntries = LIMIT, statEntry =
         failure = observationError(failure, allocation.root, path, phase, error?.code);
       }
       rememberFailure(failure); throw failure;
-    } finally { await Promise.allSettled(children); }
+    } finally { if (children.size) await Promise.allSettled(children); }
   }
   try {
     await walk(allocation.root, 0);

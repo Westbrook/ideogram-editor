@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,mkdir,writeFile,rm,realpath,lstat,opendir,open} from 'node:fs/promises';
+import {mkdtemp,mkdir,writeFile,rm,realpath,lstat,opendir,open,link} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {performance} from 'node:perf_hooks';
@@ -28,6 +28,26 @@ test('traversal admits four real file observations and drains before directory p
  }});
  try{await within(entered.promise);assert.equal(peak,4);assert.equal(starts,4);held.resolve();const result=await pending;assert.equal(result.completeTraversal,true);assert.equal(result.entries,21);assert.equal(result.uniqueFiles,20);assert.equal(postWhileActive,false);assert.equal(active,0);assert.equal(peak,4);await closed(dirs.handles);}
  finally{held.resolve();await pending;}
+});
+
+test('single-child ancestors preserve four file observations, inode accounting and post-order checks',async t=>{
+ const f=await fixture(t),leaf=join(f.output,'one','two','three');await mkdir(leaf,{recursive:true});
+ for(let i=0;i<20;i++)await writeFile(join(leaf,'entry-'+i),String(i));
+ await link(join(leaf,'entry-0'),join(leaf,'alias'));
+ const held=gate(),entered=gate(),dirs=directories(),visits=new Map();let active=0,peak=0,starts=0,postWhileActive=false;
+ const pending=sampleVolume(f.allocation,{openDirectory:dirs.openDirectory,async statEntry(path,options){
+  const before=await lstat(path,options),count=(visits.get(path)??0)+1;visits.set(path,count);
+  if(before.isDirectory()&&count===2&&active)postWhileActive=true;
+  if(before.isFile()&&count===1){active++;peak=Math.max(peak,active);starts++;if(active===4)entered.resolve();try{await held.promise;}finally{active--;}}
+  return before;
+ }});
+ try{
+  await within(entered.promise);assert.equal(peak,4);assert.equal(starts,4);held.resolve();const result=await pending;
+  assert.equal(result.completeTraversal,true);assert.equal(result.entries,26);assert.equal(result.uniqueFiles,20);assert.equal(result.repeatedInodes,1);assert.equal(result.observedLogicalBytes,30);
+  assert.equal(postWhileActive,false);assert.equal(active,0);assert.equal(peak,4);assert.equal(visits.size,26);for(const count of visits.values())assert.equal(count,2);
+  const inodes=new Set();let allocated=0n;for(const path of visits.keys()){const value=await lstat(path,{bigint:true}),inode=`${value.dev}:${value.ino}`;if(!inodes.has(inode)){inodes.add(inode);allocated+=value.blocks*512n;}}
+  assert.equal(result.observedAllocatedBytes,Number(allocated));await closed(dirs.handles);
+ }finally{held.resolve();await pending;}
 });
 
 for(const [label,failure]of [['Error',Object.assign(Error('stat failure'),{code:'EIO'})],['undefined',undefined]])test('first '+label+' failure retains incomplete sample and drains sibling reads/directories',async t=>{
