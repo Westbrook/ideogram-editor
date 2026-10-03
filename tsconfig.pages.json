@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "checkJs": false,
+    "paths": { "canvaskit-wasm": ["./vendor/text/canvaskit.d.ts"] }
+  },
+  "include": ["pages/**/*.ts", "vite.pages.config.ts", "tooling/pages/static-server.mjs"]
+}

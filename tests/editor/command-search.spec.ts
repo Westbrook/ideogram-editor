@@ -14,15 +14,21 @@ async function requestFeedback(page:Page,text:string,announcement=text){
 }
 // The toolbar role is inside the shadow root; its public buttons are slotted.
 async function canvasTools(page:Page){const host=page.locator('en-toolbar[label="Canvas tools"]');await expect(host.getByRole('toolbar',{name:'Canvas tools',exact:true})).toBeVisible();return host;}
-// The app intentionally uses the native select, including in engines which
-// support base-select. Its enhancement button must not become a second target.
+// Preserve native SELECT semantics; supported base-select paints its chosen
+// label through a browser-owned button with an accessible target size.
 async function nativeSelect(page:Page,name:string){
   const control=page.getByRole('combobox',{name,exact:true});
   await expect(control).toHaveCount(1);await expect(control).toBeEnabled();
   await expect(control).toHaveJSProperty('tagName','SELECT');
   await expect(control).toHaveAccessibleName(name);
   const button=control.locator(':scope > button[part="selected-button"]');
-  await expect(button).toHaveCount(1);await expect(button).toBeHidden();
+  await expect(button).toHaveCount(1);
+  const enhanced=await control.evaluate(()=>CSS.supports('appearance','base-select')&&CSS.supports('selector(::picker(select))'));
+  await expect(control).toHaveCSS('appearance',enhanced?'base-select':'none');
+  if(enhanced){
+    await expect(button).toBeVisible();const target=await button.boundingBox();expect(target).not.toBeNull();
+    expect(target!.width).toBeGreaterThanOrEqual(24);expect(target!.height).toBeGreaterThanOrEqual(24);
+  }else await expect(button).toBeHidden();
   const bounds=await control.boundingBox();expect(bounds).not.toBeNull();
   expect(bounds!.width).toBeGreaterThanOrEqual(24);expect(bounds!.height).toBeGreaterThanOrEqual(24);
   return control;
@@ -128,7 +134,7 @@ test('Command search exposes actual availability and keyboard routes to New and 
   await query.fill('not-a-real-editor-command');await expect(searchContent(page).getByText('No matching commands. Change the search text.',{exact:true})).toBeVisible();await page.keyboard.press('Enter');expect(commands).toEqual([]);
   await query.fill('new document');await page.keyboard.press('Enter');await expect(dialog).toBeHidden();const creation=page.getByRole('dialog',{name:'New document',exact:true});await expect(creation).toBeVisible();await expect(editorContent(page).getByRole('textbox',{name:'Document name',exact:true})).toBeFocused();expect(commands).toEqual([]);
   const background=await nativeSelect(page,'Background');await expect(background).toHaveValue('transparent');
-  await background.focus();await expect(background).toBeFocused();await background.press('ArrowDown');await background.press('Enter');
+  await background.focus();await expect(background).toBeFocused();await page.keyboard.press('Space');await page.keyboard.press('ArrowDown');await page.keyboard.press('Enter');
   await expect(background).toHaveValue('solid');await expect(background.locator('option:checked')).toHaveText('Solid color');
   await expect(editorContent(page).getByRole('textbox',{name:'Background color (opaque sRGB hex)',exact:true})).toBeVisible();await scan('new-document-solid-fields');await editorContent(page).getByRole('textbox',{name:'Document name',exact:true}).fill('');await editorContent(page).getByRole('button',{name:'Create',exact:true}).click();await expect(editorContent(page).getByRole('textbox',{name:'Document name',exact:true})).toBeFocused();await scan('new-document-name-validation');
   await editorContent(page).getByRole('button',{name:'Cancel',exact:true}).click();await expect(creation).toBeHidden();
@@ -201,10 +207,25 @@ test('Scoped tool shortcuts preserve editable fields, modal focus, preference an
 
 test('Held Space pans actual canvas pixels and key release cancels the held gesture without changing tools',async({local})=>{
  const {page,commands,record}=local;await shortcutDocument(page);const region=page.locator('#canvas'),canvas=region.locator('canvas'),selection=(await canvasTools(page)).getByRole('button',{name:'Select',exact:true});
- await region.focus();await page.keyboard.press('m');await expect(selection).toHaveAttribute('aria-pressed','true');await expect(canvas).toHaveAttribute('data-asset',/.+/);const before=await canvas.screenshot(),box=(await canvas.boundingBox())!;
- await page.keyboard.down('Space');await expect(region.getByText(/Temporary pan \(Space\)/)).toBeVisible();const held=await canvas.screenshot();await page.mouse.move(box.x+box.width/2,box.y+box.height/2);await page.mouse.down();await page.mouse.move(box.x+box.width/2+31,box.y+box.height/2+19,{steps:3});
- expect((await canvas.screenshot()).equals(held)).toBe(false);await page.keyboard.up('Space');await expect(region.getByText(/Temporary pan \(Space\)/)).toHaveCount(0);expect((await canvas.screenshot()).equals(before)).toBe(true);await page.mouse.up();await expect(selection).toHaveAttribute('aria-pressed','true');
- expect(commands.filter(command=>command.body.type!=='CreateDocument')).toEqual([]);await record('temporary-pan',{actualPixelsMoved:true,heldGestureRestored:true,selectedTool:'Select',commands});
+ // Read the actual existing 2D backing, without screenshot preparation or a
+ // substitute canvas. This witnesses rendered RGBA changes, not compositor paint.
+ const pixels=()=>canvas.evaluate(async element=>{
+  if(!(element instanceof HTMLCanvasElement))throw Error('Expected actual canvas');
+  const {width,height}=element;
+  // Same maximum backing extent as viewportBacking; no image bytes cross IPC.
+  if(!Number.isSafeInteger(width)||!Number.isSafeInteger(height)||width<1||height<1||width>8192||height>8192||width*height>16*1024**2)throw Error('Canvas backing bounds');
+  const context=element.getContext('2d');if(!context||context.isContextLost?.())throw Error('Live original 2D context required');
+  const image=context.getImageData(0,0,width,height),data=image.data;
+  if(image.width!==width||image.height!==height||data.byteLength!==width*height*4)throw Error('Exact RGBA backing required');
+  let paintedPixels=0;for(let offset=3;offset<data.length;offset+=4)if(data[offset]>0)paintedPixels++;
+  if(!paintedPixels)throw Error('Canvas must contain actual nontransparent paint');
+  const digest=await crypto.subtle.digest('SHA-256',data);
+  return {width,height,bytes:data.byteLength,paintedPixels,sha256:Array.from(new Uint8Array(digest),byte=>byte.toString(16).padStart(2,'0')).join('')};
+ });
+ await region.focus();await page.keyboard.press('m');await expect(selection).toHaveAttribute('aria-pressed','true');await expect(canvas).toHaveAttribute('data-asset',/.+/);await expect(canvas).toBeVisible();const before=await pixels(),box=(await canvas.boundingBox())!;
+ await page.keyboard.down('Space');await expect(region.getByText(/Temporary pan \(Space\)/)).toBeVisible();const held=await pixels();expect([held.width,held.height]).toEqual([before.width,before.height]);await page.mouse.move(box.x+box.width/2,box.y+box.height/2);await page.mouse.down();await page.mouse.move(box.x+box.width/2+31,box.y+box.height/2+19,{steps:3});
+ const moved=await pixels();expect([moved.width,moved.height]).toEqual([held.width,held.height]);expect(moved.sha256).not.toBe(held.sha256);await page.keyboard.up('Space');await expect(region.getByText(/Temporary pan \(Space\)/)).toHaveCount(0);const restored=await pixels();expect(restored).toEqual(before);await page.mouse.up();await expect(selection).toHaveAttribute('aria-pressed','true');
+ expect(commands.filter(command=>command.body.type!=='CreateDocument')).toEqual([]);await record('temporary-pan',{actualPixelsMoved:true,heldGestureRestored:true,selectedTool:'Select',pixelEvidence:{method:'original-canvas-2d-getImageData-sha256',before,held,moved,restored},commands});
 });
 
 test('Scoped Delete preserves typing and deletes only current selected layer with actual Undo restoration',async({local})=>{

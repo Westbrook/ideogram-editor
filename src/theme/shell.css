@@ -253,9 +253,9 @@ en-dialog en-number-field,en-dialog en-file-upload,en-dialog en-select {margin-b
  .properties {padding:18px;}
 }
 @media(max-width:480px){.document-bar{padding:10px;}.document-bar en-toolbar{flex-basis:100%;}.canvas-toolbar en-number-field{max-width:165px;}.pan-fields{display:block;}.pan-fields::part(base){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:end;}.pan-fields en-button{grid-column:1/-1;}.property-grid{grid-template-columns:1fr;}.request-fields{padding-inline:16px;}.report-return{bottom:12px;}}
-/* Keep the native picker with a token-styled closed control and a CSP-safe caret. */
+/* Native fallback and supported base-select share theme paints and a CSP-safe caret. */
 en-select {--en-select-appearance:auto;}
-/* The enhancement button is only for base-select, not the native picker. */
+/* Unsupported engines keep the native picker without its enhancement button. */
 en-select::part(selected-button) {display:none;}
 en-select::part(control) {
   appearance:none;
@@ -270,6 +270,16 @@ en-select::part(focus-frame)::before {
   color:var(--en-color-text-muted);background:none;mask:none;
 }
 en-select::part(control)::picker-icon {content:none;mask:none;background:none;}
+/* Base-select needs its selectedcontent button to paint the chosen label. */
+@supports (appearance: base-select) and selector(::picker(select)) {
+  en-select {--en-select-appearance:base-select;}
+  en-select::part(control) {appearance:base-select;}
+  en-select::part(selected-button) {
+    display:block;
+    min-inline-size:max(24px,var(--en-size-target-min,24px));
+    min-block-size:max(24px,var(--en-size-target-min,24px));
+  }
+}
 @media (forced-colors:active) { en-select::part(focus-frame)::before {color:ButtonText;} en-select[disabled]::part(focus-frame)::before {color:GrayText;} }
 
 .help-description {font-size:11px;color:var(--en-color-text-muted);max-inline-size:95px;}

@@ -1,0 +1,152 @@
+name: Public editor preview
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: public-editor-pages
+  cancel-in-progress: false
+jobs:
+  build-and-check:
+    if: github.repository == 'Westbrook/ideogram-editor' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    outputs:
+      artifact-id: ${{ steps.upload.outputs.artifact_id }}
+      manifest-sha256: ${{ steps.seal.outputs.manifest-sha256 }}
+    steps:
+      - name: Check out the triggering main commit
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Select pinned toolchain and verify archives before install
+        run: |
+          python3 tooling/bootstrap-toolchain.py
+          python3 tooling/verify-vendor.py
+          echo "$GITHUB_WORKSPACE/.toolchain/bin" >> "$GITHUB_PATH"
+      - name: Install exact dependencies
+        run: npm ci
+      - name: Install browsers matching the pinned Playwright package
+        run: npm exec --offline -- playwright install --with-deps chromium firefox webkit
+      - name: Allocate dedicated Pages validation evidence
+        env:
+          EVIDENCE_CAPACITY_BYTES: ${{ vars.QUALIFICATION_EVIDENCE_CAPACITY_BYTES }}
+        run: |
+          node --input-type=module <<'NODE'
+          import {mkdirSync,chmodSync,realpathSync,writeFileSync} from 'node:fs';
+          import {join} from 'node:path';
+          const capacityBytes=Number(process.env.EVIDENCE_CAPACITY_BYTES);
+          if(!Number.isSafeInteger(capacityBytes)||capacityBytes<=0)throw Error('Explicit Pages evidence allocation capacity required');
+          const leaf='artifacts/pages-validation';
+          mkdirSync(leaf,{recursive:true,mode:0o700});chmodSync(leaf,0o700);
+          const root=realpathSync(leaf),allocation=join(root,'evidence-allocation.json');
+          const issuedAt=new Date().toISOString();
+          writeFileSync(allocation,JSON.stringify({kind:'evidence-volume-allocation-1',allocationId:'pages-preview-'+process.env.GITHUB_RUN_ID+'-'+process.env.GITHUB_RUN_ATTEMPT,purpose:'qualification-evidence-only',capacityBytes,root,issuedAt,owner:'Build'})+'\n',{flag:'wx',mode:0o600});
+          writeFileSync(process.env.GITHUB_ENV,'IE_EVIDENCE_ALLOCATION='+allocation+'\nIE_PAGES_OUTPUT='+join(root,'run')+'\nIE_PAGES_BUILD_DATE='+issuedAt+'\n',{flag:'a'});
+          NODE
+      - name: Check types, exact inputs, public artifact and all three browsers
+        run: |
+          node tooling/qualification/evidence-lifecycle.mjs root --allocation "$IE_EVIDENCE_ALLOCATION"
+          node tooling/pages/validate.mjs --commit "$GITHUB_SHA" --built-at "$IE_PAGES_BUILD_DATE" --output "$IE_PAGES_OUTPUT"
+      - name: Retain validation receipts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: pages-validation-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/pages-validation
+          if-no-files-found: warn
+          retention-days: 90
+      - name: Bind publication to the successful artifact manifest
+        id: seal
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFileSync,appendFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          import {join} from 'node:path';
+          const bytes=readFileSync(join(process.env.IE_PAGES_OUTPUT,'public-artifact','artifact-manifest.json'));
+          appendFileSync(process.env.GITHUB_OUTPUT,'manifest-sha256='+createHash('sha256').update(bytes).digest('hex')+'\n');
+          NODE
+      - name: Upload only the verified public preview
+        id: upload
+        uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
+        with:
+          path: ${{ env.IE_PAGES_OUTPUT }}/public-artifact
+          retention-days: 1
+  publish:
+    needs: build-and-check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out the same source commit for artifact verification
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+      - name: Select the pinned verification runtime
+        run: |
+          python3 tooling/bootstrap-toolchain.py
+          echo "$GITHUB_WORKSPACE/.toolchain/bin" >> "$GITHUB_PATH"
+      - name: Read the explicitly enabled Pages configuration
+        id: pages
+        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
+        with:
+          enablement: false
+      - name: Verify the reviewed project-site base and allocate fresh publication staging
+        env:
+          PAGES_ORIGIN: ${{ steps.pages.outputs.origin }}
+          PAGES_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+        run: |
+          test "$PAGES_ORIGIN" = "https://westbrook.github.io"
+          test "$PAGES_BASE_PATH" = "/ideogram-editor"
+          node --input-type=module <<'NODE'
+          import {mkdirSync,realpathSync,appendFileSync} from 'node:fs';
+          import {join} from 'node:path';
+          const root=join(realpathSync(process.env.RUNNER_TEMP),'pages-publication-'+process.env.GITHUB_RUN_ID+'-'+process.env.GITHUB_RUN_ATTEMPT);
+          mkdirSync(root,{mode:0o700});
+          mkdirSync(join(root,'download'),{mode:0o700});
+          mkdirSync(join(root,'receipts'),{mode:0o700});
+          appendFileSync(process.env.GITHUB_ENV,'IE_PAGES_PUBLICATION='+root+'\n');
+          NODE
+      - name: Download the exact Pages artifact from this successful build job
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          artifact-ids: ${{ needs.build-and-check.outputs.artifact-id }}
+          merge-multiple: true
+          path: ${{ env.IE_PAGES_PUBLICATION }}/download
+      - name: Restore bounded regular files and verify the tested public bytes
+        env:
+          MANIFEST_SHA256: ${{ needs.build-and-check.outputs.manifest-sha256 }}
+        run: |
+          python3 tooling/pages/unpack-artifact.py "$IE_PAGES_PUBLICATION/download/artifact.tar" "$IE_PAGES_PUBLICATION/public-artifact" "$MANIFEST_SHA256" > "$IE_PAGES_PUBLICATION/receipts/unpack.json"
+          node tooling/pages/artifact.mjs "$IE_PAGES_PUBLICATION/public-artifact" "$GITHUB_SHA" > "$IE_PAGES_PUBLICATION/receipts/artifact-verification.json"
+      - name: Commit the exact verified public tree to gh-pages without rewriting history
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MANIFEST_SHA256: ${{ needs.build-and-check.outputs.manifest-sha256 }}
+        run: |
+          node tooling/pages/publish-branch.mjs --directory "$IE_PAGES_PUBLICATION/public-artifact" --commit "$GITHUB_SHA" --manifest-sha256 "$MANIFEST_SHA256" > "$IE_PAGES_PUBLICATION/receipts/branch-publication.json"
+          cat "$IE_PAGES_PUBLICATION/receipts/branch-publication.json"
+      - name: Deploy the same uploaded Pages artifact
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
+      - name: Retain publication identity receipts
+        if: always() && env.IE_PAGES_PUBLICATION != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: pages-publication-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ env.IE_PAGES_PUBLICATION }}/receipts
+          if-no-files-found: warn
+          retention-days: 90
+# gh-pages preserves artifact history. Official deploy-pages publishes the same
+# tested artifact because GITHUB_TOKEN branch pushes do not trigger Pages builds.
+# This preview does not deploy the local session/storage/provider server or
+# certify the full editor.

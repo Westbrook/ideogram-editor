@@ -1,0 +1,230 @@
+{
+  "schema": 1,
+  "description": "Exact source notices copied into the public preview distribution. This includes the complete sealed text renderer notice inventory.",
+  "files": [
+    {
+      "source": "tooling/pages/NOTICES.txt",
+      "path": "notices/index.txt",
+      "label": "Distribution notice index",
+      "bytes": 4779,
+      "sha256": "d9439f678ab5323001ebba95fe08d7d3cba7a57775a6eab2e59f223763c76d05"
+    },
+    {
+      "source": "vendor/en-reve/37341d7a644cdfb37e6ba06d5c051e560306417d61a80705558bd78bd0c02cc4/LICENSE",
+      "path": "notices/en-reve-LICENSE.txt",
+      "label": "En Reve tokens, styles, primitives and elements (MIT)",
+      "bytes": 1077,
+      "sha256": "9ce50a3e644d4791a40095f2ccf98a5ba251a7683c721c01e2536f2fd3a9eae7"
+    },
+    {
+      "source": "node_modules/lit/LICENSE",
+      "path": "notices/lit-LICENSE.txt",
+      "label": "lit 3.3.3 (BSD-3-Clause)",
+      "bytes": 1517,
+      "sha256": "45d31799d0db956cc3eb5469346abbd9b7025babc5ff29fab10d7095da992ef1"
+    },
+    {
+      "source": "node_modules/lit-html/LICENSE",
+      "path": "notices/lit-html-LICENSE.txt",
+      "label": "lit-html 3.3.3 (BSD-3-Clause)",
+      "bytes": 1518,
+      "sha256": "2b66f9390afde29edfe4314daff93f01fb182e1178053e228120178987e5db75"
+    },
+    {
+      "source": "node_modules/lit-element/LICENSE",
+      "path": "notices/lit-element-LICENSE.txt",
+      "label": "lit-element 4.2.2 (BSD-3-Clause)",
+      "bytes": 1517,
+      "sha256": "45d31799d0db956cc3eb5469346abbd9b7025babc5ff29fab10d7095da992ef1"
+    },
+    {
+      "source": "node_modules/@lit/reactive-element/LICENSE",
+      "path": "notices/lit-reactive-element-LICENSE.txt",
+      "label": "@lit/reactive-element 2.1.2 (BSD-3-Clause)",
+      "bytes": 1517,
+      "sha256": "45d31799d0db956cc3eb5469346abbd9b7025babc5ff29fab10d7095da992ef1"
+    },
+    {
+      "source": "node_modules/@lit/context/LICENSE",
+      "path": "notices/lit-context-LICENSE.txt",
+      "label": "@lit/context 1.1.6 (BSD-3-Clause)",
+      "bytes": 1518,
+      "sha256": "2503b5766520d283dd6cc9c9852bdfc59ffe16b0538d554db4e5b9b725269604"
+    },
+    {
+      "source": "node_modules/signal-polyfill/LICENSE",
+      "path": "notices/signal-polyfill-LICENSE.txt",
+      "label": "signal-polyfill 0.2.2 (Apache-2.0)",
+      "bytes": 11356,
+      "sha256": "43070e2d4e532684de521b885f385d0841030efa2b1a20bafb76133a5e1379c1"
+    },
+    {
+      "source": "node_modules/signal-utils/LICENSE",
+      "path": "notices/signal-utils-LICENSE.txt",
+      "label": "signal-utils 0.21.1 (MIT)",
+      "bytes": 1070,
+      "sha256": "bce9e986e7415f0921feeaa80cf579bf1c4368a03f20f4d8182a2bb993fb801d"
+    },
+    {
+      "source": "vendor/text/notices/Brotli-LICENSE",
+      "path": "notices/text-Brotli-LICENSE.txt",
+      "label": "Text renderer distribution: Brotli-LICENSE",
+      "bytes": 1084,
+      "sha256": "3d180008e36922a4e8daec11c34c7af264fed5962d07924aea928c38e8663c94"
+    },
+    {
+      "source": "vendor/text/notices/CanvasKit-LICENSE",
+      "path": "notices/text-CanvasKit-LICENSE.txt",
+      "label": "Text renderer distribution: CanvasKit-LICENSE",
+      "bytes": 1635,
+      "sha256": "d27678cba0d529e77201e2d2a053628143e986aad8f1e77f7039ad4366c8f978"
+    },
+    {
+      "source": "vendor/text/notices/Emscripten-LICENSE",
+      "path": "notices/text-Emscripten-LICENSE.txt",
+      "label": "Text renderer distribution: Emscripten-LICENSE",
+      "bytes": 5093,
+      "sha256": "620a78084fc7ca97c0b5dea9abf891f3ffcadfdbf305276f099c9c4e12fc1d86"
+    },
+    {
+      "source": "vendor/text/notices/Expat-COPYING",
+      "path": "notices/text-Expat-COPYING.txt",
+      "label": "Text renderer distribution: Expat-COPYING",
+      "bytes": 1144,
+      "sha256": "122f2c27000472a201d337b9b31f7eb2b52d091b02857061a8880371612d9534"
+    },
+    {
+      "source": "vendor/text/notices/FreeType-FTL.TXT",
+      "path": "notices/text-FreeType-FTL.TXT.txt",
+      "label": "Text renderer distribution: FreeType-FTL.TXT",
+      "bytes": 6743,
+      "sha256": "08c135755dd589039470f1fdbb400daaabaaa50d0b366d19cebff4d22986baa1"
+    },
+    {
+      "source": "vendor/text/notices/HarfBuzz-COPYING",
+      "path": "notices/text-HarfBuzz-COPYING.txt",
+      "label": "Text renderer distribution: HarfBuzz-COPYING",
+      "bytes": 1971,
+      "sha256": "ba8f810f2455c2f08e2d56bb49b72f37fcf68f1f4fade38977cfd7372050ad64"
+    },
+    {
+      "source": "vendor/text/notices/Noto-CJK-OFL.txt",
+      "path": "notices/text-Noto-CJK-OFL.txt",
+      "label": "Text renderer distribution: Noto-CJK-OFL.txt",
+      "bytes": 4301,
+      "sha256": "6a73f9541c2de74158c0e7cf6b0a58ef774f5a780bf191f2d7ec9cc53efe2bf2"
+    },
+    {
+      "source": "vendor/text/notices/Noto-OFL.txt",
+      "path": "notices/text-Noto-OFL.txt",
+      "label": "Text renderer distribution: Noto-OFL.txt",
+      "bytes": 4377,
+      "sha256": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb"
+    },
+    {
+      "source": "vendor/text/notices/Unicode-LICENSE.txt",
+      "path": "notices/text-Unicode-LICENSE.txt",
+      "label": "Text renderer distribution: Unicode-LICENSE.txt",
+      "bytes": 1995,
+      "sha256": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96"
+    },
+    {
+      "source": "vendor/text/notices/Wuffs-LICENSE",
+      "path": "notices/text-Wuffs-LICENSE.txt",
+      "label": "Text renderer distribution: Wuffs-LICENSE",
+      "bytes": 10174,
+      "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
+    },
+    {
+      "source": "vendor/text/notices/custom-emscripten-LICENSE.txt",
+      "path": "notices/text-custom-emscripten-LICENSE.txt",
+      "label": "Text renderer distribution: custom-emscripten-LICENSE.txt",
+      "bytes": 5093,
+      "sha256": "620a78084fc7ca97c0b5dea9abf891f3ffcadfdbf305276f099c9c4e12fc1d86"
+    },
+    {
+      "source": "vendor/text/notices/custom-freetype-LICENSE.txt",
+      "path": "notices/text-custom-freetype-LICENSE.txt",
+      "label": "Text renderer distribution: custom-freetype-LICENSE.txt",
+      "bytes": 6743,
+      "sha256": "08c135755dd589039470f1fdbb400daaabaaa50d0b366d19cebff4d22986baa1"
+    },
+    {
+      "source": "vendor/text/notices/custom-harfbuzz-LICENSE.txt",
+      "path": "notices/text-custom-harfbuzz-LICENSE.txt",
+      "label": "Text renderer distribution: custom-harfbuzz-LICENSE.txt",
+      "bytes": 1971,
+      "sha256": "ba8f810f2455c2f08e2d56bb49b72f37fcf68f1f4fade38977cfd7372050ad64"
+    },
+    {
+      "source": "vendor/text/notices/custom-icu-LICENSE.txt",
+      "path": "notices/text-custom-icu-LICENSE.txt",
+      "label": "Text renderer distribution: custom-icu-LICENSE.txt",
+      "bytes": 25185,
+      "sha256": "17510cf7a58b4879b887ec05a45d72cf1b73544dd9ec7e72f20110ed104229ee"
+    },
+    {
+      "source": "vendor/text/notices/custom-libpng-LICENSE.txt",
+      "path": "notices/text-custom-libpng-LICENSE.txt",
+      "label": "Text renderer distribution: custom-libpng-LICENSE.txt",
+      "bytes": 5345,
+      "sha256": "7317e078e2d3b5d7ba5a6159e650945153262b44b76f6700f8e9edb261c5143e"
+    },
+    {
+      "source": "vendor/text/notices/custom-skia-LICENSE.txt",
+      "path": "notices/text-custom-skia-LICENSE.txt",
+      "label": "Text renderer distribution: custom-skia-LICENSE.txt",
+      "bytes": 1507,
+      "sha256": "5f787c1dee3c56547f09ccc2906ab5f5293c4d8dd6c8654e573216c38e908dbd"
+    },
+    {
+      "source": "vendor/text/notices/custom-wuffs-LICENSE.txt",
+      "path": "notices/text-custom-wuffs-LICENSE.txt",
+      "label": "Text renderer distribution: custom-wuffs-LICENSE.txt",
+      "bytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "source": "vendor/text/notices/custom-zlib-LICENSE.txt",
+      "path": "notices/text-custom-zlib-LICENSE.txt",
+      "label": "Text renderer distribution: custom-zlib-LICENSE.txt",
+      "bytes": 910,
+      "sha256": "e1cfcc55c325b3f78cf55df9664abaa066e2271dffe8213347d9fccdfbac8f2c"
+    },
+    {
+      "source": "vendor/text/notices/icu-LICENSE",
+      "path": "notices/text-icu-LICENSE.txt",
+      "label": "Text renderer distribution: icu-LICENSE",
+      "bytes": 25185,
+      "sha256": "17510cf7a58b4879b887ec05a45d72cf1b73544dd9ec7e72f20110ed104229ee"
+    },
+    {
+      "source": "vendor/text/notices/libjpeg-turbo-LICENSE",
+      "path": "notices/text-libjpeg-turbo-LICENSE.txt",
+      "label": "Text renderer distribution: libjpeg-turbo-LICENSE",
+      "bytes": 5213,
+      "sha256": "60c756742db3ad1913304e8b13f0e86e22e51adb50cc0b3333c163f7e45ceec1"
+    },
+    {
+      "source": "vendor/text/notices/libpng-LICENSE",
+      "path": "notices/text-libpng-LICENSE.txt",
+      "label": "Text renderer distribution: libpng-LICENSE",
+      "bytes": 5345,
+      "sha256": "7317e078e2d3b5d7ba5a6159e650945153262b44b76f6700f8e9edb261c5143e"
+    },
+    {
+      "source": "vendor/text/notices/libwebp-COPYING",
+      "path": "notices/text-libwebp-COPYING.txt",
+      "label": "Text renderer distribution: libwebp-COPYING",
+      "bytes": 1496,
+      "sha256": "5aec868f669e384a22372a4e8a1a6cd7d44c64cd451f960ca69cc170d1e13acf"
+    },
+    {
+      "source": "vendor/text/notices/zlib-LICENSE",
+      "path": "notices/text-zlib-LICENSE.txt",
+      "label": "Text renderer distribution: zlib-LICENSE",
+      "bytes": 1002,
+      "sha256": "845efc77857d485d91fb3e0b884aaa929368c717ae8186b66fe1ed2495753243"
+    }
+  ]
+}

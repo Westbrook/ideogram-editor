@@ -1,0 +1,103 @@
+Ideogram Editor public preview — distribution notices
+
+This preview reuses the Spectrum 2 inspired En Reve theme and the editor's browser text renderer. It is an independent, limited preview of the local editor. Spectrum inspiration does not imply Adobe affiliation. Adobe Clean is not distributed; the theme uses an installed local font or a system fallback.
+
+The accompanying files reproduce the source notices for En Reve, Lit, Signals, bundled Noto fonts and the complete sealed CanvasKit/native text distribution. Some native component notices describe portions of the supplied distribution rather than features exposed in this preview. Preserve these notices when redistributing the preview.
+
+Source: https://github.com/Westbrook/ideogram-editor
+Each filename in this directory corresponds to an exact notice selected in tooling/pages/notices.json in the source repository. The public artifact manifest records its published bytes.
+
+Included notices
+
+En Reve tokens, styles, primitives and elements (MIT)
+https://westbrook.github.io/ideogram-editor/notices/en-reve-LICENSE.txt
+
+lit 3.3.3 (BSD-3-Clause)
+https://westbrook.github.io/ideogram-editor/notices/lit-LICENSE.txt
+
+lit-html 3.3.3 (BSD-3-Clause)
+https://westbrook.github.io/ideogram-editor/notices/lit-html-LICENSE.txt
+
+lit-element 4.2.2 (BSD-3-Clause)
+https://westbrook.github.io/ideogram-editor/notices/lit-element-LICENSE.txt
+
+@lit/reactive-element 2.1.2 (BSD-3-Clause)
+https://westbrook.github.io/ideogram-editor/notices/lit-reactive-element-LICENSE.txt
+
+@lit/context 1.1.6 (BSD-3-Clause)
+https://westbrook.github.io/ideogram-editor/notices/lit-context-LICENSE.txt
+
+signal-polyfill 0.2.2 (Apache-2.0)
+https://westbrook.github.io/ideogram-editor/notices/signal-polyfill-LICENSE.txt
+
+signal-utils 0.21.1 (MIT)
+https://westbrook.github.io/ideogram-editor/notices/signal-utils-LICENSE.txt
+
+Text renderer distribution: Brotli-LICENSE
+https://westbrook.github.io/ideogram-editor/notices/text-Brotli-LICENSE.txt
+
+Text renderer distribution: CanvasKit-LICENSE
+https://westbrook.github.io/ideogram-editor/notices/text-CanvasKit-LICENSE.txt
+
+Text renderer distribution: Emscripten-LICENSE
+https://westbrook.github.io/ideogram-editor/notices/text-Emscripten-LICENSE.txt
+
+Text renderer distribution: Expat-COPYING
+https://westbrook.github.io/ideogram-editor/notices/text-Expat-COPYING.txt
+
+Text renderer distribution: FreeType-FTL.TXT
+https://westbrook.github.io/ideogram-editor/notices/text-FreeType-FTL.TXT.txt
+
+Text renderer distribution: HarfBuzz-COPYING
+https://westbrook.github.io/ideogram-editor/notices/text-HarfBuzz-COPYING.txt
+
+Text renderer distribution: Noto-CJK-OFL.txt
+https://westbrook.github.io/ideogram-editor/notices/text-Noto-CJK-OFL.txt
+
+Text renderer distribution: Noto-OFL.txt
+https://westbrook.github.io/ideogram-editor/notices/text-Noto-OFL.txt
+
+Text renderer distribution: Unicode-LICENSE.txt
+https://westbrook.github.io/ideogram-editor/notices/text-Unicode-LICENSE.txt
+
+Text renderer distribution: Wuffs-LICENSE
+https://westbrook.github.io/ideogram-editor/notices/text-Wuffs-LICENSE.txt
+
+Text renderer distribution: custom-emscripten-LICENSE.txt
+https://westbrook.github.io/ideogram-editor/notices/text-custom-emscripten-LICENSE.txt
+
+Text renderer distribution: custom-freetype-LICENSE.txt
+https://westbrook.github.io/ideogram-editor/notices/text-custom-freetype-LICENSE.txt
+
+Text renderer distribution: custom-harfbuzz-LICENSE.txt
+https://westbrook.github.io/ideogram-editor/notices/text-custom-harfbuzz-LICENSE.txt
+
+Text renderer distribution: custom-icu-LICENSE.txt
+https://westbrook.github.io/ideogram-editor/notices/text-custom-icu-LICENSE.txt
+
+Text renderer distribution: custom-libpng-LICENSE.txt
+https://westbrook.github.io/ideogram-editor/notices/text-custom-libpng-LICENSE.txt
+
+Text renderer distribution: custom-skia-LICENSE.txt
+https://westbrook.github.io/ideogram-editor/notices/text-custom-skia-LICENSE.txt
+
+Text renderer distribution: custom-wuffs-LICENSE.txt
+https://westbrook.github.io/ideogram-editor/notices/text-custom-wuffs-LICENSE.txt
+
+Text renderer distribution: custom-zlib-LICENSE.txt
+https://westbrook.github.io/ideogram-editor/notices/text-custom-zlib-LICENSE.txt
+
+Text renderer distribution: icu-LICENSE
+https://westbrook.github.io/ideogram-editor/notices/text-icu-LICENSE.txt
+
+Text renderer distribution: libjpeg-turbo-LICENSE
+https://westbrook.github.io/ideogram-editor/notices/text-libjpeg-turbo-LICENSE.txt
+
+Text renderer distribution: libpng-LICENSE
+https://westbrook.github.io/ideogram-editor/notices/text-libpng-LICENSE.txt
+
+Text renderer distribution: libwebp-COPYING
+https://westbrook.github.io/ideogram-editor/notices/text-libwebp-COPYING.txt
+
+Text renderer distribution: zlib-LICENSE
+https://westbrook.github.io/ideogram-editor/notices/text-zlib-LICENSE.txt
