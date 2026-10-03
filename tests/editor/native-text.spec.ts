@@ -1,6 +1,6 @@
 import {specReceipt} from './receipt-path.js';
 import {isolatedBrowserTest as test} from './isolated-browser.js';
-import {expect,type Page} from '@playwright/test';
+import {expect,type Page,type Request as PlaywrightRequest,type Response as PlaywrightResponse} from '@playwright/test';
 import {mkdtemp,realpath,mkdir,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -111,6 +111,42 @@ test('placement mismatch and final changed draft refuse without history; next va
 test('delayed text opening preserves later focus and normal cancelled/reopened intent',async({page,context,browserName})=>{
  const guard=await ownedOPFS(context,'p1c4-open-focus-'+browserName),errors=await recordDOMErrors(context),dir=await mkdtemp(join(await realpath(tmpdir()),'ie-p1c4-open-focus-')),server=await serverProcess(join(dir,'private'));await mkdir(receipt,{recursive:true});
  let release=()=>{};const observations:any[]=[];
+ // Observe the existing two-page traffic only; no diagnostic request, recovery,
+ // retry, routing change or SSE body consumption may repair the held-read race.
+ const projectionDiagnostic={limit:128,payloadLimit:24,events:[] as any[],dropped:0,payloads:0,unreadPayloads:0};
+ const diagnosticStarted=performance.now(),pendingDiagnostics=new Set<Promise<void>>(),detachDiagnostics:(()=>void)[]=[];
+ let diagnosticActive=true,diagnosticRequest=0,mutatedLayer:string|undefined;
+ const safeId=(value:unknown)=>typeof value==='string'&&/^[A-Za-z0-9_-]{1,128}$/.test(value)?value:null;
+ const sequence=(value:unknown)=>typeof value==='string'&&/^(0|[1-9][0-9]{0,127})$/.test(value)?value:null;
+ const recordDiagnostic=(value:unknown)=>{if(!diagnosticActive)return;if(projectionDiagnostic.events.length===projectionDiagnostic.limit){projectionDiagnostic.dropped++;return;}projectionDiagnostic.events.push({sequence:projectionDiagnostic.events.length,elapsedMs:performance.now()-diagnosticStarted,...value as object});};
+ const observeProjection=(observed:Page,label:'source'|'second')=>{
+  const requests=new WeakMap<PlaywrightRequest,number>();
+  const identify=(request:PlaywrightRequest)=>{const url=new URL(request.url());if(url.origin!==server.origin)return null;
+   const path=url.pathname;if(!/^\/api\/v1\/(?:commands(?:\/[A-Za-z0-9_-]{1,128}(?:\/result)?)?|events(?:\/stream)?|documents\/[A-Za-z0-9_-]{1,128}(?:\/(?:image|history|checkpoints|save-status|text))?)$/.test(path))return null;
+   return {path,method:request.method(),after:sequence(url.searchParams.get('after')),revision:sequence(url.searchParams.get('revision'))};
+  };
+  const requested=(request:PlaywrightRequest)=>{const route=identify(request);if(!route||projectionDiagnostic.events.length>=projectionDiagnostic.limit){if(route)projectionDiagnostic.dropped++;return;}const id=++diagnosticRequest;requests.set(request,id);recordDiagnostic({page:label,phase:'request',id,...route});
+   if(route.path==='/api/v1/commands'&&route.method==='POST'){const raw=request.postData();if(raw&&raw.length<=4096)try{const command=JSON.parse(raw)?.command,body=command?.body;if(body?.type==='SetLayerProperties'){mutatedLayer=safeId(body.layerId)??undefined;recordDiagnostic({page:label,phase:'command-input',id,commandId:safeId(command.commandId),documentId:safeId(command.documentId),expectedDocumentRevision:sequence(command.expectedDocumentRevision),layerId:mutatedLayer??null,layerVersion:sequence(body.layerVersion),opacity:typeof body.properties?.opacity==='number'&&Number.isFinite(body.properties.opacity)?body.properties.opacity:null});}}catch{recordDiagnostic({page:label,phase:'command-input-unavailable',id});}}
+  };
+  const responded=(response:PlaywrightResponse)=>{const request=response.request(),id=requests.get(request),route=identify(request);if(id===undefined||!route)return;
+   const headers=response.headers(),length=headers['content-length'];recordDiagnostic({page:label,phase:'response',id,status:response.status(),entityVersion:sequence(headers['x-app-entity-version'])});
+   // The stream remains owned by the application. Only completed bounded JSON
+   // control replies can be copied through Playwright's existing response API.
+   if(route.path==='/api/v1/events/stream'||route.method==='HEAD'||!headers['content-type']?.startsWith('application/json'))return;
+   if(!/^(0|[1-9][0-9]{0,5})$/.test(length??'')||Number(length)>65536||projectionDiagnostic.payloads>=projectionDiagnostic.payloadLimit||pendingDiagnostics.size>=8){projectionDiagnostic.unreadPayloads++;return;}
+   projectionDiagnostic.payloads++;
+   const work=(async()=>{try{const bytes=await response.body();if(bytes.length!==Number(length)||bytes.length>65536){recordDiagnostic({page:label,phase:'payload-unavailable',id,reason:'length'});return;}const value=JSON.parse(bytes.toString('utf8')),receipt=value?.receipt;
+    if(receipt)recordDiagnostic({page:label,phase:'command-receipt',id,commandId:safeId(receipt.commandId),status:['accepted','rejected','preparing'].includes(receipt.status)?receipt.status:null,documentRevision:sequence(receipt.documentRevision),fromSeq:sequence(receipt.fromSeq),toSeq:sequence(receipt.toSeq)});
+    if(route.path==='/api/v1/events')recordDiagnostic({page:label,phase:'event-page',id,nextCursor:sequence(value?.nextCursor),highWater:sequence(value?.recovery?.highWater),more:typeof value?.more==='boolean'?value.more:null,batches:Array.isArray(value?.batches)?value.batches.length:null});
+    if(/\/documents\/[^/]+(?:\/image)?$/.test(route.path)){const document=value?.projection?.kind==='inline'?value.projection.value:value?.document??value,image=value?.image??value,layers=Array.isArray(image?.layers)?image.layers:[],layer=layers.find((item:any)=>item?.id===mutatedLayer)??(layers.length===1?layers[0]:null);recordDiagnostic({page:label,phase:'document-data',id,documentId:safeId(document?.id),documentRevision:sequence(document?.revision),layers:layers.length,layer:layer?{id:safeId(layer.id),version:sequence(layer.version),opacity:typeof layer.opacity==='number'&&Number.isFinite(layer.opacity)?layer.opacity:null}:null});}
+   }catch{recordDiagnostic({page:label,phase:'payload-unavailable',id,reason:'response-closed-or-unreadable'});}})();pendingDiagnostics.add(work);void work.finally(()=>pendingDiagnostics.delete(work));
+  };
+  const finished=(request:PlaywrightRequest)=>{const id=requests.get(request);if(id!==undefined)recordDiagnostic({page:label,phase:'request-finished',id});};
+  const failed=(request:PlaywrightRequest)=>{const id=requests.get(request);if(id!==undefined)recordDiagnostic({page:label,phase:'request-failed',id});};
+  observed.on('request',requested);observed.on('response',responded);observed.on('requestfinished',finished);observed.on('requestfailed',failed);
+  detachDiagnostics.push(()=>{observed.off('request',requested);observed.off('response',responded);observed.off('requestfinished',finished);observed.off('requestfailed',failed);});
+ };
+ const observeDisplay=async(observed:Page,label:'source'|'second',phase:string)=>{try{recordDiagnostic({page:label,phase,...await observed.evaluate(()=>{const control=document.getElementById('opacity') as HTMLElement&{value?:unknown}|null,input=control?.shadowRoot?.querySelector('input');return {documentRevision:document.querySelector('.document-name')?.textContent?.match(/revision ([0-9]{1,128})(?![0-9])/)?.[1]??null,opacity:input instanceof HTMLInputElement?input.value.slice(0,64):null,hostOpacity:typeof control?.value==='string'?control.value.slice(0,64):null,visibility:document.visibilityState};})});}catch{recordDiagnostic({page:label,phase:'display-unavailable',during:phase});}};
  const settle=()=>page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
  try{
   await guard.admit(page,server.origin);await page.goto(await server.pair());
@@ -128,12 +164,12 @@ test('delayed text opening preserves later focus and normal cancelled/reopened i
   await click(page,'Cancel text edit');await expect(input).toBeHidden();await click(page,'Edit text');await expect(input).toBeFocused();await expect(input).toHaveValue('Accepted text');await click(page,'Cancel text edit');
   let staleSeen=()=>{},staleDone=()=>{};const staleDelivered=new Promise<void>(r=>staleDone=r),staleHeld=new Promise<void>(r=>staleSeen=r),staleGate=new Promise<void>(r=>release=r);
   await page.route('**/api/v1/documents/*/text?*content=1',async route=>{const response=await route.fetch({headers:{...await route.request().allHeaders(),origin:server.origin}});expect(response.status()).toBe(200);observations.push({held:'stale',status:response.status(),body:await response.text()});staleSeen();await staleGate;await route.fulfill({response});staleDone();});
-  await click(page,'Edit text');await staleHeld;
-  const second=await context.newPage();await second.goto(server.origin);await expect(second.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await second.getByRole('treeitem').first().click();await field(second,'Opacity (0–1)','0.5');await click(second,'Apply properties');await expect(second.getByText('SetLayerProperties accepted and saved locally.',{exact:true})).toBeVisible();await second.close();
+  await click(page,'Edit text');await staleHeld;observeProjection(page,'source');recordDiagnostic({page:'source',phase:'original-text-response-held'});await observeDisplay(page,'source','before-second-page');
+  const second=await context.newPage();observeProjection(second,'second');await second.goto(server.origin);await expect(second.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await second.getByRole('treeitem').first().click();await field(second,'Opacity (0–1)','0.5');await click(second,'Apply properties');await expect(second.getByText('SetLayerProperties accepted and saved locally.',{exact:true})).toBeVisible();await observeDisplay(second,'second','after-accepted-UI');await second.close();await observeDisplay(page,'source','before-original-opacity-assertion');
   await expect(page.getByRole('spinbutton',{name:'Opacity (0–1)',exact:true})).toHaveValue('0.5');await zoom.click();release();await staleDelivered;await expect(page.getByRole('button',{name:'New',exact:true})).toBeEnabled();await page.unroute('**/api/v1/documents/*/text?*content=1');await settle();await expect(input).toBeHidden();await expect(zoom).toBeFocused();observations.push({case:'stale retained response after later accepted revision',sessionNotOpened:true});
   await click(page,'Edit text');await expect(input).toBeFocused();await expect(input).toHaveValue('Accepted text');await click(page,'Cancel text edit');observations.push({case:'fresh opener after stale response',nativeFocus:true});
   expect(errors).toEqual([]);expect(Object.values(await server.effects()).every(n=>n===0)).toBe(true);
- }finally{observations.push({bodyBeforeCleanup:await page.locator('body').innerText().catch(()=>''),url:page.url()});release();try{for(const p of context.pages())await p.goto('about:blank');await guard.cleanup();guard.verify();}finally{await writeFile(join(receipt,'open-focus.json'),JSON.stringify({observations,errors,ownership:guard.ledger},null,2));await server.close();}}
+ }finally{await observeDisplay(page,'source','before-cleanup');observations.push({bodyBeforeCleanup:await page.locator('body').innerText().catch(()=>''),url:page.url()});release();try{for(const p of context.pages())await p.goto('about:blank');await guard.cleanup();guard.verify();}finally{for(const detach of detachDiagnostics)detach();try{await writeFile(join(receipt,'open-focus.json'),JSON.stringify({observations,errors,ownership:guard.ledger},null,2));}finally{try{await server.close();}finally{await Promise.allSettled([...pendingDiagnostics]);diagnosticActive=false;await writeFile(join(receipt,'open-focus-projection.json'),JSON.stringify(projectionDiagnostic,null,2));}}}}
 });
 
 
