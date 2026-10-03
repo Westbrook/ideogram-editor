@@ -1,6 +1,6 @@
 import { test, expect } from './fixture';
 import type { Page, TestInfo } from '@playwright/test';
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import axe from 'axe-core';
 
 const tokens = JSON.parse(await readFile(new URL('../../vendor/themes/spectrum/compiled.json', import.meta.url), 'utf8'));
@@ -24,16 +24,18 @@ async function scan(page: Page, info: TestInfo, state: string) {
   const result = await page.evaluate(async () => (window as unknown as { axe: typeof axe }).axe.run(document, {
     runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'] },
   }));
-  await info.attach(`editor-axe-${state}`, { contentType: 'application/json', body: Buffer.from(JSON.stringify({
+  const reportPath = info.outputPath(`editor-axe-${state}.json`);
+  await writeFile(reportPath, JSON.stringify({
     scope: 'Automated disconnected editor UI only; incomplete findings and manual accessibility remain unapproved', result,
-  })) });
+  }), { flag: 'wx', mode: 0o600 });
+  await info.attach(`editor-axe-${state}`, { contentType: 'application/json', path: reportPath });
   expect(result.violations).toEqual([]);
 }
 async function screenshot(page: Page, info: TestInfo, name: string) {
   const bytes = await page.screenshot({ path: info.outputPath(name + '.png'), fullPage: true,
     animations: 'allow', caret: 'initial', scale: 'css', timeout: 10_000 });
   expect(bytes.byteLength).toBeLessThanOrEqual(8 * 1024 * 1024);
-  await info.attach(name, { contentType: 'image/png', body: bytes });
+  await info.attach(name, { contentType: 'image/png', path: info.outputPath(name + '.png') });
 }
 
 test('public root mounts the real disconnected editor and cannot create backend authority', async ({ page, guard }) => {

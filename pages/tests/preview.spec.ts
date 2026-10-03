@@ -84,13 +84,15 @@ test('appearance and density persist and all nine control presentations pass axe
     if (browserName === 'chromium' && density === 'comfortable' && appearance !== 'auto') {
       const image = await page.screenshot({ path: info.outputPath(`supplemental-${appearance}.png`), fullPage: true, animations: 'allow', caret: 'initial', scale: 'css' });
       expect(image.byteLength).toBeLessThanOrEqual(8 * 1024 * 1024);
-      await info.attach(`supplemental-${appearance}`, { contentType: 'image/png', body: image });
+      await info.attach(`supplemental-${appearance}`, { contentType: 'image/png', path: info.outputPath(`supplemental-${appearance}.png`) });
     }
     const result = await page.evaluate(async () => {
       const instance = (window as unknown as { axe: typeof axe }).axe;
       return instance.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'] } });
     });
-    await info.attach(`axe-${appearance}-${density}`, { contentType: 'application/json', body: Buffer.from(JSON.stringify(result)) });
+    const reportPath = info.outputPath(`axe-${appearance}-${density}.json`);
+    await writeFile(reportPath, JSON.stringify(result), { flag: 'wx', mode: 0o600 });
+    await info.attach(`axe-${appearance}-${density}`, { contentType: 'application/json', path: reportPath });
     incomplete.push({ appearance, density, incomplete: result.incomplete });
     expect(result.violations).toEqual([]);
   }
