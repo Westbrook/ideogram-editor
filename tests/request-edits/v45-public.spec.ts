@@ -42,7 +42,7 @@ for(const masked of [false,true])test('V45 '+(masked?'masked transport preserves
  const guard=await ownedOPFS(context,'v45-edit-'+operation),errors=await recordDOMErrors(context);
  const csp:unknown[]=[],external:string[]=[],consoleErrors:string[]=[],commands:any[]=[],uiRequests:any[]=[],replies:any[]=[],posts:any[]=[],deliveries:any[]=[],deliveryErrors:unknown[]=[],deliverySnapshots:unknown[]=[];
  let deliveryEpoch=0,deliveryOpen=false,deliverySealed=false;
- await context.addInitScript(installE4DeliveryObserver,{profile:'v45-post'});
+ await context.addInitScript(installE4DeliveryObserver,{profile:'v45-post' as const});
  const dir=await mkdtemp(join(await realpath(tmpdir()),'v45-edit-')),root=join(dir,'private');
  const state:RunState={failures:[],roots:[dir],writerClosed:false,contextClosed:false,browserClosed:false,retention:[],receipt,prefix};runs.set(context,state);
  const evidence:Record<string,unknown>={};let server:Awaited<ReturnType<typeof serverProcess>>|undefined,effects:any;

@@ -104,7 +104,7 @@ test('public v4.5 generation reviews exact fields and restores separate V4 draft
  const guard=await ownedOPFS(context,'v45-generation'),errors=await recordDOMErrors(context);
  const csp:unknown[]=[],external:string[]=[],consoleErrors:string[]=[],requests:any[]=[],responses:any[]=[],posts:any[]=[],deliveries:any[]=[],deliveryErrors:unknown[]=[],deliverySnapshots:unknown[]=[];
  let deliveryEpoch=0,deliveryOpen=false,deliverySealed=false;
- await context.addInitScript(installE4DeliveryObserver,{profile:'v45-post'});
+ await context.addInitScript(installE4DeliveryObserver,{profile:'v45-post' as const});
  await context.exposeBinding('generationCSP',(_source,value)=>csp.push(value));
  await context.addInitScript(()=>addEventListener('securitypolicyviolation',event=>(window as any).generationCSP({directive:event.effectiveDirective,blocked:event.blockedURI})));
  page.on('console',message=>{if(message.type()==='error')consoleErrors.push(message.text());});
