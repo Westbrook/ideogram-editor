@@ -6,7 +6,7 @@ const {displayPreviewOwnership}=await import(displayPreviewURL),{displayPath,DIS
 import {RequestEditing,allocationsURL,createOwnedModel,modelPayloadBytes,readOwnedJSON} from './request-controller-module.mjs';
 import {rendered} from './queue-controls.mjs';
 const ownedControllers=new Set(),fixtureCleanups=new Set();test.afterEach(async()=>{try{await Promise.all([...ownedControllers].map(controller=>controller.dispose()));}finally{ownedControllers.clear();for(const cleanup of fixtureCleanups)cleanup();fixtureCleanups.clear();}});const flush=async()=>{for(let i=0;i<100;i++)await Promise.resolve();};const tick=()=>new Promise(r=>setTimeout(r,5));
-function find(t,part){if(!t||typeof t!=='object')return; if(t.strings){const i=t.strings.findIndex(s=>s.includes(part));if(i>=0)return {strings:t.strings.slice(i),values:t.values.slice(i)};}for(const v of Array.isArray(t)?t:t.values??[]){const f=find(v,part);if(f)return f;}}
+function find(t,part){if(!t||typeof t!=='object')return; if(t.strings){const id=/^<en-button id="([^"]+)"$/.exec(part)?.[1],i=t.strings.findIndex((s,index)=>s.includes(part)||id!==undefined&&s.endsWith('<en-button id=')&&t.values[index]===id);if(i>=0)return {strings:t.strings.slice(i),values:t.values.slice(i)};}for(const v of Array.isArray(t)?t:t.values??[]){const f=find(v,part);if(f)return f;}}
 function publicButton(template,label){const matches=rendered({render:()=>template}).buttons.filter(button=>button.name===label);assert.equal(matches.length,1,'Exactly one actual public button '+label);assert.equal(typeof matches[0].click,'function','The rendered button retains its click binding');return matches[0];}
 function event(value='',host={value,isConnected:true}){host.value=value;return {currentTarget:host,composedPath:()=>[host],defaultPrevented:false};}
 function fixture(contextualOperationChanged,checkpointDrafts=[]){
@@ -157,7 +157,7 @@ test('local review acceptance has pending and accepted announcements without que
 
 test('Read current status deliberately repeats the current summary without moving focus or reading the server',async()=>{
  const f=fixture();await f.initial();f.instance.queue=queueObservation('completed');f.instance.candidateViews.set('attempt',candidateObservation());f.host.requestUpdate();await flush();const observed=observeRequestAnnouncements(f);let reads=0;f.editor.json=async()=>{reads++;throw Error('Read current status must use the current retained view');};
- const control=find(f.template(),'<en-button id="request-read-status"');assert(control);assert.match(control.strings.join(''),/Read current status/);let summary;
+ const control=find(f.template(),'<en-button id="request-read-status"');assert(control);assert.equal(publicButton(control,'Read current status').name,'Read current status');let summary;
  for(let i=0;i<3;i++){await act(f,'request-read-status');const current=requestAnnouncement(f);assert.match(current,/Current request status/);assert.match(current,/Request job, attempt attempt: completed/);assert.match(current,/1 retained outputs ready/);if(i)assert.equal(current,summary);summary=current;}
  assert.deepEqual(observed.changes,['',summary,'',summary,'',summary],'A rendered empty boundary makes each explicit repeat observable');assert.equal(reads,0);assert.deepEqual(observed.focus,[]);
 });
@@ -182,7 +182,7 @@ for(const boundary of ['session','document'])test('pending transfer progress is 
 
 const pageTwo='older / page?one',pageThree='oldest:page';
 function queuePage(job,nextCursor){const view=queueObservation();view.totalJobs=3;view.jobs[0].id=job;view.jobs[0].attempts[0].id='attempt-'+job;view.jobs[0].attempts[0].requestId=null;view.nextCursor=nextCursor;return view;}
-function pageControl(f,id){const template=find(f.template(),'<en-button id="'+id+'"');assert(template,'Rendered persistent '+id);return {disabled:template.values[0],click:template.values.find(value=>typeof value==='function')};}
+function pageControl(f,id){const template=find(f.template(),'<en-button id="'+id+'"');assert(template,'Rendered persistent '+id);const disabled=template.strings.findIndex(part=>part.includes('?disabled='));assert(disabled>=0,'Rendered disabled state '+id);return {disabled:template.values[disabled],click:template.values.find(value=>typeof value==='function')};}
 function pageNumber(f){const status=find(f.template(),'id="queue-page-status"');assert(status);return status.values[0];}
 function pendingPage(){let resolve;const promise=new Promise(done=>resolve=done);return {promise,resolve};}
 async function paginationFixture(t){

@@ -440,3 +440,33 @@ test('equal after-composite and native-on role assets acquire separate URL owner
   io.release();await flush();ledger.assertReleasedOnce([afterURL,nativeOnURL]);assert.equal(displayPreviewInfo(afterURL),undefined);assert.equal(displayPreviewInfo(nativeOnURL),undefined);assert.deepEqual(displayReadOwnership(),{active:0,queued:0,limit:2});
  }finally{firstResponse.resolve(response);decodeRelease.resolve();await work?.settled;try{io.release();await f.controller.dispose();}finally{globalThis.createImageBitmap=decode;f.editor.session.transport=transport;}}
 });
+
+
+// Use actual rendered controls and the production ControlAdapter/action owner.
+// Bound attributes and nested labels are decoded by the existing rendered() fixture.
+test('source capture controls keep their public identity and a late veto performs no source work',async t=>{
+ const f=await fixture(t),controls=rendered(f.controller.renderSourceMask()).buttons;
+ assert.deepEqual(controls.map(({id,label,disabled})=>({id,label,disabled})),[
+  {id:'request-capture-single',label:'Capture selected layer contribution',disabled:false},
+  {id:'request-capture-selected',label:'Capture selected layers together',disabled:false},
+  {id:'request-capture-visible',label:'Capture all visible layers',disabled:false},
+ ]);
+ const clicked=event();assert.equal(typeof controls[0].click,'function');controls[0].click(clicked);clicked.defaultPrevented=true;await turn();await flush();
+ assert.deepEqual(f.commands,[]);assert.deepEqual(f.reads,[]);assert.deepEqual(f.transfers,[]);assert.deepEqual(f.errors,[]);assert.equal(f.controller.pendingDispatch,null);assert.equal(f.controller.busy,false);
+ f.controller.busy=true;assert(rendered(f.controller.renderSourceMask()).buttons.every(control=>control.disabled));f.controller.busy=false;
+});
+
+test('ordinary candidate controls preserve late veto, actual inspection and the dynamic mapping label',async t=>{
+ const f=await fixture(t,{actualWidth:8,actualHeight:4}),clicked=event(),control=f.button(inspectId),original=structuredClone({candidate:f.candidate,source:f.source,mask:f.mask});
+ assert.equal(control.label,'Inspect frozen source and candidate');assert.equal(control.disabled,false);control.click(clicked);clicked.defaultPrevented=true;await turn();await flush();
+ assert.deepEqual(f.reads,[]);assert.deepEqual(f.transfers,[]);assert.equal(f.controller.inspections.size,0);assert.equal(f.controller.pendingDispatch,null);assert.equal(f.controller.busy,false);
+ await inspect(f);assertDisplayReads(f,['returned','source','mask']);const mapping=f.button('request-candidate-actual-candidate');assert.equal(mapping.label,'Review mapping to actual 8 × 4 output');assert.equal(mapping.disabled,false);
+ await f.click(mapping.id);assert.equal(f.controller.inspections.get('candidate').actualApproved,true);assert.equal(f.controller.inspections.get('candidate').clipActual,false);assert.deepEqual(f.commands,[]);assert.deepEqual(f.errors,[]);assert.deepEqual({candidate:f.candidate,source:f.source,mask:f.mask},original);
+});
+
+for(const boundary of ['owner','busy','composition'])test('ordinary rendered inspection remains fenced when '+boundary+' changes before settled dispatch',async t=>{
+ const f=await fixture(t),control=f.button(inspectId);assert.equal(control.disabled,false);control.click(event());
+ if(boundary==='owner')f.editor.draftOwner={drafts:new Map()};else if(boundary==='busy')f.controller.busy=true;else f.controller.composing=true;
+ await turn();await flush();assert.deepEqual(f.commands,[]);assert.deepEqual(f.reads,[]);assert.deepEqual(f.transfers,[]);assert.deepEqual(f.errors,[]);assert.equal(f.controller.inspections.size,0);assert.equal(f.controller.pendingDispatch,null);
+ f.controller.busy=false;f.controller.composing=false;
+});
