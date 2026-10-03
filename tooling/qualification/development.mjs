@@ -13,6 +13,7 @@ import {treeIdentityAsync,gateInputKey,outputIdentityAsync,reusableAsync,saveAto
 import {versions} from './manifest.mjs';
 import {boundedChild} from './container/bounded-child.mjs';
 import {retainBrowserEvidence} from './container/browser-evidence.mjs';
+import {needsRetainedBuildEvidence,retainDevelopmentBuildEvidence} from './development-build-evidence.mjs';
 
 import {acquireTimingLock,timingLockDirectory} from './campaigns/host.mjs';
 import {prepareFunctionalOutput} from './functional-output.mjs';
@@ -135,6 +136,9 @@ export async function executeDevelopment({cwd=root,options,gateExecutor=executeG
       const current={key,mode,reuseReason,observation,logPath:join(directory,observation.log.path),elapsedMs:performance.now()-gateStart,...(entry?{reusedFrom:entry.logPath}:{})};
       if(observation.outcome==='PASS'&&!gate.files&&!gate.fixtureBuild)current.outputs=await outputIdentityAsync(cwd,gate);
       receipt.gates.push(current);save();
+      if(observation.outcome==='PASS'&&gate.id==='build-app'&&needsRetainedBuildEvidence(plan)){
+        current.retainedBuildEvidence=await retainDevelopmentBuildEvidence({cwd,directory,source:before,outputs:current.outputs,signal:controller.signal});save();
+      }
       if(observation.outcome!=='PASS')throw Object.assign(Error(`${gate.id} ${observation.outcome}; later gates were not started`),{outcome:observation.outcome});
       if(gate.id==='preflight'&&plan.requiredBrowsers.length){const playwright=await import('@playwright/test');for(const browser of plan.requiredBrowsers)if(!existsSync(playwright[browser].executablePath()))throw Error(`Install pinned ${browser} before browser validation`);}
       if(!gate.files&&!gate.fixtureBuild)pending.push([gate.id,current]);

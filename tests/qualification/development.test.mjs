@@ -953,7 +953,7 @@ const fastBrowserPlan = (family = 'editor-document-creation', engine = 'chromium
 });
 const browserDeadlineSource = path => readFileSync(path,'utf8');
 test('Fast browser selection preserves every reviewed whole family on exactly one pinned engine',()=>{
- assert.equal(fastBrowserFamilies.length,35);assert.equal(new Set(fastBrowserFamilies).size,35);
+ assert.equal(fastBrowserFamilies.length,36);assert.equal(new Set(fastBrowserFamilies).size,36);
  for(const engine of ['chromium','firefox','webkit'])for(const family of fastBrowserFamilies){
   if(family==='adapters'&&engine!=='chromium'){assert.throws(()=>selectedFastBrowserSetup(process.cwd(),family,engine),/requires Chromium/);continue;}
   const plan=fastBrowserPlan(family,engine),setup=selectedFastBrowserSetup(process.cwd(),family,engine);
@@ -968,7 +968,8 @@ test('Fast browser selection preserves every reviewed whole family on exactly on
    assert.equal(ids.includes('build-app'),false);assert.equal(ids.includes('build-server'),false);assert.deepEqual(setup.issuers,[]);
   }else{
    assert(ids.includes('build-app'));assert(ids.includes('build-server'));assert(ids.includes('storage-environment'));
-   assert.deepEqual(setup.issuers,[{id:'browser-completion-issuers',timeoutMs:300000,graceMs:5000,exitObservationMs:100}]);
+   if(family==='text'){assert.equal(ids.includes('completion-source'),false);assert.deepEqual(setup.issuers,[]);}
+   else assert.deepEqual(setup.issuers,[{id:'browser-completion-issuers',timeoutMs:300000,graceMs:5000,exitObservationMs:100}]);
   }
   const units=[...setup.gates,...setup.browserSteps,...setup.issuers];
   assert.equal(setup.totalBudgetMs,units.reduce((sum,row)=>sum+row.timeoutMs+row.graceMs+row.exitObservationMs,0)+40*60_000+15*60_000);
@@ -1062,8 +1063,8 @@ test('Fast browser deadline source parsing rejects changed implicit authority an
  }}));
 });
 test('Fast browser provisioning installs only the selected locked CLI engine and retains failure without fallback',()=>{
- for(const engine of ['chromium','firefox','webkit']){
-  const plan=selectedFastBrowserSetup(process.cwd(),'editor-display-image',engine),commands=[],records=[];
+ for(const family of ['editor-display-image','text'])for(const engine of ['chromium','firefox','webkit']){
+  const plan=selectedFastBrowserSetup(process.cwd(),family,engine),commands=[],records=[];
   const result=provisionFastBrowserSetup(process.cwd(),plan,{execute:(command,args,options)=>{
    commands.push([command,...args]);assert.equal(command,process.execPath);
    assert.deepEqual(args,[join(process.cwd(),'node_modules/playwright/cli.js'),'install','--with-deps',engine]);
@@ -1284,3 +1285,58 @@ test('Fast request review, queue and candidate provisioning keep one pinned engi
   assert.equal(failedCalls,1);assert.deepEqual(failures.map(row=>row.status),['PENDING','FAIL']);assert.equal(failures.at(-1).browser,null);assert.equal(failures.at(-1).adapterFixture,null);
  }
 });
+
+
+for(const engine of ['chromium','firefox','webkit']){
+ test('Fast text admission retains both complete specs and the original fixture on '+engine,()=>{
+  const plan=fastBrowserPlan('text',engine),setup=selectedFastDispatchSetup(process.cwd(),{
+   SELECTED_NODE_FILES:'',SELECTED_BROWSER_FAMILY:'text',SELECTED_BROWSER:engine,
+  }),files=['tests/text/renderer.spec.ts','tests/text/budget-boundary.spec.ts'];
+  const textApp=join(plan.browserPlan.output,'text-app'),destination=join(plan.browserPlan.output,`text-${engine}`),[fixtureStep,step]=plan.browserPlan.steps;
+  assert.deepEqual(plan.browserPlan.steps.map(row=>row.id),['build-text-consumer',`text-${engine}`]);
+  assert.deepEqual(fixtureStep,{id:'build-text-consumer',family:'fixture-build',browser:null,executable:'npm',
+   args:['exec','--','vite','build','--config','tests/text/vite.config.ts'],config:null,files:[],env:{TEXT_APP:textApp},
+   outputRoot:textApp,output:textApp,reportFile:null,timeoutMs:300000});
+  assert.equal(step.family,'text');assert.equal(step.browser,engine);assert.equal(step.executable,'npm');
+  assert.equal(step.config,'tests/text/playwright.config.ts');assert.equal(step.project,engine);assert.deepEqual(step.files,files);
+  assert.deepEqual(step.args,['exec','--','playwright','test','--config','tests/text/playwright.config.ts',...files,'--project',engine,
+   '--forbid-only','--max-failures=1','--reporter','list,json,./tooling/qualification/developer-campaigns/browser-reporter.mjs']);
+  assert.deepEqual(step.env,{TEXT_RECEIPT:destination,TEXT_APP:textApp,
+   PLAYWRIGHT_JSON_OUTPUT_FILE:join(destination,'results.json'),QUALIFICATION_CASE_REPORT:join(destination,'cases.ndjson')});
+  assert.equal(step.outputRoot,destination);assert.equal(step.output,destination);
+  assert.equal(step.reportFile,join(destination,'results.json'));assert.equal(step.caseReportFile,join(destination,'cases.ndjson'));
+  assert.deepEqual(step.prerequisites,['build-text-consumer']);assert.deepEqual(step.contracts,[]);assert.equal(step.timeoutMs,1800000);
+  assert.deepEqual(plan.browserPlan.prerequisites,['build-app','build-server','raster-inputs']);
+  assert.deepEqual(setup.gates.map(gate=>gate.id),['typecheck','preflight','storage-environment','vendor','text-inputs','imports','raster-inputs','build-server','build-app']);
+  assert.deepEqual(setup.selectedFiles,files);assert.deepEqual(plan.selectedFiles,[]);assert.deepEqual(setup.requiredBrowsers,[engine]);
+  assert.deepEqual(setup.history,[]);assert.equal(setup.adapterFixture,null);assert.deepEqual(setup.issuers,[]);assert.equal(setup.issuerBudgetMs,0);
+  assert.deepEqual(setup.browserSteps,[{id:'build-text-consumer',timeoutMs:300000,graceMs:5000,exitObservationMs:100},
+   {id:`text-${engine}`,timeoutMs:1800000,graceMs:5000,exitObservationMs:100}]);
+  assert.equal(setup.gateBudgetMs,1980900);assert.equal(setup.browserBudgetMs,2110200);
+  assert.equal(setup.setupReserveMs,2400000);assert.equal(setup.finalizationReserveMs,900000);
+  assert.equal(setup.totalBudgetMs,7391100);assert.equal(setup.jobMinutes,180);assert.equal(setup.qualification,false);
+ });
+ test('Fast text admission refuses partial or changed whole-family plans on '+engine,()=>{
+  const original=fastBrowserPlan('text',engine),mutations={
+   'missing fixture':plan=>{plan.browserPlan.steps.shift();},
+   'reordered steps':plan=>{plan.browserPlan.steps.reverse();},
+   'missing spec':plan=>{plan.browserPlan.steps[1].files.pop();},
+   'reordered specs':plan=>{plan.browserPlan.steps[1].files.reverse();},
+   'foreign spec':plan=>{plan.browserPlan.steps[1].files[0]='tests/editor/native-text.spec.ts';},
+   'changed config':plan=>{plan.browserPlan.steps[1].config='tests/editor/integration-regression.config.ts';},
+   'changed project':plan=>{plan.browserPlan.steps[1].project=engine==='chromium'?'firefox':'chromium';},
+   'missing fixture prerequisite':plan=>{plan.browserPlan.steps[1].prerequisites=[];},
+   'changed fixture prerequisite':plan=>{plan.browserPlan.steps[1].prerequisites=['build-consumer'];},
+   'changed fixture command':plan=>{plan.browserPlan.steps[0].args[5]='tests/recovery/vite.config.ts';},
+   'changed fixture path':plan=>{plan.browserPlan.steps[0].env.TEXT_APP=join(plan.browserPlan.output,'other-app');},
+   'extra grep':plan=>{plan.browserPlan.steps[1].args.push('--grep','one case');},
+   'extra engine':plan=>{plan.requiredBrowsers.push(engine==='chromium'?'firefox':'chromium');},
+  };
+  for(const [label,mutate] of Object.entries(mutations)){const changed=structuredClone(original);mutate(changed);assert.throws(()=>fastBrowserSetupPlan(changed,{sourceFor:browserDeadlineSource}),/complete maintained family/,label);}
+ });
+ test('Fast text admission refuses an injected completion issuer prerequisite on '+engine,()=>{
+  const plan=fastBrowserPlan('text',engine),issuer=fastBrowserPlan('editor-native-text',engine).gates.find(gate=>gate.id==='completion-source');
+  assert(issuer);plan.gates.push(structuredClone(issuer));
+  assert.throws(()=>fastBrowserSetupPlan(plan,{sourceFor:browserDeadlineSource}),/Browser issuer prerequisite changed/);
+ });
+}

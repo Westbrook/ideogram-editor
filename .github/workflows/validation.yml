@@ -50,6 +50,7 @@ on:
           - e3
           - e4
           - adapters
+          - text
       browser:
         description: Pinned engine for the selected whole browser family
         required: false
