@@ -1,7 +1,9 @@
 import { test, expect } from './fixture';
 import type { Page } from '@playwright/test';
 import axe from 'axe-core';
-import { readFile, stat } from 'node:fs/promises';
+import { readFile, stat, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import sharp from 'sharp';
 
 const textInput = (page: Page) => page.getByTestId('preview-text').getByRole('textbox');
 const select = (page: Page, id: string) => page.getByTestId(id).getByRole('combobox');
@@ -168,25 +170,39 @@ test('narrow viewport keeps controls reachable and the canvas within the page', 
   await button(page, 'reset-preview').focus(); await page.keyboard.press('Enter'); await expect(page.getByTestId('preview-canvas')).toBeHidden();
 });
 
-test('PNG download decodes to the exact currently displayed canvas', async ({ page }, info) => {
+test('PNG download matches the current canvas native PNG encoding', async ({ page }, info) => {
   await page.goto('./'); await textInput(page).fill('Actual canvas download'); const expected = await render(page);
+  // Canvas readback and native PNG encoding can round partially transparent
+  // channels differently. Capture the same displayed canvas's public PNG
+  // representation before clicking, then compare independently decoded bytes.
+  const referenceURL = await page.getByTestId('preview-canvas').evaluate(node => {
+    const value = (node as HTMLCanvasElement).toDataURL('image/png');
+    if (!value.startsWith('data:image/png;base64,') || value.length > 24 * 1024 * 1024) throw Error('Bounded native PNG reference required');
+    return value;
+  });
+  const referenceBytes = Buffer.from(referenceURL.slice('data:image/png;base64,'.length), 'base64');
+  expect(referenceBytes.length).toBeLessThanOrEqual(16 * 1024 * 1024);
+  expect([...referenceBytes.subarray(0, 8)]).toEqual([137, 80, 78, 71, 13, 10, 26, 10]);
+  await writeFile(info.outputPath('reference.png'), referenceBytes, { flag: 'wx' });
   const waiting = page.waitForEvent('download'); await button(page, 'download-png').click(); const download = await waiting;
   expect(await download.failure()).toBeNull(); expect(download.suggestedFilename()).toMatch(/\.png$/);
   const path = info.outputPath('preview.png'); await download.saveAs(path);
   expect((await stat(path)).size).toBeLessThanOrEqual(16 * 1024 * 1024);
   const bytes = await readFile(path); expect([...bytes.subarray(0, 8)]).toEqual([137, 80, 78, 71, 13, 10, 26, 10]);
-  const actual = await page.evaluate(async encoded => {
-    const bytes = Uint8Array.from(atob(encoded), char => char.charCodeAt(0));
-    const bitmap = await createImageBitmap(new Blob([bytes], { type: 'image/png' }));
-    try {
-      const canvas = document.createElement('canvas'); canvas.width = bitmap.width; canvas.height = bitmap.height;
-      const context = canvas.getContext('2d')!; context.drawImage(bitmap, 0, 0);
-      const data = context.getImageData(0, 0, canvas.width, canvas.height).data;
-      const sha256 = [...new Uint8Array(await crypto.subtle.digest('SHA-256', data))].map(n => n.toString(16).padStart(2, '0')).join('');
-      return { width: canvas.width, height: canvas.height, sha256 };
-    } finally { bitmap.close(); }
-  }, bytes.toString('base64'));
-  expect(actual).toEqual({ width: expected.width, height: expected.height, sha256: expected.sha256 });
+  const reference = await sharp(referenceBytes, { limitInputPixels: 960 * 540, failOn: 'warning' }).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  const actual = await sharp(bytes, { limitInputPixels: 960 * 540, failOn: 'warning' }).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  for (const decoded of [reference, actual]) {
+    expect({ width: decoded.info.width, height: decoded.info.height, channels: decoded.info.channels }).toEqual({ width: expected.width, height: expected.height, channels: 4 });
+    expect(decoded.data.length).toBe(expected.width * expected.height * 4);
+  }
+  expect(actual.data.equals(reference.data)).toBe(true);
+  expect(await pixels(page)).toEqual(expected);
+  const digest = (value: Uint8Array) => createHash('sha256').update(value).digest('hex');
+  await info.attach('png-representation-equality', { contentType: 'application/json', body: Buffer.from(JSON.stringify({
+    scope: 'Exact independently decoded native PNG equality to the displayed canvas captured before click; no partial-alpha readback identity or tolerance is claimed',
+    canvasReadbackBeforeAndAfter: expected, referencePNG: digest(referenceBytes), downloadedPNG: digest(bytes),
+    referenceRGBA: digest(reference.data), downloadedRGBA: digest(actual.data), width: expected.width, height: expected.height,
+  })) });
   await expect(button(page, 'download-png')).toBeEnabled();
   // Retain the real native encoder result; control only delivery of its public
   // callback so a UI edit/reset can exercise the asynchronous stale-result guard.
