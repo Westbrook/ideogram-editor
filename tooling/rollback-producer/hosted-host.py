@@ -75,6 +75,47 @@ def select(host, environment):
     selection = {'kind':'linux-native-host-selection-1','schemaVersion':1,'arch':'x64','distro':{'id':distro['ID'],'versionId':distro['VERSION_ID']},'glibcVersion':glibc.split()[1],'tools':tools,'compilerPrograms':programs,'osRelease':distro_path,'loaderCache':pair('/etc/ld.so.cache'),'systemLibraries':sorted(libraries.values(),key=lambda x:x['soname'])}
     host.validate_selection(selection); return selection
 
+def elf_failure_context(host, error):
+    """Read only fixed fields from the actual sealed parser's refusal frame."""
+    cursor = error.__traceback__; values = None
+    for _ in range(32):
+        if cursor is None: break
+        if cursor.tb_frame.f_code is host.read_elf.__code__:
+            values = cursor.tb_frame.f_locals; break
+        cursor = cursor.tb_next
+    if values is None: return None
+    path = host.absolute(str(values['path'])); before = values['before']
+    require(isinstance(before, os.stat_result), 'Actual parser file observation required')
+    number = lambda name: values.get(name) if type(values.get(name)) is int and 0 <= values[name] < 2**64 else None
+    tags = values.get('tags'); sizes = values.get('sizes')
+    require(tags is None or isinstance(tags,list) and len(tags)<=1024 and all(isinstance(t,tuple) and len(t)==2 and all(type(n) is int for n in t) for t in tags), 'Diagnostic dynamic metadata bound')
+    require(sizes is None or isinstance(sizes,list) and len(sizes)<=1 and all(type(n) is int and 0<=n<2**64 for n in sizes), 'Diagnostic string-size metadata bound')
+    result = {'path':str(path),'parserFileStat':{key:getattr(before,'st_'+key) for key in ('dev','ino','mode','uid','gid','nlink','size','mtime_ns','ctime_ns')},'elf':{'expectedMachine':number('machine'),'observedMachine':number('observed_machine'),'type':number('elf_type'),'programHeaderCount':number('phnum'),'stringTableBytes':sizes,'neededEntryCount':None if tags is None else sum(tag==1 for tag,_ in tags),'dependencyNamesReported':False},'reauthenticatedFile':None,'reauthenticationErrorType':None}
+    try:
+        current = path.lstat()
+        # Failure-only reauthentication uses the original selected-file policy
+        # and its unchanged MAX_FILE; it does not retry or admit the ELF parser.
+        observed = host.system_file({'requestedPath':str(path),'path':str(path)})
+        after = path.lstat()
+        result['reauthenticatedFile'] = {'sha256':observed['sha256'],'byteLength':observed['byteLength'],'sameFileStatAsRefusedRead':host.identity(before)==host.identity(current)==host.identity(after)}
+    except BaseException as secondary:
+        result['reauthenticationErrorType'] = re.sub('[^A-Za-z0-9_.]','?',type(secondary).__name__)[:80]
+    return result
+
+def preserve_host_failure(host, primary, stage, producer_seal, parser_hash):
+    value = {'kind':'hosted-native-elf-refusal-context-1','stage':stage,'producerSealSHA256':producer_seal,'parserSHA256':parser_hash,'primaryExceptionPreserved':True,'setupMeasured':False,'qualification':False,'elfContext':None,'diagnosticErrorType':None}
+    try:
+        value['elfContext'] = elf_failure_context(host, primary)
+        raw = json.dumps(value,separators=(',',':'))
+        require(len(raw.encode())<=8192, 'Diagnostic output bound')
+    except BaseException as secondary:
+        value['elfContext'] = None
+        value['diagnosticErrorType'] = re.sub('[^A-Za-z0-9_.]','?',type(secondary).__name__)[:80]
+        raw = json.dumps(value,separators=(',',':'))
+    try: sys.stderr.write(raw+'\n')
+    except BaseException: pass
+    raise primary
+
 def main():
     require(sys.flags.isolated and sys.flags.no_site and sys.dont_write_bytecode and not sys.flags.optimize, 'Use Python -I -S -B')
     require(sys.platform == 'linux' and os.getuid() == os.geteuid() != 0, 'Selected nonroot Linux setup observer required')
@@ -84,7 +125,12 @@ def main():
     row = seal['files']['linux_host.py']; raw = read(root / 'linux_host.py', 1048576)
     require(row == {'hash':'sha256:' + hashlib.sha256(raw).hexdigest(),'byteLength':str(len(raw))}, 'Sealed host parser differs')
     host = types.ModuleType('selected_linux_host'); exec(compile(raw,str(root/'linux_host.py'),'exec',dont_inherit=True),host.__dict__)
-    environment = {key:os.environ[key] for key in ('PATH','HOME','TMPDIR')}; selection = select(host, environment); observed = host.native_host(environment,selection)
+    environment = {key:os.environ[key] for key in ('PATH','HOME','TMPDIR')}; stage = 'dependency-selection'
+    try:
+        selection = select(host, environment)
+        stage = 'native-host-observation'; observed = host.native_host(environment,selection)
+    except Exception as primary:
+        preserve_host_failure(host, primary, stage, args.producer_seal, row['hash'])
     out = Path(args.output); require(out.is_absolute() and out.parent.resolve(strict=True) == out.parent, 'Canonical setup output required'); out.mkdir(mode=0o700)
     refs = {}
     for name,value in [('selection.json',selection),('observation.json',observed)]:

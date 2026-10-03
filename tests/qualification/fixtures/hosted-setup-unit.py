@@ -3,12 +3,14 @@ import copy
 import ast
 import contextlib
 import importlib.util
+import hashlib
 import io
 import json
 import os
 from pathlib import Path
 import sys
 import stat
+import struct
 import tempfile
 import types
 import textwrap
@@ -24,6 +26,27 @@ marker_namespace = {'json':json,'stat':stat}
 # Exercise only the actual guard function, never the marker-writing workflow.
 exec(compile(ast.Module(body=[marker_guard],type_ignores=[]),'workflow-marker-guard','exec'),marker_namespace)
 require_marker_parent = marker_namespace['require_marker_parent']
+def load_host_module(name, path):
+    spec=importlib.util.spec_from_file_location(name,path)
+    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module);return module
+producer_root=Path(subject.__file__).parent
+host_diagnostics=load_host_module('hosted_host_diagnostics_subject',producer_root/'hosted-host.py')
+sealed_host=load_host_module('unchanged_sealed_elf_parser',producer_root/'schema18/linux_host.py')
+
+def refused_elf(path):
+    # A 256-byte inert ELF64 fixture declares a DT_STRSZ one byte over the
+    # unchanged parser bound. No compiler, system executable or library runs.
+    header=b'\x7fELF\x02\x01\x01'+bytes(9)+struct.pack('<HHIQQQIHHHHHH',3,62,1,0,64,0,0,64,56,2,0,0,0)
+    load=struct.pack('<IIQQQQQQ',1,5,0,0,0,256,256,4096)
+    dynamic=struct.pack('<IIQQQQQQ',2,6,176,176,176,64,64,8)
+    tags=b''.join(struct.pack('<qQ',tag,value) for tag,value in ((5,240),(10,1048577),(1,1),(0,0)))
+    path.write_bytes(header+load+dynamic+tags+bytes(16))
+    try:sealed_host.read_elf(path,62,page_size=4096)
+    except sealed_host.LinuxHostError as error:return error
+    raise AssertionError('Unchanged sealed parser must refuse oversized DT_STRSZ')
+
+def fixture_identity(path):
+    raw=path.read_bytes();return {'sha256':'sha256:'+hashlib.sha256(raw).hexdigest(),'byteLength':str(len(raw))}
 HEAD = 'b'*40
 FIRST = subject.utc_ms('2026-10-03T12:00:01Z')
 
@@ -34,6 +57,45 @@ def closed(phase, outcome='PASS', released=True):
     return {'kind':'hosted-native-phase-finalization-1','phase':phase,'effectiveOutcome':outcome,'timingLockReleased':released}
 
 class Boundaries(unittest.TestCase):
+    def test_elf_refusal_context_binds_actual_sealed_frame_and_file_identity(self):
+        with tempfile.TemporaryDirectory() as raw:
+            path=Path(raw).resolve()/'selected';error=refused_elf(path)
+            self.assertEqual(str(error),'ELF string table exceeds bound')
+            with mock.patch.object(sealed_host,'system_file',return_value=fixture_identity(path)) as authenticate:
+                value=host_diagnostics.elf_failure_context(sealed_host,error)
+            authenticate.assert_called_once_with({'requestedPath':str(path),'path':str(path)})
+            self.assertEqual(value['path'],str(path));self.assertEqual(value['parserFileStat']['size'],256)
+            self.assertEqual(value['elf']['stringTableBytes'],[1048577]);self.assertEqual(value['elf']['neededEntryCount'],1)
+            self.assertEqual(value['elf']['observedMachine'],62);self.assertFalse(value['elf']['dependencyNamesReported'])
+            self.assertEqual(value['reauthenticatedFile'],{**fixture_identity(path),'sameFileStatAsRefusedRead':True})
+
+    def test_elf_refusal_diagnostic_does_not_bind_replaced_bytes_to_old_read(self):
+        with tempfile.TemporaryDirectory() as raw:
+            path=Path(raw).resolve()/'selected';error=refused_elf(path)
+            def replace(_):
+                path.write_bytes(path.read_bytes()+b'\0');return fixture_identity(path)
+            with mock.patch.object(sealed_host,'system_file',side_effect=replace):value=host_diagnostics.elf_failure_context(sealed_host,error)
+            self.assertEqual(value['parserFileStat']['size'],256);self.assertEqual(value['reauthenticatedFile']['byteLength'],'257')
+            self.assertFalse(value['reauthenticatedFile']['sameFileStatAsRefusedRead'])
+
+    def test_elf_identity_refusal_retains_metadata_without_inventing_hash(self):
+        with tempfile.TemporaryDirectory() as raw:
+            path=Path(raw).resolve()/'selected';error=refused_elf(path)
+            with mock.patch.object(sealed_host,'system_file',side_effect=ValueError('private secondary text')):value=host_diagnostics.elf_failure_context(sealed_host,error)
+            self.assertEqual(value['elf']['stringTableBytes'],[1048577]);self.assertIsNone(value['reauthenticatedFile'])
+            self.assertEqual(value['reauthenticationErrorType'],'ValueError');self.assertNotIn('private secondary text',json.dumps(value))
+
+    def test_elf_diagnostic_failure_cannot_mask_primary_or_dump_arbitrary_text(self):
+        original=ValueError('original host failure');output=io.StringIO()
+        with mock.patch.object(host_diagnostics,'elf_failure_context',side_effect=RuntimeError('private secondary text')):
+            with contextlib.redirect_stderr(output):
+                with self.assertRaises(ValueError) as caught:host_diagnostics.preserve_host_failure(sealed_host,original,'dependency-selection','a'*64,'sha256:'+'b'*64)
+        self.assertIs(caught.exception,original);value=json.loads(output.getvalue())
+        self.assertTrue(value['primaryExceptionPreserved']);self.assertIsNone(value['elfContext']);self.assertEqual(value['diagnosticErrorType'],'RuntimeError')
+        self.assertFalse(value['qualification']);self.assertLess(len(output.getvalue().encode()),8192)
+        self.assertNotIn('private secondary text',output.getvalue())
+        self.assertIsNone(host_diagnostics.elf_failure_context(sealed_host,original))
+
     def test_marker_and_setup_directory_guards_refuse_unsafe_ancestors(self):
         class Member:
             def __init__(self,name):
