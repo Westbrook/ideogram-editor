@@ -2,12 +2,14 @@
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import {readFileSync, writeFileSync} from 'node:fs';
-import {join, posix, resolve} from 'node:path';
+import {lstat, mkdir, mkdtemp, open, chmod, link, unlink, rmdir} from 'node:fs/promises';
+import {get as httpsGet} from 'node:https';
+import {join, dirname, posix, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {parseSync} from 'rolldown/utils';
 import {developmentPlan} from './development-plan.mjs';
 import {createBrowserPlan} from './container/browser-plan.mjs';
-import {historyRequirements} from './container/inputs.mjs';
+import {historyRequirements, fixtureRequirements, adapterSourceURL, verifyAdapterFixture} from './container/inputs.mjs';
 
 const hostedFiles = new Set([
   'tests/history/mask-text-compatibility.test.mjs',
@@ -135,8 +137,14 @@ export function fastSetupPlan(plan, {sourceFor, history = historyRequirements} =
     const {commit, paths} = directHistory(read(directHistoryOwner));
     admit(directHistoryOwner, commit, paths);
   }
+  const adapterOwners = plan.selectedFiles.filter(path => path.startsWith('tests/adapters/'));
+  let adapterFixture = null;
+  if (adapterOwners.length) {
+    read('tooling/qualification/container/inputs.mjs');
+    adapterFixture = {...publicAdapterRequirement(), owners: adapterOwners};
+  }
   return {kind: 'fast-ci-selected-setup-1', qualification: false, selectedFiles: [...plan.selectedFiles], requiredBrowsers: [...plan.requiredBrowsers], gates,
-    gateBudgetMs, setupReserveMs, finalizationReserveMs, totalBudgetMs, jobMinutes: fastSelectedJobMinutes, sources, history: historyInputs};
+    gateBudgetMs, setupReserveMs, finalizationReserveMs, totalBudgetMs, jobMinutes: fastSelectedJobMinutes, sources, history: historyInputs, adapterFixture};
 }
 export function selectedFastSetup(root, nodeFiles) {
   if (!nodeFiles) throw Error('Fast prerequisite setup requires a nonempty explicit whole-file selection');
@@ -250,7 +258,10 @@ export function provisionFastBrowserSetup(root, plan, {execute = execFileSync, r
 }
 
 export function provisionFastSetup(root, plan, {execute = execFileSync, record = () => {}} = {}) {
-  const receipt = {kind: 'fast-ci-selected-provisioning-1', qualification: false, plan, status: 'PENDING', history: [], browser: null};
+  const adapterOwners = plan.selectedFiles.filter(path => path.startsWith('tests/adapters/'));
+  const expectedAdapter = adapterOwners.length ? {...publicAdapterRequirement(), owners: adapterOwners} : null;
+  if (!same(plan.adapterFixture ?? null, expectedAdapter)) throw Error('Selected public adapter prerequisite differs from pinned input');
+  const receipt = {kind: 'fast-ci-selected-provisioning-1', qualification: false, plan, status: 'PENDING', history: [], browser: null, adapterFixture: null};
   const env = {...process.env, GIT_NO_REPLACE_OBJECTS: '1', GIT_TERMINAL_PROMPT: '0'};
   const git = (args, timeout = 60_000) => execute('git', ['-c', 'core.hooksPath=/dev/null', '-C', root, ...args], {env, timeout, maxBuffer: 256 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe']});
   const head = () => git(['rev-parse', '--verify', 'HEAD']).toString().trim();
@@ -263,6 +274,12 @@ export function provisionFastSetup(root, plan, {execute = execFileSync, record =
       if (git(['cat-file', '-t', item.commit]).toString().trim() !== 'commit') throw Error('Fetched historical input is not a commit');
       const archive = git(['archive', '--format=tar', item.commit, '--', ...item.paths]);
       receipt.history.push({...item, archive: {bytes: archive.length, sha256: sha256(archive)}}); record(receipt);
+    }
+    if (expectedAdapter) {
+      const args = [fileURLToPath(import.meta.url), '--public-adapter', root];
+      const value = JSON.parse(execute(process.execPath, args, {cwd: root, timeout: 11 * 60_000, maxBuffer: 65536, stdio: ['ignore', 'pipe', 'pipe']}).toString());
+      if (value.kind !== 'fast-public-adapter-provisioning-1' || value.status !== 'PASS' || !same(value.expected, publicAdapterRequirement()) || value.actual?.path !== join(root, expectedAdapter.path) || value.actual.bytes !== expectedAdapter.bytes || value.actual.sha256 !== expectedAdapter.sha256 || !['existing', 'downloaded'].includes(value.mode)) throw Error('Public adapter provisioning receipt differs');
+      receipt.adapterFixture = {...value, command: [process.execPath, ...args]}; record(receipt);
     }
     if (plan.requiredBrowsers.length) {
       // npm ci installed this exact lockfile-pinned CLI. No npx download or
@@ -285,10 +302,104 @@ export function provisionFastSetup(root, plan, {execute = execFileSync, record =
   return receipt;
 }
 
+// Fixed public structural fixture only. This never downloads a model result,
+// accepts credentials, follows redirects, or changes product/test-child egress.
+function publicAdapterRequirement() {
+  const rows = fixtureRequirements.filter(row => row.path === 'artifacts/p27-evidence/fal-public-lora-example/provider-example.safetensors');
+  if (rows.length !== 1) throw Error('Exact public adapter input declaration missing');
+  const url = new URL(adapterSourceURL);
+  if (url.protocol !== 'https:' || url.hostname !== 'v3b.fal.media' || url.port || url.username || url.password || url.search || url.hash || url.href !== adapterSourceURL) throw Error('Public adapter input URL declaration differs');
+  return {...rows[0], sourceURL: adapterSourceURL};
+}
+/** Small-file unit fixtures exercise this bounded byte primitive. Only the
+ * private provisioning entry point chooses the genuine admitted descriptor. */
+export async function stagePinnedAdapterResponse(response, path, expected, signal) {
+  if (!Number.isSafeInteger(expected.bytes) || expected.bytes <= 0 || !/^[a-f0-9]{64}$/.test(expected.sha256)) throw Error('Invalid pinned adapter byte identity');
+  signal?.throwIfAborted();
+  if (response.statusCode !== 200 || response.headers['content-encoding'] && response.headers['content-encoding'] !== 'identity' || response.headers['content-length'] !== String(expected.bytes)) throw Error('Public adapter response status/encoding/length differs');
+  const file = await open(path, 'wx', 0o600), hash = createHash('sha256');
+  let received = 0;
+  try {
+    for await (const chunk of response) {
+      signal?.throwIfAborted();
+      if (!(chunk instanceof Uint8Array) || !chunk.length) throw Error('Invalid public adapter chunk');
+      received += chunk.length;
+      if (received > expected.bytes) throw Error('Public adapter exceeds pinned length');
+      hash.update(chunk);
+      for (let at = 0; at < chunk.length;) {
+        signal?.throwIfAborted();
+        const {bytesWritten} = await file.write(chunk, at, chunk.length - at);
+        if (!bytesWritten) throw Error('Public adapter write did not progress');
+        at += bytesWritten;
+      }
+    }
+    signal?.throwIfAborted();
+    const actual = {bytes: received, sha256: hash.digest('hex')};
+    if (!same(actual, {bytes: expected.bytes, sha256: expected.sha256})) throw Error('Public adapter downloaded identity differs');
+    await file.sync();
+    return actual;
+  } finally { await file.close(); }
+}
+/** Hard-link publication is atomic and refuses an existing destination. The
+ * caller has already verified bytes; it verifies the published path again. */
+export async function publishPinnedAdapterFile(staged, destination) {
+  await chmod(staged, 0o444);
+  await link(staged, destination);
+}
+export async function provisionFastAdapterFixture(root) {
+  root = resolve(root);
+  const expected = publicAdapterRequirement(), destination = join(root, expected.path);
+  const rootInfo = await lstat(root);
+  if (!rootInfo.isDirectory() || rootInfo.isSymbolicLink()) throw Error('Public adapter root must be a real directory');
+  // Existing mismatches are evidence, never silently overwritten or replaced.
+  let exists = false;
+  try { await lstat(destination); exists = true; } catch (error) { if (error.code !== 'ENOENT') throw error; }
+  if (exists) return {kind: 'fast-public-adapter-provisioning-1', status: 'PASS', mode: 'existing', expected, actual: await verifyAdapterFixture({root})};
+  let parent = root;
+  for (const part of expected.path.split('/').slice(0, -1)) {
+    parent = join(parent, part);
+    try { await mkdir(parent, {mode: 0o700}); } catch (error) { if (error.code !== 'EEXIST') throw error; }
+    const stat = await lstat(parent);
+    if (!stat.isDirectory() || stat.isSymbolicLink()) throw Error('Public adapter parent must be a real directory');
+  }
+  const temporary = await mkdtemp(join(dirname(destination), '.public-adapter-'));
+  const staged = join(temporary, 'download.safetensors'), controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(Error('Public adapter download exceeded 600 seconds')), 600_000);
+  let request, response, requestClosed, responseClosed;
+  try {
+    await new Promise((resolveResponse, reject) => {
+      request = httpsGet(expected.sourceURL, {agent: false, headers: {'Accept-Encoding': 'identity'}, signal: controller.signal}, res => {
+        response = res;
+        responseClosed = new Promise(resolveClose => { if (res.closed) resolveClose(); else res.once('close', resolveClose); });
+        resolveResponse();
+      });
+      requestClosed = new Promise(resolveClose => { if (request.closed) resolveClose(); else request.once('close', resolveClose); });
+      request.once('error', reject);
+    });
+    await stagePinnedAdapterResponse(response, staged, expected, controller.signal);
+    await verifyAdapterFixture({root, path: staged});
+    controller.signal.throwIfAborted();
+    await publishPinnedAdapterFile(staged, destination);
+    const actual = await verifyAdapterFixture({root});
+    await unlink(staged); await rmdir(temporary);
+    return {kind: 'fast-public-adapter-provisioning-1', status: 'PASS', mode: 'downloaded', expected, actual};
+  } catch (error) {
+    throw Error('Public adapter provisioning failed; retained staging ' + temporary + ': ' + String(error), {cause: error});
+  } finally {
+    clearTimeout(timer); request?.destroy(); response?.destroy();
+    await Promise.all([requestClosed, responseClosed].filter(Boolean));
+  }
+}
+
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const output = process.argv[2] && resolve(process.argv[2]);
-  if (!output || process.argv.length !== 3) throw Error('Usage: fast-ci-setup.mjs <provisioning-receipt.json>');
-  const root = resolve('.'), plan = selectedFastDispatchSetup(root, process.env);
-  const provision = plan.kind === 'fast-ci-browser-setup-1' ? provisionFastBrowserSetup : provisionFastSetup;
-  provision(root, plan, {record: receipt => writeFileSync(output, JSON.stringify(receipt, null, 2) + '\n')});
+  if (process.argv[2] === '--public-adapter') {
+    if (process.argv.length !== 4) throw Error('Usage: fast-ci-setup.mjs --public-adapter <root>');
+    process.stdout.write(JSON.stringify(await provisionFastAdapterFixture(process.argv[3])) + '\n');
+  } else {
+    const output = process.argv[2] && resolve(process.argv[2]);
+    if (!output || process.argv.length !== 3) throw Error('Usage: fast-ci-setup.mjs <provisioning-receipt.json>');
+    const root = resolve('.'), plan = selectedFastDispatchSetup(root, process.env);
+    const provision = plan.kind === 'fast-ci-browser-setup-1' ? provisionFastBrowserSetup : provisionFastSetup;
+    provision(root, plan, {record: receipt => writeFileSync(output, JSON.stringify(receipt, null, 2) + '\n')});
+  }
 }

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,rmSync,existsSync,chmodSync,symlinkSync,unlinkSync,realpathSync} from 'node:fs';
+import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,rmSync,existsSync,chmodSync,symlinkSync,unlinkSync,realpathSync,statSync,readdirSync} from 'node:fs';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {execFileSync} from 'node:child_process';
@@ -9,7 +9,7 @@ import {executeDevelopment,argumentsFor} from '../../tooling/qualification/devel
 import {gateInputKey,treeIdentity,treeIdentityAsync,outputIdentity,outputIdentityAsync,reusable,reusableAsync} from '../../tooling/qualification/development-cache.mjs';
 import {sha256,digestJSON,sourceIdentity,sourceIdentityAsync} from '../../tooling/qualification/core.mjs';
 import {developmentPlan} from '../../tooling/qualification/development-plan.mjs';
-import {selectedFastSetup, fastSetupPlan, provisionFastSetup, fastBrowserFamilies, selectedFastBrowserSetup, fastBrowserSetupPlan, selectedFastDispatchSetup, provisionFastBrowserSetup} from '../../tooling/qualification/fast-ci-setup.mjs';
+import {selectedFastSetup, fastSetupPlan, provisionFastSetup, fastBrowserFamilies, selectedFastBrowserSetup, fastBrowserSetupPlan, selectedFastDispatchSetup, provisionFastBrowserSetup, stagePinnedAdapterResponse, publishPinnedAdapterFile, provisionFastAdapterFixture} from '../../tooling/qualification/fast-ci-setup.mjs';
 import {functionalGates} from '../../tooling/qualification/manifest.mjs';
 import {createBrowserPlan} from '../../tooling/qualification/container/browser-plan.mjs';
 
@@ -1050,4 +1050,128 @@ test('Fast workflow offers the reviewed single-family choices and preserves quot
  assert.deepEqual([...uploadWith.matchAll(/^          (path|include-hidden-files): (.+)$/gm)].map(match=>[match[1],match[2]]),[['path','artifacts/validation'],['include-hidden-files','true']]);
  assert.equal((workflow.match(/^          include-hidden-files:/gm)||[]).length,1);
  assert.equal((workflow.match(/--browser-grep|--batch-browser/g)||[]).length,0);
+});
+
+
+const publicAdapterPath = 'artifacts/p27-evidence/fal-public-lora-example/provider-example.safetensors';
+const adapterSetupOwners = ['tests/adapters/flow.test.mjs', 'tests/adapters/runtime-journal.test.mjs'];
+function adapterSetupDirectory(t) {
+ const directory = realpathSync(mkdtempSync(join(tmpdir(), 'fast-adapter-setup-')));
+ t.after(() => rmSync(directory, {recursive:true, force:true}));
+ return directory;
+}
+function adapterByteResponse(chunks, bytes, overrides = {}) {
+ return {statusCode:200, headers:{'content-length':String(bytes)}, async *[Symbol.asyncIterator]() { yield* chunks; }, ...overrides};
+}
+test('Fast selected adapters require the original public fixture while other ordinary owners remain input-free', () => {
+ const plan = selectedFastSetup(process.cwd(), adapterSetupOwners.join(','));
+ assert.deepEqual(plan.history, []); assert.deepEqual(plan.requiredBrowsers, []);
+ assert.deepEqual(plan.adapterFixture, {path:publicAdapterPath, bytes:85299896,
+  sha256:'bd0b96a2fcc3141400ebeffd8585b2d3c4c0d475b10e1468ba5c40acad748bc5',
+  sourceURL:'https://v3b.fal.media/files/b/0a9dc89d/NkZw9CyYSB3ojbDx2a2s5_ideogram_v4_lora.safetensors', owners:adapterSetupOwners});
+ const source = readFileSync('tooling/qualification/container/inputs.mjs');
+ assert.deepEqual(plan.sources, [{path:'tooling/qualification/container/inputs.mjs', bytes:source.length, sha256:sha256(source)}]);
+ assert.equal(selectedFastSetup(process.cwd(), 'tests/candidates/retention.test.mjs').adapterFixture, null);
+ assert.deepEqual(plan.selectedFiles, adapterSetupOwners);
+});
+test('Fast adapter setup delegates one bounded fixed-input child and binds its actual receipt', () => {
+ const root = process.cwd(), plan = selectedFastSetup(root, adapterSetupOwners.join(','));
+ const {owners, ...expected} = plan.adapterFixture;
+ const value = {kind:'fast-public-adapter-provisioning-1', status:'PASS', mode:'downloaded', expected,
+  actual:{path:join(root, publicAdapterPath), bytes:expected.bytes, sha256:expected.sha256}};
+ const commands = [], records = [];
+ const execute = (command, args, options) => {
+  commands.push({command,args,options});
+  if (command === 'git') { assert.equal(args[4], 'rev-parse'); return Buffer.from('a'.repeat(40)); }
+  assert.equal(command, process.execPath);
+  assert.deepEqual(args, [join(root, 'tooling/qualification/fast-ci-setup.mjs'), '--public-adapter', root]);
+  assert.equal(options.timeout, 660000); assert.equal(options.maxBuffer, 65536);
+  assert.deepEqual(options.stdio, ['ignore','pipe','pipe']);
+  return Buffer.from(JSON.stringify(value));
+ };
+ const result = provisionFastSetup(root, plan, {execute, record:r => records.push(structuredClone(r))});
+ assert.equal(result.status, 'PASS'); assert.equal(result.adapterFixture.actual.sha256, expected.sha256);
+ assert.equal(commands.length, 3); assert.equal(records.at(-1).status, 'PASS');
+ for (const change of [row => {row.actual.sha256 = 'a'.repeat(64);}, row => {row.actual.bytes--;}, row => {row.expected.sourceURL += '?other';}, row => {row.mode = 'unverified';}]) {
+  const bad = structuredClone(value); change(bad); const failed = [];
+  assert.throws(() => provisionFastSetup(root, plan, {execute:(command,args) => command === 'git' ? Buffer.from('a'.repeat(40)) : Buffer.from(JSON.stringify(bad)), record:r => failed.push(structuredClone(r))}), /receipt differs/);
+  assert.equal(failed.at(-1).status, 'FAIL');
+ }
+});
+test('Fast adapter setup refuses absent or changed authority before any provisioning command', () => {
+ const plan = selectedFastSetup(process.cwd(), adapterSetupOwners.join(','));
+ for (const mutate of [p => {delete p.adapterFixture;}, p => {p.adapterFixture.bytes--;}, p => {p.adapterFixture.sourceURL = 'https://example.invalid/weights';}, p => {p.adapterFixture.owners.reverse();}]) {
+  const changed = structuredClone(plan); mutate(changed); let calls = 0;
+  assert.throws(() => provisionFastSetup(process.cwd(), changed, {execute:() => {calls++; throw Error('must not execute');}}), /prerequisite differs/);
+  assert.equal(calls, 0);
+ }
+ const ordinary = selectedFastSetup(process.cwd(), 'tests/candidates/retention.test.mjs');
+ ordinary.adapterFixture = plan.adapterFixture;
+ assert.throws(() => provisionFastSetup(process.cwd(), ordinary, {execute:() => {throw Error('must not execute');}}), /prerequisite differs/);
+});
+test('Pinned adapter streaming writes all ordered bytes exclusively and publishes without replacement', async t => {
+ const root = adapterSetupDirectory(t), staged = join(root,'staged'), destination = join(root,'final');
+ const bytes = Buffer.from('first chunk/second chunk/end'), expected = {bytes:bytes.length, sha256:sha256(bytes)};
+ assert.deepEqual(await stagePinnedAdapterResponse(adapterByteResponse([bytes.subarray(0,4),bytes.subarray(4,17),bytes.subarray(17)],bytes.length), staged, expected), expected);
+ assert.deepEqual(readFileSync(staged), bytes); assert.equal(statSync(staged).mode & 0o777, 0o600);
+ await assert.rejects(stagePinnedAdapterResponse(adapterByteResponse([bytes],bytes.length), staged, expected), {code:'EEXIST'});
+ await publishPinnedAdapterFile(staged, destination);
+ assert.deepEqual(readFileSync(destination), bytes); assert.equal(statSync(destination).mode & 0o777, 0o444);
+ const other = join(root,'other'); writeFileSync(other,'replacement');
+ await assert.rejects(publishPinnedAdapterFile(other, destination), {code:'EEXIST'});
+ assert.deepEqual(readFileSync(destination), bytes); assert.equal(readFileSync(other,'utf8'), 'replacement');
+ const dangling = join(root,'dangling'); symlinkSync(join(root,'absent'), dangling);
+ await assert.rejects(publishPinnedAdapterFile(other, dangling), {code:'EEXIST'});
+ assert.equal(existsSync(join(root,'absent')), false);
+});
+test('Pinned adapter response rejects redirects, compression and mismatched declared size before opening a file', async t => {
+ const root = adapterSetupDirectory(t), bytes = Buffer.from('small unit input'), expected = {bytes:bytes.length,sha256:sha256(bytes)};
+ const changes = [{statusCode:302}, {statusCode:404}, {headers:{'content-length':String(bytes.length),'content-encoding':'gzip'}}, {headers:{}}, {headers:{'content-length':String(bytes.length+1)}}];
+ for (const [index, change] of changes.entries()) {
+  const path = join(root,String(index)); let consumed = false;
+  const response = adapterByteResponse([], bytes.length, {...change, async *[Symbol.asyncIterator]() {consumed=true;yield bytes;}});
+  await assert.rejects(stagePinnedAdapterResponse(response,path,expected), /status\/encoding\/length differs/);
+  assert.equal(consumed,false); assert.equal(existsSync(path),false);
+ }
+});
+test('Pinned adapter streaming bounds actual bytes and retains short or corrupt partial evidence', async t => {
+ const root = adapterSetupDirectory(t), bytes = Buffer.from('abcdef'), expected = {bytes:bytes.length,sha256:sha256(bytes)};
+ const overflow = join(root,'overflow');
+ await assert.rejects(stagePinnedAdapterResponse(adapterByteResponse([bytes.subarray(0,2),Buffer.from('12345')],bytes.length),overflow,expected), /exceeds pinned length/);
+ assert.equal(readFileSync(overflow,'utf8'),'ab','oversized chunk must not be written');
+ const short = join(root,'short');
+ await assert.rejects(stagePinnedAdapterResponse(adapterByteResponse([bytes.subarray(0,5)],bytes.length),short,expected), /downloaded identity differs/);
+ assert.equal(readFileSync(short,'utf8'),'abcde');
+ const corrupt = join(root,'corrupt');
+ await assert.rejects(stagePinnedAdapterResponse(adapterByteResponse([Buffer.from('ABCDEF')],bytes.length),corrupt,expected), /downloaded identity differs/);
+ assert.equal(readFileSync(corrupt,'utf8'),'ABCDEF'); assert.equal(existsSync(join(root,'final')),false);
+});
+test('Pinned adapter streaming observes abort before creation and at chunk boundaries', async t => {
+ const root = adapterSetupDirectory(t), bytes = Buffer.from('abcdef'), expected = {bytes:bytes.length,sha256:sha256(bytes)};
+ const before = new AbortController(); before.abort(Error('already cancelled'));
+ const absent = join(root,'before');
+ await assert.rejects(stagePinnedAdapterResponse(adapterByteResponse([bytes],bytes.length),absent,expected,before.signal), /already cancelled/);
+ assert.equal(existsSync(absent),false);
+ const during = new AbortController(), path = join(root,'during'); let returned = false;
+ const response = adapterByteResponse([],bytes.length,{async *[Symbol.asyncIterator]() {
+  try { yield bytes.subarray(0,2); during.abort(Error('cancelled during input')); yield bytes.subarray(2); }
+  finally { returned = true; }
+ }});
+ await assert.rejects(stagePinnedAdapterResponse(response,path,expected,during.signal), /cancelled during input/);
+ assert.equal(returned,true); assert.equal(readFileSync(path,'utf8'),'ab');
+});
+test('Actual public adapter provisioner refuses existing mismatches and symlinks before network setup', async t => {
+ const root = adapterSetupDirectory(t), target = join(root,publicAdapterPath);
+ mkdirSync(join(root,'artifacts/p27-evidence/fal-public-lora-example'),{recursive:true});
+ writeFileSync(target,'retained wrong input');
+ await assert.rejects(provisionFastAdapterFixture(root), /Adapter fixture seal mismatch/);
+ assert.equal(readFileSync(target,'utf8'),'retained wrong input');
+ assert.deepEqual(readdirSync(join(root,'artifacts/p27-evidence/fal-public-lora-example')),['provider-example.safetensors']);
+ unlinkSync(target); symlinkSync(join(root,'absent'),target);
+ await assert.rejects(provisionFastAdapterFixture(root), /real parent directories/);
+ assert.equal(existsSync(join(root,'absent')),false);
+ const linkedRoot = adapterSetupDirectory(t), outside = adapterSetupDirectory(t);
+ symlinkSync(outside,join(linkedRoot,'artifacts'));
+ await assert.rejects(provisionFastAdapterFixture(linkedRoot), /parent must be a real directory/);
+ assert.deepEqual(readdirSync(outside),[]);
 });
