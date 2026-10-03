@@ -27,7 +27,8 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 export const fastSelectedJobMinutes = 180;
 const setupReserveMs = 40 * 60_000, finalizationReserveMs = 15 * 60_000;
 
-// Manual dispatch admits only these reviewed current-root editor families.
+// Manual dispatch admits only these reviewed current-root whole families.
+// The existing adapters configuration is Chromium-only; no engine is substituted.
 // Exact files, configurations and commands still come from the maintained plan.
 export const fastBrowserFamilies = Object.freeze([
   'editor-authoring', 'editor-composition-save', 'editor-composition',
@@ -38,7 +39,7 @@ export const fastBrowserFamilies = Object.freeze([
   'editor-portable', 'editor-recovery', 'editor-recovery-copy', 'editor-storage-library',
   'editor-tool-rail', 'editor-zoom-tool', 'editor-display-image',
   'editor-candidate-comparison', 'editor-document-creation', 'editor-command-search', 'e1',
-  'request-v45-generation', 'request-v45-edit', 'e3', 'e4',
+  'request-v45-generation', 'request-v45-edit', 'e3', 'e4', 'adapters',
 ]);
 const fastBrowserEngines = ['chromium', 'firefox', 'webkit'];
 
@@ -202,6 +203,7 @@ function browserDeadlineLimits(sourceFor) {
 
 export function fastBrowserSetupPlan(plan, {sourceFor} = {}) {
   if (plan.groups !== 'preflight' || plan.nodeFiles !== null || plan.selectedFiles.length || plan.workers !== 1 || plan.batchEditor || plan.browserGrep !== null || !fastBrowserFamilies.includes(plan.browserGroups) || !fastBrowserEngines.includes(plan.browsers)) throw Error('Choose one reviewed whole editor family and one engine, without Node selection, batching or grep');
+  if (plan.browserGroups === 'adapters' && plan.browsers !== 'chromium') throw Error('The complete adapters family requires Chromium');
   if (plan.gates.some(gate => gate.files?.length || gate.freshFixtureFiles?.length || gate.browserPrerequisites || gate.completionPrerequisites)) throw Error('Browser dispatch does not provision Node or legacy packet fixtures');
   const full = createBrowserPlan({selection: plan.browsers, scope: 'features', output: plan.browserPlan?.output});
   const tests = full.steps.filter(step => step.config && step.family === plan.browserGroups);
@@ -210,6 +212,11 @@ export function fastBrowserSetupPlan(plan, {sourceFor} = {}) {
   const steps = full.steps.filter(step => fixtures.has(step.id) || step.id === tests[0].id);
   if (!same(plan.browserPlan.steps, steps) || !same(plan.requiredBrowsers, [plan.browsers])) throw Error('Browser dispatch must preserve the complete maintained family and fixture plan');
   const limits = browserDeadlineLimits(sourceFor);
+  const adapterFixture = plan.browserGroups === 'adapters' ? {...publicAdapterRequirement(), owners: tests.flatMap(step => step.files)} : null;
+  if (adapterFixture) {
+    const path = 'tooling/qualification/container/inputs.mjs', bytes = Buffer.from(sourceFor(path));
+    limits.sources.push({path, bytes: bytes.length, sha256: sha256(bytes)});
+  }
   const budget = (items, graceMs, override = false) => items.map(item => {
     if (!Number.isSafeInteger(item.timeoutMs) || item.timeoutMs <= 0) throw Error('Selected browser plan has no bounded deadline');
     const grace = override ? item.graceMs ?? graceMs : graceMs;
@@ -227,10 +234,11 @@ export function fastBrowserSetupPlan(plan, {sourceFor} = {}) {
   return {kind: 'fast-ci-browser-setup-1', qualification: false, family: plan.browserGroups, engine: plan.browsers,
     selectedFiles: tests.flatMap(step => step.files), requiredBrowsers: [...plan.requiredBrowsers], gates, browserSteps, issuers,
     gateBudgetMs, browserBudgetMs, issuerBudgetMs, setupReserveMs, finalizationReserveMs, totalBudgetMs, jobMinutes: fastSelectedJobMinutes,
-    sources: limits.sources, history: []};
+    sources: limits.sources, history: [], adapterFixture};
 }
 export function selectedFastBrowserSetup(root, family, engine) {
   if (!fastBrowserFamilies.includes(family) || !fastBrowserEngines.includes(engine)) throw Error('Choose one reviewed whole editor family and one engine');
+  if (family === 'adapters' && engine !== 'chromium') throw Error('The complete adapters family requires Chromium');
   const plan = developmentPlan(root, {groups: 'preflight', browsers: engine, browserGroups: family, workers: 1, batchEditor: false, output: join(root, 'artifacts/validation/run/browser')});
   return fastBrowserSetupPlan(plan, {sourceFor: path => readFileSync(join(root, path), 'utf8')});
 }
@@ -243,11 +251,23 @@ export function selectedFastDispatchSetup(root, environment) {
   return selectedFastSetup(root, nodeFiles);
 }
 
+function provisionPublicAdapterChild(root, expected, execute) {
+  const args = [fileURLToPath(import.meta.url), '--public-adapter', root];
+  const value = JSON.parse(execute(process.execPath, args, {cwd: root, timeout: 11 * 60_000, maxBuffer: 65536, stdio: ['ignore', 'pipe', 'pipe']}).toString());
+  if (value.kind !== 'fast-public-adapter-provisioning-1' || value.status !== 'PASS' || !same(value.expected, publicAdapterRequirement()) || value.actual?.path !== join(root, expected.path) || value.actual.bytes !== expected.bytes || value.actual.sha256 !== expected.sha256 || !['existing', 'downloaded'].includes(value.mode)) throw Error('Public adapter provisioning receipt differs');
+  return {...value, command: [process.execPath, ...args]};
+}
+
 export function provisionFastBrowserSetup(root, plan, {execute = execFileSync, record = () => {}} = {}) {
   if (plan.kind !== 'fast-ci-browser-setup-1' || !fastBrowserFamilies.includes(plan.family) || !fastBrowserEngines.includes(plan.engine) || !same(plan.requiredBrowsers, [plan.engine]) || plan.history.length) throw Error('Reviewed browser provisioning selection required');
-  const receipt = {kind: 'fast-ci-browser-provisioning-1', qualification: false, plan, status: 'PENDING', browser: null};
+  if (plan.family === 'adapters' && plan.engine !== 'chromium') throw Error('The complete adapters family requires Chromium');
+  const owners = plan.family === 'adapters' ? createBrowserPlan({selection: 'chromium', scope: 'features', output: join(root, 'artifacts/validation/run/browser')}).steps.filter(step => step.family === 'adapters' && step.config).flatMap(step => step.files) : [];
+  const expectedAdapter = owners.length ? {...publicAdapterRequirement(), owners} : null;
+  if (plan.family === 'adapters' && (!owners.length || !same(plan.selectedFiles, owners)) || !same(plan.adapterFixture ?? null, expectedAdapter)) throw Error('Selected public adapter prerequisite differs from pinned input');
+  const receipt = {kind: 'fast-ci-browser-provisioning-1', qualification: false, plan, status: 'PENDING', browser: null, adapterFixture: null};
   record(receipt);
   try {
+    if (expectedAdapter) { receipt.adapterFixture = provisionPublicAdapterChild(root, expectedAdapter, execute); record(receipt); }
     const args = [join(root, 'node_modules/playwright/cli.js'), 'install', '--with-deps', plan.engine];
     execute(process.execPath, args, {cwd: root, timeout: 7 * 60_000, stdio: 'inherit'});
     receipt.browser = {command: [process.execPath, ...args], status: 'PASS'};
@@ -277,10 +297,7 @@ export function provisionFastSetup(root, plan, {execute = execFileSync, record =
       receipt.history.push({...item, archive: {bytes: archive.length, sha256: sha256(archive)}}); record(receipt);
     }
     if (expectedAdapter) {
-      const args = [fileURLToPath(import.meta.url), '--public-adapter', root];
-      const value = JSON.parse(execute(process.execPath, args, {cwd: root, timeout: 11 * 60_000, maxBuffer: 65536, stdio: ['ignore', 'pipe', 'pipe']}).toString());
-      if (value.kind !== 'fast-public-adapter-provisioning-1' || value.status !== 'PASS' || !same(value.expected, publicAdapterRequirement()) || value.actual?.path !== join(root, expectedAdapter.path) || value.actual.bytes !== expectedAdapter.bytes || value.actual.sha256 !== expectedAdapter.sha256 || !['existing', 'downloaded'].includes(value.mode)) throw Error('Public adapter provisioning receipt differs');
-      receipt.adapterFixture = {...value, command: [process.execPath, ...args]}; record(receipt);
+      receipt.adapterFixture = provisionPublicAdapterChild(root, expectedAdapter, execute); record(receipt);
     }
     if (plan.requiredBrowsers.length) {
       // npm ci installed this exact lockfile-pinned CLI. No npx download or

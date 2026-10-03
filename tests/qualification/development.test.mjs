@@ -953,8 +953,9 @@ const fastBrowserPlan = (family = 'editor-document-creation', engine = 'chromium
 });
 const browserDeadlineSource = path => readFileSync(path,'utf8');
 test('Fast browser selection preserves every reviewed whole family on exactly one pinned engine',()=>{
- assert.equal(fastBrowserFamilies.length,31);assert.equal(new Set(fastBrowserFamilies).size,31);
+ assert.equal(fastBrowserFamilies.length,32);assert.equal(new Set(fastBrowserFamilies).size,32);
  for(const engine of ['chromium','firefox','webkit'])for(const family of fastBrowserFamilies){
+  if(family==='adapters'&&engine!=='chromium'){assert.throws(()=>selectedFastBrowserSetup(process.cwd(),family,engine),/requires Chromium/);continue;}
   const plan=fastBrowserPlan(family,engine),setup=selectedFastBrowserSetup(process.cwd(),family,engine);
   const original=createBrowserPlan({selection:engine,scope:'features',output:plan.browserPlan.output}).steps.find(step=>step.family===family);
   assert(original);assert.deepEqual(setup.selectedFiles,original.files);
@@ -1209,4 +1210,54 @@ test('Actual public adapter provisioner refuses existing mismatches and symlinks
  symlinkSync(outside,join(linkedRoot,'artifacts'));
  await assert.rejects(provisionFastAdapterFixture(linkedRoot), /parent must be a real directory/);
  assert.deepEqual(readdirSync(outside),[]);
+});
+
+
+test('Fast adapters browser selection preserves both complete specs, original config, public fixture and bounded source plan',()=>{
+ const plan=fastBrowserPlan('adapters','chromium'),setup=selectedFastDispatchSetup(process.cwd(),{SELECTED_NODE_FILES:'',SELECTED_BROWSER_FAMILY:'adapters',SELECTED_BROWSER:'chromium'});
+ const [step]=plan.browserPlan.steps;assert.equal(plan.browserPlan.steps.length,1);assert.equal(step.family,'adapters');assert.equal(step.browser,'chromium');assert.equal(step.config,'tests/adapters/browser.config.ts');
+ assert.deepEqual(step.files,['tests/adapters/browser.spec.ts','tests/adapters/successor.spec.ts']);assert.deepEqual(step.prerequisites,[]);assert.deepEqual(step.contracts,[]);
+ assert.deepEqual(step.args,['exec','--','playwright','test','--config','tests/adapters/browser.config.ts',...step.files,'--forbid-only','--max-failures=1','--reporter','list,json,./tooling/qualification/developer-campaigns/browser-reporter.mjs']);
+ assert.deepEqual(setup.selectedFiles,step.files);assert.deepEqual(setup.requiredBrowsers,['chromium']);assert.deepEqual(setup.history,[]);assert.equal(plan.selectedFiles.length,0);
+ const ordinary=selectedFastSetup(process.cwd(),adapterSetupOwners.join(',')),{owners,...expected}=ordinary.adapterFixture;
+ assert.deepEqual(setup.adapterFixture,{...expected,owners:step.files});assert.equal(expected.bytes,85299896);assert.equal(expected.sha256,'bd0b96a2fcc3141400ebeffd8585b2d3c4c0d475b10e1468ba5c40acad748bc5');
+ const bytes=readFileSync('tooling/qualification/container/inputs.mjs');assert.deepEqual(setup.sources.filter(row=>row.path==='tooling/qualification/container/inputs.mjs'),[{path:'tooling/qualification/container/inputs.mjs',bytes:bytes.length,sha256:sha256(bytes)}]);
+ assert(setup.gates.some(gate=>gate.id==='completion-source'));assert(setup.gates.some(gate=>gate.id==='build-app'));assert(setup.gates.some(gate=>gate.id==='build-server'));assert.equal(setup.issuers.length,1);
+ assert.equal(setup.setupReserveMs,40*60_000);assert.equal(setup.finalizationReserveMs,15*60_000);assert.equal(setup.jobMinutes,180);assert(setup.totalBudgetMs<=180*60_000);assert.equal(setup.qualification,false);
+ assert.equal(selectedFastBrowserSetup(process.cwd(),'editor-native-text','chromium').adapterFixture,null);
+ for(const engine of ['firefox','webkit']){assert.throws(()=>selectedFastBrowserSetup(process.cwd(),'adapters',engine),/requires Chromium/);const changed=structuredClone(plan);changed.browsers=engine;assert.throws(()=>fastBrowserSetupPlan(changed,{sourceFor:browserDeadlineSource}),/requires Chromium/);}
+ for(const mutate of [p=>{p.browserPlan.steps[0].files.pop();},p=>{p.browserPlan.steps[0].files.reverse();},p=>{p.browserPlan.steps[0].config='tests/editor/integration.config.ts';},p=>{p.browserPlan.steps[0].args.push('--grep','pagination');}]){const changed=structuredClone(plan);mutate(changed);assert.throws(()=>fastBrowserSetupPlan(changed,{sourceFor:browserDeadlineSource}),/complete maintained family/);}
+});
+function adapterBrowserReceipt(plan,mode='downloaded'){
+ const {owners,...expected}=plan.adapterFixture;
+ return {kind:'fast-public-adapter-provisioning-1',status:'PASS',mode,expected,actual:{path:join(process.cwd(),publicAdapterPath),bytes:expected.bytes,sha256:expected.sha256}};
+}
+test('Fast adapters browser setup verifies the genuine fixed-input child before installing only pinned Chromium',()=>{
+ const root=process.cwd(),plan=selectedFastBrowserSetup(root,'adapters','chromium');
+ for(const mode of ['existing','downloaded']){
+  const commands=[],records=[],value=adapterBrowserReceipt(plan,mode),result=provisionFastBrowserSetup(root,plan,{execute:(command,args,options)=>{
+   assert.equal(command,process.execPath);commands.push(args);assert.equal(options.cwd,root);
+   if(commands.length===1){assert.deepEqual(args,[join(root,'tooling/qualification/fast-ci-setup.mjs'),'--public-adapter',root]);assert.equal(options.timeout,660000);assert.equal(options.maxBuffer,65536);assert.deepEqual(options.stdio,['ignore','pipe','pipe']);return Buffer.from(JSON.stringify(value));}
+   assert.equal(commands.length,2);assert.deepEqual(args,[join(root,'node_modules/playwright/cli.js'),'install','--with-deps','chromium']);assert.equal(options.timeout,420000);return Buffer.alloc(0);
+  },record:row=>records.push(structuredClone(row))});
+  assert.equal(commands.length,2);assert.equal(result.status,'PASS');assert.equal(result.adapterFixture.mode,mode);assert.deepEqual(result.adapterFixture.actual,value.actual);assert.deepEqual(records.map(row=>row.status),['PENDING','PENDING','PASS']);assert.equal(records[0].adapterFixture,null);assert.equal(records[1].browser,null);assert.equal(records[1].adapterFixture.actual.sha256,value.actual.sha256);
+ }
+});
+test('Fast adapters browser setup refuses changed or absent fixture authority and partial owners before any child',()=>{
+ const root=process.cwd(),plan=selectedFastBrowserSetup(root,'adapters','chromium');
+ for(const mutate of [p=>{delete p.adapterFixture;},p=>{p.adapterFixture.bytes--;},p=>{p.adapterFixture.sha256='a'.repeat(64);},p=>{p.adapterFixture.sourceURL='https://example.invalid/weights';},p=>{p.adapterFixture.owners.reverse();},p=>{p.selectedFiles.pop();},p=>{p.selectedFiles.reverse();},p=>{p.engine='firefox';p.requiredBrowsers=['firefox'];}]){
+  const changed=structuredClone(plan);mutate(changed);let calls=0;assert.throws(()=>provisionFastBrowserSetup(root,changed,{execute:()=>{calls++;throw Error('must not execute');}}),/prerequisite differs|requires Chromium/);assert.equal(calls,0);
+ }
+ const unrelated=selectedFastBrowserSetup(root,'editor-display-image','chromium');unrelated.adapterFixture=plan.adapterFixture;let calls=0;assert.throws(()=>provisionFastBrowserSetup(root,unrelated,{execute:()=>{calls++;throw Error('must not execute');}}),/prerequisite differs/);assert.equal(calls,0);
+});
+test('Fast adapters browser setup retains fixture and browser failures without fallback or missing-body acceptance',()=>{
+ const root=process.cwd(),plan=selectedFastBrowserSetup(root,'adapters','chromium');
+ for(const mutate of [v=>{v.status='FAIL';},v=>{v.actual.sha256='a'.repeat(64);},v=>{v.actual.bytes--;},v=>{v.actual.path+='.other';},v=>{v.expected.sourceURL+='?other';},v=>{v.mode='unverified';}]){
+  const value=adapterBrowserReceipt(plan);mutate(value);let calls=0;const records=[];assert.throws(()=>provisionFastBrowserSetup(root,plan,{execute:()=>{calls++;return Buffer.from(JSON.stringify(value));},record:row=>records.push(structuredClone(row))}),/receipt differs/);assert.equal(calls,1,'fixture mismatch prevents browser installation');assert.equal(records.at(-1).status,'FAIL');assert.equal(records.at(-1).browser,null);assert.equal(records.at(-1).adapterFixture,null);
+ }
+ for(const phase of ['fixture','browser']){
+  let calls=0;const records=[];assert.throws(()=>provisionFastBrowserSetup(root,plan,{execute:()=>{calls++;if(phase==='fixture'||calls===2)throw Error('actual '+phase+' child failure');return Buffer.from(JSON.stringify(adapterBrowserReceipt(plan)));},record:row=>records.push(structuredClone(row))}),new RegExp('actual '+phase+' child failure'));
+  assert.equal(calls,phase==='fixture'?1:2);assert.equal(records.at(-1).status,'FAIL');assert.equal(records.at(-1).browser,null);assert.equal(records.at(-1).adapterFixture!==null,phase==='browser');
+ }
+ const missing=[];let calls=0;assert.throws(()=>provisionFastBrowserSetup(root,plan,{execute:()=>{calls++;return Buffer.alloc(0);},record:row=>missing.push(structuredClone(row))}),SyntaxError);assert.equal(calls,1);assert.equal(missing.at(-1).status,'FAIL');
 });

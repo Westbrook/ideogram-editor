@@ -9,7 +9,7 @@ on:
         type: string
         default: ''
       browser_family:
-        description: One complete current-root editor family; none preserves Node/default behavior
+        description: One complete current-root family; adapters requires Chromium; none preserves Node/default behavior
         required: false
         type: choice
         default: none
@@ -46,6 +46,7 @@ on:
           - request-v45-edit
           - e3
           - e4
+          - adapters
       browser:
         description: Pinned engine for the selected whole browser family
         required: false
