@@ -26,6 +26,7 @@ const validatorURL=pathToFileURL(resolve('dist/local/src/protocol/validate.js'))
 const commandsURL=await moduleURL('src/state/command-results.ts',{'../observability/allocations.js':allocationsURL,'../observability/model-memory.js':memoryURL,'../observability/prompt-memory.js':promptMemoryURL,'./control-memory.js':controlURL,'../protocol/json.js':jsonURL,'../protocol/sha256.js':shaURL,'../protocol/validate.js':validatorURL});
 const resourcesURL=await moduleURL('src/state/document-lifecycle.ts');
 const historyURL=await moduleURL('src/state/history-availability.ts',{'../observability/model-memory.js':memoryURL});
+const documentsURL=await moduleURL(root+'/src/state/document-list.ts',{'../observability/model-memory.js':memoryURL});
 const source=(await transformWithOxc(await readFile(root+'/src/state/editor-client.ts','utf8'),'editor-client.ts')).code.replace(/^import\s+[\s\S]*?\sfrom\s+["'][^"']+["'];?\n/gm,'');
 const {allocationLedger}=await import(allocationsURL),{cloneOwnedModel}=await import(memoryURL);
 const totals=()=>{const s=allocationLedger.snapshot();return {cpu:s.cpuBytes,handles:s.handles,records:s.activeRecords};};
@@ -43,6 +44,7 @@ async function fixture(t){
  import {ViewModelOwners,ViewModelReads,ownDownload,canonicalControlHash,VIEW_MODEL_LIMITS} from ${JSON.stringify(viewURL)};
  import {CommandControlReads,COMMAND_RESULT_LIMITS,readCommandEvents} from ${JSON.stringify(commandsURL)};
  import {DocumentResources} from ${JSON.stringify(resourcesURL)};
+ import {collectOwnedDocuments} from ${JSON.stringify(documentsURL)};
  import {readUndoAvailability} from ${JSON.stringify(historyURL)};
  import {readOwnedJSON,cloneOwnedModel,ModelPayload} from ${JSON.stringify(memoryURL)};
  import {reserveCommandWire,measureControl} from ${JSON.stringify(controlURL)};
@@ -57,6 +59,7 @@ async function fixture(t){
  const browserPhases={reset(){},resetNavigation(){},invalidateNavigationStatus(){boundary.calls.push({type:'invalid'});},
   recordNavigationStatus(input){boundary.calls.push({type:'state',input:{...input},published:boundary.published});},
   recordNavigationAuthority(input){boundary.calls.push({type:'authority',input:{...input},published:boundary.published});},
+  recordNavigationModelReady(input){boundary.calls.push({type:'model-ready',input:{...input},published:boundary.published});},
   recorder:{start(name,context){const row={type:'phase',name,context:{...context}};boundary.calls.push(row);return {end(outcome,extra){row.outcome=outcome;Object.assign(row.context,extra);}};}}};
  class RecoveryCache {static open(...args){return boundary.cacheOpen(...args);}}
  class BrowserJournal {static open(...args){return boundary.journalOpen(...args);}}
@@ -78,7 +81,7 @@ async function fixture(t){
   if(path===prefix+'/save-status?sessionId=ui_fixture')return response({pendingCommandCount:0,draftDirty:false,documentChangedSinceCheckpoint:false,bundleOutdated:false});
   throw Error('Unexpected transport '+path);
  };
- const cache={published:async()=>({cursor,generation:'snapshot_1'}),read:async(kind,id)=>kind==='document'&&id===document.id?structuredClone(document):undefined,close(){calls.push({type:'cache-close'});}};
+ const cache={published:async()=>({cursor,generation:'snapshot_1'}),async *rows(generation,type){assert.equal(generation,'snapshot_1');assert.equal(type,'document');yield {value:structuredClone(document)};},read:async(kind,id)=>kind==='document'&&id===document.id?structuredClone(document):undefined,close(){calls.push({type:'cache-close'});}};
  const journal={rows:new Map(),async put(key,value){this.rows.set(key,structuredClone(value));calls.push({type:'journal',key,value:structuredClone(value)});},close(){calls.push({type:'journal-close'});}};
  const client=new module.EditorClient({identity:()=>identity,csrf:()=> 'csrf',transport:(...args)=>transport(...args)});
  const makeOwner=()=>{
@@ -87,7 +90,6 @@ async function fixture(t){
  };
  client.owner=identity;client.lifecycle=3;client.documentLifetime=7;client.draftOwner=makeOwner();client.ui=client.draftOwner.checkpoint;client.cache=cache;client.journal=journal;
  storage.set('ie-ui-session:'+identity,client.sessionId);
- client.patch({ready:true,documents:[document],message:'Local recovery complete. Accepted edits are saved locally.',cursor});
  client.preferences=async()=>{};client.restorePending=async()=>{};client.startStream=()=>calls.push({type:'stream'});client.sync=async()=>{};client.draftStatus=()=> 'Drafts saved locally';
  const gate=()=>{const value=deferred();gates.push(value);return value;};
  const track=promise=>{tasks.push(promise);void promise.then(value=>{if(typeof value?.release==='function')ownedResults.push(value);},()=>{});return promise;};
@@ -97,7 +99,13 @@ async function fixture(t){
   await client.dispose();for(const owner of owners)await owner.dispose();assert.deepEqual(totals(),before);
  };
  t.after(close);
- return {client,document,image,load,cache,journal,calls,boundary,gate,track,close,makeOwner,
+ // Install the real collected list owner before Open; a raw array cannot
+ // supply the row ownership required at the image publication boundary.
+ await client.refresh();const ownedDocument=client.view.documents[0];
+ assert.notEqual(ownedDocument,document);assert.deepEqual(ownedDocument,document);
+ const [rendered]=client.renderViewModels(ownedDocument);assert.equal(rendered.value,client.view.documents);const unpin=rendered.pin();unpin();
+ client.patch({ready:true,message:'Local recovery complete. Accepted edits are saved locally.',cursor});
+ return {client,document:ownedDocument,image,load,cache,journal,calls,boundary,gate,track,close,makeOwner,
   states:()=>calls.filter(row=>row.type==='state'),authority:kind=>calls.filter(row=>row.type==='authority'&&(!kind||row.input.kind===kind)),
   installDraftOwner(transport){const owner=new DraftPersistence('ui_fixture',transport,()=> 'csrf');owner.checkpoint=client.draftOwner.checkpoint;owners.push(owner);client.draftOwner=owner;client.ui=owner.checkpoint;return owner;},
   setIdentity(value){identity=value;},setCursor(value){cursor=value;},setTransport(value){transport=value;}};
