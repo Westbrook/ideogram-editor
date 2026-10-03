@@ -5,8 +5,8 @@
     "schema": 1,
     "product": "Ideogram Editor preview",
     "scope": "Temporary text preview; no local server or provider",
-    "commit": "e3a8da9d5c45a2d27c4cb3d297a0aec0e0849e52",
-    "builtAt": "2026-10-03T07:20:23.411Z",
+    "commit": "c9c950b498a93bef861597f09e37a95e4ac7e273",
+    "builtAt": "2026-10-03T09:01:48.806Z",
     "base": "/ideogram-editor/"
   },
   "files": [
@@ -21,9 +21,9 @@
       "sha256": "8477048629d97ecb0a2d874a71ca82331aea7ba6efb1ffbf9f7105efecbd19d9"
     },
     {
-      "path": "assets/index-AbjE_4LI.js",
-      "bytes": 237434,
-      "sha256": "6229feb6d9d09c987c6131e90964d610c1249a9a8601c483ea0b2712eb12bd00"
+      "path": "assets/index-D-qSOQJd.js",
+      "bytes": 239541,
+      "sha256": "c1e6a91151ce3cce862bd07ea880f7a28c9e8ac4a8f6f154b1d469735d9333ce"
     },
     {
       "path": "assets/NotoSans-Regular-Dpf_lrdO.ttf",
@@ -53,12 +53,12 @@
     {
       "path": "build-identity.json",
       "bytes": 252,
-      "sha256": "6fc84961f67b64358c9f06d32104ad311cc6135c8f722d84295d70cdf4a30005"
+      "sha256": "797a07f3c97475724217ca12aaf72707a1ecdf888e4739424497dbfb35b45c8b"
     },
     {
       "path": "index.html",
       "bytes": 1441,
-      "sha256": "50e1b836deb1285d50d3508dedcd9a7838904fa167e24886e41bbf274a31c764"
+      "sha256": "3f7c4051210177c50df9141afe9e4a2fa6ed4e57682f7603697674e43be9a6e3"
     },
     {
       "path": "notices/en-reve-LICENSE.txt",
