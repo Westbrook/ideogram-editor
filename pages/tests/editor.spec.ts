@@ -46,7 +46,7 @@ test('public root mounts the real disconnected editor and cannot create backend 
   });
   await page.goto('./'); await shell(page);
   await expect(page.getByRole('main', { name: 'Image editor', exact: true })).toBeVisible();
-  await expect(page.getByRole('toolbar', { name: 'Document actions', exact: true })).toBeVisible();
+  await expect(page.getByRole('group', { name: 'Document actions', exact: true })).toBeVisible();
   await expect(page.getByRole('toolbar', { name: 'Canvas tools', exact: true })).toBeVisible();
   for (const id of ['request', 'canvas', 'inspector', 'results']) await expect(page.locator('#' + id)).toBeVisible();
   await expect(page.getByTestId('preview-canvas')).toHaveCount(0);
