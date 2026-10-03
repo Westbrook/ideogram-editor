@@ -134,3 +134,9 @@ test('unprivileged Linux kernel installs the exact offline filter and preserves 
   const {stdout}=await promisify(execFile)('python3',['-I','-S','-B',fileURLToPath(new URL('./fixtures/hosted-native-controls.py',import.meta.url)),'--smoke'],{maxBuffer:65536,timeout:20000});
   assert.deepEqual(JSON.parse(stdout),{kernelFilterInstalled:true,inheritedExecVerified:false,socketDenials:true,anonymousStreamIPC:true,externalDestinationsUsed:0});
 });
+
+// Exercise the real materializer directory helper without Git, network or payload execution.
+test('input materialization creates private intermediate parents under ordinary umask and refuses drift',async()=>{
+  const {stdout}=await promisify(execFile)('python3',['-I','-S','-B',fileURLToPath(new URL('./fixtures/hosted-native-controls.py',import.meta.url)),'--input-directories'],{maxBuffer:65536,timeout:10000});
+  assert.deepEqual(JSON.parse(stdout),{publishedMembers:73,umasks:[18,0,63],privateIntermediates:true,existingMismatchRefusedWithoutRepair:true,aliasesAndSpecialPathsRefused:true,actualMetadataDiagnostic:true});
+});

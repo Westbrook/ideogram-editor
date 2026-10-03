@@ -169,6 +169,32 @@ def initialize(config):
         (root / name).mkdir(mode=0o700)
     return {'initialized':True,'qualification':False}
 
+def private_input_parent(root, name, owner):
+    # Path.mkdir(parents=True) ignores mode for intermediate parents. Create
+    # each component explicitly and never repair permissions on an existing one.
+    require(isinstance(name, str) and 0 < len(name.encode('utf8')) <= 4096 and
+            str(PurePosixPath(name)) == name and not name.startswith('/') and
+            len(name.split('/')) <= 128 and all(part not in ('.', '..', '.git') for part in name.split('/')) and
+            not any(ord(c) < 32 or ord(c) == 127 for c in name) and '\\' not in name,
+            'Unsafe input member path')
+    root = absolute(str(root))
+    def admit(path):
+        info = path.lstat()
+        actual = {'member': str(path.relative_to(root)) or '.', 'uid': info.st_uid,
+                  'gid': info.st_gid, 'mode': oct(stat.S_IMODE(info.st_mode)),
+                  'type': 'directory' if stat.S_ISDIR(info.st_mode) else 'other'}
+        require(stat.S_ISDIR(info.st_mode) and path.resolve(strict=True) == path and
+                (info.st_uid, info.st_gid, stat.S_IMODE(info.st_mode)) == (owner['uid'], owner['gid'], 0o700),
+                'Private input directory differs: ' + json.dumps(actual, sort_keys=True, separators=(',', ':')))
+    admit(root)
+    parent = root
+    for component in name.split('/')[:-1]:
+        parent = parent / component
+        try: parent.mkdir(mode=0o700)
+        except FileExistsError: pass
+        admit(parent)
+    return parent
+
 def transfer(config):
     selected_identity(config); root = data_root(config)
     for name in ('home', 'tmp', 'incoming', 'inputs', 'workspaces', 'outputs', 'toolchain'):
@@ -197,8 +223,7 @@ def transfer(config):
     observed = []
     for row in [{'path': 'INPUTS.json', **expected}, *rows]:
         name = row['path']; destination = root / 'inputs' / name
-        destination.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
-        require(destination.parent.resolve(strict=True) == destination.parent, 'Input parent alias')
+        require(private_input_parent(root / 'inputs', name, config['owner']) == destination.parent, 'Input parent differs')
         child = subprocess.Popen([*base, 'cat-file', 'blob', members[name]], stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, env=env, close_fds=True)
         total = 0; digest = hashlib.sha256()
         try:

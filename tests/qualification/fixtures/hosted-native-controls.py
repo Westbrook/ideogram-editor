@@ -62,6 +62,51 @@ def controls():
         must_fail(lambda:exporter.setup_export_entries(bad,setup,config))
     print(json.dumps({'descriptorControls':True,'draftBeforeVerifySelected':True,'failedBuildDiagnosticsSelected':True,'workspaceExcluded':True,'setupAggregateBinding':True}))
 
+def input_directories():
+    # Real filesystem controls with the exact published member names. The
+    # ordinary 022 umask must not expose any newly created intermediate parent.
+    worker = load('hosted-worker.py')
+    manifest = json.loads((ROOT/'tooling/rollback-producer/hosted-inputs.json').read_bytes())
+    names = ['INPUTS.json', *[row['path'] for row in manifest['files']]]
+    assert len(names) == 73
+    owner = {'uid': os.getuid(), 'gid': os.getgid()}
+    for mask in (0o022, 0o000, 0o077):
+        with tempfile.TemporaryDirectory(prefix='hosted-input-directories-') as temp:
+            root = Path(temp).resolve(); inputs = root/'inputs'; inputs.mkdir(mode=0o700)
+            previous = os.umask(mask)
+            try:
+                for name in names:
+                    parent = worker.private_input_parent(inputs, name, owner)
+                    assert parent == (inputs/name).parent
+                directories = [inputs, *[entry for entry in inputs.rglob('*') if entry.is_dir()]]
+                assert len(directories) > 10
+                for directory in directories:
+                    info = directory.lstat()
+                    assert (info.st_uid,info.st_gid,info.st_mode & 0o7777) == (owner['uid'],owner['gid'],0o700)
+                worker.private_input_parent(inputs, names[1], owner)  # Exact existing parents may be reused.
+                exposed = inputs/'exposed'; exposed.mkdir(mode=0o700); exposed.chmod(0o755)
+                before = exposed.stat()
+                try: worker.private_input_parent(inputs, 'exposed/child/file', owner)
+                except ValueError as error:
+                    actual = json.loads(str(error).split(': ',1)[1])
+                    assert actual == {'member':'exposed','uid':owner['uid'],'gid':owner['gid'],'mode':'0o755','type':'directory'}
+                else: raise AssertionError('Existing exposed directory admitted')
+                after = exposed.stat(); assert (before.st_mode,before.st_ino,before.st_ctime_ns) == (after.st_mode,after.st_ino,after.st_ctime_ns)
+                assert not (exposed/'child').exists()
+                outside = root/'outside'; outside.mkdir(mode=0o700); (inputs/'alias').symlink_to(outside,target_is_directory=True)
+                must_fail(lambda:worker.private_input_parent(inputs,'alias/child/file',owner)); assert not (outside/'child').exists()
+                (inputs/'regular').write_text('unchanged')
+                must_fail(lambda:worker.private_input_parent(inputs,'regular/child/file',owner)); assert (inputs/'regular').read_text() == 'unchanged'
+                must_fail(lambda:worker.private_input_parent(inputs,'wrong/child/file',{'uid':owner['uid']+1,'gid':owner['gid']})); assert not (inputs/'wrong').exists()
+                for name in ('../escape/file','a/../file','a//file','/absolute/file','a/./file','a/.git/file','a\\file','a/','bad\x00file','/'.join(['x']*129)):
+                    must_fail(lambda:worker.private_input_parent(inputs,name,owner))
+                try: worker.private_input_parent(root/'missing','child/file',owner)
+                except FileNotFoundError: pass
+                else: raise AssertionError('Missing input root was created')
+                assert not (root/'missing').exists()
+            finally: os.umask(previous)
+    print(json.dumps({'publishedMembers':73,'umasks':[18,0,63],'privateIntermediates':True,'existingMismatchRefusedWithoutRepair':True,'aliasesAndSpecialPathsRefused':True,'actualMetadataDiagnostic':True}))
+
 def prctl(option,arg=0):
     libc=ctypes.CDLL(None,use_errno=True);call=libc.prctl;call.argtypes=[ctypes.c_int,ctypes.c_ulong,ctypes.c_ulong,ctypes.c_ulong,ctypes.c_ulong];call.restype=ctypes.c_int
     result=call(option,arg,0,0,0);assert result>=0;return result
@@ -100,6 +145,7 @@ def smoke(inherited=False):
 
 assert sys.flags.isolated and sys.flags.no_site and sys.dont_write_bytecode and not sys.flags.optimize
 if sys.argv[1:]==['--controls']:controls()
+elif sys.argv[1:]==['--input-directories']:input_directories()
 elif sys.argv[1:]==['--smoke']:smoke()
 elif sys.argv[1:]==['--inherited']:smoke(True)
 else:raise ValueError('Fixed test action required')
