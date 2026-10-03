@@ -229,11 +229,24 @@ test('Held Space pans actual canvas pixels and key release cancels the held gest
 });
 
 test('Scoped Delete preserves typing and deletes only current selected layer with actual Undo restoration',async({local})=>{
- const {page,commands,read,record}=local;await shortcutDocument(page);const layer=page.getByRole('treeitem',{name:'Image · Background · visible',exact:true});await layer.click();
+ const {page,commands,read,receiptStatus,record}=local;await shortcutDocument(page);const layer=page.getByRole('treeitem',{name:'Image · Background · visible',exact:true});await layer.click();
+ const creation=commands.find(command=>command.body.type==='CreateDocument'),initial=(await read('/api/v1/documents/'+creation.documentId)).projection.value;expect(initial.revision).toBe('1');expect(initial.orderedLayerIds).toHaveLength(1);
+ // Operation status is the latest accepted command, including unrelated draft
+ // asset finalization. Bind each keyboard effect to its own durable receipt.
+ const accepted=async(type:'DeleteLayer'|'Undo',revision:string)=>{
+  const matching=commands.filter(command=>command.body.type===type);expect(matching).toHaveLength(1);const command=matching[0],result=await receiptStatus(command.commandId);
+  expect(command.documentId).toBe(initial.id);expect(result.status).toBe(200);expect(result.body.protocolVersion).toBe(1);expect(result.body.kind).toBe('receipt');
+  const receipt=result.body.receipt;expect(receipt).toMatchObject({status:'accepted',commandId:command.commandId,transactionId:command.transactionId,documentRevision:revision});
+  expect(receipt.fromSeq).toMatch(/^[1-9][0-9]*$/);expect(receipt.toSeq).toMatch(/^[1-9][0-9]*$/);expect(BigInt(receipt.toSeq)).toBeGreaterThanOrEqual(BigInt(receipt.fromSeq));return receipt;
+ };
  const name=page.getByRole('textbox',{name:'Layer name',exact:true});await expect(name).toHaveValue('Background');await name.fill('Typing stays local');await name.focus();await page.keyboard.press('Delete');expect(commands.filter(command=>command.body.type==='DeleteLayer')).toEqual([]);
- await page.getByRole('button',{name:'Cancel changes',exact:true}).click();await expect(name).toHaveValue('Background');await page.locator('#canvas').focus();await page.keyboard.press('Delete');await expect(page.getByText('DeleteLayer accepted and saved locally.',{exact:true})).toBeVisible();await expect(page.getByRole('treeitem')).toHaveCount(0);
- await page.getByRole('button',{name:'Undo',exact:true}).click();await expect(layer).toBeVisible();await expect(page.getByText('Undo accepted and saved locally.',{exact:true})).toBeVisible();
- expect(commands.filter(command=>['DeleteLayer','Undo'].includes(command.body.type)).map(command=>command.body.type)).toEqual(['DeleteLayer','Undo']);const creation=commands.find(command=>command.body.type==='CreateDocument'),document=(await read('/api/v1/documents/'+creation.documentId)).projection.value;expect(document.orderedLayerIds).toHaveLength(1);await record('scoped-delete',{typingProtected:true,document,commands});
+ await page.getByRole('button',{name:'Cancel changes',exact:true}).click();await expect(name).toHaveValue('Background');await page.locator('#canvas').focus();await page.keyboard.press('Delete');await expect(page.getByRole('treeitem')).toHaveCount(0);
+ const deletedReceipt=await accepted('DeleteLayer','2'),deleted=(await read('/api/v1/documents/'+initial.id)).projection.value,history=await read('/api/v1/documents/'+initial.id+'/history');
+ expect(commands.find(command=>command.body.type==='DeleteLayer').body.layerId).toBe(initial.orderedLayerIds[0]);expect(deleted.id).toBe(initial.id);expect(deleted.revision).toBe('2');expect(deleted.orderedLayerIds).toEqual([]);
+ expect(history.next).toBeNull();const deletedNodes=history.items.filter((node:{id:string})=>node.id===deleted.historyHead);expect(deletedNodes).toHaveLength(1);expect(deletedNodes[0]).toMatchObject({documentId:initial.id,kind:'image-edit',operation:'DeleteLayer',revision:'2',parent:initial.historyHead});
+ await page.getByRole('button',{name:'Undo',exact:true}).click();await expect(layer).toBeVisible();const undoReceipt=await accepted('Undo','3');
+ expect(commands.filter(command=>['DeleteLayer','Undo'].includes(command.body.type)).map(command=>command.body.type)).toEqual(['DeleteLayer','Undo']);const document=(await read('/api/v1/documents/'+creation.documentId)).projection.value;expect(document.orderedLayerIds).toHaveLength(1);expect(document.orderedLayerIds).toEqual(initial.orderedLayerIds);expect(document.revision).toBe('3');expect(document.historyHead).toBe(initial.historyHead);expect(document.redo).toBe(deleted.historyHead);expect(document.image).toEqual(initial.image);
+ await record('scoped-delete',{typingProtected:true,initial,deleted,deletedHistory:deletedNodes[0],deletedReceipt,undoReceipt,document,commands});
 });
 
 

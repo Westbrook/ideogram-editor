@@ -25,12 +25,15 @@ function publicGraph(): Plugin {
     name: 'ideogram-pages-public-graph', enforce: 'pre',
     transform(_code, id) {
       if (id.startsWith('\0')) return;
-      const path = relative(root, id.split('?')[0]).replaceAll('\\', '/');
+      // Pinned Vite emits this empty browser stub for CanvasKit's Node-only imports.
+      const browserExternal = id === '__vite-browser-external';
+      if (browserExternal && _code.trim() !== 'export default {}') throw Error('Unexpected Vite browser external stub');
+      const path = browserExternal ? id : relative(root, id.split('?')[0]).replaceAll('\\', '/');
       if (path.startsWith('../') || isAbsolute(path)) throw Error('Pages module is outside the owned repository');
       const packageMatch = /^node_modules\/((?:@[^/]+\/)?[^/]+)\//.exec(path);
-      const admitted = packageMatch ? packages.has(packageMatch[1]) :
+      const admitted = browserExternal || (packageMatch ? packages.has(packageMatch[1]) :
         /^(pages\/(?!tests\/)|src\/(?:text|observability|theme)\/|vendor\/text\/fonts\/)/.test(path) ||
-        ['src/protocol/text-budget.ts', 'src/ui/adapters.ts', 'src/ui/native-text-preview.ts'].includes(path);
+        ['src/protocol/text-budget.ts', 'src/ui/adapters.ts', 'src/ui/native-text-preview.ts'].includes(path));
       if (!admitted) throw Error(`Module is outside the public Pages slice: ${path}`);
       if (!seen.has(path)) {
         if (seen.size >= 2048 || path.length > 1024) throw Error('Pages module inventory bound exceeded');
