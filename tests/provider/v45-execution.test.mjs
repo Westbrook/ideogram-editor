@@ -194,8 +194,13 @@ async function durableLoopback(t,{barrier=()=>{},lost=false,holdPost=false,cap=n
  owner=await owned(f,barrier);
  server=createServer(async(req,res)=>{try{
   const read=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});let fence;
-  try{fence=JSON.parse(read.prepare('SELECT json FROM queue_outbox WHERE attempt_id=?').get(queued.job.attempts[0].id).json);}finally{read.close();}
+  try{const attemptId=prior&&(req.url==='/ideogram/v4'||req.url.startsWith('/ideogram/v4/'))?prior.attempts[0].id:queued.job.attempts[0].id;fence=JSON.parse(read.prepare('SELECT json FROM queue_outbox WHERE attempt_id=?').get(attemptId).json);}finally{read.close();}
   const bytes=Buffer.concat(await Array.fromAsync(req));observations.push({method:req.method,path:req.url,headers:{...req.headers},bytes,fence});
+  if(req.method==='POST'&&req.url==='/ideogram/v4'){
+   assert(prior);assert.equal(fence.state,'dispatching');assert.equal(fence.epoch,owner.db.epoch);assert.equal(fence.payloadHash,sha(bytes));
+   assert.deepEqual(bytes,Buffer.from(bodyTemplate(prior.review.request,'Queue exact Café 東京')));assert.equal(req.headers.authorization,'Key '+SENTINEL_KEY);
+   const base=origin+'/ideogram/v4/requests/prior_returned';res.setHeader('Content-Type','application/json');res.end(JSON.stringify({request_id:'prior_returned',status_url:base+'/status',response_url:base,cancel_url:base+'/cancel'}));return;
+  }
   if(req.method==='POST'){
    assert.equal(req.url,'/ideogram/v4.5');assert.equal(fence.state,'dispatching');assert.equal(fence.epoch,owner.db.epoch);assert.equal(fence.payloadHash,sha(bytes));
    assert.deepEqual(bytes,Buffer.from(bodyTemplate(prepared.review.request,durablePrompt)));assert.match(bytes.toString(),/"seed":900719925474099312345/);
@@ -205,6 +210,7 @@ async function durableLoopback(t,{barrier=()=>{},lost=false,holdPost=false,cap=n
   if(req.url==='/protected.png'){assert.equal(req.headers.authorization,undefined);assert.equal(req.headers.cookie,undefined);res.setHeader('Content-Type','image/png');res.setHeader('Content-Length',String(withheldPNG.length));res.end(withheldPNG);return;}
   assert.equal(req.headers.authorization,'Key '+SENTINEL_KEY);res.setHeader('Content-Type','application/json');
   if(req.method==='PUT'){assert.equal(req.url,'/ideogram/v4.5/requests/durable_returned/cancel');res.statusCode=202;res.end('{"accepted":true}');return;}
+  if(req.url==='/ideogram/v4/requests/prior_returned/status'){assert(prior);res.end('{"request_id":"prior_returned","status":"COMPLETED"}');return;}
   if(req.url.endsWith('/status')){res.end('{"request_id":"durable_returned","status":"COMPLETED"}');return;}
   assert.equal(req.url,'/ideogram/v4.5/requests/durable_returned');res.end('{"images":[{"url":'+JSON.stringify(origin+'/protected.png')+',"content_type":"image/png","file_size":'+withheldPNG.length+'}],"seed":'+durableSeed+'}');
  }catch(error){serverErrors.push(String(error?.stack??error));res.statusCode=500;res.end();}});
@@ -267,10 +273,17 @@ test('durable V45 cancel PUT acknowledgement is not confirmed cancellation and l
 
 test('durable V45 fixture keeps queue order, spend cap and ordinary live admission gates',async t=>{
  const x=await durableLoopback(t,{priorV4:true}),port=x.port();assert.equal(await port.submit(),null);assert.equal(x.observations.length,0);assert.equal(x.db.queue.view().counts.active,0);
- await x.command('CancelJob',x.prior.id);const state=x.db.queue.view();assert.equal((await x.db.queue.command(encode(envelope({type:'SetSpendGuard',spendSessionId:state.session.id,cap:0,expectedConfigVersion:state.session.version})),auth())).status,'accepted');
- assert.equal(await port.submit(),null);assert.equal(x.job().local,'paused-spend-cap');assert.equal(x.observations.length,0);assert.equal(x.db.queue.reserve(x.job().id),null);
- const next=x.db.queue.view();assert.equal((await x.db.queue.command(encode(envelope({type:'SetSpendGuard',spendSessionId:next.session.id,cap:1,expectedConfigVersion:next.session.version})),auth())).status,'accepted');
- assert.equal((await port.submit()).attempts[0].state,'acknowledged');assert.equal(x.observations.length,1);assert.equal(x.job().attempts[0].providerAuthorization,undefined);
+ // Spend caps are positive. Exhaust one with a genuinely dispatched earlier
+ // request and an actual terminal status, preserving its counted charge.
+ const origin=x.selection().origin,provider=emulator({queueOrigin:origin,mediaOrigin:origin}),prior=new QueueDispatcher(x.db.queue,provider,{profileId:'local-fixture-v1',queueOrigin:origin});t.after(()=>prior.close());
+ const acknowledged=await prior.submit(x.prior.id);assert.equal(acknowledged.attempts[0].requestId,'prior_returned');assert.equal(acknowledged.attempts[0].count,'dispatched');
+ const fence=x.db.queue.resultFence(x.prior.id,x.prior.attempts[0].id),status=await prior.readKnown(x.prior.id,x.prior.attempts[0].id,'status');assert.equal(status.status,200);assert.equal(status.outcome,'complete');
+ assert.equal(x.db.candidates.observe(fence,status.evidence,Date.now()).view.observation.phase,'completed');
+ const state=x.db.queue.view();assert.equal(state.counts.dispatched,1);assert.equal(state.counts.active,0);assert.equal((await x.db.queue.command(encode(envelope({type:'SetSpendGuard',spendSessionId:state.session.id,cap:1,expectedConfigVersion:state.session.version})),auth())).status,'accepted');
+ assert.equal(await port.submit(),null);assert.equal(x.job().local,'paused-spend-cap');assert.equal(x.observations.length,2);assert.equal(x.db.queue.reserve(x.job().id),null);assert.equal(x.db.queue.view().counts.dispatched,1);
+ const next=x.db.queue.view();assert.equal((await x.db.queue.command(encode(envelope({type:'SetSpendGuard',spendSessionId:next.session.id,cap:2,expectedConfigVersion:next.session.version})),auth())).status,'accepted');
+ assert.equal((await port.submit()).attempts[0].state,'acknowledged');assert.equal(x.observations.length,3);assert.equal(x.job().attempts[0].providerAuthorization,undefined);assert.equal(x.db.queue.view().counts.dispatched,2);
+ assert.deepEqual(x.observations.map(value=>value.method+' '+value.path),['POST /ideogram/v4','GET /ideogram/v4/requests/prior_returned/status','POST /ideogram/v4.5']);
 });
 
 test('durable V45 factory refuses copied identities, boundary injection and nonliteral origins before effects',async t=>{
