@@ -1,11 +1,15 @@
 """Pure setup admission and real filesystem refusals; never invokes setup."""
 import copy
+import contextlib
 import importlib.util
+import io
 import json
 import os
 from pathlib import Path
 import sys
+import stat
 import tempfile
+import types
 import unittest
 
 spec = importlib.util.spec_from_file_location('hosted_setup_test_subject', sys.argv.pop())
@@ -20,6 +24,37 @@ def closed(phase, outcome='PASS', released=True):
     return {'kind':'hosted-native-phase-finalization-1','phase':phase,'effectiveOutcome':outcome,'timingLockReleased':released}
 
 class Boundaries(unittest.TestCase):
+    def test_immutable_owner_and_write_guard_is_unchanged(self):
+        info=lambda uid,mode:types.SimpleNamespace(st_uid=uid,st_gid=999,st_mode=stat.S_IFREG|mode)
+        for mode in (0o444,0o644,0o555,0o755,0o700): subject.require_immutable_member(Path('/selected'),info(0,mode),0)
+        for uid,mode in ((1001,0o444),(0,0o664),(0,0o646),(0,0o777),(1001,0o700)):
+            with self.assertRaises(subject.ImmutablePathRefusal):subject.require_immutable_member(Path('/opt'),info(uid,mode),1)
+
+    def test_permission_refusal_reports_fixed_component_metadata_without_contents(self):
+        info=types.SimpleNamespace(st_uid=1001,st_gid=1002,st_mode=stat.S_IFDIR|0o775)
+        with self.assertRaises(subject.ImmutablePathRefusal) as caught: subject.require_immutable_member(Path('/opt'),info,1)
+        value=caught.exception.observation
+        self.assertEqual({k:value[k] for k in ('member','position','uid','gid','mode','type','contentsRead')},{'member':'/opt','position':1,'uid':1001,'gid':1002,'mode':'0775','type':'directory','contentsRead':False})
+        self.assertLess(len(str(caught.exception)),1024)
+
+    def test_unlisted_permission_path_is_redacted(self):
+        info=types.SimpleNamespace(st_uid=1001,st_gid=1001,st_mode=stat.S_IFREG|0o600)
+        error=subject.ImmutablePathRefusal(Path('/private/example-secret-value'),info,0)
+        self.assertEqual(error.observation['member'],'<selected-input-component>')
+        self.assertNotIn('example-secret-value',str(error))
+
+    def test_retention_failure_cannot_mask_original_setup_exception(self):
+        original=ValueError('original setup refusal'); retained=subject.retain_setup_diagnostics
+        def fail(*_):raise RuntimeError('secondary must not be published as arbitrary text')
+        subject.retain_setup_diagnostics=fail; output=io.StringIO()
+        try:
+            with contextlib.redirect_stderr(output):
+                with self.assertRaises(ValueError) as caught:subject.preserve_setup_failure(None,original)
+            self.assertIs(caught.exception,original);value=json.loads(output.getvalue())
+            self.assertTrue(value['primaryExceptionPreserved']);self.assertEqual(value['errorType'],'RuntimeError')
+            self.assertNotIn('secondary must not',output.getvalue())
+        finally:subject.retain_setup_diagnostics=retained
+
     def test_actual_api_start_precedes_setup_and_controls_six_hour_deadline(self):
         value = subject.select_job(job_response(),123,2,HEAD,FIRST)
         self.assertEqual(value['startedEpochMs'],FIRST-1000)

@@ -18,6 +18,6 @@ test('hosted setup authenticates job identity, source paths and actual closed ex
   const {stdout, stderr} = await promisify(execFile)('python3', ['-I','-S','-B', join(root, 'tests/qualification/fixtures/hosted-setup-unit.py'), join(root, 'tooling/rollback-producer/hosted-setup.py')],
     {cwd: root, env: {PATH: process.env.PATH, PYTHONDONTWRITEBYTECODE: '1', LANG: 'C'}, timeout: 30_000, maxBuffer: 65536});
   const result = JSON.parse(stdout);
-  assert.deepEqual(result, {tests: 13, failures: 0, errors: 0});
+  assert.deepEqual(result, {tests: 17, failures: 0, errors: 0});
   t.diagnostic(stderr.trim());
 });

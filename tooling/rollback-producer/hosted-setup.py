@@ -41,12 +41,27 @@ def canonical(value):
 def stamp(s):
     return (s.st_dev, s.st_ino, s.st_mode, s.st_nlink, s.st_uid, s.st_gid, s.st_size, s.st_mtime_ns, s.st_ctime_ns)
 
+class ImmutablePathRefusal(ValueError):
+    def __init__(self, member, info, position):
+        text = str(member)
+        anchors = {'/', '/opt', '/var', '/var/lib', '/usr', '/usr/bin', '/usr/sbin'}
+        marker = re.fullmatch(r'/opt/ideogram-native-job-[1-9][0-9]{0,19}-[1-9][0-9]{0,8}\.json', text)
+        label = text if text in anchors or marker else '<selected-input-component>'
+        kind = 'directory' if stat.S_ISDIR(info.st_mode) else 'regular' if stat.S_ISREG(info.st_mode) else 'symlink' if stat.S_ISLNK(info.st_mode) else 'other'
+        self.observation = {'kind':'hosted-native-immutable-path-refusal-1','member':label,'position':position,'uid':info.st_uid,'gid':info.st_gid,'mode':format(stat.S_IMODE(info.st_mode),'04o'),'type':kind,'requiredUid':0,'forbiddenWriteBits':'0022','contentsRead':False}
+        super().__init__('Immutable root-owned input required; '+json.dumps(self.observation,separators=(',',':')))
+
+def require_immutable_member(member, info, position):
+    # Preserve the exact existing owner/write-bit guard; only refusal evidence changes.
+    if not (info.st_uid == 0 and not stat.S_IMODE(info.st_mode) & 0o022):
+        raise ImmutablePathRefusal(member, info, position)
+
 def read(path, maximum=4*1024**2, root_owned=False):
     path = canonical(str(path)); before = path.lstat()
     require(stat.S_ISREG(before.st_mode) and before.st_nlink == 1 and before.st_size <= maximum, 'Bounded single-link regular input required')
     if root_owned:
-        for member in [path, *path.parents]:
-            s = member.lstat(); require(s.st_uid == 0 and not stat.S_IMODE(s.st_mode) & 0o022, 'Immutable root-owned input required')
+        for position, member in enumerate([path, *path.parents]):
+            require_immutable_member(member, member.lstat(), position)
     fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
     try:
         require(stamp(before) == stamp(os.fstat(fd)), 'Input changed before read'); data = bytearray()
@@ -305,6 +320,20 @@ def export_phase(args):
         final = json.loads(read(directory/'finalization.json', 4*1024**2, True)); require(final['config']['sha256'] == args.grant, 'Closed phase config differs'); records[phase] = final
     print(choose_export_phase(args.attempted, records))
 
+def preserve_setup_failure(args, primary):
+    try:
+        parent = retain_setup_diagnostics(args, False)
+    except BaseException as secondary:
+        # Retention can hit the same permission refusal as setup. Never replace
+        # the primary failure or print arbitrary exception text/environment.
+        value = {'kind':'hosted-native-retention-refusal-1','stage':'setup-failure-retention','errorType':re.sub('[^A-Za-z0-9_.]','?',type(secondary).__name__)[:80],'permission':secondary.observation if isinstance(secondary,ImmutablePathRefusal) else None,'primaryExceptionPreserved':True}
+        try: sys.stderr.write(json.dumps(value,separators=(',',':'))+'\n')
+        except BaseException: pass
+    else:
+        try: print('safe_export_parent='+parent)
+        except BaseException: pass
+    raise primary
+
 def main():
     require(sys.flags.isolated and sys.flags.no_site and sys.dont_write_bytecode and not sys.flags.optimize, 'Use Python -I -S -B')
     os.umask(0o022)
@@ -314,10 +343,8 @@ def main():
     args = parser.parse_args()
     if args.mode != 'setup': return export_phase(args)
     try: outputs = setup(args)
-    except BaseException:
-        parent = retain_setup_diagnostics(args,False)
-        print('safe_export_parent='+parent)
-        raise
+    except BaseException as primary:
+        preserve_setup_failure(args, primary)
     outputs['safe_export_parent'] = retain_setup_diagnostics(args,True)
     # Fixed root-owned paths and hashes only; no credentials or command output.
     for key,value in outputs.items(): print(key+'='+value)

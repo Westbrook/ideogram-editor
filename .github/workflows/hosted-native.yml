@@ -18,11 +18,20 @@ jobs:
         run: |
           set -euo pipefail
           sudo -n /usr/bin/python3 -I -S -B - "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" "$GITHUB_SHA" "$(id -u)" <<'PY'
-          import json, os, re, sys, time
+          import json, os, re, stat, sys, time
           from pathlib import Path
           run, attempt, head, uid = sys.argv[1:]
           assert run.isdecimal() and attempt.isdecimal() and re.fullmatch('[0-9a-f]{40}', head)
           assert os.getuid() == os.geteuid() == 0 and int(uid) > 0
+          anchors = []
+          for name in ('/', '/opt', '/var', '/var/lib'):
+              try:
+                  info = Path(name).lstat()
+                  kind = 'directory' if stat.S_ISDIR(info.st_mode) else 'symlink' if stat.S_ISLNK(info.st_mode) else 'other'
+                  anchors.append({'path':name,'uid':info.st_uid,'gid':info.st_gid,'mode':format(stat.S_IMODE(info.st_mode),'04o'),'type':kind,'canonical':Path(name).resolve(strict=True)==Path(name)})
+              except OSError as error:
+                  anchors.append({'path':name,'available':False,'errno':error.errno})
+          print(json.dumps({'kind':'hosted-native-fixed-anchor-observation-1','setupMeasured':False,'authorityGranted':False,'contentsRead':False,'anchors':anchors},separators=(',',':')))
           value = {'kind':'hosted-native-first-step-1','run':int(run),'attempt':int(attempt),'head':head,'runnerUid':int(uid),'firstStepEpochMs':time.time_ns()//1000000,'meaning':'First executable workflow step; not the GitHub job.started_at deadline origin.'}
           path = Path('/opt') / ('ideogram-native-job-'+run+'-'+attempt+'.json')
           fd = os.open(path, os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW, 0o444)
@@ -40,7 +49,7 @@ jobs:
         shell: bash
         env:
           IE_SETUP_TOKEN: ${{ github.token }}
-          IE_SOURCE_SELECTION_SHA256: 5792852a598e86d3d902ba8cce5a4e484d4c50aadbfd49ca08bd3fee6f44acaa
+          IE_SOURCE_SELECTION_SHA256: be42594bd59145dcc550e0fd65b07f5e7eb74aefada6b4540144cf4d17b147e2
         run: |
           set -euo pipefail
           printf '%s' "$IE_SETUP_TOKEN" | sudo -n /usr/bin/python3 -I -S -B tooling/rollback-producer/hosted-setup.py setup \
