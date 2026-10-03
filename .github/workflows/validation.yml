@@ -8,6 +8,14 @@ on:
         required: false
         type: string
         default: ''
+      host:
+        description: Supplemental correctness host; neither option supplies physical qualification
+        required: false
+        type: choice
+        options:
+          - ubuntu-24.04
+          - macos-15
+        default: ubuntu-24.04
 permissions:
   contents: read
 concurrency:
@@ -15,7 +23,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   preflight-and-tooling:
-    runs-on: ubuntu-24.04
+    runs-on: ${{ github.event_name == 'workflow_dispatch' && inputs.host == 'macos-15' && 'macos-15' || 'ubuntu-24.04' }}
     timeout-minutes: ${{ github.event_name == 'workflow_dispatch' && inputs.node_files != '' && 180 || 20 }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -24,7 +32,17 @@ jobs:
         timeout-minutes: ${{ github.event_name == 'workflow_dispatch' && inputs.node_files != '' && 5 || 20 }}
       - name: Select pinned toolchain and verify inputs before install
         timeout-minutes: ${{ github.event_name == 'workflow_dispatch' && inputs.node_files != '' && 5 || 20 }}
+        env:
+          EXPECTED_HOST: ${{ github.event_name == 'workflow_dispatch' && inputs.host == 'macos-15' && 'darwin-arm64' || 'linux-x64' }}
         run: |
+          python3 -I -S - <<'PY'
+          import os, platform
+          architecture = {'aarch64': 'arm64', 'arm64': 'arm64', 'x86_64': 'x64'}.get(platform.machine())
+          actual = platform.system().lower() + '-' + str(architecture)
+          if actual != os.environ['EXPECTED_HOST']:
+              raise SystemExit('Hosted platform differs from explicit selection: ' + actual)
+          print('Supplemental correctness host: ' + actual + '; physical qualification: false')
+          PY
           python3 tooling/bootstrap-toolchain.py
           python3 tooling/verify-vendor.py
           echo "$GITHUB_WORKSPACE/.toolchain/bin" >> "$GITHUB_PATH"
@@ -71,5 +89,7 @@ jobs:
           path: artifacts/validation
           if-no-files-found: warn
           retention-days: 90
-# Fast feedback is supplemental. The trusted physical P pair and affected Q3,
+# Manual macos-15 uses the standard arm64 runner for unchanged Darwin fixtures;
+# PRs and omitted/other selections retain ubuntu-24.04. Fast feedback is supplemental.
+# The trusted physical P pair and affected Q3,
 # native/manual and capability obligations in qualification.yml remain required.
