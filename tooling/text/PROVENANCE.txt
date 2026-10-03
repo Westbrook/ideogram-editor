@@ -150,3 +150,15 @@ Apply the reviewed ownership and retained compatibility sources together before
 running seal-profile.mjs and verify:text. Preserve every native engine, tarball,
 font, license, package-lock and older retained-profile byte. Only the established
 producer may write the three generated metadata outputs from final sources.
+
+The compressed text asset response correction retains the exact 95244362
+profile verbatim before resealing contracts.ts and its compatibility consumers.
+This predecessor already uses paragraph-aware run reservations: preserve that
+allowance in both layout generation and server verification. Older retained
+profiles keep their original run allowance. The predecessor also keeps normalized
+frame bytes, streaming admission and exact layout hash verification. Decoded
+response length and hash remain authoritative when HTTP content coding makes
+the encoded Content-Length differ; this changes no native engine, font or raster
+contract. Apply the reviewed reader, compatibility and regression sources before
+the established seal-profile.mjs producer regenerates the three metadata outputs.
+Keep every native package, tarball, font, license and historical manifest byte.

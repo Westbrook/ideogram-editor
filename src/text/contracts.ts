@@ -110,8 +110,15 @@ export async function readTextAssetResponse(response: Response, expected: number
   const check = () => { if (signal?.aborted) fail('TEXT_CANCELLED'); };
   signal?.addEventListener('abort', aborted, { once: true });
   try {
-    check();const length=response.headers.get('content-length');
-    if(!Number.isSafeInteger(expected)||expected<0||expected>LIMITS.wasmBytes||!response.ok||length!==null&&(!/^(0|[1-9][0-9]*)$/.test(length)||Number(length)!==expected))fail('TEXT_ASSET_LOAD');
+    check();
+    const length=response.headers.get('content-length'),coding=response.headers.get('content-encoding')?.toLowerCase();
+    const compressed=coding==='gzip'||coding==='br'||coding==='deflate';
+    if(!Number.isSafeInteger(expected)||expected<0||expected>LIMITS.wasmBytes||!response.ok)fail('TEXT_ASSET_LOAD');
+    if(coding!==undefined&&coding!=='identity'&&!compressed)fail('TEXT_ASSET_LOAD');
+    // Fetch exposes decoded bytes for these HTTP codings; Content-Length still
+    // describes the encoded transfer. It must remain valid metadata, while the
+    // sealed decoded size is enforced on every chunk and again at EOF below.
+    if(length!==null&&(!/^(0|[1-9][0-9]*)$/.test(length)||!Number.isSafeInteger(Number(length))||Number(length)>LIMITS.wasmBytes||!compressed&&Number(length)!==expected))fail('TEXT_ASSET_LOAD');
     slab=new Uint8Array(Math.min(expected,65536));
     for (;;) {
       check();const part=await completion.read();

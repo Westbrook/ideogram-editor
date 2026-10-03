@@ -273,13 +273,13 @@
     },
     {
       "path": "src/text/contracts.ts",
-      "bytes": 8854,
-      "sha256": "96aa65d78cf834c14def464df88d3b94982193cfeabc8f70b1eaba3d86fae6ec"
+      "bytes": 9434,
+      "sha256": "08207c5aab6d234ac693fda1d8a0e4f3542bf446d67fc0b8370a5d8b9b024ca3"
     },
     {
       "path": "src/text/core.ts",
-      "bytes": 20253,
-      "sha256": "6b8a6b5354d0356641e2f795b256f591a22bac734224c65ab9ebf5b1a67f2cf3"
+      "bytes": 20578,
+      "sha256": "ba210ea0538daab09ded2d4013b1e5eb4948c47cf935afcdc6acd0ef707a7003"
     },
     {
       "path": "src/text/durable.ts",
@@ -379,6 +379,11 @@
       "sha256": "c631086528d51d967a6a692777ff8fd5004ddf410e47b003f3ef7cbd0311a4bf"
     },
     {
+      "path": "src/text/retained-profiles/95244362.json",
+      "bytes": 19390,
+      "sha256": "96403bc29e02fc5e5162a6dbff1ef1387f2d892df9021b74efc2b625f5dd515e"
+    },
+    {
       "path": "src/observability/diagnostic-memory.ts",
       "bytes": 7157,
       "sha256": "1c0fb3ff0c1ea0e346106d84ca6f561cf1a097fb1ec355f96ff49429318d27cf"
@@ -420,8 +425,8 @@
     },
     {
       "path": "server/storage/text.ts",
-      "bytes": 29258,
-      "sha256": "51dfd1311527ad22a4e07afff5cb16625116b112592aa8006e086cb8a79c102f"
+      "bytes": 29291,
+      "sha256": "064bc36e8bb7c8dd7641b7e98c71d0b63503e2e9eb1c13a41d0d12081067fb66"
     },
     {
       "path": "server/text/font.ts",
@@ -445,13 +450,13 @@
     },
     {
       "path": "server/text/validation.ts",
-      "bytes": 17334,
-      "sha256": "cb2e0cc7e3d7447c228d33b69f0c166a2b3bead53b41f8650780af76c70e0238"
+      "bytes": 17890,
+      "sha256": "c62743145fd57d747fc0feabfa42c742e2d2bb703b8b9e8f0bd3037d07dbe840"
     },
     {
       "path": "server/text/render-worker.mjs",
-      "bytes": 7863,
-      "sha256": "c3b3543b9652db26e80b961c91632cb2486ef33ea9f98d22d590ef63dce876c9"
+      "bytes": 8007,
+      "sha256": "77932c14810a73befaf1616587227f2041067e9b4e67518bf53e577c40b0527f"
     },
     {
       "path": "tests/text-state/verifier.vite.config.ts",
@@ -524,5 +529,5 @@
       "sha256": "808650b42cc817012dd5d68df0124171ac78679ce497acd6a6c031409886052d"
     }
   ],
-  "id": "sha256:95244362ef7a1261b131d302cf1350e5d1b593aa1f2d31e96e9c28b682a45595"
+  "id": "sha256:8f94442c1e4942f3350b21a2042241376cf8e12914404c90ef9f21adfc1d2abc"
 }

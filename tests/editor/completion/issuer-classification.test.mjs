@@ -158,7 +158,7 @@ test('reviewed network boundary hashes are fixed independently of candidates',()
  assert.deepEqual(NETWORK_BOUNDARIES,{
   'src/state/recovery-client.ts':'faf5498835f4de89d0bac8126c72f7e6900883ef0387f5f52753e865408314dd',
   'src/state/session-client.ts':'7d134699839c9c260022e736260b8581931d07a8b44d5cac06882c3f702a386a',
-  'src/text/contracts.ts':'96aa65d78cf834c14def464df88d3b94982193cfeabc8f70b1eaba3d86fae6ec',
+  'src/text/contracts.ts':'08207c5aab6d234ac693fda1d8a0e4f3542bf446d67fc0b8370a5d8b9b024ca3',
   'src/text/durable.ts':'6b426048f78f1a95d8a23c9b4e7724ce2774e7a0cc47bea8968b4258a2682d52',
   'src/text/engine.ts':'c86d782ccb92de17fb4a01376e16989b13114156abcd6418a011af43efb5c830',
   'src/state/editor-client.ts':'da4f0b401496715287ca10832a227bc753e2a460dceae5993ae6e1469e7609a1',

@@ -5,6 +5,9 @@ import {readFile} from 'node:fs/promises';
 import {transformWithOxc} from 'vite';
 import {execFileSync} from 'node:child_process';
 import {resolve} from 'node:path';
+import {createServer} from 'node:http';
+import {gzipSync,deflateSync,brotliCompressSync} from 'node:zlib';
+import {createHash} from 'node:crypto';
 
 const data=code=>'data:text/javascript;base64,'+Buffer.from(code).toString('base64');
 const source=path=>(process.env.IE_TEXT_OWNERSHIP_STAGING?process.env.IE_TEXT_OWNERSHIP_STAGING+'/':'')+path;
@@ -40,6 +43,59 @@ test('abort cancels a pending reader exactly once and waits for cleanup before r
 
 test('mismatched declared length owns and cancels the reader before any body read',async()=>{
  let cancelled=0,acquired=0,unlocked=0;await assert.rejects(readTextAssetResponse({ok:true,headers:new Headers({'Content-Length':'999'}),body:{getReader(){acquired++;return {closed:Promise.resolve(),read(){assert.fail('Unadmitted body must not be read');},cancel(){cancelled++;},releaseLock(){unlocked++;}};}}},2),/TEXT_ASSET_LOAD/);assert.equal(acquired,1);assert.equal(cancelled,1);assert.equal(unlocked,1);
+});
+
+for(const [coding,encode] of [['gzip',gzipSync],['br',brotliCompressSync],['deflate',deflateSync]])test('actual HTTP '+coding+' keeps encoded length metadata and returns exact bounded decoded bytes',async()=>{
+ const bytes=Buffer.from('sealed font bytes '.repeat(8192)),encoded=encode(bytes);assert.notEqual(encoded.length,bytes.length);
+ const server=createServer((_request,response)=>{response.writeHead(200,{'Content-Encoding':coding,'Content-Length':String(encoded.length)});response.end(encoded);});
+ try{
+  await new Promise((yes,no)=>{server.once('error',no);server.listen(0,'127.0.0.1',yes);});
+  const response=await fetch('http://127.0.0.1:'+server.address().port+'/asset');
+  assert.equal(response.headers.get('content-encoding'),coding);assert.equal(response.headers.get('content-length'),String(encoded.length));
+  const actual=Buffer.from(await (await readTextAssetResponse(response,bytes.length)).arrayBuffer());
+  assert.deepEqual(actual,bytes);assert.equal(createHash('sha256').update(actual).digest('hex'),createHash('sha256').update(bytes).digest('hex'));assert.equal(response.body.locked,false);
+ }finally{await new Promise((yes,no)=>{server.close(error=>error?no(error):yes());server.closeAllConnections();});}
+});
+
+test('zero decoded bytes allow a bounded nonzero encoded representation',async()=>{
+ let cancels=0,unlocks=0;const reader={async read(){return {done:true};},cancel(){cancels++;},releaseLock(){unlocks++;}};
+ const result=await readTextAssetResponse({ok:true,headers:new Headers({'Content-Encoding':'gzip','Content-Length':'20'}),body:{getReader:()=>reader}},0);
+ assert.equal(result.size,0);assert.equal(cancels,0);assert.equal(unlocks,1);
+});
+
+test('compressed metadata does not admit malformed lengths or unsupported content codings',async()=>{
+ for(const headers of [
+  ...['-1','01','1.5','1e2','9007199254740992','33554433','1, 1'].map(length=>({'Content-Encoding':'gzip','Content-Length':length})),
+  ...['','compress','gzip, br','gzip;q=1'].map(coding=>({'Content-Encoding':coding,'Content-Length':'4'})),
+  {'Content-Encoding':'identity','Content-Length':'3'},
+ ]){
+  let reads=0,cancels=0,unlocks=0;const reader={read(){reads++;assert.fail('Rejected metadata must not read decoded bytes');},cancel(){cancels++;},releaseLock(){unlocks++;}};
+  await assert.rejects(readTextAssetResponse({ok:true,headers:new Headers(headers),body:{getReader:()=>reader}},4),/TEXT_ASSET_LOAD/);
+  assert.equal(reads,0);assert.equal(cancels,1);assert.equal(unlocks,1);
+ }
+});
+
+for(const coding of ['gzip','br','deflate'])for(const kind of ['overflow','short'])test(coding+' decoded '+kind+' cannot bypass the sealed size',async()=>{
+ let reads=0,cancels=0,unlocks=0;const reader={async read(){reads++;return reads===1?{done:false,value:new Uint8Array(kind==='overflow'?5:3)}:{done:true};},cancel(){cancels++;},releaseLock(){unlocks++;}};
+ await assert.rejects(readTextAssetResponse({ok:true,headers:new Headers({'Content-Encoding':coding,'Content-Length':'2'}),body:{getReader:()=>reader}},4),/TEXT_ASSET_SIZE/);
+ assert.equal(reads,kind==='overflow'?1:2);assert.equal(cancels,kind==='overflow'?1:0);assert.equal(unlocks,1);
+});
+
+test('compressed read abort waits for its original cancellation before unlocking',async()=>{
+ const abort=new AbortController(),reading=deferred(),cancelled=deferred(),read=deferred();let cancels=0,unlocks=0,done=false;
+ const reader={read(){reading.resolve();return read.promise;},cancel(){cancels++;read.resolve({done:true});return cancelled.promise;},releaseLock(){unlocks++;}};
+ const loading=observe(readTextAssetResponse({ok:true,headers:new Headers({'Content-Encoding':'br','Content-Length':'2'}),body:{getReader:()=>reader}},4,abort.signal)).then(result=>{done=true;return result;});
+ await reading.promise;abort.abort();await Promise.resolve();assert.equal(cancels,1);assert.equal(unlocks,0);assert.equal(done,false);
+ cancelled.resolve();assert.equal((await loading).error.code,'TEXT_CANCELLED');assert.equal(unlocks,1);
+});
+
+test('compressed overflow with failed cancellation retains the real cleanup owner',async()=>{
+ let cancels=0,unlocks=0,releases=0;const reason=Error('compressed source cancellation failed');
+ const reader={async read(){return {done:false,value:new Uint8Array(5)};},cancel(){cancels++;throw reason;},releaseLock(){unlocks++;}};
+ const response={ok:true,headers:new Headers({'Content-Encoding':'gzip','Content-Length':'2'}),body:{getReader:()=>reader}};
+ const result=await observe(readTextAssetResponse(response,4));assert.equal(result.error.code,'TEXT_ASSET_CLEANUP');assert.equal(result.error.details,reason);
+ assert.equal(retainTextAssetCleanup(result.error,{bytes:4,release(){releases++;}}),true);assert.equal(await retryTextAssetCleanup(result.error),false);
+ assert.equal(releases,0);assert.equal(cancels,1);assert.equal(unlocks,1);
 });
 
 test('failed reader unlock retains the exact cleanup owner for a later successful retry',async()=>{

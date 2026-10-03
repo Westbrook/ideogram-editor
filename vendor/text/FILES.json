@@ -96,8 +96,8 @@
   },
   {
     "path": "tooling/text/PROVENANCE.txt",
-    "bytes": 9919,
-    "sha256": "2f7207eed03252588c548de86322c3d3b15eb7a38fead1305ab5b2ee3acaf7af"
+    "bytes": 10787,
+    "sha256": "0f786b2bbaa9908931859bb56d50a723772d020ac512ea9fda6094988593dde9"
   },
   {
     "path": "tooling/text/rebuild.py",
@@ -106,8 +106,8 @@
   },
   {
     "path": "tooling/text/seal-profile.mjs",
-    "bytes": 8049,
-    "sha256": "9c15c61c8acff1a62b0e81a27731764c9e6fea061784fcaf5819da14053fecd1"
+    "bytes": 8404,
+    "sha256": "7415560c4d51116bd4d0d1c0da7c37b3b43209ad63a9da97976e99a9a85a76c8"
   },
   {
     "path": "tooling/text/skia-DEPS.txt",
@@ -191,8 +191,8 @@
   },
   {
     "path": "vendor/text/manifest.json",
-    "bytes": 19390,
-    "sha256": "96403bc29e02fc5e5162a6dbff1ef1387f2d892df9021b74efc2b625f5dd515e"
+    "bytes": 19566,
+    "sha256": "96a0b022708ab52c7865b1e784d7c5363627473ba2b87adf0a9cb6bf033bf36a"
   },
   {
     "path": "vendor/text/notices/Brotli-LICENSE",

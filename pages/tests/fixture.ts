@@ -3,21 +3,22 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { startStaticServer } from '../../tooling/pages/static-server.mjs';
 
-type Owner = { browser: Browser; baseURL: string; origin: string };
-type Guard = { requests: string[]; workers: Set<Worker>; createdWorkers: () => number };
+type CompressedAsset = { path: string; encoding: string; encodedBytes: number; decodedBytes: number };
+type Owner = { browser: Browser; baseURL: string; origin: string; textAssetResponses: CompressedAsset[] };
+type Guard = { requests: string[]; workers: Set<Worker>; createdWorkers: () => number; compressedAssets: () => CompressedAsset[] };
 export const test = base.extend<{ guard: Guard }, { pagesOwner: Owner }>({
   pagesOwner: [async ({ playwright, browserName }, use, info) => {
     const output = resolve(process.env.IE_PAGES_OUTPUT!, 'closure');
     await mkdir(output, { recursive: true, mode: 0o700 });
     await writeFile(resolve(output, `${info.project.name}-${info.workerIndex}.started.json`), JSON.stringify({ schema: 1, project: info.project.name, worker: info.workerIndex }) + '\n', { flag: 'wx', mode: 0o600 });
     if (!process.env.IE_PAGES_ARTIFACT) throw Error('IE_PAGES_ARTIFACT must identify the current run public artifact');
-    const server = await startStaticServer(process.env.IE_PAGES_ARTIFACT);
+    const server = await startStaticServer(process.env.IE_PAGES_ARTIFACT, { compressedTextAssets: true });
     let browser: Browser | undefined;
     const closure = { schema: 1, project: info.project.name, worker: info.workerIndex, browserVersion: '', browserClosed: false, serverClosed: false, errors: [] as string[] };
     try {
       browser = await playwright[browserName].launch({ headless: true });
       closure.browserVersion = browser.version();
-      await use({ browser, baseURL: server.baseURL, origin: server.origin });
+      await use({ browser, baseURL: server.baseURL, origin: server.origin, textAssetResponses: server.textAssetResponses });
     } finally {
       try { if (browser) { await browser.close(); closure.browserClosed = !browser.isConnected(); } else closure.browserClosed = true; }
       catch (error) { closure.errors.push(`browser: ${String(error)}`); }
@@ -30,6 +31,7 @@ export const test = base.extend<{ guard: Guard }, { pagesOwner: Owner }>({
   browser: [async ({ pagesOwner }, use) => { await use(pagesOwner.browser); }, { scope: 'worker' }],
   baseURL: async ({ pagesOwner }, use) => { await use(pagesOwner.baseURL); },
   guard: [async ({ page, context, pagesOwner }, use, info) => {
+    const firstAsset = pagesOwner.textAssetResponses.length;
     const requests: string[] = [], violations: unknown[] = [], errors: string[] = [], workers = new Set<Worker>(); let created = 0;
     page.on('worker', worker => { created++; workers.add(worker); worker.on('close', () => workers.delete(worker)); });
     page.on('pageerror', error => errors.push(error.message));
@@ -54,12 +56,12 @@ export const test = base.extend<{ guard: Guard }, { pagesOwner: Owner }>({
       }
       await route.continue();
     });
-    try { await use({ requests, workers, createdWorkers: () => created }); }
+    try { await use({ requests, workers, createdWorkers: () => created, compressedAssets: () => pagesOwner.textAssetResponses.slice(firstAsset) }); }
     finally {
       // Close through documented APIs before retaining the worker observation.
       await page.close();
       await expect.poll(() => workers.size).toBe(0);
-      await info.attach('preview-boundaries', { contentType: 'application/json', body: Buffer.from(JSON.stringify({ requests, violations, errors, createdWorkers: created, remainingWorkers: workers.size }, null, 2)) });
+      await info.attach('preview-boundaries', { contentType: 'application/json', body: Buffer.from(JSON.stringify({ requests, violations, errors, createdWorkers: created, remainingWorkers: workers.size, compressedAssets: pagesOwner.textAssetResponses.slice(firstAsset) }, null, 2)) });
       expect(errors).toEqual([]); expect(violations).toEqual([]);
     }
   }, { auto: true }],

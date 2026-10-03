@@ -3,7 +3,7 @@ import {returnedDescriptionSelection,validateReturnedDescriptionSelection} from 
 import {readFileSync} from 'node:fs';
 import {runVerification} from '../text/supervisor.js';
 import {verificationBudget} from '../../src/protocol/text-budget.js';
-import {retainedProfile,usesStreamingLayout} from '../text/validation.js';
+import {retainedProfile,usesStreamingLayout,usesParagraphRunQuota} from '../text/validation.js';
 import {textDraft,draftRefs,textSplitPlan} from '../../src/protocol/text.js';
 import {planTextSplit} from '../../src/text/split.js';
 import {imageState} from '../../src/protocol/history-validation.js';
@@ -222,7 +222,7 @@ export class Texts {
   const releaseCoverage=adapterResources.uncovered('text-verification-input');try{
   const textBytes=readFileSync(path(s.text.textUtf8));if(hashBytes(textBytes)!==s.text.textUtf8.hash)throw new StoreError('CORRUPT_OBJECT');
   const text=new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(textBytes);
-  let budget;try{budget=verificationBudget(text,s.text.frame.width,s.text.frame.height,s.text.fonts.reduce((n,f)=>n+Number(f.bytes.byteLength),0),profile.engine.wasm.bytes,{legacy:!usesStreamingLayout(s.render.rendererProfile.id),layoutBytes:Number(s.render.layout.byteLength),retainedRunQuota:s.render.rendererProfile.id!==profile.id});}catch{throw new AssetRejection('CAPACITY','TEXT_VERIFICATION_CAPACITY');}
+  let budget;try{budget=verificationBudget(text,s.text.frame.width,s.text.frame.height,s.text.fonts.reduce((n,f)=>n+Number(f.bytes.byteLength),0),profile.engine.wasm.bytes,{legacy:!usesStreamingLayout(s.render.rendererProfile.id),layoutBytes:Number(s.render.layout.byteLength),retainedRunQuota:!usesParagraphRunQuota(s.render.rendererProfile.id)});}catch{throw new AssetRejection('CAPACITY','TEXT_VERIFICATION_CAPACITY');}
   const row=this.db.prepare('SELECT id FROM text_admissions').get();const borrowed=!!admissionId&&row?.id===admissionId;
   if(borrowed){if(Number(admissionId!.split('_')[2])!==budget.bytes)throw new AssetRejection('INVALID_INPUT','TEXT_VERIFICATION_ADMISSION');this.readyLoans.add(admissionId!);}
   else if(row)throw new AssetRejection('CAPACITY','TEXT_REALM_OWNS_CAPACITY');

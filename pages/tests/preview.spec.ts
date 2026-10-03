@@ -45,6 +45,9 @@ test('keyboard edits change real pixels and each completed worker closes', async
   await page.goto('./');
   await textInput(page).fill('First public preview');
   const first = await render(page);
+  const compressed = guard.compressedAssets();
+  expect(compressed.some(row => /\.(?:ttf|otf)$/.test(row.path) && row.encoding === 'gzip' && row.encodedBytes < row.decodedBytes)).toBe(true);
+  expect(compressed.some(row => row.path.endsWith('.wasm') && row.encoding === 'br' && row.encodedBytes < row.decodedBytes)).toBe(true);
   await expect.poll(() => guard.workers.size).toBe(0);
   await textInput(page).focus();
   await textInput(page).press('ControlOrMeta+A'); await textInput(page).pressSequentially('A different line');

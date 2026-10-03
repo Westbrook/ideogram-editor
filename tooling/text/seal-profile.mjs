@@ -47,6 +47,9 @@ profile.sourceRecipe.push({path:admissionSplitPriorPath,bytes:admissionSplitPrio
 // Retain the exact streamed renderer before paragraph-aware run reservations.
 const paragraphBudgetPriorPath='src/text/retained-profiles/6f7be5be.json',paragraphBudgetPriorBytes=await readFile(paragraphBudgetPriorPath);
 profile.sourceRecipe.push({path:paragraphBudgetPriorPath,bytes:paragraphBudgetPriorBytes.length,sha256:sha(paragraphBudgetPriorBytes)});
+// Preserve the paragraph-aware streamed renderer before HTTP content-coding admission.
+const contentCodingPriorPath='src/text/retained-profiles/95244362.json',contentCodingPriorBytes=await readFile(contentCodingPriorPath);
+profile.sourceRecipe.push({path:contentCodingPriorPath,bytes:contentCodingPriorBytes.length,sha256:sha(contentCodingPriorBytes)});
 for(const path of ['src/observability/diagnostic-memory.ts','tooling/text/source-closure.json','tooling/text/configure-source.py','tooling/text/canvaskit-source.patch','tooling/text/rebuild.py','tooling/text/MEMORY.txt','server/static.ts','server/http.ts','server/storage/text.ts','server/text/font.ts','server/text/worker.ts','server/text/supervisor.ts','server/observability/adapter-resources.ts','server/text/validation.ts','server/text/render-worker.mjs','tests/text-state/verifier.vite.config.ts','tooling/text/verifier.vite.config.ts','src/protocol/text-budget.ts','src/observability/phases.ts','src/observability/browser-worker-observations.ts','src/text/retained-profiles/b89503d3.json','src/protocol/text.ts','src/text/retained-profiles/c19791ae.json','src/text/retained-profiles/6e8a481e.json','src/text/retained-profiles/d047f5be.json','src/text/retained-profiles/304528c9.json','src/text/retained-profiles/ff24a513.json','src/text/retained-profiles/f5e8bd34.json','src/text/retained-profiles/7a4dbc6c.json']){
   const b=await readFile(path);profile.sourceRecipe.push({path,bytes:b.length,sha256:sha(b)});
 }
