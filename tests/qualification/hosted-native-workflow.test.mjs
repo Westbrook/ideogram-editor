@@ -14,7 +14,7 @@ test('hosted setup boundary owner is registered with the guarded qualification i
   assert(plan.command.includes('./tests/session/no-egress.mjs'));
 });
 
-test('hosted setup authenticates job identity, source paths and actual closed export boundaries', async t => {
+test('hosted setup authenticates job identity, fixed GCC11 selection and closed export boundaries', async t => {
   const {stdout, stderr} = await promisify(execFile)('python3', ['-I','-S','-B', join(root, 'tests/qualification/fixtures/hosted-setup-unit.py'), join(root, 'tooling/rollback-producer/hosted-setup.py')],
     {cwd: root, env: {PATH: process.env.PATH, PYTHONDONTWRITEBYTECODE: '1', LANG: 'C'}, timeout: 30_000, maxBuffer: 65536});
   const result = JSON.parse(stdout);

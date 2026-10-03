@@ -36,12 +36,12 @@ def select(host, environment):
     def command(argv): return host.command(argv, environment)['stdout'].strip()
     # One source-selected compiler family; absence/refusal never falls back to
     # the runner's default compiler or chooses another profile automatically.
-    tools = {name: pair('/usr/bin/' + executable) for name, executable in {'gcc':'gcc-12','gxx':'g++-12','make':'make','python':'python3','getconf':'getconf'}.items()}
+    tools = {name: pair('/usr/bin/' + executable) for name, executable in {'gcc':'gcc-11','gxx':'g++-11','make':'make','python':'python3','getconf':'getconf'}.items()}
     # Authenticate discovery programs by the same root-owned finite-file policy.
     for value in tools.values(): host.system_file(value)
     loader = pair('/usr/sbin/ldconfig'); host.system_file(loader)
     for name in ('gcc','gxx'):
-        require(command([tools[name]['path'],'-dumpversion']) == '12', 'Selected compiler major differs from fixed GCC12 profile')
+        require(command([tools[name]['path'],'-dumpversion']) == '11', 'Selected compiler major differs from fixed GCC11 profile')
     programs = {}
     for name in ('cc1','cc1plus','collect2','as','ld'):
         value = command([tools['gxx' if name == 'cc1plus' else 'gcc']['path'], '-print-prog-name=' + name])

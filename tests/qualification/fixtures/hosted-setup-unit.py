@@ -57,28 +57,28 @@ def closed(phase, outcome='PASS', released=True):
     return {'kind':'hosted-native-phase-finalization-1','phase':phase,'effectiveOutcome':outcome,'timingLockReleased':released}
 
 class Boundaries(unittest.TestCase):
-    def test_host_discovery_uses_only_fixed_gcc12_drivers_and_matching_program_queries(self):
+    def test_host_discovery_uses_only_fixed_gcc11_drivers_and_matching_program_queries(self):
         authenticated=[];commands=[]
         class StopAtParser(RuntimeError):pass
         def command(argv,environment):
             commands.append(argv)
             if argv==['/usr/sbin/ldconfig','-p']:return {'stdout':''}
-            if argv in (['/usr/bin/gcc-12','-dumpversion'],['/usr/bin/g++-12','-dumpversion']):return {'stdout':'12\n'}
+            if argv in (['/usr/bin/gcc-11','-dumpversion'],['/usr/bin/g++-11','-dumpversion']):return {'stdout':'11\n'}
             self.assertEqual(len(argv),2);self.assertTrue(argv[1].startswith('-print-prog-name='))
             name=argv[1].split('=',1)[1]
-            self.assertEqual(argv[0],'/usr/bin/g++-12' if name=='cc1plus' else '/usr/bin/gcc-12')
-            return {'stdout':name if name in ('as','ld') else '/usr/lib/gcc/x86_64-linux-gnu/12/'+name}
+            self.assertEqual(argv[0],'/usr/bin/g++-11' if name=='cc1plus' else '/usr/bin/gcc-11')
+            return {'stdout':name if name in ('as','ld') else '/usr/lib/gcc/x86_64-linux-gnu/11/'+name}
         def stop(*_):raise StopAtParser()
         host=types.SimpleNamespace(system_file=lambda value:authenticated.append(value),command=command,read_elf=stop)
         with mock.patch.object(Path,'resolve',lambda path,strict:path):
             with self.assertRaises(StopAtParser):host_diagnostics.select(host,{'PATH':'/unselected','HOME':'/private/home','TMPDIR':'/private/tmp'})
-        self.assertEqual([row['requestedPath'] for row in authenticated[:5]],['/usr/bin/gcc-12','/usr/bin/g++-12','/usr/bin/make','/usr/bin/python3','/usr/bin/getconf'])
+        self.assertEqual([row['requestedPath'] for row in authenticated[:5]],['/usr/bin/gcc-11','/usr/bin/g++-11','/usr/bin/make','/usr/bin/python3','/usr/bin/getconf'])
         self.assertEqual(len(commands),8)
-        self.assertEqual({name for name in subject.PACKAGES if name.startswith(('gcc-','g++-'))},{'gcc-12','g++-12'})
+        self.assertEqual({name for name in subject.PACKAGES if name.startswith(('gcc-','g++-'))},{'gcc-11','g++-11'})
         self.assertNotIn('/usr/bin/gcc',[argv[0] for argv in commands]);self.assertNotIn('/usr/bin/g++',[argv[0] for argv in commands])
 
-    def test_missing_selected_gcc12_driver_refuses_before_commands_without_default_fallback(self):
-        for missing in ('/usr/bin/gcc-12','/usr/bin/g++-12'):
+    def test_missing_selected_gcc11_driver_refuses_before_commands_without_default_fallback(self):
+        for missing in ('/usr/bin/gcc-11','/usr/bin/g++-11'):
             resolved=[];host=types.SimpleNamespace(system_file=mock.Mock(),command=mock.Mock())
             def resolve(path,strict):
                 resolved.append(str(path))
@@ -90,10 +90,10 @@ class Boundaries(unittest.TestCase):
             self.assertNotIn('/usr/bin/gcc',resolved);self.assertNotIn('/usr/bin/g++',resolved)
 
     def test_different_driver_major_refuses_before_compiler_program_discovery(self):
-        host=types.SimpleNamespace(system_file=mock.Mock(),command=mock.Mock(return_value={'stdout':'13\n'}))
+        host=types.SimpleNamespace(system_file=mock.Mock(),command=mock.Mock(return_value={'stdout':'12\n'}))
         with mock.patch.object(Path,'resolve',lambda path,strict:path):
             with self.assertRaisesRegex(ValueError,'compiler major differs'):host_diagnostics.select(host,{'PATH':'/usr/bin','HOME':'/private/home','TMPDIR':'/private/tmp'})
-        host.command.assert_called_once_with(['/usr/bin/gcc-12','-dumpversion'],{'PATH':'/usr/bin','HOME':'/private/home','TMPDIR':'/private/tmp'})
+        host.command.assert_called_once_with(['/usr/bin/gcc-11','-dumpversion'],{'PATH':'/usr/bin','HOME':'/private/home','TMPDIR':'/private/tmp'})
 
     def test_elf_refusal_context_binds_actual_sealed_frame_and_file_identity(self):
         with tempfile.TemporaryDirectory() as raw:

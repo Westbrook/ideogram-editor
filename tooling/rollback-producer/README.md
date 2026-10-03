@@ -59,7 +59,7 @@ root or export collisions refuse; there is no alternate-path fallback.
 
 Control-toolchain, package and dedicated-account setup is explicitly unmeasured.
 It freezes actual root-owned control binaries and compiler/library observations.
-Native host discovery explicitly selects `/usr/bin/gcc-12` and `/usr/bin/g++-12`,
+Native host discovery explicitly selects `/usr/bin/gcc-11` and `/usr/bin/g++-11`,
 with those package families requested during setup. It never falls back to the
 runner's default compiler. Package availability or a major version is not parser
 admission: the unchanged sealed host policy must accept the actual complete
