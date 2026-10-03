@@ -3,6 +3,7 @@ import {expect,type Page,type TestInfo} from '@playwright/test';
 import {createHash} from 'node:crypto';
 import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
+import {captureWebKitContrast,type ContrastScreencastMetadata} from './contrast-screencast.mjs';
 
 const version='4.13.0';
 const tags=['wcag2a','wcag2aa','wcag21a','wcag21aa','wcag22aa'];
@@ -20,7 +21,8 @@ async function contrastEvidence(page:Page,info:TestInfo,directory:string,state:s
   const targets=exposure?exposure.targetPaths.map(path=>{const target=[path];return originalTargets.find(row=>JSON.stringify(row.target)===JSON.stringify(target))??{ruleIndex:null,nodeIndex:null,target,targetOrigin:'explicit-public-control'};}):originalTargets;
   if(!targets.length)return;
   const maximumBytes=4*1024*1024,maximumTargets=128;
-  const capturePath=join(directory,state+'.contrast.json'),screenshotPath=join(directory,state+'.contrast.png');
+  const webkit=page.context().browser()?.browserType().name()==='webkit';
+  const capturePath=join(directory,state+'.contrast.json'),screenshotPath=join(directory,state+(webkit?'.contrast.jpg':'.contrast.png'));
   let capture:unknown={status:'unknown',reason:'capture-not-completed'};
   try{
     capture=await page.evaluate(({targets,maximumTargets})=>{
@@ -102,21 +104,48 @@ async function contrastEvidence(page:Page,info:TestInfo,directory:string,state:s
         stringsTruncated,modalHostCount:modalHosts.length,modalCapExceeded:modalHosts.length>16,modals,rows};
     },{targets,maximumTargets});
   }catch{capture={status:'unknown',reason:'page-capture-error',expectedTargets:targets.length};}
-  const screenshot={status:'unknown',path:screenshotPath,bytes:0,sha256:null as string|null,startedAt:Date.now(),finishedAt:0};
+  const screenshot={status:'unknown',path:screenshotPath,bytes:0,sha256:null as string|null,startedAt:Date.now(),finishedAt:0,
+    method:webkit?'playwright-public-screencast':'playwright-page-screenshot',codec:webkit?'JPEG':'PNG',mimeType:webkit?'image/jpeg':'image/png',
+    capture:null as ContrastScreencastMetadata|null};
+  let captureCleanupFailed=false;
   try{
-    const png=await page.screenshot({fullPage:false,animations:'allow',caret:'initial',scale:'css'});screenshot.bytes=png.byteLength;
-    if(png.byteLength<=maximumBytes){await writeFile(screenshotPath,png);screenshot.sha256=createHash('sha256').update(png).digest('hex');screenshot.status='captured';await info.attach('contrast-'+state,{path:screenshotPath,contentType:'image/png'});}
-    else screenshot.status='unknown-screenshot-byte-cap';
+    if(webkit){
+      const viewport=page.viewportSize();
+      if(!viewport)screenshot.status='unknown-viewport';
+      else{
+        const frame=await captureWebKitContrast(page,{...viewport,maximumBytes});
+        screenshot.capture=frame.metadata;screenshot.status=frame.metadata.status;captureCleanupFailed=frame.stopFailed;
+        if(frame.data){screenshot.bytes=frame.data.byteLength;screenshot.sha256=createHash('sha256').update(frame.data).digest('hex');
+          await writeFile(screenshotPath,frame.data);await info.attach('contrast-'+state,{path:screenshotPath,contentType:'image/jpeg'});}
+      }
+    }else{
+      const png=await page.screenshot({fullPage:false,animations:'allow',caret:'initial',scale:'css'});screenshot.bytes=png.byteLength;
+      if(png.byteLength<=maximumBytes){await writeFile(screenshotPath,png);screenshot.sha256=createHash('sha256').update(png).digest('hex');screenshot.status='captured';await info.attach('contrast-'+state,{path:screenshotPath,contentType:'image/png'});}
+      else screenshot.status='unknown-screenshot-byte-cap';
+    }
   }catch{screenshot.status='unknown-screenshot-error';}finally{screenshot.finishedAt=Date.now();}
-  let afterScreenshot:unknown;try{afterScreenshot=await page.evaluate(()=>{let focus:Element|null=document.activeElement,depth=0;while(focus?.shadowRoot?.activeElement&&depth<8){focus=focus.shadowRoot.activeElement;depth++;}return {timeOrigin:performance.timeOrigin,now:performance.now(),viewport:{width:innerWidth,height:innerHeight,scrollX,scrollY,devicePixelRatio},focus:focus?{tag:focus.localName,id:focus.id.slice(0,320),role:focus.getAttribute('role')}:null,focusDepth:depth};});}catch{afterScreenshot={status:'unknown'};}
-  type Context={timeOrigin?:number;viewport?:Record<string,number>;focus?:unknown};
+  let afterScreenshot:unknown;try{afterScreenshot=await page.evaluate(()=>{let focus:Element|null=document.activeElement,depth=0;while(focus?.shadowRoot?.activeElement&&depth<8){focus=focus.shadowRoot.activeElement;depth++;}return {timeOrigin:performance.timeOrigin,now:performance.now(),viewport:{width:innerWidth,height:innerHeight,scrollX,scrollY,devicePixelRatio},visualViewport:visualViewport?{width:visualViewport.width,height:visualViewport.height,offsetLeft:visualViewport.offsetLeft,offsetTop:visualViewport.offsetTop,scale:visualViewport.scale}:null,focus:focus?{tag:focus.localName,id:focus.id.slice(0,320),role:focus.getAttribute('role')}:null,focusDepth:depth};});}catch{afterScreenshot={status:'unknown'};}
+  type Context={timeOrigin?:number;viewport?:Record<string,number>;visualViewport?:{width:number;height:number;offsetLeft:number;offsetTop:number;scale:number}|null;focus?:unknown};
   const beforeImage=(capture as {after?:Context}).after,afterImage=afterScreenshot as Context;
   const contextChanges=beforeImage?.viewport&&afterImage.viewport?{navigation:beforeImage.timeOrigin!==afterImage.timeOrigin,viewport:['width','height','scrollX','scrollY','devicePixelRatio'].some(key=>beforeImage.viewport![key]!==afterImage.viewport![key]),focus:JSON.stringify(beforeImage.focus)!==JSON.stringify(afterImage.focus)}:null;
-  const record={kind:'axe-rendered-contrast-evidence-1',state,resultSha256,...(exposure?{exposure}:{}),capture,screenshot,afterScreenshot,contextChanges,
-    limits:{maximumBytes,maximumTargets},disposition:'Supplemental sequential rendered evidence only. No contrast pass, visibility proof or incomplete adjudication is inferred. Clipping rectangles and pointer hit tests do not model every painted pixel. Hit samples cover only the first nonempty text range or target box. Native value text, pseudo-only ink, external SVG/use and paint servers are not fully measured; complex/occluded/unsupported cases remain unknown.'};
+  const requestedSize=screenshot.capture?.requestedSize,domViewportMatchesRequest=!!requestedSize&&!!beforeImage?.viewport&&!!afterImage?.viewport&&
+    beforeImage.viewport.width===requestedSize.width&&beforeImage.viewport.height===requestedSize.height&&
+    afterImage.viewport.width===requestedSize.width&&afterImage.viewport.height===requestedSize.height;
+  const beforeVisual=beforeImage?.visualViewport,afterVisual=afterImage?.visualViewport;
+  const visualViewportMatchesRequest=!!requestedSize&&!!beforeVisual&&!!afterVisual&&JSON.stringify(beforeVisual)===JSON.stringify(afterVisual)&&
+    beforeVisual.scale===1&&beforeVisual.offsetLeft===0&&beforeVisual.offsetTop===0&&beforeVisual.width===requestedSize.width&&beforeVisual.height===requestedSize.height;
+  const dpr=beforeImage?.viewport?.devicePixelRatio;
+  const webkitContext=webkit?{before:(capture as {after?:unknown}).after??null,after:afterScreenshot,devicePixelRatio:dpr??null,
+    domViewportMatchesRequest,visualViewportMatchesRequest,
+    scale:'Encoded-to-CSS ratio applies only with exact stable DOM/requested/visual viewport joins; mismatched, offset or zoomed viewports remain unknown.',
+    unchanged:contextChanges?Object.values(contextChanges).every(value=>value===false)&&typeof dpr==='number'&&Number.isFinite(dpr)&&dpr>0&&dpr===afterImage?.viewport?.devicePixelRatio&&domViewportMatchesRequest&&visualViewportMatchesRequest:false}:null;
+  if(webkit&&screenshot.status==='captured'&&!webkitContext?.unchanged)screenshot.status='unknown-context-drift';
+  const record={kind:webkit?'axe-rendered-contrast-evidence-2':'axe-rendered-contrast-evidence-1',state,resultSha256,webkitContext,...(exposure?{exposure}:{}),capture,screenshot,afterScreenshot,contextChanges,
+    limits:{maximumBytes,maximumTargets},disposition:'Supplemental sequential rendered evidence only. No contrast pass, visibility proof or incomplete adjudication is inferred. Clipping rectangles and pointer hit tests do not model every painted pixel. Hit samples cover only the first nonempty text range or target box. Native value text, pseudo-only ink, external SVG/use and paint servers are not fully measured; complex/occluded/unsupported cases remain unknown. WebKit JPEG is lossy supplemental visual evidence: no exact RGB, tiny-glyph edge, PNG agreement, atomic axe/DOM/frame or physical-presentation claim.'};
   let raw=JSON.stringify(record);
   if(Buffer.byteLength(raw)>maximumBytes)raw=JSON.stringify({...record,capture:{status:'unknown',reason:'capture-byte-cap',expectedTargets:targets.length,targets:targets.slice(0,maximumTargets).map(t=>({ruleIndex:t.ruleIndex,nodeIndex:t.nodeIndex})),omittedTargets:Math.max(0,targets.length-maximumTargets)}},null,2);
   await writeFile(capturePath,raw);await info.attach('contrast-'+state,{path:capturePath,contentType:'application/json'});
+  if(captureCleanupFailed)throw new Error('WebKit supplemental screencast stop failed');
 }
 
 /**
