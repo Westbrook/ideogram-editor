@@ -374,6 +374,125 @@ def diagnostic_stream(value, grant):
     text = clean[-DIAGNOSTIC_STREAM_LIMIT:].decode('utf8', errors='ignore')
     return {'originalBytes':len(raw), 'retainedBytes':len(text.encode('utf8')), 'truncated':len(clean)>len(text.encode('utf8')), 'text':text, 'redacted':grant in decoded, 'utf8Replacement':decoded.encode('utf8') != raw}
 
+# This projection diagnoses retained controller records; it never repeats a scan.
+DIAGNOSTIC_JOURNAL_LIMIT = 8 * 1024**2
+DIAGNOSTIC_JOURNAL_ROWS = 8192
+DIAGNOSTIC_OBSERVATIONS = 32
+
+def diagnostic_number(value, nullable=False):
+    return nullable and value is None or type(value) in (int,float) and 0 <= value <= 9007199254740991
+
+def diagnostic_json(raw):
+    def pairs(items):
+        result = {}
+        for key,value in items:
+            require(key not in result, 'Duplicate diagnostic JSON member'); result[key] = value
+        return result
+    return json.loads(raw, object_pairs_hook=pairs, parse_constant=lambda _: require(False, 'Nonfinite diagnostic number'))
+
+def diagnostic_summary(value):
+    if value is None: return None
+    require(isinstance(value,dict) and value.get('status') in ('PASS','FAIL','INCONCLUSIVE'), 'Accounting summary status required')
+    require(set(value) <= {'kind','status','scopes','records','journalHead','intervalMs','maxSuccessfulStartGapMs','physicalQualification'}, 'Unknown accounting summary member')
+    result = {'declaredStatus':value['status'], 'rawStorageVerified':False, 'scopes':[]}
+    if set(value) == {'status'}:
+        result['detailStatus'] = 'not-recorded'; return result
+    require(type(value.get('records')) is int and value['records'] >= 0 and (value.get('journalHead') is None or re.fullmatch('[0-9a-f]{64}',value['journalHead'])), 'Accounting summary chain required')
+    result.update(records=value['records'],journalHead=value['journalHead'],detailStatus='recorded')
+    for key in ('intervalMs','maxSuccessfulStartGapMs'):
+        if key in value: require(diagnostic_number(value[key]), 'Accounting interval invalid'); result[key] = value[key]
+    scopes = value.get('scopes'); require(isinstance(scopes,list) and len(scopes) == 2, 'Exact accounting scopes required')
+    fields = {'key','status','coverageComplete','maximumStartGapMs','maximumPossibleObservationStartGapMs','peakBytes','capacityBytes','samples','unknownSamples','targetPercent','ceilingPercent'}
+    require({row.get('key') for row in scopes if isinstance(row,dict)} == {'host-journal-watchdog','producer-data'}, 'Accounting scope identities differ')
+    for row in scopes:
+        require(fields <= set(row) <= fields|{'meaning'} and row['status'] in ('PASS','FAIL','INCONCLUSIVE') and type(row['coverageComplete']) is bool, 'Accounting scope schema differs')
+        require(all(diagnostic_number(row[key],True) for key in ('maximumStartGapMs','maximumPossibleObservationStartGapMs','peakBytes')), 'Accounting coverage number differs')
+        require(all(type(row[key]) is int and row[key] >= 0 for key in ('capacityBytes','samples','unknownSamples','targetPercent','ceilingPercent')), 'Accounting counter differs')
+        require(row['capacityBytes'] == (1 if row['key']=='host-journal-watchdog' else 32*1024**3) and row['unknownSamples'] <= row['samples'] and row['targetPercent']==80 and row['ceilingPercent']==90, 'Accounting policy differs')
+        result['scopes'].append({key:row[key] for key in sorted(fields)})
+    return result
+
+def diagnostic_worker(raw, config, grant):
+    # Only parsed scanner scalar errors are exported, never arbitrary stdout.
+    if not raw: return {'detailStatus':'empty-stdout'}
+    try: value = diagnostic_json(raw)
+    except (ValueError,UnicodeError): return {'detailStatus':'unparseable-stdout','omittedStdoutBytes':len(raw)}
+    fields = {'kind','request','requestHash','policyId','bounds','windowStartMonotonicUs','windowEndMonotonicUs','windowStartWallUs','windowEndWallUs','attempts','selectedAttempt','status','drained'}
+    require(isinstance(value,dict) and set(value)==fields and value['kind']=='capsule-volume-observation-1', 'Unknown worker diagnostic grammar')
+    expected = {'kind':'capsule-volume-request-1','mode':'sample','ownerUid':config['owner']['uid'],'ownerGid':config['owner']['gid'],'rootIdentity':config['dataRootIdentity'],'policyId':'capsule-allocated-inodes-1'}
+    def digest(obj): return 'sha256:'+hashlib.sha256(json.dumps(obj,sort_keys=True,separators=(',',':'),ensure_ascii=True,allow_nan=False).encode('ascii')).hexdigest()
+    require(value['request']==expected and value['requestHash']==digest(expected) and value['policyId']==expected['policyId'], 'Worker diagnostic provenance differs')
+    require(value['bounds']=={'maxEntries':1000000,'maxDepth':128,'maxAttempts':3,'maxWindowUs':1000000} and value['status'] in ('complete','unknown') and type(value['drained']) is bool, 'Worker diagnostic policy differs')
+    for key in ('windowStartMonotonicUs','windowEndMonotonicUs','windowStartWallUs','windowEndWallUs'):
+        require(type(value[key]) is int and diagnostic_number(value[key]), 'Worker diagnostic time differs')
+    attempts=value['attempts']; require(isinstance(attempts,list) and 1<=len(attempts)<=3, 'Worker diagnostic attempts differ')
+    require(value['selectedAttempt'] is None or type(value['selectedAttempt']) is int and 0<=value['selectedAttempt']<len(attempts), 'Worker diagnostic selection differs')
+    result={key:value[key] for key in ('status','drained','selectedAttempt','windowStartMonotonicUs','windowEndMonotonicUs')};result['attempts']=[];previous=None
+    for index,row in enumerate(attempts):
+        require(isinstance(row,dict) and set(row)=={'sequence','previous','startMonotonicUs','endMonotonicUs','startWallUs','endWallUs','rootBefore','rootAfter','status','drained','counts','errors','hash'}, 'Unknown worker attempt grammar')
+        body={key:item for key,item in row.items() if key!='hash'}
+        require(row['sequence']==index and row['previous']==previous and row['hash']==digest(body), 'Worker attempt chain differs');previous=row['hash']
+        require(row['status'] in ('complete','unknown') and type(row['drained']) is bool and all(type(row[key]) is int and diagnostic_number(row[key]) for key in ('startMonotonicUs','endMonotonicUs','startWallUs','endWallUs')), 'Worker attempt scalar differs')
+        errors=row['errors'];require(isinstance(errors,list) and len(errors)<=64, 'Worker error count exceeds diagnostic bound')
+        projected=[]
+        for error in errors:
+            require(isinstance(error,dict) and set(error)=={'code','path','errno'} and isinstance(error['code'],str) and re.fullmatch('[A-Z_]{1,64}',error['code']) and (error['errno'] is None or type(error['errno']) is int and 0<=error['errno']<=65535), 'Worker error grammar differs')
+            member=error['path']; require(isinstance(member,str) and len(member)<=64 and member.startswith('/capsule') and (member=='/capsule' or member.startswith('/capsule/')) and all(32<=ord(ch)<127 for ch in member), 'Logical scanner error member differs')
+            projected.append({'code':error['code'],'errno':error['errno'],'member':diagnostic_text(member,grant,64)})
+        result['attempts'].append({key:row[key] for key in ('sequence','status','drained','startMonotonicUs','endMonotonicUs')}|{'errors':projected})
+    return result
+
+def diagnostic_observation(command, config, grant):
+    require(set(command)=={'kind','action','binary','argv','startedMs','endedMs','result','failure','stdoutBase64','stderrBase64','root','rootIdentity'} and command['kind']=='hosted-native-observation-command-1' and command['action']=='observe', 'Unknown observation command grammar')
+    require(command['root']==config['_dataRoot'] and command['rootIdentity']==config['dataRootIdentity'], 'Observation root binding differs')
+    require(diagnostic_number(command['startedMs']) and diagnostic_number(command['endedMs']) and command['endedMs']>=command['startedMs'], 'Observation command interval differs')
+    child=command['result'];require(isinstance(child,dict) and set(child)<={'code','signal','error','timedOut','interrupted','exitObserved','reason','timeoutMs','requestedSignals','processTree'} and {'code','signal'}<=set(child), 'Unknown observation child result')
+    require(child['code'] is None or type(child['code']) is int, 'Observation child code differs')
+    require(child['signal'] is None or isinstance(child['signal'],str), 'Observation child signal differs')
+    projected={'code':child['code'],'signal':None if child['signal'] is None else diagnostic_text(child['signal'],grant,80)}
+    for key in ('timedOut','interrupted','exitObserved'):
+        if key in child: require(type(child[key]) is bool, 'Observation child flag differs');projected[key]=child[key]
+    if 'timeoutMs' in child: require(type(child['timeoutMs']) is int and child['timeoutMs']==2000, 'Observation timeout differs');projected['timeoutMs']=child['timeoutMs']
+    if 'reason' in child: projected['reason']=diagnostic_text(child['reason'],grant)
+    projected['error']=diagnostic_failure(child.get('error'),grant)
+    stdout=base64.b64decode(command['stdoutBase64'],validate=True);stderr=base64.b64decode(command['stderrBase64'],validate=True)
+    require(len(stdout)<=65536 and len(stderr)<=16384, 'Observation stream bounds differ')
+    return {'result':projected,'failure':diagnostic_failure(command['failure'],grant),'worker':diagnostic_worker(stdout,config,grant),'stderr':diagnostic_stream(command['stderrBase64'],grant)}
+
+def diagnostic_journal(config, directory, storage, summary, replay, grant, budget):
+    if storage is None: return {'status':'not-recorded','observations':[],'omittedObservations':None,'refusals':0,'rawStorageVerified':False}
+    require(isinstance(summary,dict) and isinstance(replay,dict), 'Journal summary/replay required')
+    require(isinstance(storage,dict) and set(storage)=={'summary','journal','replay'} and storage['summary']==summary and storage['replay']==replay, 'Receipt accounting provenance differs')
+    path=directory/'data-observations.jsonl';ref=storage['journal'];diagnostic_ref(ref,path,DIAGNOSTIC_JOURNAL_LIMIT)
+    raw=diagnostic_read(path,DIAGNOSTIC_JOURNAL_LIMIT,budget);require(identity(path,raw)==ref, 'Controller journal diagnostic differs')
+    require(raw.endswith(b'\n') and raw.count(b'\n')<=DIAGNOSTIC_JOURNAL_ROWS, 'Diagnostic journal framing/row bound')
+    previous=None;sequence=0;command=None;selected=[];eligible=0;command_count=0;last={}
+    for line in raw.splitlines():
+        require(0<len(line)<=256*1024, 'Diagnostic journal line bound');row=diagnostic_json(line)
+        require(isinstance(row,dict), 'Diagnostic journal row must be object')
+        if row.get('kind')=='hosted-native-observation-command-1':
+            require(command is None, 'Orphan observation command');command=(row,diagnostic_observation(row,config,grant));command_count+=1;continue
+        require(set(row)=={'sequence','previous','key','boundary','startedMs','endedMs','bytes','observation','error','hash'}, 'Unknown accounting row grammar')
+        require(type(row['sequence']) is int and row['sequence']==sequence and row['previous']==previous and isinstance(row['hash'],str) and re.fullmatch('[0-9a-f]{64}',row['hash']), 'Accounting journal chain differs')
+        suffix=b',"hash":"'+row['hash'].encode('ascii')+b'"}'
+        require(line.endswith(suffix) and hashlib.sha256(line[:-len(suffix)]+b'}').hexdigest()==row['hash'], 'Original accounting row hash differs')
+        previous=row['hash'];sequence+=1
+        require(row['key'] in ('producer-data','host-journal-watchdog') and row['boundary'] in ('initial','periodic','final') and diagnostic_number(row['startedMs']) and diagnostic_number(row['endedMs']) and row['endedMs']>=row['startedMs'], 'Accounting sample scalar differs')
+        require(row['bytes'] is None or type(row['bytes']) is int and diagnostic_number(row['bytes']), 'Accounting sample byte count differs')
+        error=diagnostic_failure(row['error'],grant);payload=None
+        if row['key']=='producer-data':
+            require(command is not None and row['startedMs']<=command[0]['startedMs']<=command[0]['endedMs']<=row['endedMs'], 'Accounting command pair differs');payload=command[1];command=None
+        else:
+            require(command is None, 'Observer paired to watchdog');require(row['error'] is not None or row['bytes']==0 and row['observation']=={'bytes':0,'meaning':'Journal watchdog only; actual host audit owns accounting'}, 'Watchdog diagnostic differs')
+        gap=None if row['key'] not in last else row['endedMs']-last[row['key']];last[row['key']]=row['startedMs']
+        capacity=1 if row['key']=='host-journal-watchdog' else 32*1024**3
+        abnormal=error is not None or row['bytes'] is not None and row['bytes']>=capacity*.9 or gap is not None and gap>4000 or payload is not None and (payload['result']['code']!=0 or payload['result']['signal'] is not None or payload['result'].get('error') is not None or payload['result'].get('timedOut') or payload['result'].get('interrupted') or payload['failure'] is not None or payload['worker'].get('status')!='complete')
+        if abnormal:
+            eligible+=1
+            if len(selected)<DIAGNOSTIC_OBSERVATIONS:selected.append({key:row[key] for key in ('sequence','key','boundary','startedMs','endedMs','bytes')}|{'error':error,'maximumPossibleGapMs':gap,'observationCommand':payload})
+    require(command is None and sequence==summary.get('records') and previous==summary.get('journalHead') and replay.get('records')==sequence and replay.get('journalHead')==previous, 'Diagnostic journal closure differs')
+    return {'status':'projected','source':{'member':str(path.relative_to(directory.parent)),'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()},'rows':len(raw.splitlines()),'records':sequence,'observationCommands':command_count,'eligibleObservations':eligible,'retainedObservations':len(selected),'omittedObservations':eligible-len(selected),'refusals':0,'observations':selected,'rawStorageVerified':False}
+
 def phase_diagnostic(config, phase, grant, budget):
     require(phase in PHASES, 'Fixed diagnostic phase required')
     root = Path(config['_evidenceRoot']) / config['runId']; directory = root / phase
@@ -400,6 +519,14 @@ def phase_diagnostic(config, phase, grant, budget):
     require(receipt.get('kind') == 'hosted-native-phase-1' and receipt.get('phase') == phase and receipt.get('runId') == config['runId'] and receipt.get('config', {}).get('sha256') == grant, 'Receipt diagnostic provenance differs')
     require(receipt.get('outcome') in ('PASS','FAIL','INCONCLUSIVE'), 'Receipt diagnostic outcome differs')
     result['receipt'] = {'source':provenance(receipt_path, receipt_raw), 'outcome':receipt['outcome'], 'failure':diagnostic_failure(receipt.get('failure'), grant)}
+    try:
+        result['accounting'] = {'summary':diagnostic_summary(final.get('dataSummary')), 'replay':diagnostic_summary(final.get('dataReplay')), 'rawStorageVerified':False}
+        result['accounting']['journal'] = diagnostic_journal(config,directory,receipt.get('dataStorage'),final.get('dataSummary'),final.get('dataReplay'),grant,budget)
+    except TimeoutError: raise
+    except (ValueError,OSError,KeyError,TypeError,UnicodeError,RecursionError) as error:
+        refusal = {'status':'diagnostic-refused','refusals':1,'errorType':type(error).__name__,'omittedObservations':None,'rawStorageVerified':False}
+        result.setdefault('accounting', {}).update(refusal)
+        result['accounting']['journal'] = refusal.copy()
     refs = receipt.get('commands'); require(isinstance(refs, list) and len(refs) <= 8, 'Finite controller command references required')
     allowed = {'host-check', 'initialize', 'inputs', 'prepare'} if phase == 'inputs' else {'host-check', 'recheck', phase, *(['collect'] if phase.startswith(('build','verify')) else [])}
     seen = set()
@@ -443,7 +570,7 @@ def retain_phase_diagnostics(args):
     allocation_raw = read(allocation_ref['path'], 16384, True); require(identity(allocation_ref['path'], allocation_raw) == allocation_ref, 'Diagnostic allocation identity differs'); allocation = json.loads(allocation_raw)
     evidence = Path(f'/var/lib/ideogram-native-{run}-{attempt}/evidence')
     require(allocation.get('kind') == 'evidence-volume-allocation-1' and allocation.get('purpose') == 'qualification-evidence-only' and allocation.get('capacityBytes') == 4*1024**3 and allocation.get('root') == str(evidence) and allocation.get('allocationId') == config['runId']+'-evidence', 'Diagnostic allocation provenance differs')
-    require_immutable_directory(evidence); diagnostic_private_member(evidence, evidence.lstat(), True); config['_evidenceRoot'] = str(evidence)
+    require_immutable_directory(evidence); diagnostic_private_member(evidence, evidence.lstat(), True); config['_evidenceRoot'] = str(evidence); config['_dataRoot'] = f'/var/lib/ideogram-native-{run}-{attempt}/data'
     require_immutable_directory(parent); require_directory_members(parent, {'setup'})
     require(config['job'] == {key:setup_record['job'][key] for key in ('startedEpochMs','deadlineEpochMs')} and config['job']['deadlineEpochMs']-config['job']['startedEpochMs'] == 21600000, 'Diagnostic job deadline differs')
     remaining = (config['job']['deadlineEpochMs']-time.time()*1000-60000)//1000; require(remaining >= 1, 'No bounded diagnostic time remains')

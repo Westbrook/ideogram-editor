@@ -81,6 +81,56 @@ def diagnostic_files_as_controller():
     with mock.patch.object(subject,'diagnostic_private_member',side_effect=admit), mock.patch.object(subject,'require_immutable_directory'), mock.patch.object(subject,'read',side_effect=lambda path,maximum=4*1024**2,root_owned=False:original_read(path,maximum,False)):
         yield
 
+def observation_fixture(root, count=1):
+    config,directory,command,receipt,final,save=diagnostic_fixture(root)
+    config.update(_dataRoot='/fixed-owned-data',dataRootIdentity={'dev':1,'ino':99},owner={'uid':20000,'gid':20000})
+    request={'kind':'capsule-volume-request-1','mode':'sample','ownerUid':20000,'ownerGid':20000,'rootIdentity':config['dataRootIdentity'],'policyId':'capsule-allocated-inodes-1'}
+    canonical=lambda value:json.dumps(value,sort_keys=True,separators=(',',':'),ensure_ascii=True).encode()
+    digest=lambda value:'sha256:'+hashlib.sha256(canonical(value)).hexdigest()
+    attempt={'sequence':0,'previous':None,'startMonotonicUs':10,'endMonotonicUs':20,'startWallUs':100,'endWallUs':110,'rootBefore':None,'rootAfter':None,'status':'unknown','drained':True,'counts':None,'errors':[{'code':'FILESYSTEM_ERROR','path':'/capsule/toolchain','errno':13}]};attempt['hash']=digest(attempt)
+    worker={'kind':'capsule-volume-observation-1','request':request,'requestHash':digest(request),'policyId':'capsule-allocated-inodes-1','bounds':{'maxEntries':1000000,'maxDepth':128,'maxAttempts':3,'maxWindowUs':1000000},'windowStartMonotonicUs':10,'windowEndMonotonicUs':21,'windowStartWallUs':100,'windowEndWallUs':111,'attempts':[attempt],'selectedAttempt':None,'status':'unknown','drained':True}
+    rows=[];previous=None
+    for index in range(count):
+        rows.append({'kind':'hosted-native-observation-command-1','action':'observe','binary':'/fixed-controller-python','argv':['--grant','c'*64],'startedMs':index*10+1,'endedMs':index*10+2,'result':{'code':1,'signal':None,'timedOut':False,'interrupted':False,'timeoutMs':2000},'failure':None,'stdoutBase64':base64.b64encode(canonical(worker)+b'\n').decode(),'stderrBase64':base64.b64encode(('worker detail '+'c'*64).encode()).decode(),'root':config['_dataRoot'],'rootIdentity':config['dataRootIdentity']})
+        row={'sequence':index,'previous':previous,'key':'producer-data','boundary':'initial' if index==0 else 'final','startedMs':index*10,'endedMs':index*10+3,'bytes':None,'observation':None,'error':{'name':'Error','message':'Unsuccessful fixed child: observe'}}
+        row['hash']=hashlib.sha256(json.dumps(row,separators=(',',':')).encode()).hexdigest();previous=row['hash'];rows.append(row)
+    scopes=[]
+    for key in ('host-journal-watchdog','producer-data'):
+        scopes.append({'key':key,'status':'INCONCLUSIVE','coverageComplete':False,'maximumStartGapMs':None,'maximumPossibleObservationStartGapMs':None,'peakBytes':None,'capacityBytes':1 if key=='host-journal-watchdog' else 32*1024**3,'samples':0 if key=='host-journal-watchdog' else count,'unknownSamples':0 if key=='host-journal-watchdog' else count,'targetPercent':80,'ceilingPercent':90})
+    summary={'kind':'hosted-native-data-observation-1','status':'FAIL','scopes':scopes,'records':count,'journalHead':previous,'intervalMs':2000,'maxSuccessfulStartGapMs':4000,'physicalQualification':False}
+    replay={'status':'FAIL','scopes':scopes,'records':count,'journalHead':previous}
+    def commit_rows(changed=rows):
+        path=directory/'data-observations.jsonl';path.write_bytes(b''.join(json.dumps(row,separators=(',',':')).encode()+b'\n' for row in changed));path.chmod(0o600)
+        receipt['dataStorage']={'summary':summary,'journal':subject.identity(path),'replay':replay}
+        final.update(dataSummary=summary,dataReplay=replay,receipt=save('receipt.json',receipt));save('finalization.json',final)
+    commit_rows()
+    return config,directory,receipt,final,rows,worker,commit_rows,save
+
+# Independent encoders used only by the successor boundary fixtures. They do not
+# call the projector's hash/parser helpers or adjust the field under test.
+def observation_test_json(value):
+    return json.dumps(value,separators=(',',':'),ensure_ascii=True).encode('ascii')
+
+def observation_test_reseal_sample(row):
+    result={key:value for key,value in row.items() if key!='hash'}
+    result['hash']=hashlib.sha256(observation_test_json(result)).hexdigest()
+    return result
+
+def observation_test_reseal_worker(value):
+    result=copy.deepcopy(value)
+    def digest(body):
+        encoded=json.dumps(body,sort_keys=True,separators=(',',':'),ensure_ascii=True).encode('ascii')
+        return 'sha256:'+hashlib.sha256(encoded).hexdigest()
+    result['requestHash']=digest(result['request'])
+    for attempt in result['attempts']:
+        attempt['hash']=digest({key:value for key,value in attempt.items() if key!='hash'})
+    return result
+
+def observation_test_bind_summaries(final, rows):
+    samples=[row for row in rows if row.get('kind')!='hosted-native-observation-command-1']
+    for summary in (final['dataSummary'],final['dataReplay']):
+        summary.update(records=len(samples),journalHead=samples[-1]['hash'] if samples else None)
+
 class Boundaries(unittest.TestCase):
     def test_host_discovery_uses_only_fixed_gcc11_drivers_and_matching_program_queries(self):
         authenticated=[];commands=[]
@@ -441,6 +491,246 @@ class Boundaries(unittest.TestCase):
         self.assertIn('export_status=$?',failure_branch);self.assertIn('failure-diagnostics',failure_branch);self.assertIn('exit "$export_status"',failure_branch)
         self.assertNotIn('--export',failure_branch);self.assertNotIn('--grant',failure_branch)
         for forbidden in ('rm ','chmod ','kill ','--phase ','continue','|| true'):self.assertNotIn(forbidden,failure_branch)
+
+    def test_observation_diagnostic_projects_actual_failed_child_and_worker_errno_without_authority(self):
+        with tempfile.TemporaryDirectory() as raw, diagnostic_files_as_controller():
+            config,directory,receipt,final,rows,worker,commit,save=observation_fixture(Path(raw).resolve())
+            budget={'bytes':0};value=subject.phase_diagnostic(config,'toolchain','c'*64,budget);detail=value['accounting'];journal=detail['journal']
+            self.assertEqual(detail['summary']['scopes'][1]['unknownSamples'],1);self.assertEqual(detail['replay']['declaredStatus'],'FAIL')
+            self.assertEqual((journal['status'],journal['records'],journal['retainedObservations'],journal['omittedObservations']),('projected',1,1,0))
+            observed=journal['observations'][0];self.assertEqual(observed['error']['message'],'Unsuccessful fixed child: observe')
+            self.assertEqual(observed['observationCommand']['result']['code'],1)
+            self.assertEqual(observed['observationCommand']['worker']['attempts'][0]['errors'],[{'code':'FILESYSTEM_ERROR','errno':13,'member':'/capsule/toolchain'}])
+            self.assertIn('<redacted-controller-grant>',observed['observationCommand']['stderr']['text'])
+            self.assertEqual(journal['source']['sha256'],receipt['dataStorage']['journal']['sha256']);self.assertFalse(journal['rawStorageVerified']);self.assertFalse(value['timingLockReleased'])
+            text=json.dumps(value)
+            for forbidden in ('c'*64,'--grant','"argv"','"environment"','"config"','stdoutBase64','/fixed-owned-data'):self.assertNotIn(forbidden,text)
+            self.assertGreaterEqual(budget['bytes'],receipt['dataStorage']['journal']['bytes'])
+
+    def test_observation_diagnostic_preserves_explicit_missing_and_refused_detail(self):
+        with tempfile.TemporaryDirectory() as raw, diagnostic_files_as_controller():
+            config,directory,command,receipt,final,save=diagnostic_fixture(Path(raw).resolve())
+            value=subject.phase_diagnostic(config,'toolchain','c'*64,{'bytes':0})
+            self.assertEqual(value['accounting']['journal']['status'],'not-recorded');self.assertIsNone(value['accounting']['journal']['omittedObservations'])
+            final['dataSummary']={'status':'FAIL','unknownField':'never-copy'};save('finalization.json',final)
+            value=subject.phase_diagnostic(config,'toolchain','c'*64,{'bytes':0})
+            self.assertEqual(value['accounting']['refusals'],1);self.assertEqual(value['commands'][0]['result']['code'],1);self.assertNotIn('never-copy',json.dumps(value))
+
+    def test_observation_diagnostic_refuses_wrong_journal_reference_before_any_external_read(self):
+        with tempfile.TemporaryDirectory() as raw, diagnostic_files_as_controller():
+            config,directory,receipt,final,rows,worker,commit,save=observation_fixture(Path(raw).resolve())
+            ref=copy.deepcopy(receipt['dataStorage']['journal']);original=subject.diagnostic_read
+            for path in (str(directory/'../data-observations.jsonl'),'/fixed-owned-data/payload','/tmp/timing.lock'):
+                receipt['dataStorage']['journal']={**ref,'path':path};final['receipt']=save('receipt.json',receipt);save('finalization.json',final)
+                with mock.patch.object(subject,'diagnostic_read',wraps=original) as read:
+                    value=subject.phase_diagnostic(config,'toolchain','c'*64,{'bytes':0})
+                    self.assertEqual(value['accounting']['status'],'diagnostic-refused');self.assertNotIn(path,[str(call.args[0]) for call in read.call_args_list])
+
+    def test_observation_diagnostic_refuses_changed_bytes_hash_and_summary_binding(self):
+        with tempfile.TemporaryDirectory() as raw, diagnostic_files_as_controller():
+            config,directory,receipt,final,rows,worker,commit,save=observation_fixture(Path(raw).resolve())
+            path=directory/'data-observations.jsonl';path.write_bytes(path.read_bytes()+b' ')
+            self.assertEqual(subject.phase_diagnostic(config,'toolchain','c'*64,{'bytes':0})['accounting']['status'],'diagnostic-refused')
+            commit();receipt['dataStorage']['summary']={**final['dataSummary'],'records':99};final['receipt']=save('receipt.json',receipt);save('finalization.json',final)
+            self.assertEqual(subject.phase_diagnostic(config,'toolchain','c'*64,{'bytes':0})['accounting']['status'],'diagnostic-refused')
+
+    def test_observation_diagnostic_refuses_unknown_duplicate_or_unpaired_journal_grammar(self):
+        with tempfile.TemporaryDirectory() as raw, diagnostic_files_as_controller():
+            config,directory,receipt,final,rows,worker,commit,save=observation_fixture(Path(raw).resolve())
+            variants=[[{'kind':'other','path':'/do-not-read'}],rows[:1],rows+rows[:1],[rows[0],rows[0],rows[1]],[{**rows[0],'environment':{}},rows[1]],[{**rows[0],'root':'/another-root'},rows[1]],[rows[0],{**rows[1],'hash':'f'*64}]]
+            for changed in variants:
+                commit(changed);value=subject.phase_diagnostic(config,'toolchain','c'*64,{'bytes':0});self.assertEqual(value['accounting']['status'],'diagnostic-refused')
+            with self.assertRaisesRegex(ValueError,'Duplicate'):subject.diagnostic_json(b'{"x":1,"x":2}')
+            with self.assertRaises(ValueError):subject.diagnostic_json(b'{"x":NaN}')
+
+    def test_observation_diagnostic_binds_worker_request_attempt_hash_and_error_grammar(self):
+        with tempfile.TemporaryDirectory() as raw, diagnostic_files_as_controller():
+            config,directory,receipt,final,rows,worker,commit,save=observation_fixture(Path(raw).resolve())
+            mutations=[('policyId','different'),('selectedAttempt',True),('attempts',[]),('unexpected','no')]
+            for key,value in mutations:
+                changed=copy.deepcopy(worker);changed[key]=value
+                with self.assertRaises(ValueError):subject.diagnostic_worker(json.dumps(changed).encode(),config,'c'*64)
+            changed=copy.deepcopy(worker);changed['attempts'][0]['errors'][0]['errno']=5
+            with self.assertRaisesRegex(ValueError,'chain'):subject.diagnostic_worker(json.dumps(changed).encode(),config,'c'*64)
+            for payload in (b'',b'not JSON'):
+                self.assertIn('detailStatus',subject.diagnostic_worker(payload,config,'c'*64))
+            with self.assertRaises(ValueError):subject.diagnostic_worker(b'{"kind":"unknown"}',config,'c'*64)
+
+    def test_observation_diagnostic_caps_selected_rows_and_counts_omissions(self):
+        with tempfile.TemporaryDirectory() as raw, diagnostic_files_as_controller():
+            config,directory,receipt,final,rows,worker,commit,save=observation_fixture(Path(raw).resolve(),34)
+            value=subject.phase_diagnostic(config,'toolchain','c'*64,{'bytes':0})['accounting']['journal']
+            self.assertEqual((value['records'],value['eligibleObservations'],value['retainedObservations'],value['omittedObservations']),(34,34,32,2))
+            self.assertEqual(value['observations'][-1]['sequence'],31);self.assertEqual(value['source']['bytes'],receipt['dataStorage']['journal']['bytes'])
+
+    def test_observation_diagnostic_keeps_fixed_read_limits_and_charges_failed_attempts(self):
+        with tempfile.TemporaryDirectory() as raw, diagnostic_files_as_controller():
+            config,directory,receipt,final,rows,worker,commit,save=observation_fixture(Path(raw).resolve())
+            self.assertEqual(subject.DIAGNOSTIC_READ_LIMIT,64*1024**2);self.assertEqual(subject.DIAGNOSTIC_JOURNAL_LIMIT,8*1024**2)
+            storage=receipt['dataStorage'];budget={'bytes':subject.DIAGNOSTIC_READ_LIMIT-storage['journal']['bytes']+1}
+            with self.assertRaisesRegex(ValueError,'read bound'):subject.diagnostic_journal(config,directory,storage,final['dataSummary'],final['dataReplay'],'c'*64,budget)
+            path=directory/'data-observations.jsonl';path.write_bytes(path.read_bytes().replace(b'Unsuccessful',b'UnsuccessfuL'))
+            budget={'bytes':0}
+            with self.assertRaises(ValueError):subject.diagnostic_journal(config,directory,storage,final['dataSummary'],final['dataReplay'],'c'*64,budget)
+            self.assertEqual(budget['bytes'],path.stat().st_size)
+
+    def test_observation_diagnostic_real_links_and_modes_refuse_without_lease_access(self):
+        with tempfile.TemporaryDirectory() as raw, diagnostic_files_as_controller():
+            config,directory,receipt,final,rows,worker,commit,save=observation_fixture(Path(raw).resolve())
+            path=directory/'data-observations.jsonl';alias=directory/'original-journal';path.rename(alias);path.symlink_to(alias)
+            self.assertEqual(subject.phase_diagnostic(config,'toolchain','c'*64,{'bytes':0})['accounting']['status'],'diagnostic-refused')
+            path.unlink();alias.rename(path);path.chmod(0o644)
+            self.assertEqual(subject.phase_diagnostic(config,'toolchain','c'*64,{'bytes':0})['accounting']['status'],'diagnostic-refused')
+            path.chmod(0o600);os.link(path,alias)
+            self.assertEqual(subject.phase_diagnostic(config,'toolchain','c'*64,{'bytes':0})['accounting']['status'],'diagnostic-refused')
+
+    def test_observation_diagnostic_deadline_propagates_instead_of_swallowing_timeout(self):
+        with tempfile.TemporaryDirectory() as raw, diagnostic_files_as_controller():
+            config,directory,receipt,final,rows,worker,commit,save=observation_fixture(Path(raw).resolve())
+            with mock.patch.object(subject,'diagnostic_journal',side_effect=TimeoutError('deadline')):
+                with self.assertRaises(TimeoutError):subject.phase_diagnostic(config,'toolchain','c'*64,{'bytes':0})
+
+    def test_observation_diagnostic_successful_and_watchdog_rows_do_not_invent_failure(self):
+        with tempfile.TemporaryDirectory() as raw, diagnostic_files_as_controller():
+            config,directory,receipt,final,rows,worker,commit,save=observation_fixture(Path(raw).resolve())
+            canonical=lambda value:json.dumps(value,sort_keys=True,separators=(',',':'),ensure_ascii=True).encode()
+            attempt=worker['attempts'][0];attempt.update(status='complete',errors=[],counts={'entries':1,'uniqueInodes':1,'directories':1,'regularFiles':0,'symlinks':0,'allocatedBytes':4096,'regularLogicalBytes':0,'symlinkAllocatedBytes':0})
+            stamp={'dev':1,'ino':99,'mode':16832,'uid':20000,'gid':20000,'nlink':2,'size':4096,'blocks':8,'mtimeNs':1,'ctimeNs':1};attempt.update(rootBefore=stamp,rootAfter=stamp)
+            attempt['hash']='sha256:'+hashlib.sha256(canonical({k:v for k,v in attempt.items() if k!='hash'})).hexdigest();worker.update(status='complete',selectedAttempt=0)
+            rows[0]['result']['code']=0;rows[0]['stdoutBase64']=base64.b64encode(canonical(worker)+b'\n').decode();rows[0]['stderrBase64']=''
+            sample=rows[1];sample.update(error=None,bytes=4096,observation={'bytes':4096,'rootIdentity':config['dataRootIdentity'],'result':worker,'pointInTime':True});sample.pop('hash');sample['hash']=hashlib.sha256(json.dumps(sample,separators=(',',':')).encode()).hexdigest()
+            watchdog={'sequence':1,'previous':sample['hash'],'key':'host-journal-watchdog','boundary':'final','startedMs':10,'endedMs':11,'bytes':0,'observation':{'bytes':0,'meaning':'Journal watchdog only; actual host audit owns accounting'},'error':None};watchdog['hash']=hashlib.sha256(json.dumps(watchdog,separators=(',',':')).encode()).hexdigest()
+            for summary in (final['dataSummary'],final['dataReplay']):
+                summary.update(records=2,journalHead=watchdog['hash'])
+                for scope in summary['scopes']:scope.update(samples=1,unknownSamples=0,peakBytes=0 if scope['key']=='host-journal-watchdog' else 4096)
+            commit(rows+[watchdog]);value=subject.phase_diagnostic(config,'toolchain','c'*64,{'bytes':0})['accounting']['journal']
+            self.assertEqual((value['records'],value['observationCommands'],value['eligibleObservations'],value['retainedObservations'],value['omittedObservations']),(2,1,0,0,0));self.assertFalse(value['rawStorageVerified'])
+
+    def test_observation_workflow_admits_exact_source_manifest_and_projector_bytes(self):
+        source_path=producer_root/'hosted-sources.json';raw=source_path.read_bytes()
+        declarations=[line.split(':',1)[1].strip().strip('"\'') for line in workflow.splitlines() if line.strip().startswith('IE_SOURCE_SELECTION_SHA256:')]
+        self.assertEqual(declarations,[hashlib.sha256(raw).hexdigest()])
+        selected=json.loads(raw)['files'];pins=[row for row in selected if row['path']=='tooling/rollback-producer/hosted-setup.py']
+        self.assertEqual(len(pins),1);projector=Path(subject.__file__).read_bytes()
+        self.assertEqual((pins[0]['bytes'],pins[0]['sha256']),(len(projector),hashlib.sha256(projector).hexdigest()))
+
+    def test_observation_journal_resealed_sequence_and_previous_mismatches_reach_chain_guard(self):
+        with tempfile.TemporaryDirectory() as raw, diagnostic_files_as_controller():
+            config,directory,receipt,final,rows,worker,commit,save=observation_fixture(Path(raw).resolve(),2)
+            for field in ('sequence','previous'):
+                with self.subTest(field=field):
+                    changed=copy.deepcopy(rows)
+                    if field=='sequence':
+                        changed[1]['sequence']=7;changed[1]=observation_test_reseal_sample(changed[1]);changed[3]['previous']=changed[1]['hash']
+                    else:changed[3]['previous']='e'*64
+                    changed[3]=observation_test_reseal_sample(changed[3]);observation_test_bind_summaries(final,changed);commit(changed)
+                    storage=receipt['dataStorage'];self.assertEqual(storage['journal'],subject.identity(directory/'data-observations.jsonl'))
+                    for sample in (changed[1],changed[3]):self.assertEqual(sample['hash'],observation_test_reseal_sample(sample)['hash'])
+                    with self.assertRaisesRegex(ValueError,'^Accounting journal chain differs$'):
+                        subject.diagnostic_journal(config,directory,storage,final['dataSummary'],final['dataReplay'],'c'*64,{'bytes':0})
+
+    def test_observation_journal_resealed_summary_and_replay_count_head_mismatches_reach_closure_guard(self):
+        with tempfile.TemporaryDirectory() as raw, diagnostic_files_as_controller():
+            config,directory,receipt,final,rows,worker,commit,save=observation_fixture(Path(raw).resolve(),2)
+            expected=subject.identity(directory/'data-observations.jsonl')
+            for summary_name in ('dataSummary','dataReplay'):
+                for field,value in (('records',3),('journalHead','e'*64)):
+                    with self.subTest(summary=summary_name,field=field):
+                        observation_test_bind_summaries(final,rows);final[summary_name][field]=value;commit(rows)
+                        storage=receipt['dataStorage'];self.assertEqual(storage['journal'],expected)
+                        self.assertEqual(storage['summary'],final['dataSummary']);self.assertEqual(storage['replay'],final['dataReplay'])
+                        with self.assertRaisesRegex(ValueError,'^Diagnostic journal closure differs$'):
+                            subject.diagnostic_journal(config,directory,storage,final['dataSummary'],final['dataReplay'],'c'*64,{'bytes':0})
+
+    def test_observation_worker_resealed_request_identity_mismatches_reach_provenance_guard(self):
+        with tempfile.TemporaryDirectory() as raw:
+            config,directory,receipt,final,rows,worker,commit,save=observation_fixture(Path(raw).resolve())
+            for field,value in (('kind','other-request'),('mode','initial-empty'),('ownerUid',20001),('ownerGid',20001),('rootIdentity',{'dev':1,'ino':100}),('rootIdentity',{'dev':2,'ino':99}),('rootIdentity',None),('policyId','other-policy')):
+                with self.subTest(field=field,value=value):
+                    changed=copy.deepcopy(worker);changed['request'][field]=value;changed=observation_test_reseal_worker(changed)
+                    self.assertNotEqual(changed['requestHash'],worker['requestHash'])
+                    with self.assertRaisesRegex(ValueError,'^Worker diagnostic provenance differs$'):
+                        subject.diagnostic_worker(observation_test_json(changed),config,'c'*64)
+
+    def test_observation_worker_resealed_error_scalar_and_member_mismatches_reach_grammar_guards(self):
+        with tempfile.TemporaryDirectory() as raw:
+            config,directory,receipt,final,rows,worker,commit,save=observation_fixture(Path(raw).resolve())
+            cases=[('errno','13','Worker error grammar differs'),('errno',-1,'Worker error grammar differs'),('errno',65536,'Worker error grammar differs'),('errno',True,'Worker error grammar differs'),('code','lowercase','Worker error grammar differs'),('code',None,'Worker error grammar differs'),('extra','unselected','Worker error grammar differs'),('path','/private/member','Logical scanner error member differs'),('path','/capsulex/member','Logical scanner error member differs'),('path','/capsule/'+('x'*56),'Logical scanner error member differs'),('path','/capsule/\nmember','Logical scanner error member differs')]
+            for field,value,message in cases:
+                with self.subTest(field=field,value=value):
+                    changed=copy.deepcopy(worker);changed['attempts'][0]['errors'][0][field]=value;changed=observation_test_reseal_worker(changed)
+                    self.assertNotEqual(changed['attempts'][0]['hash'],worker['attempts'][0]['hash'])
+                    with self.assertRaisesRegex(ValueError,'^'+message+'$'):
+                        subject.diagnostic_worker(observation_test_json(changed),config,'c'*64)
+
+    def test_observation_journal_accepts_exact_eight_mib_and_refuses_one_more_before_read(self):
+        with tempfile.TemporaryDirectory() as raw, diagnostic_files_as_controller():
+            config,directory,receipt,final,rows,worker,commit,save=observation_fixture(Path(raw).resolve(),34)
+            limit=8*1024**2;commands=[row for row in rows if row.get('kind')=='hosted-native-observation-command-1']
+            remaining=limit-sum(len(observation_test_json(row))+1 for row in rows);each,extra=divmod(remaining,len(commands))
+            for index,command in enumerate(commands):command['binary']+='p'*(each+(index<extra))
+            self.assertTrue(all(len(observation_test_json(row))<=256*1024 for row in rows));commit(rows)
+            storage=receipt['dataStorage'];self.assertEqual(storage['journal']['bytes'],limit);budget={'bytes':0}
+            result=subject.diagnostic_journal(config,directory,storage,final['dataSummary'],final['dataReplay'],'c'*64,budget)
+            self.assertEqual((result['status'],result['records'],result['omittedObservations'],budget['bytes']),('projected',34,2,limit));self.assertFalse(result['rawStorageVerified'])
+            self.assertNotIn('pppppp',json.dumps(result))
+            commands[-1]['binary']+='p';commit(rows);self.assertEqual(receipt['dataStorage']['journal']['bytes'],limit+1)
+            with mock.patch.object(subject,'diagnostic_read') as read:
+                with self.assertRaisesRegex(ValueError,'^Exact controller diagnostic reference required$'):
+                    subject.diagnostic_journal(config,directory,receipt['dataStorage'],final['dataSummary'],final['dataReplay'],'c'*64,{'bytes':0})
+                read.assert_not_called()
+
+    def test_observation_journal_accepts_exact_line_limit_and_refuses_one_more_after_pinned_read(self):
+        with tempfile.TemporaryDirectory() as raw, diagnostic_files_as_controller():
+            config,directory,receipt,final,rows,worker,commit,save=observation_fixture(Path(raw).resolve())
+            limit=256*1024;rows[0]['binary']+='p'*(limit-len(observation_test_json(rows[0])));self.assertEqual(len(observation_test_json(rows[0])),limit);commit(rows)
+            result=subject.diagnostic_journal(config,directory,receipt['dataStorage'],final['dataSummary'],final['dataReplay'],'c'*64,{'bytes':0})
+            self.assertEqual(result['status'],'projected');self.assertEqual(result['records'],1);self.assertNotIn('pppppp',json.dumps(result))
+            rows[0]['binary']+='p';commit(rows);self.assertEqual(len(observation_test_json(rows[0])),limit+1);budget={'bytes':0}
+            with self.assertRaisesRegex(ValueError,'^Diagnostic journal line bound$'):
+                subject.diagnostic_journal(config,directory,receipt['dataStorage'],final['dataSummary'],final['dataReplay'],'c'*64,budget)
+            self.assertEqual(budget['bytes'],receipt['dataStorage']['journal']['bytes'])
+
+    def test_observation_journal_accepts_exact_row_limit_and_refuses_one_more_after_pinned_read(self):
+        with tempfile.TemporaryDirectory() as raw, diagnostic_files_as_controller():
+            config,directory,receipt,final,unused,worker,commit,save=observation_fixture(Path(raw).resolve())
+            rows=[];previous=None
+            for sequence in range(8193):
+                row={'sequence':sequence,'previous':previous,'key':'host-journal-watchdog','boundary':'initial' if sequence==0 else 'periodic','startedMs':sequence*2,'endedMs':sequence*2+1,'bytes':0,'observation':{'bytes':0,'meaning':'Journal watchdog only; actual host audit owns accounting'},'error':None}
+                row=observation_test_reseal_sample(row);previous=row['hash'];rows.append(row)
+            for count in (8192,8193):
+                changed=copy.deepcopy(rows[:count]);changed[-1]['boundary']='final';changed[-1]=observation_test_reseal_sample(changed[-1]);observation_test_bind_summaries(final,changed)
+                final['dataSummary']['status']='INCONCLUSIVE';final['dataReplay']['status']='FAIL'
+                for summary in (final['dataSummary'],final['dataReplay']):
+                    for scope in summary['scopes']:
+                        if scope['key']=='host-journal-watchdog':scope.update(status='PASS',coverageComplete=True,maximumStartGapMs=2,maximumPossibleObservationStartGapMs=3,peakBytes=0,samples=count,unknownSamples=0)
+                        else:scope.update(status='INCONCLUSIVE',coverageComplete=False,maximumStartGapMs=None,maximumPossibleObservationStartGapMs=None,peakBytes=None,samples=0,unknownSamples=0)
+                commit(changed)
+                storage=receipt['dataStorage'];self.assertLess(storage['journal']['bytes'],8*1024**2);self.assertEqual((directory/'data-observations.jsonl').read_bytes().count(b'\n'),count);budget={'bytes':0}
+                if count==8192:
+                    result=subject.diagnostic_journal(config,directory,storage,final['dataSummary'],final['dataReplay'],'c'*64,budget)
+                    self.assertEqual((result['status'],result['records'],result['eligibleObservations']),('projected',8192,0));self.assertFalse(result['rawStorageVerified'])
+                else:
+                    with self.assertRaisesRegex(ValueError,'^Diagnostic journal framing/row bound$'):
+                        subject.diagnostic_journal(config,directory,storage,final['dataSummary'],final['dataReplay'],'c'*64,budget)
+                self.assertEqual(budget['bytes'],storage['journal']['bytes'])
+
+    def test_observation_stream_exact_limits_and_one_byte_refusals_precede_worker_parsing(self):
+        with tempfile.TemporaryDirectory() as raw:
+            config,directory,receipt,final,rows,worker,commit,save=observation_fixture(Path(raw).resolve())
+            original=subject.diagnostic_worker
+            for stream,limit in (('stdoutBase64',65536),('stderrBase64',16384)):
+                with self.subTest(stream=stream):
+                    command=copy.deepcopy(rows[0]);payload=observation_test_json(worker) if stream=='stdoutBase64' else b'S'
+                    payload+=b' '*(limit-len(payload));command[stream]=base64.b64encode(payload).decode()
+                    with mock.patch.object(subject,'diagnostic_worker',wraps=original) as parse:
+                        result=subject.diagnostic_observation(command,config,'c'*64);self.assertEqual(parse.call_count,1)
+                    self.assertEqual(result['worker']['attempts'][0]['errors'][0]['errno'],13)
+                    if stream=='stderrBase64':self.assertEqual(result['stderr']['retainedBytes'],16384)
+                    command[stream]=base64.b64encode(payload+b' ').decode()
+                    with mock.patch.object(subject,'diagnostic_worker',wraps=original) as parse:
+                        with self.assertRaisesRegex(ValueError,'^Observation stream bounds differ$'):subject.diagnostic_observation(command,config,'c'*64)
+                        parse.assert_not_called()
 
 suite=unittest.defaultTestLoader.loadTestsFromTestCase(Boundaries)
 result=unittest.TextTestRunner(verbosity=2).run(suite)

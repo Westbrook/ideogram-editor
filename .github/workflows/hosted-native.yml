@@ -58,7 +58,7 @@ jobs:
         shell: bash
         env:
           IE_SETUP_TOKEN: ${{ github.token }}
-          IE_SOURCE_SELECTION_SHA256: b33e07fe7aa880250dcbe58fb7086dd4c3e6ff55b49d360198add4a0172632e8
+          IE_SOURCE_SELECTION_SHA256: 65946f2e2de631083bc8a006169cf793b3a5537b56c3f2a6b180c87dcc8ffaae
         run: |
           set -euo pipefail
           printf '%s' "$IE_SETUP_TOKEN" | sudo -n /usr/bin/python3 -I -S -B tooling/rollback-producer/hosted-setup.py setup \

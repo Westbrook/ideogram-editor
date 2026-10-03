@@ -73,8 +73,8 @@
     },
     {
       "path": "tooling/rollback-producer/hosted-setup.py",
-      "bytes": 45128,
-      "sha256": "08c6b2c25bb63e10cc3a1ffb4aef76d7371275735213295fee65510578fe117d"
+      "bytes": 59647,
+      "sha256": "59f7b7049bcf38c0b45b3ca731a78982e4526eb2e90685d319ce6b4917f763fd"
     },
     {
       "path": "tooling/rollback-producer/hosted-worker.py",
