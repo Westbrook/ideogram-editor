@@ -17,7 +17,7 @@ import {probeMax12Refusal} from '../portable/max12-refusal.mjs';
 import {openWriter} from '../../dist/local/server/storage/writer.js';
 import {EMPTY_EXPECTED_VERSIONS} from '../../dist/local/src/protocol/store.js';
 import {newDraft,bindRequestMask,confirmRequestMask,requestMaskDependencies} from '../../dist/local/src/request/core.js';
-import {createRequestRasterPlan,createActualOutputMapping} from '../../dist/local/src/request/raster-plan.js';
+import {createRequestRasterPlan} from '../../dist/local/src/request/raster-plan.js';
 import {canonical} from '../../dist/local/server/storage/canonical.js';
 import {verificationBudget} from '../../dist/local/src/protocol/text-budget.js';
 import {emptyComposition} from '../../dist/local/src/composition/core.js';
@@ -83,9 +83,10 @@ async function syncNativeClock(root,now){
  await writeFile(path+'.tmp',JSON.stringify({now}),{flag:'wx',mode:0o600});
  await rename(path+'.tmp',path);
 }
-async function fixture(t,{encoded=false,failure=false,now,bounds=false}={}){
+async function fixture(t,{encoded=false,failure=false,now,bounds=false,actualSize=512}={}){
  const memoryFixture=++memoryFixtureSequence;mainMemory.sample(memoryFixture,memoryPhase.fixtureOpen);
  let close;t.after(async()=>{mainMemory.sample(memoryFixture,memoryPhase.fixtureCloseBefore);try{await close?.();mainMemory.sample(memoryFixture,memoryPhase.fixtureCloseAfter,-1,1);}catch(error){mainMemory.sample(memoryFixture,memoryPhase.fixtureCloseAfter,-1,2);throw error;}});const root=await rootFor(t);
+ if(actualSize!==512){assert.equal(actualSize,256);assert(!encoded&&!now&&!bounds);await writeFile(join(root,'text-treatment-result-size'),String(actualSize),{flag:'wx',mode:0o600});}
  await writeFile(join(root,'j19-memory-enabled'),'1',{flag:'wx',mode:0o600});
  let server;
  if(encoded||now||bounds){
@@ -222,7 +223,7 @@ async function candidate(f,{kind='native-overlay',placement='current-document',m
  const manifest=(await f.read('/api/v1/assets/'+maskAsset.id+'/raster')).json;
  const mask={assetId:maskAsset.id,version:maskAsset.version,blob:maskAsset.blob,pixels:maskAsset.raster.pixels,width:512,height:512,sourceHash:source.pixels.hash,polarity:'white-edit',fullAcknowledged:false,empty:false,full:false,plan:maskAsset.raster.manifest,binding:bindRequestMask(source)};
  mask.requestPlan=confirmRequestMask(source,mask,manifest.plan.hard,manifest.plan.effective,randomUUID());
- if(mapped)mask.requestPlan=createRequestRasterPlan({document:{width:512,height:512},crop:{x:0,y:0,width:256,height:256},padding:{left:0,top:0,right:0,bottom:0},requestGrid:{width:512,height:512},sourcePixels:source.pixels,authoredMask:manifest.plan.hard,effectiveMask:manifest.plan.effective,dependenciesHash:requestMaskDependencies(source,mask),resolution:'already-contained',approvalId:randomUUID()});
+ if(mapped)mask.requestPlan=createRequestRasterPlan({document:{width:512,height:512},crop:{x:0,y:0,width:384,height:384},padding:{left:0,top:0,right:0,bottom:0},requestGrid:{width:512,height:512},sourcePixels:source.pixels,authoredMask:manifest.plan.hard,effectiveMask:manifest.plan.effective,dependenciesHash:requestMaskDependencies(source,mask),resolution:'already-contained',approvalId:randomUUID()});
  const prompt=await stage(f,Buffer.from('Change the selected background and preserve explicitly reviewed native lettering')),draft=newDraft(prompt.blob);
  draft.operation='inpaint';Object.assign(draft.fields,{size:mapped?'custom':'auto',width:'512',height:'512',strength:'1'});draft.source=source;draft.mask=mask;
  const saved=await stage(f,Buffer.from(JSON.stringify(draft))),choice=kind==='native-overlay'?{kind,retainedNativeIds:nativeIds,placement,excludedSemanticIds:[],approvalId:randomUUID()}:{kind,allowedHideNativeIds:nativeIds,duplicationAcknowledgement:randomUUID(),excludedSemanticIds:[],approvalId:randomUUID()};
@@ -249,7 +250,7 @@ function inventory(f){
  try{return Object.fromEntries(['assets','image_previews','history'].map(table=>[table,db.prepare('SELECT id,json FROM '+table+' ORDER BY id').all()]));}finally{db.close();}
 }
 function eventInventory(f){const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});try{return db.prepare('SELECT json FROM events_v2 ORDER BY seq').all();}finally{db.close();}}
-async function reviewed(f,body){
+async function reviewed(f,body,{candidateTransform=[1,0,0,1,0,0],rawCandidateEqualsComparison=true}={}){
  const before=await document(f),beforeState=await image(f),cold=inventory(f),prepared=await run(f,body);
  assert.deepEqual(prepared.events.map(event=>event.type),['AssetRegistered','AssetRegistered','AssetRegistered','CandidatePlacementReviewPrepared']);
  for(const event of prepared.events)assert.equal(event.transactionId,prepared.request.command.transactionId);
@@ -275,8 +276,8 @@ async function reviewed(f,body){
  assert.deepEqual(added.map(row=>row.id).sort(),[...ids].sort(),'Review registers only its three bounded comparisons, never a full prepared Q or wrapper');
  assert.deepEqual(hot.assets.filter(row=>cold.assets.some(before=>before.id===row.id)),cold.assets);assert.deepEqual(hot.image_previews,cold.image_previews);assert.deepEqual(hot.history,cold.history);
  const nativeIds=new Set(body.placement==='new-document'?body.textTreatment.choice.nativeCopies.map(copy=>copy.newLayerId):beforeState.layers.filter(layer=>layer.kind==='text'&&layer.visible).map(layer=>layer.id));
- const candidateLayer={assetId:review.inputs.identity.preparedAssetId,transform:[1,0,0,1,0,0],opacity:1,mask:null};
- const variant=visible=>intent.after.layers.filter(layer=>nativeIds.has(layer.id)?visible:layer.visible).map(layer=>({assetId:layer.assetId,transform:layer.layerToDocument,opacity:layer.opacity,mask:layer.mask}));
+ const candidateLayer={assetId:review.inputs.identity.preparedAssetId,transform:candidateTransform,opacity:1,mask:null};
+ const variant=visible=>intent.after.layers.filter(layer=>nativeIds.has(layer.id)?visible:layer.visible).map(layer=>({assetId:layer.assetId,transform:layer.id===body.newLayerId?candidateTransform:layer.layerToDocument,opacity:layer.opacity,mask:layer.mask}));
  for(const [index,comparison]of ['candidate-alone','native-off','native-on'].entries()){
   const registered=await asset(f,ids[index]),raster=JSON.parse(await retained(f,registered.raster.manifest)),encoded=await retained(f,registered.blob),rgba=await retained(f,registered.raster.pixels);
   assert.equal(registered.qualification,'canonical-png');assert.equal(registered.raster.role,'export');assert(registered.raster.width<=1024&&registered.raster.height<=1024);assert.equal(rgba.length,registered.raster.width*registered.raster.height*4);assert.deepEqual([...encoded.subarray(0,8)],[137,80,78,71,13,10,26,10]);
@@ -284,7 +285,7 @@ async function reviewed(f,body){
   assert.deepEqual(raster.plan.layers,index===0?[candidateLayer]:variant(index===2));
   assert.deepEqual(manifest.images[index],{comparison,assetId:registered.id,blob:registered.blob,raster:registered.raster});
  }
- assert.deepEqual(await pixels(f,lettering.candidateAloneAssetId),await pixels(f,review.inputs.identity.preparedAssetId));
+ if(rawCandidateEqualsComparison)assert.deepEqual(await pixels(f,lettering.candidateAloneAssetId),await pixels(f,review.inputs.identity.preparedAssetId));
  return {review,intent,manifest,prepared,body:adoption(review),wireBytes:Buffer.byteLength(response.text)};
 }
 async function visibleDifference(f,review,{x=8,y=12}={}){
@@ -368,18 +369,18 @@ for(const mutation of ['changed','deleted','locked'])test('fresh deferred new-do
 });
 
 for(const target of [null,'stale_native_document'])test('deferred native acceptance fences every reviewed origin row for '+(target?'new-document':'current-document'),{timeout:180000},async t=>{
- const f=await fixture(t),c=await candidate(f),body=target?placement(c,{action:'new-document',preservation:'none',nativeCopies:[{sourceLayerId:'native_text',newLayerId:'copied_native',transform:[1,0,0,1,8,12]}]},{placement:'new-document',newDocumentId:target}):placement(c),approved=await reviewed(f,body);
+ const f=await fixture(t,{actualSize:256}),c=await candidate(f,{mapped:true}),body=target?placement(c,{action:'new-document',preservation:'none',nativeCopies:[{sourceLayerId:'native_text',newLayerId:'copied_native',transform:[1,0,0,1,8,12]}]},{placement:'new-document',newDocumentId:target,actualOutput:{width:256,height:256,clipMask:false}}):placement(c,{}, {actualOutput:{width:256,height:256,clipMask:false}}),approved=await reviewed(f,body,{candidateTransform:[1.5,0,0,1.5,0,0],rawCandidateEqualsComparison:false});
  await properties(f,'hidden_picture',{locked:false});await reject(f,approved.body,{code:'STALE_REVISION',target});assert.deepEqual((await image(f)).layers.find(layer=>layer.id==='native_text'),c.beforeState.layers.find(layer=>layer.id==='native_text'));
 });
 
 test('deferred native review rejects forged treatment authority, changed choice, mapping, candidate and retained input/comparison tampering',{timeout:240000},async t=>{
- const f=await fixture(t),c=await candidate(f),body=placement(c),{textTreatment,...ordinary}=body;
+ const f=await fixture(t,{actualSize:256}),c=await candidate(f,{mapped:true}),body=placement(c,{}, {actualOutput:{width:256,height:256,clipMask:false}}),{textTreatment,...ordinary}=body;
  await reject(f,ordinary,{code:'INVALID_INPUT',reason:'TEXT_TREATMENT_PLACEMENT_REVIEW_REQUIRED'});
  const input=Object.fromEntries(['id','inventory','choice','beforeSource','afterSource','prompt','edit'].map(key=>[key,structuredClone(c.plan[key])]));input.id=randomUUID();
  const forged=planTextTreatment(input),forgedAsset=await stage(f,Buffer.from(canonical(forged)),'text','application/octet-stream'),envelope=bindTextTreatmentEnvelope(forged,{...forgedAsset.blob,mediaType:'application/json'});
  await reject(f,{...body,textTreatment:{...textTreatment,plan:envelope}},{code:'STALE_REVISION',reason:'TEXT_TREATMENT_REQUEST_CHANGED'});
- await reject(f,placement(c,{hideNativeIds:['native_text']}));
- const approved=await reviewed(f,body);await reject(f,{...approved.body,reviewHash:'sha256:'+'f'.repeat(64)},{code:'STALE_REVISION'});
+ await reject(f,placement(c,{hideNativeIds:['native_text']},{actualOutput:body.actualOutput}));
+ const approved=await reviewed(f,body,{candidateTransform:[1.5,0,0,1.5,0,0],rawCandidateEqualsComparison:false});await reject(f,{...approved.body,reviewHash:'sha256:'+'f'.repeat(64)},{code:'STALE_REVISION'});
  // Hash-validity and owned file proof are checked again at acceptance, not
  // inferred from a client echo or an earlier successful comparison read.
  for(const ref of [approved.review.lettering.intent,approved.review.lettering.manifest,(await asset(f,approved.review.lettering.nativeOnAssetId)).blob,c.draft.mask.requestPlan.effectiveMask]){
@@ -390,9 +391,27 @@ test('deferred native review rejects forged treatment authority, changed choice,
  await operate(f,{type:'HideCandidate',candidateId:c.value.id,expectedVersion:c.value.version});await reject(f,approved.body,{code:'STALE_REVISION'});
 });
 
-test('deferred native review refuses nonidentity output mapping without emitting comparison assets',{timeout:180000},async t=>{
- const f=await fixture(t),c=await candidate(f,{mapped:true}),mapping=createActualOutputMapping(c.draft.mask.requestPlan,{actualOutput:{width:512,height:512},effectiveMask:c.draft.mask.requestPlan.effectiveMask,resolution:'already-contained',approvalId:randomUUID()});assert.deepEqual(mapping.outputToDocument,[0.5,0,0,0.5,0,0]);
- await reject(f,placement(c,{}, {actualOutput:{width:512,height:512,clipMask:false}}),{code:'INCOMPATIBLE',reason:'TEXT_TREATMENT_EXACT_GRID_REQUIRED'});
+for(const placementKind of ['current-document','new-document'])test('deferred 512-to-256 contained output compares the actual mapping and preserves exact native treatment in '+placementKind,{timeout:180000},async t=>{
+ const f=await fixture(t,{actualSize:256}),c=await candidate(f,{mapped:true,placement:placementKind}),target=placementKind==='new-document'?'mapped_native_document':null,native=c.beforeState.layers.find(layer=>layer.id==='native_text'),identity=await nativeIdentity(f,native),effects=await f.effects();
+ assert.deepEqual(c.draft.mask.requestPlan.outputToDocument,[0.75,0,0,0.75,0,0]);assert.equal((await asset(f,c.value.preparedAssetId)).raster.width,256);
+ const actualOutput={width:256,height:256,clipMask:false},copy={sourceLayerId:native.id,newLayerId:'copied_native',transform:[1,0,0,1,24,12]};
+ const body=target?placement(c,{action:'new-document',preservation:'none',nativeCopies:[copy]},{placement:placementKind,newDocumentId:target,actualOutput}):placement(c,{}, {actualOutput});
+ await reject(f,{...body,actualOutput:{...actualOutput,width:512}},{code:'INCOMPATIBLE',reason:'OUTPUT_MAPPING_REVIEW_REQUIRED'});
+ await reject(f,{...body,actualOutput:{...actualOutput,clipMask:true}},{code:'INCOMPATIBLE',reason:'TEXT_TREATMENT_UNCHANGED_MASK_REQUIRED'});
+ const approved=await reviewed(f,body,{candidateTransform:[1.5,0,0,1.5,0,0],rawCandidateEqualsComparison:false}),mapping=approved.review.inputs.outputMapping;
+ assert.deepEqual(mapping.outputToDocument,[1.5,0,0,1.5,0,0]);assert.deepEqual(mapping.actualOutput,{width:256,height:256});assert.deepEqual(mapping.effectiveMask,c.draft.mask.requestPlan.effectiveMask);assert.equal(mapping.resolution,'already-contained');assert.equal(approved.review.inputs.coverage.lostPixels,0);
+ // Literal document-space pixels distinguish the actual 384px extent from
+ // the obsolete request-grid transform, which would stop at x=192.
+ const comparison=await pixels(f,approved.review.lettering.candidateAloneAssetId);assert.equal(comparison.length,512*512*4);assert.deepEqual([...comparison.subarray((100*512+300)*4,(100*512+300)*4+4)],[36,104,172,255]);assert.deepEqual([...comparison.subarray((100*512+450)*4,(100*512+450)*4+4)],[0,0,0,0]);
+ await visibleDifference(f,approved.review,target?{x:24,y:12}:{});
+ for(const mutate of [value=>{value.placement.actualOutput=null;},value=>{value.placement.actualOutput.width=512;},value=>{value.placement.actualOutput.clipMask=true;},value=>{value.inputs.outputMapping=null;},value=>{value.inputs.outputMapping.resolution='clipped-and-approved';},value=>{value.inputs.outputMapping.effectiveMask.hash='sha256:'+'f'.repeat(64);},value=>{value.inputs.coverage.lostPixels=1;}]){const forged=structuredClone(approved.review);mutate(forged);assert.throws(()=>candidatePlacementReview(forged));}
+ await reject(f,{...approved.body,reviewHash:'sha256:'+'f'.repeat(64)},{code:'STALE_REVISION',target});
+ const applied=await accept(f,approved),generated=applied.after.layers.find(layer=>layer.id==='generated');exterior(await pixels(f,generated.assetId),await pixels(f,c.selected.asset.id),await retained(f,c.draft.mask.requestPlan.effectiveMask));
+ if(target){assert.deepEqual(applied.after.layers[1],{...native,id:copy.newLayerId,version:'1',layerToDocument:copy.transform});assert.deepEqual(await document(f),c.before);assert.deepEqual(await image(f),c.beforeState);}
+ else{
+  const original=await pixels(f,c.before.image.compositeAssetId);assert.deepEqual(applied.after.layers.find(layer=>layer.id===native.id),native);exterior(await pixels(f,applied.document.image.compositeAssetId),original,await retained(f,c.draft.mask.requestPlan.effectiveMask));const undo=await run(f,{type:'Undo',historyHead:applied.document.historyHead});assert.deepEqual(await image(f),c.beforeState);assert.deepEqual(await pixels(f,undo.document.image.compositeAssetId),original);await run(f,{type:'Redo',historyNode:applied.document.historyHead});assert.deepEqual(await image(f),applied.after);
+ }
+ await unchangedNative(f,native,identity);assert.deepEqual(await f.effects(),effects);
 });
 
 async function observation(f,commandId){

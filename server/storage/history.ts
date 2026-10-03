@@ -37,7 +37,7 @@ import type { Assets, AssetAuth } from './assets.js';
 import { AssetRejection } from './assets.js';
 import type { Candidates } from './candidates.js';
 import type { CandidateAdoptionInputs, CandidateAdoptionIdentity } from '../../src/protocol/candidates.js';
-import type { RequestRasterPlan, RequestOutputMapping } from '../../src/request/raster-plan.js';
+import { requireOutputMapping,type RequestRasterPlan,type RequestOutputMapping } from '../../src/request/raster-plan.js';
 import type { RequestSourceCapture } from '../../src/protocol/request-edits.js';
 import type { Rasters } from './raster.js';
 import type { UIStore } from './ui.js';
@@ -460,13 +460,20 @@ export class Histories {
       const layers=decision.afterOrder.map(row=>{if(row.id===generated.id)return generated;const copy=copies.get(row.id);if(copy)return copy;const original=existing.get(row.id);if(!original)throw new StoreError('CORRUPT_OBJECT');return {...structuredClone(original),version:row.version,visible:row.visible};});
       const after:ImageState=b.placement==='new-document'?{schemaVersion:copyState.schemaVersion,width,height,layers,...(copyState.schemaVersion===5?{composition:null}:{})}:{...structuredClone(before),layers};imageState(after);this.texts.limits(after);return after;
   }
+  private textTreatmentMapping(b:CandidatePlacement,plan:RequestRasterPlan|null,mapping:RequestOutputMapping|null):void{
+    if(mapping===null){if(b.actualOutput!==null)throw new AssetRejection('INCOMPATIBLE','TEXT_TREATMENT_OUTPUT_MAPPING_REQUIRED');return;}
+    // This route preserves the accepted treatment's exact M. A clipped mask
+    // needs its own successor treatment proof, even if it hashes identically.
+    if(b.mode!=='safe-region'||!plan||!b.actualOutput||b.actualOutput.clipMask!==false||mapping.resolution!=='already-contained'||canonical(mapping.effectiveMask)!==canonical(plan.effectiveMask))throw new AssetRejection('INCOMPATIBLE','TEXT_TREATMENT_UNCHANGED_MASK_REQUIRED');
+    try{requireOutputMapping(plan,mapping,b.actualOutput.width,b.actualOutput.height);}catch{throw new AssetRejection('INCOMPATIBLE','TEXT_TREATMENT_OUTPUT_MAPPING_REQUIRED');}
+  }
   /** The reviewed graph is metadata. It never supplies a prepared-pixel proof. */
   private candidatePlacementIntent(b:CandidatePlacement,document:Document,before:ImageState,source:ImageVersion,width:number,height:number,inputs:CandidateAdoptionInputs):{after:ImageState;intent?:CandidateLetteringIntent}{
     if(!b.textTreatment)return {after:this.candidatePlacementState(b,document,before,source,width,height,inputs.identity.preparedAssetId,inputs.sourceCapture)};
     if(b.replacement||inputs.identity.candidateId!==b.candidateId||b.textTreatment.choice.newLayerId!==b.newLayerId||(b.placement==='new-document')!==(b.textTreatment.choice.action==='new-document'))throw new AssetRejection('INVALID_INPUT','TEXT_TREATMENT_PLACEMENT');
     const job=JSON.parse(String(this.db.prepare('SELECT json FROM queue_jobs WHERE id=?').get(inputs.identity.jobId)?.json??'null'));
     if(job?.review?.kind!=='request-review-text-1'||canonical(job.review.textTreatment)!==canonical(b.textTreatment.plan))throw new AssetRejection('STALE_REVISION','TEXT_TREATMENT_REQUEST_CHANGED');
-    if(inputs.outputMapping)throw new AssetRejection('INCOMPATIBLE','TEXT_TREATMENT_EXACT_GRID_REQUIRED');
+    this.textTreatmentMapping(b,inputs.plan,inputs.outputMapping);
     if(b.mode==='safe-region'&&!inputs.plan)throw new StoreError('CORRUPT_STORE');
     const treatments=new TextTreatments(this.objects,this.assets,id=>this.state(id),this.rasters),{decision,copyState}=treatments.placement(b.textTreatment.plan,document,{candidateId:b.candidateId,grid:{width,height},preparation:b.mode,sourcePixels:b.mode==='safe-region'?inputs.plan!.sourcePixels:null,effectiveMask:b.mode==='safe-region'?inputs.plan!.effectiveMask:null},b.textTreatment.choice);
     const after=this.textPlacementState(b,document,before,width,height,inputs.identity.preparedAssetId,decision,copyState);
@@ -475,7 +482,7 @@ export class Histories {
   private letteringGraphs(b:CandidatePlacement,before:ImageState,after:ImageState,inputs:CandidateAdoptionInputs){
     if(!b.textTreatment)throw new StoreError('CORRUPT_STORE');
     const nativeIds=b.placement==='new-document'?new Set(b.textTreatment.choice.nativeCopies.map(copy=>copy.newLayerId)):new Set(before.layers.filter(layer=>layer.kind==='text'&&layer.visible).map(layer=>layer.id));
-    const candidateTransform:import('../../src/raster/core.js').Affine=b.mode==='safe-region'?(inputs.plan!.kind==='request-raster-plan-2'?inputs.plan!.outputToDocument:[1,0,0,1,inputs.plan!.domain.x,inputs.plan!.domain.y]):[1,0,0,1,0,0];
+    const candidateTransform:import('../../src/raster/core.js').Affine=b.mode==='safe-region'?(inputs.outputMapping?.outputToDocument??(inputs.plan!.kind==='request-raster-plan-2'?inputs.plan!.outputToDocument:[1,0,0,1,inputs.plan!.domain.x,inputs.plan!.domain.y])):[1,0,0,1,0,0];
     const variant=(visible:boolean)=>({type:'ComposeRaster' as const,width:after.width,height:after.height,layers:after.layers.filter(layer=>nativeIds.has(layer.id)?visible:layer.visible).map(layer=>({assetId:layer.assetId,transform:layer.id===b.newLayerId?candidateTransform:layer.layerToDocument,opacity:layer.opacity,mask:layer.mask}))});
     const candidateAlone={type:'ComposeRaster' as const,width:after.width,height:after.height,layers:[{assetId:inputs.identity.preparedAssetId,transform:candidateTransform,opacity:1,mask:null}]};
     return {candidateTransform,candidateAlone,nativeOff:variant(false),nativeOn:variant(true)};
@@ -526,7 +533,7 @@ export class Histories {
       if(b.replacement||prepared.identity.candidateId!==b.candidateId||b.textTreatment.choice.newLayerId!==b.newLayerId||(b.placement==='new-document')!==(b.textTreatment.choice.action==='new-document'))throw new AssetRejection('INVALID_INPUT','TEXT_TREATMENT_PLACEMENT');
       const job=JSON.parse(String(this.db.prepare('SELECT json FROM queue_jobs WHERE id=?').get(prepared.identity.jobId)?.json??'null'));
       if(job?.review?.kind!=='request-review-text-1'||canonical(job.review.textTreatment)!==canonical(b.textTreatment.plan))throw new AssetRejection('STALE_REVISION','TEXT_TREATMENT_REQUEST_CHANGED');
-      const raster=prepared.asset.raster!;if(prepared.outputMapping)throw new AssetRejection('INCOMPATIBLE','TEXT_TREATMENT_EXACT_GRID_REQUIRED');
+      const raster=prepared.asset.raster!;this.textTreatmentMapping(b,prepared.plan,prepared.outputMapping);
       const treatments=new TextTreatments(this.objects,this.assets,id=>this.state(id),this.rasters),{decision,copyState}=treatments.adoption(b.textTreatment.plan,document,{candidateId:b.candidateId,assetId,pixels:raster.pixels,grid:{width,height},preparation:b.mode,preparationIdentity:raster.manifest,sourcePixels:b.mode==='safe-region'?prepared.plan!.sourcePixels:null,effectiveMask:b.mode==='safe-region'?prepared.plan!.effectiveMask:null},b.textTreatment.choice);
       return this.textPlacementState(b,document,before,width,height,assetId,decision,copyState);
     }

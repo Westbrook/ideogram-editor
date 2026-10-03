@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID,createHash} from 'node:crypto';
-import {readFile} from 'node:fs/promises';
+import {readFile,writeFile} from 'node:fs/promises';
 import {terminalWithDiagnostics} from './native-failure-diagnostics.mjs';
 import {join} from 'node:path';
 import {Worker} from 'node:worker_threads';
@@ -11,7 +11,7 @@ import {upload} from '../portable/helpers.mjs';
 import {providerChild} from './candidate-copy-process-helpers.mjs';
 import {EMPTY_EXPECTED_VERSIONS} from '../../dist/local/src/protocol/store.js';
 import {newDraft,bindRequestMask,confirmRequestMask,requestMaskDependencies} from '../../dist/local/src/request/core.js';
-import {createRequestRasterPlan,createActualOutputMapping} from '../../dist/local/src/request/raster-plan.js';
+import {createRequestRasterPlan} from '../../dist/local/src/request/raster-plan.js';
 import {canonical} from '../../dist/local/server/storage/canonical.js';
 import {verificationBudget} from '../../dist/local/src/protocol/text-budget.js';
 import {emptyComposition} from '../../dist/local/src/composition/core.js';
@@ -49,8 +49,9 @@ async function ui(f,body){
  const current=(await f.read('/api/v1/ui/'+sessionId)).json,request={protocolVersion:1,requestId:randomUUID(),sessionId,expectedUISeq:current.uiSeq,body};
  const result=await f.post('/api/v1/ui/'+sessionId,request);assert.equal(result.json.status,'accepted',result.text);return {request,value:result.json};
 }
-async function fixture(t){
+async function fixture(t,{actualSize=512}={}){
  let close;t.after(()=>close?.());const root=await rootFor(t);
+ if(actualSize!==512){assert.equal(actualSize,256);await writeFile(join(root,'text-treatment-result-size'),String(actualSize),{flag:'wx',mode:0o600});}
  const server=await providerChild(root,owned=>{close=owned;},new URL('./text-treatment-process-fixture.mjs',import.meta.url));
  const paired=await pair(server);assert.equal(paired.status,200,paired.text);
  const f={root,server,paired,read:path=>call(server.origin,path,{headers:readHeaders(cookieFrom(paired))}),post:(path,body)=>call(server.origin,path,{method:'POST',body,headers:mutationHeaders(server,paired)}),command:(patch={},body={})=>command(EMPTY_EXPECTED_VERSIONS,{clientId:paired.json.clientId,...patch},body),effects:async()=>{const value=JSON.parse(await readFile(join(root,'request-edits-fixture.json'),'utf8'));assert.deepEqual(value.errors,[]);return value.effects;}};
@@ -118,7 +119,7 @@ async function candidate(f,{kind='native-overlay',placement='current-document',m
  const manifest=(await f.read('/api/v1/assets/'+maskAsset.id+'/raster')).json;
  const mask={assetId:maskAsset.id,version:maskAsset.version,blob:maskAsset.blob,pixels:maskAsset.raster.pixels,width:512,height:512,sourceHash:source.pixels.hash,polarity:'white-edit',fullAcknowledged:false,empty:false,full:false,plan:maskAsset.raster.manifest,binding:bindRequestMask(source)};
  mask.requestPlan=confirmRequestMask(source,mask,manifest.plan.hard,manifest.plan.effective,randomUUID());
- if(mapped)mask.requestPlan=createRequestRasterPlan({document:{width:512,height:512},crop:{x:0,y:0,width:256,height:256},padding:{left:0,top:0,right:0,bottom:0},requestGrid:{width:512,height:512},sourcePixels:source.pixels,authoredMask:manifest.plan.hard,effectiveMask:manifest.plan.effective,dependenciesHash:requestMaskDependencies(source,mask),resolution:'already-contained',approvalId:randomUUID()});
+ if(mapped)mask.requestPlan=createRequestRasterPlan({document:{width:512,height:512},crop:{x:0,y:0,width:384,height:384},padding:{left:0,top:0,right:0,bottom:0},requestGrid:{width:512,height:512},sourcePixels:source.pixels,authoredMask:manifest.plan.hard,effectiveMask:manifest.plan.effective,dependenciesHash:requestMaskDependencies(source,mask),resolution:'already-contained',approvalId:randomUUID()});
  const prompt=await stage(f,Buffer.from('Change the selected background and preserve explicitly reviewed native lettering')),draft=newDraft(prompt.blob);
  draft.operation='inpaint';Object.assign(draft.fields,{size:mapped?'custom':'auto',width:'512',height:'512',strength:'1'});draft.source=source;draft.mask=mask;
  const saved=await stage(f,Buffer.from(JSON.stringify(draft))),choice=kind==='native-overlay'?{kind,retainedNativeIds:nativeIds,placement,excludedSemanticIds:[],approvalId:randomUUID()}:{kind,allowedHideNativeIds:nativeIds,duplicationAcknowledgement:randomUUID(),excludedSemanticIds:[],approvalId:randomUUID()};
@@ -307,17 +308,31 @@ test('J17 supports immutable deferred treatment review and refuses omitted, forg
  assert.deepEqual(await f.effects(),effects);
 });
 
-test('J17 rejects a nonidentity output mapping instead of claiming native-overlay exterior equality',{timeout:180000},async t=>{
- const f=await fixture(t),c=await candidate(f,{mapped:true}),effects=await f.effects();
- const mapping=createActualOutputMapping(c.draft.mask.requestPlan,{actualOutput:{width:512,height:512},effectiveMask:c.draft.mask.requestPlan.effectiveMask,resolution:'already-contained',approvalId:randomUUID()});
- assert.deepEqual(mapping.outputToDocument,[0.5,0,0,0.5,0,0]);
- await reject(f,placement(c,{}, {actualOutput:{width:512,height:512,clipMask:false}}),{code:'INCOMPATIBLE',reason:'TEXT_TREATMENT_EXACT_GRID_REQUIRED'});
- assert.deepEqual(await document(f),c.before);assert.deepEqual(await image(f),c.beforeState);assert.deepEqual(await f.effects(),effects);
+for(const placementKind of ['current-document','new-document'])test('J17 reviewed 512-to-256 contained output keeps the exact treatment and native identities in '+placementKind,{timeout:180000},async t=>{
+ const f=await fixture(t,{actualSize:256}),c=await candidate(f,{mapped:true,placement:placementKind}),target=placementKind==='new-document'?'mapped_text_document':null,native=c.beforeState.layers.find(layer=>layer.id==='native_text'),identity=await nativeIdentity(f,native),effects=await f.effects();
+ assert.deepEqual(c.draft.mask.requestPlan.outputToDocument,[0.75,0,0,0.75,0,0]);assert.equal((await asset(f,c.value.preparedAssetId)).raster.width,256);
+ const actualOutput={width:256,height:256,clipMask:false},copy={sourceLayerId:native.id,newLayerId:'copied_native',transform:[1,0,0,1,32,48]};
+ const body=target?placement(c,{action:'new-document',preservation:'none',nativeCopies:[copy]},{placement:placementKind,newDocumentId:target,actualOutput}):placement(c,{}, {actualOutput});
+ await reject(f,{...body,actualOutput:{...actualOutput,width:512}},{code:'INCOMPATIBLE',reason:'OUTPUT_MAPPING_REVIEW_REQUIRED'});
+ await reject(f,{...body,actualOutput:{...actualOutput,clipMask:true}},{code:'INCOMPATIBLE',reason:'TEXT_TREATMENT_UNCHANGED_MASK_REQUIRED'});
+ const approved=await reviewed(f,body),prepared=JSON.parse(await retained(f,approved.preview.plan)),after=JSON.parse(await retained(f,approved.preview.after.state));
+ assert.deepEqual(prepared.requestPlan,c.draft.mask.requestPlan);assert.deepEqual(prepared.outputMapping.outputToDocument,[1.5,0,0,1.5,0,0]);assert.deepEqual(prepared.outputMapping.effectiveMask,c.draft.mask.requestPlan.effectiveMask);assert.equal(prepared.outputMapping.resolution,'already-contained');assert.equal(prepared.coverage.lostPixels,0);
+ assert.deepEqual(JSON.parse(await retained(f,prepared.lineage)).result.request.textTreatment,c.review.textTreatment);
+ const generated=after.layers.find(layer=>layer.id==='generated'),wrapper=await asset(f,generated.assetId);assert.equal(wrapper.raster.width,512);assert.equal(wrapper.raster.height,512);assert.deepEqual(generated.layerToDocument,[1,0,0,1,0,0]);
+ exterior(await pixels(f,generated.assetId),await pixels(f,c.selected.asset.id),await retained(f,c.draft.mask.requestPlan.effectiveMask));
+ if(target){
+  assert.deepEqual(after.layers.map(layer=>layer.id),['generated',copy.newLayerId]);assert.deepEqual(after.layers[1],{...native,id:copy.newLayerId,version:'1',layerToDocument:copy.transform});
+  const request=f.command({documentId:target,expectedDocumentRevision:null,body:approved.body}),result=await terminal(f,request);assert.equal(result.json.receipt.status,'accepted',result.text);assert.deepEqual((await events(f,result.json.receipt)).map(event=>event.type),['DocumentCreated']);assert.deepEqual(await image(f,target),after);assert.deepEqual(await document(f),c.before);assert.deepEqual(await image(f),c.beforeState);assert.deepEqual((await terminal(f,request)).json.receipt,result.json.receipt);
+ }else{
+  const original=await pixels(f,c.before.image.compositeAssetId),applied=await run(f,approved.body);assert.deepEqual(applied.events.map(event=>event.type),['ImageEdited']);assert.deepEqual(await image(f),after);assert.deepEqual(after.layers.find(layer=>layer.id===native.id),native);exterior(await pixels(f,applied.document.image.compositeAssetId),original,await retained(f,c.draft.mask.requestPlan.effectiveMask));
+  const undo=await run(f,{type:'Undo',historyHead:applied.document.historyHead});assert.deepEqual(await image(f),c.beforeState);assert.deepEqual(await pixels(f,undo.document.image.compositeAssetId),original);await run(f,{type:'Redo',historyNode:applied.document.historyHead});assert.deepEqual(await image(f),after);
+ }
+ await unchangedNative(f,native,identity);assert.deepEqual(await f.effects(),effects);
 });
 
 for(const placementKind of ['current-document','new-document'])test('J17 '+placementKind+' commit rejects inventory changed after its eager treatment preview',{timeout:180000},async t=>{
- const f=await fixture(t),c=await candidate(f,{placement:placementKind}),target=placementKind==='new-document'?'stale_text_document':null;
- const body=target?placement(c,{action:'new-document',preservation:'none',nativeCopies:[{sourceLayerId:'native_text',newLayerId:'copied_native',transform:[1,0,0,1,8,12]}]},{placement:placementKind,newDocumentId:target}):placement(c),approved=await reviewed(f,body),effects=await f.effects();
+ const f=await fixture(t,{actualSize:256}),c=await candidate(f,{placement:placementKind,mapped:true}),target=placementKind==='new-document'?'stale_text_document':null;
+ const body=target?placement(c,{action:'new-document',preservation:'none',nativeCopies:[{sourceLayerId:'native_text',newLayerId:'copied_native',transform:[1,0,0,1,8,12]}]},{placement:placementKind,newDocumentId:target,actualOutput:{width:256,height:256,clipMask:false}}):placement(c,{}, {actualOutput:{width:256,height:256,clipMask:false}}),approved=await reviewed(f,body),effects=await f.effects();
  // Hidden and otherwise unrelated rows are part of the exact reviewed inventory.
  await properties(f,'hidden_picture',{locked:false});
  await reject(f,approved.body,{code:'STALE_REVISION',target});
