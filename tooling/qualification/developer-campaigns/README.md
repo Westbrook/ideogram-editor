@@ -182,6 +182,44 @@ node tooling/qualification/developer-campaigns/registry.mjs serve \
   --fixture /new/browser-fixture --receipt /new/browser-network.json --port 4802
 ```
 
+I2 installs both the frozen producer and the editor consumer. A fixture captured
+from the consumer lock alone does not cover the producer. Capture their union
+from the two actual lockfiles, using the producer lock from the verified frozen
+source extraction selected by the recipe; do not manufacture a merged lock:
+
+```sh
+node tooling/qualification/developer-campaigns/registry.mjs capture \
+  --lockfile /verified-frozen-source/package-lock.json \
+  --lockfile "$PWD/package-lock.json" --output /new/i2-npm-fixture
+node tooling/qualification/developer-campaigns/registry.mjs serve \
+  --fixture /new/i2-npm-fixture --receipt /new/i2-npm-service.json \
+  --lockfile /verified-frozen-source/package-lock.json \
+  --lockfile "$PWD/package-lock.json" --port 0
+```
+
+The multi-lock v2 fixture retains each original canonical path, byte length,
+SHA-256 and exact lockfile bytes, plus the deduplicated public tarball routes.
+Workspace links must resolve to an existing local, non-link package in the same
+lock; missing, escaping or remote targets fail. Conflicting route integrities,
+duplicate input paths/content identities and changed lock inputs refuse capture.
+The public payload limits remain 512 MiB per object, 4 GiB per fixture and 10,000
+routes across the union. Multi-lock metadata is limited separately to 32 files,
+16 MiB per lock and 32 MiB total; these are preparation input bounds, not changes
+to I2 timing or qualification limits.
+
+Serving a v2 fixture requires all its original lock hashes: the repeated
+`--lockfile` arguments derive that complete expected set from actual files.
+Order and current file locations may differ, but partial, duplicate or changed
+sets refuse before listening. Verification checks retained lock bytes and
+reconstructs the exact route union; it does not trust declared coverage alone.
+The service receipt binds both lock identities and the expected set. Use the
+actual returned literal-loopback origin for I2 and retain the service's shutdown
+receipt; no upstream registry fallback is available. Single-lock and browser
+v1 fixtures keep their existing commands and optional expected-hash behavior.
+Capture and service are preparation evidence, not successful I2 samples or C/N
+physical qualification; actual campaigns still require their assigned evidence
+allocation, monitoring, fresh outputs and original sample schedule.
+
 The server verifies exact bytes before delivery and applies shared aggregate
 100 Mbps downstream/20 Mbps upstream scheduling plus 40 ms request delay.
 It records actual transfers, errors and elapsed durations on shutdown. This is
