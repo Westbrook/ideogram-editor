@@ -8,7 +8,7 @@ import type {Document,BlobRef} from '../protocol/store.js';
 import type {CompositionCommand} from '../protocol/history.js';
 import {canonical} from '../protocol/json.js';
 import {browserPhases} from '../observability/browser.js';
-import {compositionObservations} from '../observability/composition-observations.js';
+import {compositionObservations,type RawInspection} from '../observability/composition-observations.js';
 import {ControlAdapter} from './adapters.js';
 import {CompositionLifetime,type CompositionOwner} from './composition-lifetime.js';
 import {CompositionError,emptyComposition,emptyElement,emptyStyle,validateComposition,bindingIds,bindingValue,fieldStatus,linkField,detach,fromCaption,projectBounds,inverseAffine} from '../composition/core.js';
@@ -46,9 +46,9 @@ export class CompositionEditing {
   const lease=reserveCompositionRead(),abort=new AbortController();this.reads.add(abort);let handed=false;
   try{const response=await this.editor.session.transport(path,{signal:abort.signal});handed=true;return await readCompositionJSON<T>(response,owns,abort.signal,view,lease);}finally{if(!handed)lease.release();this.reads.delete(abort);}
  }
- private async readBytes(path:string,limit:number,owns:()=>boolean){
+ private async readBytes(path:string,limit:number,owns:()=>boolean,inspection?:RawInspection){
   const lease=reservePromptPayload('composition-raw-read-operation',0),abort=new AbortController();this.reads.add(abort);let handed=false;
-  try{const response=await this.editor.session.transport(path,{signal:abort.signal});handed=true;const value=await readCompositionBytes(response,limit,owns,abort.signal,lease);if(!response.ok){value.owner.release();throw Error('Original source unavailable.');}return value;}finally{if(!handed)lease.release();this.reads.delete(abort);}
+  try{const response=await this.editor.session.transport(path,{signal:abort.signal});handed=true;const value=await readCompositionBytes(response,limit,owns,abort.signal,lease,true,inspection);if(!response.ok){value.owner.release();throw Error('Original source unavailable.');}return value;}finally{if(!handed)lease.release();this.reads.delete(abort);}
  }
  private disposed=false;private reviewIntent=0;private fieldEpoch=0;private ownsModel=()=>false;private settlements=new Set<Promise<void>>();private currentView='plain';guides=true;
  get view(){return this.currentView;}
@@ -248,8 +248,10 @@ export class CompositionEditing {
   if(!this.c)throw Error('Open a document.');if(this.c.raw.length>=256)throw Error('At most 256 originals can be retained in one Composition.');
   const c=this.c,g=this.generation,unpin=this.pinPayloads();let staged:Awaited<ReturnType<EditorClient['ownedStageTextBlob']>>|undefined;
   try{staged=await this.editor.ownedStageTextBlob(file,'application/octet-stream','text',()=>g===this.generation&&c===this.c);const ref=staged.value;if(g!==this.generation||c!==this.c)throw Error('The draft changed. Original staged bytes remain retained.');
-   const page=await readCompositionBlob(file,32768);try{if(g!==this.generation||c!==this.c)return;this.rawText=this.adopt('raw-page',createCompositionValue('composition-raw-page',page.value.byteLength*2,()=>new TextDecoder('utf-8',{ignoreBOM:true}).decode(page.value)));compositionObservations.page(ref,0,page.value.byteLength);}finally{page.owner.release();}
-   const raw=await readCompositionBlob(file,262145);try{if(g!==this.generation||c!==this.c)return;this.rawResult=this.parseLocal(raw.value,'raw-result',ref);}finally{raw.owner.release();}
+   const pageInspection=compositionObservations.beginRawInspection(ref,'page');let page:OwnedCompositionValue<Uint8Array>|undefined;
+   try{page=await readCompositionBlob(file,32768,pageInspection);if(g!==this.generation||c!==this.c)return;const bytes=page.value;this.rawText=this.adopt('raw-page',createCompositionValue('composition-raw-page',bytes.byteLength*2,()=>new TextDecoder('utf-8',{ignoreBOM:true}).decode(bytes)));compositionObservations.page(ref,0,bytes.byteLength);pageInspection.finish('page');}finally{page?.owner.release();pageInspection.close();}
+   const parseInspection=compositionObservations.beginRawInspection(ref,'parse');let raw:OwnedCompositionValue<Uint8Array>|undefined;
+   try{raw=await readCompositionBlob(file,262145,parseInspection);if(g!==this.generation||c!==this.c)return;this.rawResult=this.parseLocal(raw.value,'raw-result',ref);parseInspection.finish(this.rawResult.state==='over-limit'?'opaque':'parsed',this.rawResult.state);}finally{raw?.owner.release();parseInspection.close();}
    this.admitMutation(compositionPayloadBytes(ref)+4096);const retained=structuredClone(ref);c.raw.push(retained);this.sourceRaw=retained;this.rawIndex=c.raw.length-1;this.rawOffset=0;this.rawInspected=ref.hash;this.touch();await this.flushOwnDraft();if(g+1!==this.generation||c!==this.c)return;this.message='Original bytes retained separately. Inspection grants no authoring authority.';this.changed();
   }finally{staged?.release();unpin();}
  }
@@ -259,11 +261,11 @@ export class CompositionEditing {
  private async rawPageOwned(delta:number){
   const owner=this.fieldOwner();if(!owner()||!this.c?.raw.length)return;this.rawOffset=Math.max(0,this.rawOffset+delta*32768);const source=this.c.raw[this.rawIndex];if(this.rawOffset>=Number(source.byteLength))this.rawOffset=Math.max(0,Math.floor((Number(source.byteLength)-1)/32768)*32768);
   const token=++this.rawRead,path=this.rawPath(),index=this.rawIndex,offset=this.rawOffset,inspect=this.rawInspected!==source.hash,owns=()=>owner()&&token===this.rawRead&&this.c?.raw[index]?.hash===source.hash&&this.rawIndex===index&&this.rawOffset===offset;this.rawText='';this.releasePayload('raw-page');if(inspect){this.rawResult=null;this.releasePayload('raw-result');}
-  const unpin=this.pinPayloads();let page:OwnedCompositionValue<Uint8Array>|undefined;
-  try{page=await this.readBytes(path+'&raw='+index+'&offset='+offset,32768,owns);if(!owns())return;let result=this.rawResult;
-   if(inspect){if(BigInt(source.byteLength)>262144n){result=this.adopt('raw-result',createCompositionValue<ParseResult>('composition-parse-model',4096,()=>({state:'over-limit',issues:[{path:'$',code:'BYTE_LIMIT',message:'Raw retained. Parsing is limited to 256 KiB.'}]})));compositionObservations.parsed(0,result,source);}else{const raw=await this.readBytes(path+'&raw='+index+'&download=1',262144,owns);try{if(!owns())return;result=this.parseLocal(raw.value,'raw-result',source);}finally{raw.owner.release();}}}
-   if(!owns())return;const bytes=page.value;this.rawText=this.adopt('raw-page',createCompositionValue('composition-raw-page',bytes.byteLength*2,()=>new TextDecoder('utf-8',{ignoreBOM:true}).decode(bytes)));compositionObservations.page(source,offset,bytes.byteLength);this.rawResult=result;this.rawInspected=source.hash;this.changed();
-  }catch(e){if(owns()||e instanceof PromptReaderCleanupError||e instanceof CompositionReadCleanupError)throw e;}finally{page?.owner.release();unpin();}
+  const unpin=this.pinPayloads(),pageInspection=compositionObservations.beginRawInspection(source,'page',offset);let page:OwnedCompositionValue<Uint8Array>|undefined;
+  try{page=await this.readBytes(path+'&raw='+index+'&offset='+offset,32768,owns,pageInspection);if(!owns())return;let result=this.rawResult;
+   if(inspect){if(BigInt(source.byteLength)>262144n){const inspection=compositionObservations.beginRawInspection(source,'opaque');try{result=this.adopt('raw-result',createCompositionValue<ParseResult>('composition-parse-model',4096,()=>({state:'over-limit',issues:[{path:'$',code:'BYTE_LIMIT',message:'Raw retained. Parsing is limited to 256 KiB.'}]})));compositionObservations.parsed(0,result,source);inspection.finish('opaque','over-limit');}finally{inspection.close();}}else{const inspection=compositionObservations.beginRawInspection(source,'parse');let raw:OwnedCompositionValue<Uint8Array>|undefined;try{raw=await this.readBytes(path+'&raw='+index+'&download=1',262144,owns,inspection);if(!owns())return;result=this.parseLocal(raw.value,'raw-result',source);inspection.finish('parsed',result.state);}finally{raw?.owner.release();inspection.close();}}}
+   if(!owns())return;const bytes=page.value;this.rawText=this.adopt('raw-page',createCompositionValue('composition-raw-page',bytes.byteLength*2,()=>new TextDecoder('utf-8',{ignoreBOM:true}).decode(bytes)));compositionObservations.page(source,offset,bytes.byteLength);this.rawResult=result;this.rawInspected=source.hash;this.changed();pageInspection.finish('page');
+  }catch(e){if(owns()||e instanceof PromptReaderCleanupError||e instanceof CompositionReadCleanupError)throw e;}finally{page?.owner.release();pageInspection.close();unpin();}
  }
  private parseText(value:string){const raw=encodeCompositionText(value);try{return this.parseLocal(raw.value,'convert-result');}finally{raw.owner.release();}}
  private async convert(){
@@ -272,7 +274,7 @@ export class CompositionEditing {
  private async convertOwned(){
   const owns=this.fieldOwner(),source=this.c?.raw[this.rawIndex]??null,index=this.rawIndex,path=source?this.rawPath():'';if(!source)throw Error('Retain original raw input first.');const unpin=this.pinPayloads();try{
   if(!owns())return;this.sourceRaw=source;this.convertOpen=true;this.convertText='';this.releasePayload('convert-text');
-  if(BigInt(source.byteLength)<=262144n){const raw=await this.readBytes(path+'&raw='+index+'&download=1',262144,owns);try{if(!owns()||this.sourceRaw!==source)return;try{this.convertText=this.adopt('convert-text',createCompositionValue('composition-convert-text',raw.value.byteLength*2,()=>new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(raw.value)));}catch(error){if(!(error instanceof TypeError))throw error;this.message='Invalid UTF-8 original retained. Author a separate valid conversion copy.';}}finally{raw.owner.release();}}
+  if(BigInt(source.byteLength)<=262144n){const inspection=compositionObservations.beginRawInspection(source,'decode');let raw:OwnedCompositionValue<Uint8Array>|undefined;try{raw=await this.readBytes(path+'&raw='+index+'&download=1',262144,owns,inspection);if(!owns()||this.sourceRaw!==source)return;const bytes=raw.value;try{this.convertText=this.adopt('convert-text',createCompositionValue('composition-convert-text',bytes.byteLength*2,()=>new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(bytes)));inspection.finish('decoded');}catch(error){if(!(error instanceof TypeError))throw error;this.message='Invalid UTF-8 original retained. Author a separate valid conversion copy.';}}finally{raw?.owner.release();inspection.close();}}
   if(!owns()||this.sourceRaw!==source)return;this.convertResult=this.parseText(this.convertText);this.changed();}finally{unpin();}
  }
  private convertCopy(){return this.watch(()=>this.convertCopyOwned());}

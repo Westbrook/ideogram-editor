@@ -23,11 +23,14 @@ test('actual reserve/resize/release hooks retain overlapping owned peaks invisib
   const held = ledger.reserve({ owner: 'request-prompt-retained', kind: 'prompt', cpuBytes: 10 });
   const before = snapshot(observer), first = ledger.reserve({ owner: 'composition-raw-copy', kind: 'prompt', cpuBytes: 30 });
   const second = ledger.reserve({ owner: 'composition-parse-model', kind: 'prompt', cpuBytes: 40 });
+  const inspection = observer.beginRawInspection(source(12), 'parse');inspection.materialized(12);
   observer.parsed(12, { state: 'malformed', issues: [{ code: 'INVALID_JSON' }] }, source(12));
+  inspection.finish('parsed', 'malformed');inspection.close();
   first.resize({ cpuBytes: 50 }); second.release(); first.release();
   const result = deriveCompositionMeasurements([before, snapshot(observer)]);
   assert.equal(result.measurements.find(row => row.name === 'R38TextCaptionWorkspaceBytes').value, 100);
-  assert.equal(result.measurements.find(row => row.name === 'R38MaterializedRawInspectionBytes').value, 90);
+  assert.equal(result.measurements.find(row => row.name === 'R38MaterializedRawInspectionBytes').value, 12);
+  assert.equal(result.evidence.rawInspectionReservations.observedPeakBytes, 90);
   assert(result.measurements.find(row => row.name === 'R38TextCaptionWorkspaceBytes').complete);
   held.release();
 });
@@ -91,7 +94,8 @@ test('failed cycles keep actual rows as incomplete observations', () => {
 test('actual constructor birth anchors one fresh realm without manufacturing a zero snapshot', () => {
   const observer = recorder(32), ledger = new AllocationLedger(observer);
   const lease = ledger.reserve({ owner: 'composition-raw-copy', kind: 'prompt', cpuBytes: 17 });
-  observer.page(source(17), 0, 17); lease.release();
+  const inspection = observer.beginRawInspection(source(17), 'page');inspection.materialized(17);
+  observer.page(source(17), 0, 17);inspection.finish('page');inspection.close();lease.release();
   const after = snapshot(observer), result = deriveCompositionMeasurements([after], { start: 'birth' });
   assert.equal(after.birth.kind, 'composition-observer-birth-1');
   assert.equal(after.birth.instanceId, after.instanceId);
@@ -126,8 +130,11 @@ function completeInterval() {
   const held = ledger.reserve({ owner: 'request-prompt-retained', kind: 'prompt', cpuBytes: 3 });
   const before = snapshot(observer), control = ledger.reserve({ owner: 'composition-read-operation', kind: 'control', cpuBytes: 5 });
   const raw = ledger.reserve({ owner: 'composition-raw-copy', kind: 'prompt', cpuBytes: 10 });
+  const inspection = observer.beginRawInspection(source(10), 'parse');observer.read('blob-read', 10, 10, inspection);
   observer.parsed(10, { state: 'supported', issues: [], value: {} }, source(10));
-  observer.page(source(10), 0, 10); raw.release(); control.release(); const after = snapshot(observer); held.release();
+  inspection.finish('parsed', 'supported');inspection.close();
+  const page = observer.beginRawInspection(source(10), 'page');page.materialized(10);
+  observer.page(source(10), 0, 10);page.finish('page');page.close();raw.release();control.release();const after = snapshot(observer);held.release();
   const result = deriveCompositionMeasurements([before, after]);
   assert.equal(result.evidence.complete, true);assert(result.measurements.length > 0);assert(result.measurements.every(row => row.complete));
   return [before, after];
@@ -329,3 +336,206 @@ for (const [name, promptBytes, controlBytes] of [['control-only', 0, 37], ['prom
     } finally {render?.release();prompt?.release();}
   });
 }
+
+const inspectionMetric = result => result.measurements.find(row => row.name === 'R38MaterializedRawInspectionBytes');
+const inspectionSource = (bytes, identity = 'b') => ({hash: 'sha256:' + identity.repeat(64), byteLength: String(bytes)});
+function inspect(observer, {bytes, mode = 'parse', extent = bytes, offset = 0, outcome = 'parsed', state = mode === 'parse' ? 'supported' : undefined, identity = 'b'}) {
+  const token = observer.beginRawInspection(inspectionSource(bytes, identity), mode, offset);
+  try {token.materialized(extent);token.finish(outcome, state);} finally {token.close();}
+}
+
+test('inspection extent uses actual original bytes, independent of overlapping copies and parser allowances', () => {
+  const observer = recorder(64), ledger = new AllocationLedger(observer), before = snapshot(observer);
+  const allowance = ledger.reserve({owner: 'composition-parse-scratch', kind: 'prompt', cpuBytes: 20 * 1048576});
+  const first = observer.beginRawInspection(inspectionSource(12), 'decode');first.materialized(12);
+  const second = observer.beginRawInspection(inspectionSource(8, 'c'), 'parse');second.materialized(8);
+  second.finish('parsed', 'supported');first.finish('decoded');second.close();first.close();allowance.release();
+  const after = snapshot(observer), result = deriveCompositionMeasurements([before, after]);
+  assert.equal(after.schemaVersion, 2);assert.equal(inspectionMetric(result).value, 12);assert.equal(inspectionMetric(result).complete, true);
+  assert.equal(result.evidence.rawInspectionReservations.observedPeakBytes, 20 * 1048576);
+  assert.equal(result.evidence.rawInspectionReservations.physicalMemoryComplete, false);
+  assert.equal(result.evidence.rawInspection.materializedOperations, 2);
+  assert.equal(after.activeInspections, 0);assert.equal(after.inspectionSerial, 2);
+});
+
+test('legacy reservation diagnostics retain an observed peak without claiming complete ownership coverage', () => {
+  const observer = recorder(32), before = snapshot(observer);
+  observer.ownership('composition-raw-copy', 0, 100, 100);observer.page(source(10), 0, 10);observer.ownership('composition-raw-copy', 100, 0, 0);
+  const result = deriveCompositionMeasurements([before, snapshot(observer)]);
+  assert.equal(result.evidence.rawInspectionReservations.observedPeakBytes, 100);
+  assert.equal(result.evidence.rawInspectionReservations.transitionCoverageComplete, false);
+  assert.equal(inspectionMetric(result), undefined);
+  const unexercised = recorder(16), absent = deriveCompositionMeasurements([snapshot(unexercised)], {start: 'birth'});
+  assert.equal(absent.evidence.rawInspectionReservations.observedPeakBytes, null);
+});
+
+test('UTF8-trimmed page at a large source offset measures its page length, not source size or offset', () => {
+  const observer = recorder(32), before = snapshot(observer);
+  const token = observer.beginRawInspection(inspectionSource(70 * 1048576), 'page', 64 * 1048576);
+  observer.read('stream-read', 32766, 32766, token);token.finish('page');token.close();
+  const result = deriveCompositionMeasurements([before, snapshot(observer)]);
+  assert.equal(inspectionMetric(result).value, 32766);assert.equal(inspectionMetric(result).complete, true);
+  assert.equal(result.evidence.rawInspection.unmatchedReads, 0);
+});
+
+for (const [name, input] of [
+  ['complete boundary parse', {bytes: 262144}],
+  ['opaque local depth or string rejection below the byte cap', {bytes: 128, outcome: 'opaque', state: 'over-limit'}],
+  ['over-limit sentinel from a larger retained source', {bytes: 20 * 1048576, extent: 262145, outcome: 'opaque', state: 'over-limit'}],
+  ['exact decode qualification boundary', {bytes: 16 * 1048576, mode: 'decode', outcome: 'decoded', state: undefined}],
+]) test('source-bound inspection admits ' + name, () => {
+  const observer = recorder(32), before = snapshot(observer);inspect(observer, input);
+  const row = inspectionMetric(deriveCompositionMeasurements([before, snapshot(observer)]));
+  assert.equal(row.value, input.extent ?? input.bytes);assert.equal(row.complete, true);
+});
+
+test('metadata-only opaque decision does not invent a materialization sample, while an actually read empty input does', () => {
+  const observer = recorder(32), before = snapshot(observer);
+  const token = observer.beginRawInspection(inspectionSource(20 * 1048576), 'opaque');token.finish('opaque', 'over-limit');token.close();
+  const middle = snapshot(observer), absent = deriveCompositionMeasurements([before, middle]);
+  assert.equal(inspectionMetric(absent), undefined);assert.equal(absent.evidence.rawInspection.completedOperations, 1);
+  const empty = observer.beginRawInspection(inspectionSource(0, 'c'), 'parse');observer.read('blob-read', 0, 0, empty);empty.finish('parsed', 'malformed');empty.close();
+  const row = inspectionMetric(deriveCompositionMeasurements([middle, snapshot(observer)]));
+  assert.equal(row.value, 0);assert.equal(row.complete, true);
+});
+
+for (const [name, input] of [
+  ['empty page before source end', {bytes: 10, mode: 'page', extent: 0, outcome: 'page', state: undefined}],
+  ['page extending beyond source', {bytes: 10, mode: 'page', offset: 9, extent: 2, outcome: 'page', state: undefined}],
+  ['truncated supposedly supported parse', {bytes: 100, extent: 99}],
+  ['supported over-limit sentinel', {bytes: 262145}],
+  ['partial decode', {bytes: 10, mode: 'decode', extent: 9, outcome: 'decoded', state: undefined}],
+  ['parsed outcome for a page', {bytes: 10, mode: 'page'}],
+]) test('inspection replay refuses ' + name + ' without removing unrelated byte evidence', () => {
+  const observer = recorder(32), before = snapshot(observer);inspect(observer, input);observer.value('issues', [], 'ui-issues');
+  const result = deriveCompositionMeasurements([before, snapshot(observer)]);
+  assert.equal(result.evidence.complete, true);assert(!inspectionMetric(result)?.complete);
+  assert.equal(result.measurements.find(row => row.name === 'R38IssueBytes').complete, true);
+  assert.equal(result.evidence.rawInspection.complete, false);
+});
+
+// A known oversized operation is evidence of its measured extent. Dropping it
+// as an admission error would conceal a real resource-ceiling breach. These
+// are numeric producer witnesses, not allocations of the described payloads.
+for (const [name, input] of [
+  ['page above its page limit', {bytes: 40000, mode: 'page', extent: 32769, outcome: 'page'}],
+  ['page above the raw inspection ceiling', {bytes: 20 * 1048576, mode: 'page', extent: 16 * 1048576 + 1, outcome: 'page'}],
+  ['whole decode above the raw inspection ceiling', {bytes: 16 * 1048576 + 1, mode: 'decode', outcome: 'decoded'}],
+  ['whole over-limit parse above the raw inspection ceiling', {bytes: 16 * 1048576 + 1, outcome: 'opaque', state: 'over-limit'}],
+  ['opaque prefix above the raw inspection ceiling', {bytes: 20 * 1048576, extent: 16 * 1048576 + 1, outcome: 'opaque', state: 'over-limit'}],
+]) test('complete oversized inspection preserves the actual numeric result: ' + name, () => {
+  const observer = recorder(32), before = snapshot(observer);inspect(observer, input);
+  const result = deriveCompositionMeasurements([before, snapshot(observer)]), row = inspectionMetric(result);
+  assert.equal(row.value, input.extent ?? input.bytes);assert.equal(row.complete, true);
+  assert.equal(result.evidence.rawInspection.complete, true);
+  assert(!result.missing.some(value => value.startsWith('R38MaterializedRawInspectionBytes:')));
+  if (name !== 'page above its page limit') assert(row.value > 16 * 1048576, 'ordinary budget evaluation receives the actual breached ceiling');
+});
+
+test('an oversized inspected page retains its separate exact-page contradiction', () => {
+  const observer = recorder(32), before = snapshot(observer), original = inspectionSource(40000);
+  const token = observer.beginRawInspection(original, 'page');observer.read('blob-read', 32769, 40000, token);
+  observer.page(original, 0, 32769);token.finish('page');token.close();
+  const result = deriveCompositionMeasurements([before, snapshot(observer)]);
+  assert.equal(inspectionMetric(result).value, 32769);assert.equal(inspectionMetric(result).complete, true);
+  assert.equal(result.measurements.find(row => row.name === 'R38RawPageBytes').value, 32769);
+  assert.equal(result.measurements.find(row => row.name === 'R38RawTruncationOrFalseCompletenessCount').value, 1);
+});
+
+test('failed outer action retains a lower bound from a fully validated oversized inspection', () => {
+  const observer = recorder(32), before = snapshot(observer), bytes = 16 * 1048576 + 1;
+  inspect(observer, {bytes, mode: 'decode', outcome: 'decoded'});observer.value('issues', [], 'ui-issues');
+  const after = snapshot(observer), result = deriveCompositionMeasurements([before, after], {failed: true}), row = inspectionMetric(result);
+  assert.equal(row.value, bytes);assert.equal(row.complete, false);assert.equal(row.lowerBound, true);
+  assert.equal(result.evidence.complete, false);assert.equal(result.evidence.rawInspection.complete, false);
+  assert.equal(result.measurements.find(value => value.name === 'R38IssueBytes').lowerBound, undefined);
+  assert.equal(inspectionMetric(deriveCompositionMeasurements([before, after])).lowerBound, undefined);
+});
+
+test('invalid or abandoned inspection evidence cannot acquire lower-bound authority from outer failure', () => {
+  for (const defect of ['unmatched-read', 'abandoned-token', 'observer-misuse']) {
+    const observer = recorder(32), before = snapshot(observer), bytes = 16 * 1048576 + 1;
+    inspect(observer, {bytes, mode: 'decode', outcome: 'decoded'});
+    if (defect === 'unmatched-read') observer.read('blob-read', 1, 1);
+    else {const token = observer.beginRawInspection(inspectionSource(8, 'c'), 'page');token.materialized(8);if (defect === 'observer-misuse') {token.materialized(8);token.finish('page');}token.close();}
+    const row = inspectionMetric(deriveCompositionMeasurements([before, snapshot(observer)], {failed: true}));
+    assert(!row?.complete);assert.equal(row?.lowerBound, undefined);
+  }
+});
+
+test('unfinished and abandoned inspections prevent an otherwise successful extent from qualifying', () => {
+  for (const close of [false, true]) {
+    const observer = recorder(32), before = snapshot(observer), token = observer.beginRawInspection(inspectionSource(10), 'page');token.materialized(10);
+    if (close) token.close();inspect(observer, {bytes: 2, identity: 'c'});
+    const result = deriveCompositionMeasurements([before, snapshot(observer)]);
+    assert.equal(result.evidence.complete, true);assert(!inspectionMetric(result)?.complete);assert.equal(result.evidence.rawInspection.complete, false);
+  }
+});
+
+test('an interval starting during an inspection is incomplete even when all operations later finish', () => {
+  const observer = recorder(32), carried = observer.beginRawInspection(inspectionSource(10), 'page'), before = snapshot(observer);
+  carried.materialized(10);carried.finish('page');inspect(observer, {bytes: 2, identity: 'c'});
+  const result = deriveCompositionMeasurements([before, snapshot(observer)]);
+  assert.equal(result.evidence.complete, true);assert(!inspectionMetric(result)?.complete);
+  assert.equal(result.evidence.rawInspection.activeAtStart, 1);
+});
+
+test('unmatched generic raw reads withhold only the inspection metric', () => {
+  const observer = recorder(32), before = snapshot(observer);inspect(observer, {bytes: 8});observer.read('blob-read', 4, 10);observer.value('issues', [], 'ui-issues');
+  const result = deriveCompositionMeasurements([before, snapshot(observer)]);
+  assert.equal(result.evidence.complete, true);assert.equal(inspectionMetric(result).value, 8);assert.equal(inspectionMetric(result).complete, false);
+  assert.equal(result.evidence.rawInspection.unmatchedReads, 1);assert.equal(result.measurements.find(row => row.name === 'R38IssueBytes').complete, true);
+});
+
+test('read helper records exactly one bound materialization; repeated token use fails closed independently', () => {
+  for (const misuse of ['duplicate-materialization', 'duplicate-finish', 'foreign-token']) {
+    const observer = recorder(32), before = snapshot(observer), token = observer.beginRawInspection(inspectionSource(8), 'parse');
+    observer.read('blob-read', 8, 8, token);
+    if (misuse === 'duplicate-materialization') token.materialized(8);
+    token.finish('parsed', 'supported');token.close();
+    if (misuse === 'duplicate-finish') token.finish('parsed', 'supported');
+    if (misuse === 'foreign-token') {const other = recorder(16), foreign = other.beginRawInspection(inspectionSource(8), 'page');observer.read('blob-read', 8, 8, foreign);foreign.close();}
+    observer.value('issues', [], 'ui-issues');const after = snapshot(observer), result = deriveCompositionMeasurements([before, after]);
+    assert.equal(after.invalid, 0);assert.equal(after.inspectionInvalid, 1);assert.equal(result.evidence.complete, true);
+    assert(!inspectionMetric(result)?.complete);assert.equal(result.measurements.find(row => row.name === 'R38IssueBytes').complete, true);
+    assert.equal(after.records.filter(row => row.kind === 'raw-inspection-read').length, 1);
+  }
+});
+
+test('closing a completed token is idempotent and later intervals keep monotonic identities', () => {
+  const observer = recorder(32), first = observer.beginRawInspection(inspectionSource(5), 'page');first.materialized(5);first.finish('page');first.close();
+  const before = snapshot(observer);first.close();assert.equal(snapshot(observer).cursor, before.cursor);
+  inspect(observer, {bytes: 8, identity: 'c'});const after = snapshot(observer), row = inspectionMetric(deriveCompositionMeasurements([before, after]));
+  assert.equal(after.inspectionSerial, 2);assert.equal(row.value, 8);assert.equal(row.complete, true);
+});
+
+test('observer bounds concurrent inspection metadata and rejects invalid source input without product exceptions', () => {
+  const observer = recorder(256), before = snapshot(observer), tokens = [];
+  for (let index = 0; index < 64; index++) tokens.push(observer.beginRawInspection(inspectionSource(8), 'page'));
+  const refused = observer.beginRawInspection(inspectionSource(8), 'page');assert.equal(refused.id, 0);
+  const malformed = observer.beginRawInspection({hash: 'private prompt sentinel', byteLength: '8'}, 'page');assert.equal(malformed.id, 0);
+  refused.close();malformed.close();for (const token of tokens) token.close();
+  const after = snapshot(observer);assert.equal(after.inspectionSerial, 64);assert.equal(after.activeInspections, 0);assert.equal(after.inspectionInvalid, 2);
+  assert(!JSON.stringify(after).includes('private prompt sentinel'));assert(!inspectionMetric(deriveCompositionMeasurements([before, after]))?.complete);
+});
+
+test('retained intermediate cursors can bridge inspection record overflow, but cannot invent missing begin records', () => {
+  const observer = recorder(2), before = snapshot(observer), token = observer.beginRawInspection(inspectionSource(8), 'page');
+  token.materialized(8);const middle = snapshot(observer);token.finish('page');const after = snapshot(observer);
+  assert.equal(deriveCompositionMeasurements([before, after]).evidence.complete, false);
+  const row = inspectionMetric(deriveCompositionMeasurements([before, middle, after]));assert.equal(row.value, 8);assert.equal(row.complete, true);
+});
+
+for (const [name, mutate] of [
+  ['materialization shortened after capture', values => mutateIntervalRow(values, 'raw-inspection-read', row => {row.receivedBytes--;})],
+  ['opaque terminal for complete parse', values => mutateIntervalRow(values, 'raw-inspection-end', row => {row.outcome = 'opaque';})],
+  ['reused begin identity', values => mutateIntervalRow(values, 'raw-inspection-begin', row => {row.inspectionId = 0;})],
+  ['forged active endpoint', values => {values.at(-1).activeInspections = 1;}],
+  ['forged inspection serial endpoint', values => {values.at(-1).inspectionSerial++;}],
+  ['foreign token on generic read', values => mutateIntervalRow(values, 'raw-read', row => {delete row.inspectionId;})],
+  ['generic Blob source length differs from retained source', values => mutateIntervalRow(values, 'raw-read', row => {row.sourceBytes++;row.complete = false;})],
+  ['generic stream body length differs from actual input', values => mutateIntervalRow(values, 'raw-read', row => {row.operation = 'stream-read';row.sourceBytes++;row.complete = false;})],
+  ['legacy schema capture relabeled current', values => {values.at(-1).schemaVersion = 1;}],
+]) test('retained inspection replay rejects ' + name, () => {
+  const values = completeInterval();mutate(values);const result = deriveCompositionMeasurements(values);assert(!inspectionMetric(result)?.complete);
+});

@@ -5,6 +5,12 @@ import { D11_ROLE_CONTEXT, verifyD11RegistrationContract } from './browser-d11-r
 import { deriveD11PrivateEventBoundaries } from './browser-d11-private-events.mjs';
 import { deriveD11WorkerActivation } from './browser-d11-worker-activation.mjs';
 
+// Pinned Vite uses this exact bare ID for a browser-external virtual module.
+// Keep the recorded ID; neither prefix lookalikes nor absent files are virtual.
+export const D11_VITE_BROWSER_EXTERNAL = '__vite-browser-external';
+export const isD11VirtualModule = id => typeof id === 'string' &&
+  (id.startsWith('\0') || id.startsWith('virtual:') || id === D11_VITE_BROWSER_EXTERNAL);
+
 const sorted = values => [...new Set(values)].sort();
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const own = (dictionary, key) => object(dictionary) && Object.hasOwn(dictionary, key) ? dictionary[key] : undefined;
@@ -374,14 +380,14 @@ export function deriveD11Roles(input = {}) {
   if (!object(manifest) || !Array.isArray(files) || files.length > 20_000 || !object(sourceTextByPath) || !object(outputTextByFile)) { missing.add('D11 role inputs are absent or invalid'); return finish(); }
   if (parser?.name !== 'rolldown' || typeof parser.version !== 'string' || !parser.version || typeof parser.parseSync !== 'function') { missing.add('D11 lock-verified Rolldown AST parser is unavailable'); return finish(); }
   const byFile = new Map(), bySource = new Map(), edges = new Map(), eager = new Map(), dynamic = new Set(), workers = new Set(), wasmOwners = new Set(), ambiguousImports = [];
-  const sourceStaticImports = [], emittedStaticImports = [], emittedStaticMissing = new Set();
+  const sourceStaticImports = [], sourceStaticAmbiguities = new Set(), emittedStaticImports = [], emittedStaticMissing = new Set();
   const digest = value => 'sha256:' + createHash('sha256').update(value).digest('hex');
   const add = (map, key, value) => { const values = map.get(key) ?? new Set(); values.add(value); map.set(key, values); };
   for (const file of files) {
     if (!object(file) || typeof file.file !== 'string' || byFile.has(file.file)) { missing.add('D11 role file inventory is invalid or duplicated'); continue; }
     byFile.set(file.file, file);
     for (const source of [...file.sources ?? [], ...file.modules ?? []]) {
-      if (typeof source !== 'string' || source.startsWith('\0') || source.startsWith('virtual:')) continue;
+      if (typeof source !== 'string' || isD11VirtualModule(source)) continue;
       add(bySource, source.split('?')[0], file.file);
     }
   }
@@ -433,7 +439,15 @@ export function deriveD11Roles(input = {}) {
           return;
         }
         const targets = source ? resolveSource(path, specifier) : [reference(path, specifier)].filter(file => byFile.get(file)?.kind === 'js');
-        if (targets.length > 1) { missing.add('D11 source import maps to multiple emitted chunks: ' + path + ' -> ' + specifier); return; }
+        if (targets.length > 1) {
+          const reason = 'D11 source import maps to multiple emitted chunks: ' + path + ' -> ' + specifier;
+          // A source may be compiled into several page/Worker outputs. Retain
+          // every static candidate below; only an authenticated complete emitted
+          // graph may supersede these conservative attributions. Dynamic imports
+          // still require a unique target and cannot use this refinement.
+          if (source && staticImport) sourceStaticAmbiguities.add(reason);
+          else { missing.add(reason); return; }
+        }
         if (!targets.length) {
           if (dynamicImport) missing.add('D11 dynamic import has no verified emitted target: ' + path + ' -> ' + specifier);
           else if (!source) {
@@ -531,7 +545,10 @@ export function deriveD11Roles(input = {}) {
     } catch (error) { missing.add('D11 emitted static graph authority is unavailable: ' + error.message); }
   }
   // Failed, absent and legacy authority retains the existing source upper bound.
-  if (!staticImportGraph) for (const item of sourceStaticImports) add(edges, item.output, item.target);
+  if (!staticImportGraph) {
+    for (const reason of sourceStaticAmbiguities) missing.add(reason);
+    for (const item of sourceStaticImports) add(edges, item.output, item.target);
+  }
   const closure = (roots, includeEager = true) => {
     const found = new Set(), pending = [...roots];
     while (pending.length) { const file = pending.pop(); if (found.has(file)) continue; found.add(file); pending.push(...edges.get(file) ?? []); if (includeEager) pending.push(...eager.get(file) ?? []); }

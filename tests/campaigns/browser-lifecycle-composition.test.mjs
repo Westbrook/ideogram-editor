@@ -10,7 +10,7 @@ import {projectLifecycleComposition, verifyLifecycleCompositionEvidence, LIFECYC
 // retained journals. Numeric replay fixtures are not a memory qualification.
 const hash = bytes => 'sha256:' + createHash('sha256').update(bytes).digest('hex');
 const clone = value => structuredClone(value);
-const sizeNames = ['R38DerivedSnapshotBytes', 'R38IssueBytes', 'R38RawPageBytes', 'R38RawTruncationOrFalseCompletenessCount'];
+const sizeNames = ['R38DerivedSnapshotBytes', 'R38IssueBytes', 'R38RawPageBytes', 'R38MaterializedRawInspectionBytes', 'R38RawTruncationOrFalseCompletenessCount'];
 const workspaceNames = ['R38MaterializedRawInspectionBytes', 'R38TextCaptionWorkspaceBytes'];
 function producer(t, {capacity = 64, rawReservation = 80} = {}) {
   let clock = 1;
@@ -26,8 +26,10 @@ function producer(t, {capacity = 64, rawReservation = 80} = {}) {
   const control = reserve('composition-response-model', 400, 'control');
   const caption = {text: 'é🖼'}, original = Buffer.from(JSON.stringify(caption));
   const source = {hash: hash(original), byteLength: String(original.length)};
+  const inspection = observer.beginRawInspection(source, 'parse');
+  observer.read('blob-read', original.length, original.length, inspection);
   observer.parsed(original.length, {state: 'supported', issues: [], value: caption}, source);
-  observer.page(source, 0, original.length);
+  observer.page(source, 0, original.length); inspection.finish('parsed', 'supported'); inspection.close();
   raw.release(); prompt.release(); control.release();
   const after = snapshot();
   return {observer, ledger, reserve, snapshot, before, after, caption, original,
@@ -67,7 +69,7 @@ function packet(t, {required = [...LIFECYCLE_COMPOSITION_NAMES], failed = false}
 test('actual ledger journal preserves exact byte rows and withholds incomplete resident workspace claims', t => {
   const p = producer(t), result = projectLifecycleComposition({allocations: p.allocations, required: [...LIFECYCLE_COMPOSITION_NAMES]});
   assert.deepEqual(result.measurements.map(row => row.name), sizeNames);
-  assert.deepEqual(result.measurements.map(row => row.value), [Buffer.byteLength(JSON.stringify(p.caption)), 2, p.original.length, 0]);
+  assert.deepEqual(result.measurements.map(row => row.value), [Buffer.byteLength(JSON.stringify(p.caption)), 2, p.original.length, p.original.length, 0]);
   assert(result.measurements.every(row => row.complete));
   const logical = result.evidence.logicalReservations;
   assert.deepEqual(logical.map(row => [row.name, row.value]), [[workspaceNames[0], 80], [workspaceNames[1], 580]]);
@@ -81,7 +83,7 @@ test('actual ledger journal preserves exact byte rows and withholds incomplete r
 test('an actual conservative raw allowance above 16 MiB cannot manufacture a scored R38 breach', t => {
   const p = producer(t, {rawReservation: 20 * 1048576}), result = projectLifecycleComposition({allocations: p.allocations, required: [...LIFECYCLE_COMPOSITION_NAMES]});
   assert(result.evidence.logicalReservations.find(row => row.name === workspaceNames[0]).value > 16 * 1048576);
-  assert(!result.measurements.some(row => workspaceNames.includes(row.name)));
+  assert(!result.measurements.some(row => row.name === 'R38TextCaptionWorkspaceBytes')); assert.equal(result.measurements.find(row => row.name === 'R38MaterializedRawInspectionBytes').value, p.original.length);
   assert(result.measurements.find(row => row.name === 'R38RawPageBytes').value < 32768);
 });
 
@@ -91,7 +93,7 @@ test('selected control allowance above 64 MiB remains an unscored lifecycle diag
   const result = projectLifecycleComposition({allocations: p.allocations, required: [...LIFECYCLE_COMPOSITION_NAMES]});
   const workspace = result.evidence.logicalReservations.find(row => row.name === workspaceNames[1]);
   assert.equal(workspace.value, 64 * 1048576 + 1); assert.equal(workspace.complete, false); assert.equal(workspace.ceilingAssessment, 'unavailable');
-  assert(!result.measurements.some(row => workspaceNames.includes(row.name))); assert.equal(result.evidence.physicalMemoryComplete, false);
+  assert(!result.measurements.some(row => row.name === 'R38TextCaptionWorkspaceBytes')); assert.equal(result.measurements.find(row => row.name === 'R38MaterializedRawInspectionBytes').value, p.original.length); assert.equal(result.evidence.physicalMemoryComplete, false);
   held.release();
 });
 
@@ -117,7 +119,7 @@ test('endpoint workspace fallback remains a separate incomplete unscored diagnos
 
 test('sealed lifecycle replay accepts exact byte coverage while keeping full R38 incomplete', async t => {
   const p = packet(t); assert.deepEqual(await verifyLifecycleCompositionEvidence(p.args), {applicable: true, complete: false});
-  assert(!p.cycle.action.measurements.some(row => workspaceNames.includes(row.name)));
+  assert(!p.cycle.action.measurements.some(row => row.name === 'R38TextCaptionWorkspaceBytes')); assert(p.cycle.action.measurements.some(row => row.name === 'R38MaterializedRawInspectionBytes'));
   const q = packet(t, {required: sizeNames}); q.cycle.action.status = 'PASS'; q.args.result.status = 'PASS';
   assert.deepEqual(await verifyLifecycleCompositionEvidence(q.args), {applicable: true, complete: true});
 });
@@ -232,4 +234,16 @@ test('collector and campaign verifier use the shared projection and replay at th
   assert.doesNotMatch(collector, /add\('R38TextCaptionWorkspaceBytes'/);
   assert.match(verification, /await verifyLifecycleCompositionEvidence\(\{cell: group\.cell, result: actual\.result/);
   assert.match(verification, /verifyLifecycleCompositionEvidence\(\{cell: group\.cell, result: actual\.result, attemptStatus: actual\.status/);
+});
+
+
+for(const defect of ['abandoned','source-length','missing-boundary'])test('lifecycle does not turn an invalid '+defect+' inspection into a numeric breach',t=>{
+ const p=producer(t),token=p.observer.beginRawInspection({hash:'sha256:'+'b'.repeat(64),byteLength:String(16*1048576+1)},'decode');token.materialized(16*1048576+1);token.finish('decoded');token.close();
+ if(defect==='abandoned')p.observer.beginRawInspection({hash:'sha256:'+'c'.repeat(64),byteLength:'2'},'page').close();
+ p.allocations[1].compositionObservations=p.snapshot();if(defect==='source-length')p.allocations[1].compositionObservations.records.findLast(row=>row.kind==='raw-inspection-begin').sourceBytes++;if(defect==='missing-boundary')p.allocations[0].label='middle';
+ const result=projectLifecycleComposition({allocations:p.allocations,required:[...LIFECYCLE_COMPOSITION_NAMES]});assert(!result.measurements.some(row=>row.name==='R38MaterializedRawInspectionBytes'));
+});
+test('lifecycle retains a complete oversized input as a lower bound when only the outer action fails',t=>{
+ const p=producer(t),token=p.observer.beginRawInspection({hash:'sha256:'+'b'.repeat(64),byteLength:String(16*1048576+1)},'decode');token.materialized(16*1048576+1);token.finish('decoded');token.close();p.allocations[1].compositionObservations=p.snapshot();
+ const result=projectLifecycleComposition({allocations:p.allocations,required:[...LIFECYCLE_COMPOSITION_NAMES],failed:true}),row=result.measurements.find(row=>row.name==='R38MaterializedRawInspectionBytes');assert.equal(row.value,16*1048576+1);assert.equal(row.complete,false);assert.equal(row.lowerBound,true);
 });

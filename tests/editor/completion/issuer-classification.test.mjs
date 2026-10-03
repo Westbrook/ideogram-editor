@@ -172,7 +172,7 @@ test('reviewed network boundary hashes are fixed independently of candidates',()
   'src/observability/prompt-memory.ts':'65d2bd5efb45197f2f4edecbcbde7b40f0fc65acb278fde42e02f57146eb30dc',
   'src/observability/recovery-memory.ts':'52c4b1f97ae3ee5e3eec4e88ca0274174aaea1b54f611ec27a948393f052b492',
   'src/observability/allocations.ts':'31a220cd0df3df7577212c64b5e5db3a21c16dc3c95de99f77721c4c6e77ac06',
-  'src/observability/composition-observations.ts':'e732150702ee4508467330c50e11f074d2916d82297d0315c145926ee29807a4',
+  'src/observability/composition-observations.ts':'966cf50aea8c77470a0dad9ffc08accf03ae974f99bb05292b1cefe23de93cfc',
   'src/ui/storage-library.ts':'d545b60a0d2cc13707b9d42bd58480693bbf61b533a2269fad0e4ba964878216',
   'src/ui/model-owner.ts':'b6e6daa3fc7ec66dc5f5e6a8f193d6d395028326f739a2802bb8e18232346524',
  });

@@ -74,9 +74,9 @@ async function authentic(t) {
     const outputTextByFile = { 'inline:bootstrap': bootstrap };
     // A synthetic capture envelope tests pure consistency against authentic
     // reviewed source. It is not evidence that this test ran a Vite build.
-    const compilation = { schema: 1, profile: 'reviewed-vite-app-1', configFile: 'vite.app.config.ts', configLoader: 'bundle',
+    const compilation = { schema: 1, profile: 'reviewed-vite-app-2', configFile: 'vite.app.config.ts', configLoader: 'bundle',
       command: 'build', mode: 'production', env: { BASE_URL: '/', MODE: 'production', DEV: false, PROD: true }, configInputs,
-      inlineTransformOptions: 'none', userPlugins: ['consumer-build-evidence'] };
+      inlineTransformOptions: 'none', userPlugins: ['consumer-build-evidence'], worker: { format: 'iife', userPlugins: ['consumer-worker-build-evidence'] } };
     const emittedModules = D11_INVOCATION_DEPENDENCY_PATHS.filter(path => path.endsWith('.js'));
     const readArchive = createD11NpmArchiveReader({ cacheDirectory });
     const contract = await prepareD11InvocationContract({ read, readArchive, dependencyInputs, emittedModules, compilation, sourceTextByPath, sourceInputs, outputTextByFile });
@@ -171,6 +171,9 @@ test('reviewed compilation cannot be replaced by another config, plugin or ambie
     ['missing compilation capture', value => { delete value.compilation; }],
     ['different actual config', value => { value.compilation.configFile = 'other.config.ts'; }],
     ['extra user plugin', value => { value.compilation.userPlugins.push('transform'); }],
+    ['omitted worker provenance plugin', value => { delete value.compilation.worker; }],
+    ['replaced worker provenance plugin', value => { value.compilation.worker.userPlugins = ['unreviewed-worker-transform']; }],
+    ['changed worker format', value => { value.compilation.worker.format = 'es'; }],
     ['inline transform', value => { value.compilation.inlineTransformOptions = 'present'; }],
     ['ambient Vite define', value => { value.compilation.env.VITE_UNSEALED = 'present'; }],
     ['source bytes missing', value => { delete value.sourceTextByPath['vite.app.config.ts']; }],

@@ -63,6 +63,20 @@ test('parallel entry-bound refusal stays at one sentinel and drains actual handl
  assert.equal(result.completeTraversal,false);assert.equal(result.entries,6);assert.equal(result.failures.length,1);assert.equal(result.failures[0].code,'EVIDENCE_BOUND');assert(calls<=10,'Only the five admitted entries may receive pre/post stats');await closed(dirs.handles);
 });
 
+// Isolate each exact bigint mutation witness from identity/type changes. A file
+// remains a non-atomic byte observation; changed directory membership is refused.
+for(const kind of ['file','directory'])for(const field of ['size','mtimeNs','ctimeNs'])test(kind+' '+field+' change preserves exact post-stat mutation behavior',async t=>{
+ const f=await fixture(t,1),target=kind==='file'?join(f.volume,'entry-0'):f.volume,dirs=directories(),visits=new Map();
+ const result=await sampleVolume(f.allocation,{openDirectory:dirs.openDirectory,async statEntry(path,options){
+  const value=await lstat(path,options),count=(visits.get(path)??0)+1;visits.set(path,count);
+  if(path===target&&count===2){assert.equal(typeof value[field],'bigint');value[field]+=1n;}
+  return value;
+ }});
+ assert.equal(result.entries,2);assert.equal(result.uniqueFiles,1);assert.equal(result.observedLogicalBytes,1);assert.equal(result.concurrentChanges,1);
+ assert.equal(result.completeTraversal,kind==='file');assert.deepEqual(result.failures.map(value=>value.code),kind==='file'?[]:['EVIDENCE_MUTATION']);
+ assert.equal(visits.size,2);for(const count of visits.values())assert.equal(count,2);await closed(dirs.handles);
+});
+
 // Timers/monotonic time are controlled; allocation, scans, journal writes and
 // descriptor cleanup are real. These are scheduling tests, not timing evidence.
 function clock(t){

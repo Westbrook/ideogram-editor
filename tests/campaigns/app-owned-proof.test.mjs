@@ -94,7 +94,10 @@ test('app ownership contract retains resource scope and explicit global exclusio
   assert(Object.isFrozen(APP_OWNED_ALLOCATION_CONTRACT.resourceKeys));
   assert(Object.isFrozen(APP_OWNED_ALLOCATION_CONTRACT.excluded));
   assert(Object.isFrozen(REVIEWED_RENDERER_OWNERSHIP));
-  assert.deepEqual(REVIEWED_RENDERER_OWNERSHIP, []);
+  assert(Array.isArray(REVIEWED_RENDERER_OWNERSHIP));
+  for (const review of REVIEWED_RENDERER_OWNERSHIP) assert(Object.isFrozen(review));
+  // Positive authority comes only from the separately reviewed real-input
+  // integration. The deliberately unreviewed contexts below must still fail.
 });
 
 test('unreviewed source cannot capture an application ownership proof', async () => {
@@ -114,8 +117,8 @@ test('well-formed fabricated v2 metadata fails before retained evidence is read'
 });
 
 test('legacy v1 metadata cannot grant application point or window scope', async () => {
-  // The empty registry cannot exercise an approved legacy positive. This pins
-  // only rejection of an unreviewed legacy claim under the new predicates.
+  // This deliberately unreviewed legacy claim must remain rejected even when
+  // the fixed registry contains a separately reviewed production v2 entry.
   const proof = unreviewedProof(1);
   let reads = 0;
   await assert.rejects(verifyRendererOwnershipProof(proof, { output: '/retained', ...context(),

@@ -63,6 +63,31 @@ function publicStartupSpecimen() {
   return f;
 }
 
+test('legacy authority retains every static source candidate and refuses page or Worker attribution ambiguity', () => {
+  for (const targets of [['assets/shared.js', 'assets/panels.js'], ['assets/shared.js', 'assets/runtime.js']]) {
+    const f = specimen(), shared = 'src/shared.ts';
+    f.sourceTextByPath['src/main.ts'] = "import './shared.js';\n" + f.sourceTextByPath['src/main.ts'];
+    f.sourceTextByPath[shared] = 'export const shared = 1;';
+    for (const target of targets) {
+      const file = f.files.find(row => row.file === target); file.modules = [...file.modules, shared];
+    }
+    const result = deriveD11Roles(f);
+    assert.equal(result.complete, false);
+    assert.match(result.missing.join('; '), /source import maps to multiple emitted chunks: src\/main.ts -> .\/shared.js/);
+    assert.equal(Object.hasOwn(result, 'staticImportGraph'), false);
+    for (const target of targets) assert(result.startupFiles.includes(target), 'Retain the conservative cost of ' + target);
+  }
+});
+
+test('dynamic source attribution remains ambiguous across multiple emitted candidates', () => {
+  const f = specimen();
+  const worker = f.files.find(row => row.file === 'assets/runtime.js'); worker.modules = [...worker.modules, 'src/ui/shell.ts'];
+  const result = deriveD11Roles(f);
+  assert.equal(result.complete, false);
+  assert.match(result.missing.join('; '), /source import maps to multiple emitted chunks: src\/main.ts -> .\/ui\/shell.js/);
+  assert.equal(Object.hasOwn(result, 'staticImportGraph'), false);
+});
+
 test('top-level try/await source import enters startup despite an emitted preload arrow', () => {
   const result = deriveD11Roles(specimen());
   assert.deepEqual(result.missing, []); assert.equal(result.complete, true);

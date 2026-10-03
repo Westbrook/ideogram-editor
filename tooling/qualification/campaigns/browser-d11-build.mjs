@@ -5,7 +5,7 @@ import { isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
-import { deriveD11Roles } from './browser-d11-roles.mjs';
+import { D11_VITE_BROWSER_EXTERNAL, deriveD11Roles, isD11VirtualModule } from './browser-d11-roles.mjs';
 import { D11_ROLE_CONTEXT, prepareD11RegistrationContract } from './browser-d11-registration.mjs';
 import { D11_INVOCATION_DEPENDENCY_PATHS, createD11NpmArchiveReader, prepareD11InvocationContract, verifyD11CompilationCapture } from './browser-d11-invocation-contract.mjs';
 
@@ -94,6 +94,14 @@ export async function loadD11Build({ repo, cacheDirectory } = {}) {
   if (process.versions.node !== '26.10.0') throw Error('D11 build inventory requires the pinned Node 26.10.0 runtime before byte/gzip work');
   if (!isAbsolute(repo ?? '') || resolve(repo) !== repo || await realpath(repo) !== repo || !(await lstat(repo)).isDirectory()) throw Error('D11 repo must be an existing canonical directory without symlinks');
   const reads = new Map(), available = new Map(), directories = new Map(); let totalBytes = 0;
+  let browserExternalSeen = false;
+  async function absentBrowserExternalSource() {
+    // Root-relative physical names can collide with the producer's module ID
+    // normalization. Refuse any entry, including a directory or dangling link.
+    try { await lstat(join(repo, D11_VITE_BROWSER_EXTERNAL)); }
+    catch (error) { if (error?.code === 'ENOENT') return; throw error; }
+    throw Error('D11 virtual module conflicts with a physical source: ' + D11_VITE_BROWSER_EXTERNAL);
+  }
   async function regular(path) {
     pathName(path);
     const absolute = join(repo, path);
@@ -199,7 +207,10 @@ export async function loadD11Build({ repo, cacheDirectory } = {}) {
     for (const module of modules) {
       // Virtual bundler modules have no disk source. Preserve their identities;
       // never treat their names as paths or fabricate source provenance.
-      if (module.startsWith('\0') || module.startsWith('virtual:')) continue;
+      if (isD11VirtualModule(module)) {
+        if (module === D11_VITE_BROWSER_EXTERNAL) { await absentBrowserExternalSource(); browserExternalSeen = true; }
+        continue;
+      }
       const source = module.split('?')[0]; pathName(source); await regular(source); sources.push(source);
     }
     if (authoring.has(actual.sha256)) sources.push(authoring.get(actual.sha256));
@@ -293,6 +304,7 @@ export async function loadD11Build({ repo, cacheDirectory } = {}) {
   const roles = deriveD11Roles({ manifest, files, ...roleInputs, roleContext, ...(capturesInvocationDependencies ? { dependencyInputs, compilation: build.compilation, sourceInputs } : {}), lock, parser: { ...roleInputs.parser, parseSync } });
   // Recheck every read and directory at the final boundary. No browser timing
   // should begin until this immutable inventory has finished successfully.
+  if (browserExternalSeen) await absentBrowserExternalSource();
   for (const [path, value] of reads) { const actual = await regular(path); if (!same(value.stat, actual.stat)) throw Error('D11 input changed before final sealing: ' + path); }
   for (const [path, before] of available) if (!same(before, await lstat(join(repo, path))) || await realpath(join(repo, path)) !== join(repo, path)) throw Error('D11 source availability changed before final sealing: ' + path);
   for (const [path, before] of directories) if (!same(before, await lstat(join(repo, path))) || await realpath(join(repo, path)) !== join(repo, path)) throw Error('D11 inventory changed before final sealing: ' + path);

@@ -24,8 +24,10 @@ function fixture(t, {operation = 'fast.workflow', required = [...ORDINARY_COMPOS
   const capture = value => {const index = raw.snapshots.length; raw.snapshots.push({startedMs: 10 + index * 10, endedMs: 11 + index * 10, value: value ?? snapshot()}); if (index) raw.actionEndedMs = 9 + index * 10; return index;};
   const work = () => {
     producer.ownership('composition-raw-copy', 0, 100, 100);
+    const inspection = producer.beginRawInspection(source, 'parse');
+    producer.read('blob-read', 100, 100, inspection);
     producer.parsed(100, {state: 'supported', issues: [], value: {caption: 'original'}}, source);
-    producer.page(source, 0, 100);
+    producer.page(source, 0, 100); inspection.finish('parsed', 'supported'); inspection.close();
     producer.ownership('composition-raw-copy', 100, 0, 0);
   };
   return {producer, binding, raw, snapshot, capture, work};
@@ -35,7 +37,7 @@ const names = result => result.measurements.map(row => row.name);
 test('same-realm actual producer journal supplies observed sizes and preserves workspace scope gaps', t => {
   const f = fixture(t); f.capture(); f.work(); f.capture();
   const result = inspectOrdinaryCompositionRaw(f.raw, f.binding);
-  assert.deepEqual(names(result), ['R38DerivedSnapshotBytes', 'R38IssueBytes', 'R38RawPageBytes', 'R38RawTruncationOrFalseCompletenessCount']);
+  assert.deepEqual(names(result), ['R38DerivedSnapshotBytes', 'R38IssueBytes', 'R38RawPageBytes', 'R38MaterializedRawInspectionBytes', 'R38RawTruncationOrFalseCompletenessCount']);
   assert.equal(result.measurements.find(row => row.name === 'R38RawPageBytes').value, 100);
   assert.equal(result.measurements.find(row => row.name.endsWith('Count')).value, 0);
   assert.equal(result.logicalReservations.length, 2);
@@ -56,7 +58,7 @@ test('selected control owners extend ordinary simultaneous diagnostics without g
   assert.equal(workspace.scope, 'prompt-and-selected-composition-control-logical-reservations-only');
   assert.equal(result.logicalReservations.find(row => row.name === 'R38MaterializedRawInspectionBytes').value, 100);
   assert(result.logicalReservations.every(row => row.complete === false));
-  assert(!names(result).some(name => ['R38TextCaptionWorkspaceBytes', 'R38MaterializedRawInspectionBytes'].includes(name)));
+  assert(!names(result).includes('R38TextCaptionWorkspaceBytes')); assert.equal(result.measurements.find(row => row.name === 'R38MaterializedRawInspectionBytes').value, 100);
   assert.deepEqual(result.failures, []); assert.equal(result.physicalMemoryComplete, false); assert.equal(result.qualification, false);
 });
 
@@ -122,7 +124,7 @@ test('forged zero violation, incomplete source range and failed original action 
   ]) {
     const f = fixture(t); f.capture(); f.work(); f.capture(); change(f);
     const result = inspectOrdinaryCompositionRaw(f.raw, f.binding);
-    assert.deepEqual(result.measurements, []); assert(result.missing.length > 0);
+    assert(result.measurements.every(row => row.name === 'R38MaterializedRawInspectionBytes' && row.complete === false && row.lowerBound === true)); assert(result.missing.length > 0);
   }
 });
 
@@ -145,11 +147,13 @@ test('retained verification rejects unbacked advertised measurements and mismatc
   assert.equal(read, false);
 });
 
-async function replayFixture(t) {
+async function replayFixture(t, {inspectionBytes, failed = false, tamper, extend} = {}) {
   const {createHash} = await import('node:crypto');
   const digest = bytes => 'sha256:' + createHash('sha256').update(bytes).digest('hex');
-  const f = fixture(t, {required: ['R38DerivedSnapshotBytes', 'R38IssueBytes', 'R38RawPageBytes', 'R38RawTruncationOrFalseCompletenessCount']});
-  f.capture(); f.work(); f.capture();
+  const f = fixture(t, {required: ['R38DerivedSnapshotBytes', 'R38IssueBytes', 'R38RawPageBytes', 'R38MaterializedRawInspectionBytes', 'R38RawTruncationOrFalseCompletenessCount']});
+  f.capture(); f.work();
+  if (inspectionBytes !== undefined) {const token=f.producer.beginRawInspection({hash:'sha256:'+'b'.repeat(64),byteLength:String(inspectionBytes)},'decode');token.materialized(inspectionBytes);token.finish('decoded');token.close();}
+  f.capture();f.raw.failed=failed;if(tamper)tamper(f.raw.snapshots.at(-1).value.composition);if(extend)extend(f);
   const root = '/fixture/source', groupOutput = '/fixture/group', browserCache = '/fixture/browsers';
   const environment = Object.fromEntries(['sourceDigest', 'buildDigest', 'toolsDigest', 'controlDigest'].map(key => [key, (['sourceDigest', 'controlDigest'].includes(key) ? '' : 'sha256:') + 'b'.repeat(64)]));
   const workerProcessIdentity = {pid: 200, node: 'v26.10.0', startedAt: '2026-10-01T00:00:00Z'};
@@ -173,9 +177,9 @@ async function replayFixture(t) {
   const bindingPin = put(prefix + '-binding.json', f.binding), rawPin = put(prefix + '-raw.json', f.raw);
   const observation = {kind: 'ordinary-composition-observation-1', nonce: f.binding.nonce, binding: bindingPin, raw: rawPin,
     analysis, qualification: false, physicalMemoryComplete: false};
-  const measurements = analysis.measurements.map(row => ({...row, evidence: [{kind: 'ordinary-composition-retained-observation-1', artifact: {...rawPin, path: groupOutput + '/' + rawPin.path}}]}));
+  const measurements = analysis.measurements.filter(row => row.complete || row.name === 'R38MaterializedRawInspectionBytes' && row.lowerBound === true && row.value > 16 * 1048576).map(row => ({...row, evidence: [{kind: 'ordinary-composition-retained-observation-1', artifact: {...rawPin, path: groupOutput + '/' + rawPin.path}}]}));
   const cell = {id: f.binding.attempt.cellId, operation: f.binding.operation,
-    requiredMeasurements: f.binding.required.map(name => ({name, budgetId: 'R38', unit: name.endsWith('Count') ? 'violations' : 'bytes'}))};
+    requiredMeasurements: f.binding.required.map(name => ({name, budgetId: 'R38', unit: name.endsWith('Count') ? 'violations' : 'bytes', ...(name === 'R38MaterializedRawInspectionBytes' ? {ceiling:16 * 1048576} : {})}))};
   const state = {productRepo: root, sourceDigest: environment.sourceDigest, playwrightBrowsersPath: browserCache,
     h: {source: root, completed: true, failure: null, active: false, browserIdentity: {engines: [{engine: runtime.engine, executable: runtime.executable,
       version: runtime.version, revision: runtime.revision, bytes: runtime.executableIdentity.bytes, sha256: runtime.executableIdentity.sha256}]}}};
@@ -183,7 +187,7 @@ async function replayFixture(t) {
   const controlNames = ['browser.mjs', 'browser-driver.mjs', 'browser-queue.mjs', 'browser-phase-snapshot.mjs', 'browser-ordinary-composition.mjs',
     'browser-composition-counters.mjs', 'browser-text-resources.mjs', 'browser-measurements.mjs', 'worker.mjs', 'run.mjs', 'verification.mjs'];
   const sourceNames = ['src/observability/composition-observations.ts', 'src/observability/allocations.ts', 'src/observability/browser.ts',
-    'src/observability/diagnostic-memory.ts', 'src/composition/memory.ts', 'src/composition/core.ts', 'src/ui/composition.ts', 'src/ui/request-edits.ts'];
+    'src/observability/diagnostic-memory.ts', 'src/composition/memory.ts', 'src/composition/core.ts', 'src/ui/composition.ts', 'src/ui/request-edits.ts', 'src/ui/request.ts', 'src/ui/returned-description.ts', 'server/storage/candidates.ts'];
   // Read the actual application inputs. An invented source row or an obsolete
   // compiled output must not make this source-closure fixture pass.
   const sourceFiles = await Promise.all(sourceNames.map(async path => ({path,
@@ -204,6 +208,7 @@ test('exact retained byte, process, executable and attempt replay alone can issu
   const {args} = await replayFixture(t), proof = await verifyOrdinaryCompositionEvidence(args);
   const request = {cell: args.cell, sample: args.attempt, rule: args.cell.requiredMeasurements.find(row => row.name === 'R38RawPageBytes'), proof};
   assert.equal(ordinaryCompositionMeasurement(request).measurement.value, 100);
+  assert.equal(ordinaryCompositionMeasurement({...request, rule: args.cell.requiredMeasurements.find(row => row.name === 'R38MaterializedRawInspectionBytes')}).measurement.value, 100);
   assert.equal(ordinaryCompositionMeasurement({...request, proof: {...proof}}).measurement, undefined);
   assert.equal(ordinaryCompositionMeasurement({...request, sample: {...args.attempt, ordinal: 2}}).measurement, undefined);
   assert.equal(ordinaryCompositionMeasurement({...request, rule: {...request.rule, unit: 'ms'}}).measurement, undefined);
@@ -404,7 +409,7 @@ test('central-resource capture failure preserves independent complete producer b
   const f = fixture(t); f.capture(); f.work(); f.capture();
   f.raw.resourceMissing = ['Composition central reservation closure unavailable'];
   const result = inspectOrdinaryCompositionRaw(f.raw, f.binding);
-  assert.deepEqual(names(result), ['R38DerivedSnapshotBytes', 'R38IssueBytes', 'R38RawPageBytes', 'R38RawTruncationOrFalseCompletenessCount']);
+  assert.deepEqual(names(result), ['R38DerivedSnapshotBytes', 'R38IssueBytes', 'R38RawPageBytes', 'R38MaterializedRawInspectionBytes', 'R38RawTruncationOrFalseCompletenessCount']);
   assert(result.measurements.every(row => row.complete));
   assert(result.missing.includes(f.raw.resourceMissing[0]));
   assert.equal(result.qualification, false); assert.equal(result.physicalMemoryComplete, false);
@@ -457,4 +462,45 @@ test('an overflowed central journal retains a higher final point in its R38 lowe
   assert.equal(row.ceilingAssessment, 'unavailable'); assert.deepEqual(result.failures, []);
   assert(result.missing.includes('Composition central reservations retain only an incomplete operation transition range'));
   assert(!result.measurements.some(value => ['R38MaterializedRawInspectionBytes', 'R38TextCaptionWorkspaceBytes'].includes(value.name)));
+});
+
+
+test('ordinary inspection score is independent of oversized logical parser reservations',t=>{
+ const f=fixture(t,{required:['R38MaterializedRawInspectionBytes']});f.capture();f.producer.ownership('composition-parse-scratch',0,20*1048576,20*1048576);const inspection=f.producer.beginRawInspection(source,'parse');f.producer.read('blob-read',100,100,inspection);inspection.finish('parsed','malformed');inspection.close();f.producer.ownership('composition-parse-scratch',20*1048576,0,0);f.capture();
+ const result=inspectOrdinaryCompositionRaw(f.raw,f.binding);assert.equal(result.measurements[0].value,100);assert.equal(result.measurements[0].complete,true);assert.equal(result.logicalReservations[0].value,20*1048576);assert.equal(result.logicalReservations[0].complete,false);assert.equal(result.physicalMemoryComplete,false);
+});
+test('ordinary inspection publication requires a completed linked read, independently of page rows',t=>{
+ const f=fixture(t,{required:['R38RawPageBytes','R38MaterializedRawInspectionBytes']});f.capture();f.producer.page(source,0,100);const inspection=f.producer.beginRawInspection(source,'page');f.producer.read('blob-read',100,100,inspection);inspection.close();f.capture();
+ const result=inspectOrdinaryCompositionRaw(f.raw,f.binding);assert.deepEqual(names(result),['R38RawPageBytes']);assert(result.missing.some(value=>value.startsWith('R38MaterializedRawInspectionBytes:')));
+});
+
+
+test('a completed input cannot hide a later abandoned inspection without an extent row',t=>{
+ const f=fixture(t,{required:['R38MaterializedRawInspectionBytes']});f.capture();f.work();f.producer.beginRawInspection(source,'page').close();f.capture();
+ const result=inspectOrdinaryCompositionRaw(f.raw,f.binding);assert.deepEqual(result.measurements,[]);assert.equal(result.intervals[0].evidence.complete,true);assert.equal(result.intervals[0].evidence.rawInspection.complete,false);
+});
+
+
+test('ordinary input extent replay requires the immutable candidate prompt source contract',async t=>{
+ const {args}=await replayFixture(t);args.sourceFiles=args.sourceFiles.filter(row=>row.path!=='server/storage/candidates.ts');await assert.rejects(verifyOrdinaryCompositionEvidence(args),/application source closure missing: server\/storage\/candidates\.ts/);
+});
+
+
+for(const inspectionBytes of [100,16*1048576,16*1048576+1])test('retained incomplete inspection '+inspectionBytes+' admits only a witnessed ceiling breach',async t=>{
+ const {args}=await replayFixture(t,{inspectionBytes,failed:true}),proof=await verifyOrdinaryCompositionEvidence(args),rule=args.cell.requiredMeasurements.find(row=>row.name==='R38MaterializedRawInspectionBytes'),request={cell:args.cell,sample:args.attempt,rule,proof},result=ordinaryCompositionMeasurement(request);
+ if(inspectionBytes<=rule.ceiling)assert.equal(result.measurement,undefined);else{assert.equal(result.measurement.value,inspectionBytes);assert.equal(result.measurement.complete,false);assert.equal(result.measurement.lowerBound,true);assert.equal(ordinaryCompositionMeasurement({...request,rule:{...rule,ceiling:rule.ceiling-1}}).measurement,undefined,'A caller cannot substitute a different registry ceiling');}
+});
+for(const defect of ['source-length','duplicate-read','lost-read'])test('retained '+defect+' cannot create raw inspection lower-bound authority',async t=>{
+ const tamper=value=>{const read=value.records.findLast(row=>row.kind==='raw-inspection-read');if(defect==='source-length')value.records.findLast(row=>row.kind==='raw-inspection-begin').sourceBytes++;else if(defect==='duplicate-read')value.records.push({...read});else value.records.splice(value.records.indexOf(read),1);};
+ const {args}=await replayFixture(t,{inspectionBytes:16*1048576+1,failed:true,tamper}),proof=await verifyOrdinaryCompositionEvidence(args),rule=args.cell.requiredMeasurements.find(row=>row.name==='R38MaterializedRawInspectionBytes');assert.equal(ordinaryCompositionMeasurement({cell:args.cell,sample:args.attempt,rule,proof}).measurement,undefined);
+});
+
+
+for(const defect of ['source-length','lost-read','malformed-navigation'])test('an oversized first realm cannot confer lower-bound authority across a later '+defect,async t=>{
+ const next=fixture(t),extend=f=>{
+  const token=next.producer.beginRawInspection({hash:'sha256:'+'c'.repeat(64),byteLength:'100'},'decode');token.materialized(100);token.finish('decoded');token.close();
+  const snapshot=next.snapshot(2000);if(defect==='source-length')snapshot.composition.records.find(row=>row.kind==='raw-inspection-begin').sourceBytes++;if(defect==='lost-read')snapshot.composition.records=snapshot.composition.records.filter(row=>row.kind!=='raw-inspection-read');
+  f.capture(structuredClone(snapshot));f.capture(structuredClone(snapshot));f.raw.navigations.push({before:1,after:2,startedMs:22,endedMs:29,completed:defect!=='malformed-navigation'});
+ };
+ const {args}=await replayFixture(t,{inspectionBytes:16*1048576+1,failed:true,extend}),proof=await verifyOrdinaryCompositionEvidence(args),rule=args.cell.requiredMeasurements.find(row=>row.name==='R38MaterializedRawInspectionBytes');assert.equal(ordinaryCompositionMeasurement({cell:args.cell,sample:args.attempt,rule,proof}).measurement,undefined);
 });

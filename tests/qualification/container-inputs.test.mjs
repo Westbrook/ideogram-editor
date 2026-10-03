@@ -6,6 +6,17 @@ import { chmod, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { copySealedFile, fixtureRequirements, historyRequirements, installInputs, prepareInputs, verifyAdapterFixture, verifyInputs, verifyInstalledInputs } from '../../tooling/qualification/container/inputs.mjs';
+import { REVIEWED_RENDERER_OWNERSHIP } from '../../tooling/qualification/campaigns/renderer-ownership.mjs';
+
+const baselineFixtures = Object.freeze([
+  ['evidence/p1b6-correction/original-review/drop-transaction-prefix.zip', 23385, 'a0dcad5ba6fe2fbb76149cc898aa6981d6bcdaae38fde2e81cae0954bc017ddd'],
+  ['evidence/p1b6-correction/original-review/hostile-duplicate-event-id.zip', 25163, 'c6e2adf81f2372c97cac0e4703fa184ac6c9f10866b5000219baba5769fe2c26'],
+  ['evidence/p1b6-correction/original-review/hostile-split-one-command.zip', 25146, 'e6f642af807db51f74d402467f818bb05227edee910bb440442a774361fe620b'],
+  ['evidence/p1b6-linkage-correction/original-review/format2-domain-revision-hidden-by-tail.zip', 28469, 'c43bb855a4fadc6410ec1801103fb2f361281cb49d653d56fe43e788105c153c'],
+  ['evidence/p1b6-linkage-correction/original-review/revision-tail-control-2.zip', 28467, '23ef675fb48394f2396e233c2e9326a801f46e33acfa6d8ea8206dae3630a94e'],
+  ['evidence/p1b6-linkage-correction/original-review/revision-tail-control-null.zip', 28468, '9770d1a9ace1cc6f5e2993ce77d9f7ff1910029cd59237623e70d0fa7a326283'],
+  ['artifacts/p27-evidence/fal-public-lora-example/provider-example.safetensors', 85299896, 'bd0b96a2fcc3141400ebeffd8585b2d3c4c0d475b10e1468ba5c40acad748bc5'],
+].map(([path, bytes, sha256]) => Object.freeze({ path, bytes, sha256 })));
 
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 const git = (root, args, input) => execFileSync('git', ['-C', root, ...args], { input, env: { PATH: process.env.PATH, GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: '/dev/null', GIT_AUTHOR_NAME: 'Fixture', GIT_AUTHOR_EMAIL: 'fixture@example.invalid', GIT_COMMITTER_NAME: 'Fixture', GIT_COMMITTER_EMAIL: 'fixture@example.invalid' }, stdio: ['pipe', 'pipe', 'pipe'] });
@@ -123,7 +134,8 @@ test('installed input verification binds actual fixture copies and Git metadata 
 
 test('adapter fixture admission rejects unsealed bytes and symbolic-link paths', async t => {
   const options = await fixture(t);
-  const path = fixtureRequirements.at(-1).path;
+  const path = 'artifacts/p27-evidence/fal-public-lora-example/provider-example.safetensors';
+  assert(fixtureRequirements.find(item => item.path === path), 'The exact pinned adapter fixture must remain present');
   await mkdir(join(options.root, 'artifacts/p27-evidence/fal-public-lora-example'), { recursive: true });
   await writeFile(join(options.root, path), 'not the pinned public weights');
   await assert.rejects(verifyAdapterFixture({ root: options.root }), /seal mismatch/);
@@ -132,11 +144,23 @@ test('adapter fixture admission rejects unsealed bytes and symbolic-link paths',
   await assert.rejects(verifyAdapterFixture({ root: options.root }), /regular file/);
 });
 
-test('closure pins every current migration snapshot and the seven exact external fixtures', async () => {
+test('closure pins every current migration snapshot, seven baseline fixtures and exact approved runtime receipts', async () => {
   assert.equal(historyRequirements.length, 17);
   assert.equal(new Set(historyRequirements.map(item => item.commit)).size, 17);
-  assert.equal(fixtureRequirements.length, 7);
-  assert.equal(fixtureRequirements.at(-1).bytes, 85299896);
+  const baselinePaths = new Set(baselineFixtures.map(item => item.path));
+  assert.deepEqual(fixtureRequirements.filter(item => baselinePaths.has(item.path)), baselineFixtures);
+  assert.equal(new Set(fixtureRequirements.map(item => item.path)).size, fixtureRequirements.length);
+  const runtimeByPath = new Map();
+  for (const review of REVIEWED_RENDERER_OWNERSHIP) for (const pin of review.appAllocation?.runtimeInputs ?? []) {
+    assert.equal(pin.role, 'correctness-receipt');
+    assert.match(pin.sha256, /^sha256:[a-f0-9]{64}$/);
+    const row = { path: pin.path, bytes: pin.bytes, sha256: pin.sha256.slice(7) };
+    assert(!baselinePaths.has(row.path), 'Approved runtime receipts must not replace baseline fixtures');
+    if (runtimeByPath.has(row.path)) assert.deepEqual(row, runtimeByPath.get(row.path), 'Repeated runtime paths must carry identical fixed seals');
+    runtimeByPath.set(row.path, row);
+  }
+  const byPath = (a, b) => a.path.localeCompare(b.path);
+  assert.deepEqual(fixtureRequirements.filter(item => !baselinePaths.has(item.path)).sort(byPath), [...runtimeByPath.values()].sort(byPath));
   const consumerPaths = ['tests/assets/storage.test.mjs', 'tests/protocol/recovery.test.mjs', 'tests/raster/storage.test.mjs', 'tests/raster/schema.test.mjs', 'tests/history/schema.test.mjs', 'tests/history/returned-description.test.mjs', 'tests/history/mask-schema.test.mjs', 'tests/history/retained-mask-schema.test.mjs', 'tests/portable/schema.test.mjs', 'tests/portable/prior-writer.mjs', 'tests/text-state/prior-writer.mjs', 'tests/text-state/placement-schema.test.mjs', 'tests/composition/schema.test.mjs', 'tests/candidates/compatibility.test.mjs', 'tests/recovery/compatibility.test.mjs', 'tests/recovery/p2-schema.test.mjs'];
   const found = new Set();
   for (const path of consumerPaths) for (const match of String(await readFile(path)).matchAll(/['"]([a-f0-9]{40})['"]/g)) found.add(match[1]);

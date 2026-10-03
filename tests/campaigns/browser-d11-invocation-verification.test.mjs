@@ -36,12 +36,12 @@ function captured({ updateReceipt = true } = {}) {
   // This specimen intentionally uses identical source and emitted index bytes;
   // new captures retain the original source index alongside the script corpus.
   build.roleInputs.sourceTextByPath['index.html'] = build.retainedInputs.index;
-  evidence.compilation = { schema: 1, profile: 'reviewed-vite-app-1', configFile: 'vite.app.config.ts', configLoader: 'bundle',
+  evidence.compilation = { schema: 1, profile: 'reviewed-vite-app-2', configFile: 'vite.app.config.ts', configLoader: 'bundle',
     command: 'build', mode: 'production', env: { BASE_URL: '/', MODE: 'production', DEV: false, PROD: true },
     configInputs: D11_COMPILATION_INPUT_PATHS.map(path => {
       const text = build.roleInputs.sourceTextByPath[path];
       return { path, bytes: Buffer.byteLength(text), sha256: hash(text).slice(7) };
-    }), inlineTransformOptions: 'none', userPlugins: ['consumer-build-evidence'] };
+    }), inlineTransformOptions: 'none', userPlugins: ['consumer-build-evidence'], worker: { format: 'iife', userPlugins: ['consumer-worker-build-evidence'] } };
   build.compilation = structuredClone(evidence.compilation);
   build.roles = deriveD11Roles({ manifest: JSON.parse(build.retainedInputs.manifest), files: build.files,
     ...build.roleInputs, roleContext: build.roleContext, dependencyInputs: build.dependencyInputs,

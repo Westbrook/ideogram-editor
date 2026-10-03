@@ -17,10 +17,10 @@ const same = (a, b, message) => demand(isDeepStrictEqual(a, b), message);
 const finite = value => Number.isFinite(value) && value >= 0;
 const encode = value => Buffer.from(JSON.stringify(value));
 const decode = bytes => JSON.parse(new TextDecoder('utf-8', {fatal: true}).decode(bytes));
-const workspaceNames = new Set(['R38MaterializedRawInspectionBytes', 'R38TextCaptionWorkspaceBytes']);
+const workspaceNames = new Set(['R38TextCaptionWorkspaceBytes']);
 const sourceRequirements = ['src/observability/composition-observations.ts', 'src/observability/allocations.ts',
   'src/observability/browser.ts', 'src/observability/diagnostic-memory.ts', 'src/composition/memory.ts', 'src/composition/core.ts',
-  'src/ui/composition.ts', 'src/ui/request-edits.ts'];
+  'src/ui/composition.ts', 'src/ui/request-edits.ts', 'src/ui/request.ts', 'src/ui/returned-description.ts', 'server/storage/candidates.ts'];
 const controlRequirements = ['browser.mjs', 'browser-driver.mjs', 'browser-queue.mjs', 'browser-phase-snapshot.mjs',
   'browser-ordinary-composition.mjs', 'browser-composition-counters.mjs', 'browser-text-resources.mjs', 'browser-measurements.mjs', 'worker.mjs', 'run.mjs', 'verification.mjs'];
 
@@ -108,6 +108,7 @@ export function inspectOrdinaryCompositionRaw(raw, binding) {
   const missing = [...raw.missing], failures = [], intervals = [], logicalReservations = [];
   if (!raw.actionCompleted || raw.failed) missing.push('Original composition operation did not complete successfully');
   let coverage = raw.actionCompleted && !raw.failed && missing.length === 0;
+  let structuralCoverage = raw.missing.length === 0;
   try {
     demand(raw.snapshots.length >= 2, 'Original composition operation boundary snapshots are missing');
     const samples = raw.snapshots;
@@ -138,34 +139,42 @@ export function inspectOrdinaryCompositionRaw(raw, binding) {
         navigation.endedMs <= samples[navigation.after].startedMs && navigation.endedMs >= navigation.startedMs, 'Original navigation boundary is incomplete');
       append(navigation.before, binding.operation === 'portable.reopen' && index === 0);
       const before = samples[navigation.before].value, after = samples[navigation.after].value;
-      if (snapshotIdentity(before)) {coverage = false; missing.push('Prior application realm terminal resource coverage is unavailable across navigation');}
+      if (snapshotIdentity(before)) {coverage = false; structuralCoverage = false; missing.push('Prior application realm terminal resource coverage is unavailable across navigation');}
       demand(after.timeOrigin !== before.timeOrigin && snapshotIdentity(after) && snapshotIdentity(after) !== snapshotIdentity(before), 'Navigation did not produce its own fresh realm');
       segmentStart = navigation.after; start = 'birth';
     }
     if (binding.operation === 'portable.reopen') demand(raw.navigations.length === 1, 'Portable reopen requires its exact original navigation');
     append(samples.length - 1);
-  } catch (error) {coverage = false; missing.push(String(error.message));}
+  } catch (error) {coverage = false; structuralCoverage = false; missing.push(String(error.message));}
   missing.push(...(raw.resourceMissing ?? []));
   const reservationObservations = inspectCompositionReservations(raw, intervals, coverage, missing);
   const measurements = [];
+  // Keep the historical allocation projection as an explicitly unscoreable
+  // diagnostic. It is not the materialized original-input extent metric.
+  const rawReservations = intervals.map(interval => interval.evidence.rawInspectionReservations).filter(value => Number.isSafeInteger(value?.observedPeakBytes));
+  if (required.includes('R38MaterializedRawInspectionBytes') && rawReservations.length) logicalReservations.push({name: 'R38MaterializedRawInspectionBytes', value: Math.max(...rawReservations.map(value => value.observedPeakBytes)), unit: 'bytes',
+    method: 'Selected prompt-kind allocation reservation peak; not original input extent', complete: false, scope: 'prompt-kind-raw-inspection-logical-reservations-only'});
   for (const name of required) {
     const observed = intervals.flatMap(interval => interval.measurements.filter(row => row.name === name));
     if (!observed.length) {missing.push(name + ': operation was not observed'); continue;}
     const complete = coverage && intervals.every(interval => interval.evidence.complete) && observed.every(row => row.complete) &&
+      (name !== 'R38MaterializedRawInspectionBytes' || intervals.every(interval => interval.evidence.rawInspection.complete)) &&
       (name !== 'R38RawTruncationOrFalseCompletenessCount' || intervals.every(interval => !interval.evidence.rawInspections || interval.measurements.some(row => row.name === name && row.complete)));
     const value = name.endsWith('Count') ? observed.reduce((sum, row) => sum + row.value, 0) : Math.max(...observed.map(row => row.value));
     demand(Number.isSafeInteger(value) && value >= 0, 'Composition aggregate is invalid');
+    const lowerBound = !complete && name === 'R38MaterializedRawInspectionBytes' && (raw.failed || !raw.actionCompleted) && structuralCoverage &&
+      intervals.every(interval => interval.evidence.rawInspection.journalComplete === true) && observed.every(row => row.lowerBound === true);
     const row = {name, value, unit: name.endsWith('Count') ? 'violations' : 'bytes',
       method: name.endsWith('Count') ? 'Independently replayed retained-source page extents and parse-state claims across each actually observed browser realm' :
-        'Maximum of actual producer byte observations across each separately replayed browser realm', complete};
+        name === 'R38MaterializedRawInspectionBytes' ? 'Maximum original-byte extent of completed source-bound inspection inputs across separately replayed browser realms; not resident memory' :
+        'Maximum of actual producer byte observations across each separately replayed browser realm', complete, ...(lowerBound ? {lowerBound: true} : {})};
     if (workspaceNames.has(name)) {
       // The recorded union includes the three explicit Composition control
       // owners, but omits shared transport/control and browser/native overhead.
       // Exact selected reservations remain outside resident-workspace claims.
-      logicalReservations.push({...row, complete: false, scope: name === 'R38TextCaptionWorkspaceBytes' ?
-        'prompt-and-selected-composition-control-logical-reservations-only' : 'prompt-kind-raw-inspection-logical-reservations-only'});
+      logicalReservations.push({...row, complete: false, scope: 'prompt-and-selected-composition-control-logical-reservations-only'});
       missing.push(name + ': complete resident Composition allocation coverage is unavailable');
-    } else if (complete) measurements.push(row);
+    } else if (complete || lowerBound) {measurements.push(row); if (!complete) missing.push(name + ': original operation producer coverage is incomplete');}
     else missing.push(name + ': original operation producer coverage is incomplete');
     if (name === 'R38RawTruncationOrFalseCompletenessCount' && value > 0) failures.push('Observed retained-source page or parse completeness contradiction');
   }
@@ -174,15 +183,19 @@ export function inspectOrdinaryCompositionRaw(raw, binding) {
     scope: 'Actual Composition producer values and identity-bound page/parse checks; raw byte integrity, other allocation classes and JS/native/DOM overhead remain separate'};
 }
 
-function measurementRows(analysis, artifact) {
-  return analysis.measurements.map(row => ({...row, evidence: [{kind: 'ordinary-composition-retained-observation-1', artifact}]}));
+function measurementRows(analysis, artifact, rules) {
+  return analysis.measurements.filter(row => row.complete === true || row.name === 'R38MaterializedRawInspectionBytes' && row.lowerBound === true &&
+    rules.some(rule => rule.name === row.name && rule.budgetId === 'R38' && rule.unit === row.unit && finite(rule.ceiling) && row.value > rule.ceiling))
+    .map(row => ({...row, evidence: [{kind: 'ordinary-composition-retained-observation-1', artifact}]}));
 }
 export function ordinaryCompositionMeasurement({cell, sample, rule, proof}) {
   const value = proof && proofs.get(proof);
   if (!value || value.binding.operation !== cell?.operation || value.binding.attempt.cellId !== cell?.id || value.binding.attempt.cache !== sample?.cache ||
     value.binding.attempt.ordinal !== sample?.ordinal || value.binding.attempt.prime !== Boolean(sample?.prime)) return {reason: 'Current owned ordinary Composition proof is unavailable'};
   const row = value.measurements.find(row => row.name === rule?.name);
-  if (!row || rule.budgetId !== 'R38' || rule.unit !== row.unit || row.complete !== true) return {reason: 'Exact complete Composition registry row was not established by the original operation'};
+  const breach = row?.name === 'R38MaterializedRawInspectionBytes' && row.lowerBound === true && finite(rule?.ceiling) && row.value > rule.ceiling &&
+    value.rules.some(saved => saved.name === row.name && saved.budgetId === rule.budgetId && saved.unit === rule.unit && saved.ceiling === rule.ceiling);
+  if (!row || rule.budgetId !== 'R38' || rule.unit !== row.unit || row.complete !== true && !breach) return {reason: 'Exact complete Composition registry row or witnessed raw-inspection ceiling breach was not established by the original operation'};
   return {measurement: structuredClone(row)};
 }
 export function readOrdinaryCompositionProof(proof) {
@@ -261,8 +274,8 @@ export function createOrdinaryCompositionObserver({page, cell, sample, serial, f
       const analysis = inspectOrdinaryCompositionRaw(raw, binding);
       const observation = {kind: 'ordinary-composition-observation-1', nonce, binding: bindingArtifact, raw: artifact, analysis,
         qualification: false, physicalMemoryComplete: false};
-      const measurements = measurementRows(analysis, {...artifact, path: join(output, artifact.path)}), proof = Object.freeze({});
-      proofs.set(proof, {binding, observation, analysis, measurements});
+      const measurements = measurementRows(analysis, {...artifact, path: join(output, artifact.path)}, cell.requiredMeasurements ?? []), proof = Object.freeze({});
+      proofs.set(proof, {binding, observation, analysis, measurements, rules: structuredClone(cell.requiredMeasurements ?? [])});
       await journal?.({event: 'ordinary-composition-observed', cellId: cell.id, nonce, binding: bindingArtifact, raw: artifact});
       return {proof, observation};
     },
@@ -314,7 +327,7 @@ export async function verifyOrdinaryCompositionEvidence({attempt, cell, serial, 
   const analysis = inspectOrdinaryCompositionRaw(raw, binding); same(analysis, observation.analysis, 'Ordinary Composition analysis differs');
   demand(!analysis.failures.length || attempt.status === 'FAIL' && attempt.result.status === 'FAIL', 'Ordinary Composition observed contradiction was not reported as failure');
   demand(!analysis.missing.length || attempt.status !== 'PASS' && attempt.result.status !== 'PASS', 'Ordinary Composition missing observations were reported complete');
-  const measurements = measurementRows(analysis, {...observation.raw, path: join(groupOutput, observation.raw.path)});
+  const measurements = measurementRows(analysis, {...observation.raw, path: join(groupOutput, observation.raw.path)}, cell.requiredMeasurements ?? []);
   same((attempt.result.measurements ?? []).filter(row => ORDINARY_COMPOSITION_NAMES.includes(row.name)), measurements.filter(row => (cell.requiredMeasurements ?? []).some(rule => rule.name === row.name)), 'Ordinary Composition published measurements differ');
-  const proof = Object.freeze({}); proofs.set(proof, {binding, observation, analysis, measurements}); return proof;
+  const proof = Object.freeze({}); proofs.set(proof, {binding, observation, analysis, measurements, rules: structuredClone(cell.requiredMeasurements ?? [])}); return proof;
 }

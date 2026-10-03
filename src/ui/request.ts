@@ -32,6 +32,7 @@ import type {RequestReview} from '../request/review.js';
 import type {Asset} from '../protocol/assets.js';
 import type {Composition,LayerValue} from '../composition/core.js';
 import {bytes} from '../composition/core.js';
+import {compositionObservations} from '../observability/composition-observations.js';
 import {serializeCompositionValue} from '../composition/memory.js';
 import {createOwnedModel,modelPayloadBytes,type OwnedModel} from '../observability/model-memory.js';
 import {PromptReaderCleanupError} from '../observability/prompt-memory.js';
@@ -527,11 +528,20 @@ export class RequestEditing{
   if(view.nextCursor)return this.inspectCandidates(jobId,attemptId,view.nextCursor,{cursor:view.nextCursor,back:current.back,last:current.cursor});
  }
  private readPrompt(jobId:string,attemptId:string,kind:'requested'|'submitted'|'returned',offset='0'){return this.navigation.prompts.run(async()=>{
-  const owns=this.owns(false),model=await this.navigation.prompts.read<{bytes:string;nextOffset:string|null}>('/api/v1/jobs/'+encodeURIComponent(jobId)+'/candidates?attempt='+encodeURIComponent(attemptId)+'&prompt='+kind+'&offset='+encodeURIComponent(offset),owns,65536);
-  try{if(!owns())return;const page=model.value;if(typeof page.bytes!=='string'||page.bytes.length>44000)throw Error('PROMPT_PAGE_SIZE');
+  const view=this.candidateViews.get(attemptId),source=view?.jobId===jobId?(kind==='returned'?view.provenance?.returnedPrompt:kind==='requested'?view.provenance?.requestedPrompt??view.request.prompt:view.provenance?.submittedPrompt??view.request.prompt):undefined;
+  if(!source||!/^(0|[1-9][0-9]*)$/.test(offset)||!Number.isSafeInteger(Number(offset))||Number(offset)>Number(source.byteLength))throw Error('PROMPT_PAGE_IDENTITY');
+  // The fixed job/attempt/kind source is immutable once retained. Capture it
+  // before awaiting the page; a page response cannot supply a new identity.
+  const sourceBytes=source.byteLength,at=Number(offset),owns=this.owns(false),inspection=compositionObservations.beginRawInspection(source,'page',at);
+  let model:OwnedModel<{bytes:string;byteLength:string;offset:string;nextOffset:string|null}>|undefined;
+  try{model=await this.navigation.prompts.read<{bytes:string;byteLength:string;offset:string;nextOffset:string|null}>('/api/v1/jobs/'+encodeURIComponent(jobId)+'/candidates?attempt='+encodeURIComponent(attemptId)+'&prompt='+kind+'&offset='+encodeURIComponent(offset),owns,65536);if(!owns())return;const page=model.value;
+   if(typeof page.bytes!=='string'||page.bytes.length>44000)throw Error('PROMPT_PAGE_SIZE');if(page.byteLength!==sourceBytes||page.offset!==offset)throw Error('PROMPT_PAGE_IDENTITY');
    const scratch=reservePromptPayload('request-prompt-page-decode',page.bytes.length*8);let retained:OwnedModel<NonNullable<RequestEditing['promptPage']>>|undefined;
-   try{const text=new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(Uint8Array.from(atob(page.bytes),character=>character.charCodeAt(0))),value={jobId,attemptId,kind,text,next:page.nextOffset};retained=this.navigation.prompts.model(value,128*1024);this.navigation.prompts.replace('page',retained);this.promptPage=value;retained=undefined;this.changed();}finally{retained?.release();scratch.release();}
-  }finally{model.release();}
+   try{const raw=atob(page.bytes),maximum=Math.min(32768,Number(sourceBytes)-at);inspection.materialized(raw.length);
+    if(raw.length>maximum||(at+maximum===Number(sourceBytes)?raw.length!==maximum:maximum-raw.length>3)||!raw.length&&maximum!==0||page.nextOffset!==(at+raw.length<Number(sourceBytes)?String(at+raw.length):null))throw Error('PROMPT_PAGE_BOUNDARY');
+    const text=new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(Uint8Array.from(raw,character=>character.charCodeAt(0))),value={jobId,attemptId,kind,text,next:page.nextOffset};retained=this.navigation.prompts.model(value,128*1024);this.navigation.prompts.replace('page',retained);this.promptPage=value;retained=undefined;this.changed();inspection.finish('page');
+   }finally{retained?.release();scratch.release();}
+  }finally{model?.release();inspection.close();}
  });}
  private candidatePageControls(jobId:string,attemptId:string,view:CandidateView,act:(event:Event,work:()=>void|Promise<void>)=>void){
   const location=this.navigation.candidatePage(attemptId),pending=this.navigation.candidatePending(attemptId),navigating=this.navigation.candidateNavigating(attemptId);if(!location)return nothing;

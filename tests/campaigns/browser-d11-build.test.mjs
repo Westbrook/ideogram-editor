@@ -131,6 +131,40 @@ export async function d11BuildFixture(t) {
 }
 const fixture = d11BuildFixture;
 
+test('D11 preserves the exact Vite browser-external module without inventing a disk source or dropping output costs', async t => {
+  const f = await fixture(t), before = await loadD11Build({ repo: f.repo });
+  const output = f.evidence.outputs.find(row => row.file === 'assets/shared.js');
+  const virtual = ['__vite-browser-external', '\0rolldown/virtual-specimen.js', 'virtual:retained-specimen'];
+  output.modules.push(...virtual); await f.saveEvidence();
+  const result = await loadD11Build({ repo: f.repo }), measured = result.files.find(row => row.file === output.file);
+  assert.deepEqual(measured.modules, output.modules);
+  assert.deepEqual(measured.sources, ['node_modules/example/index.js']);
+  for (const key of ['rawBytes', 'sha256', 'gzipBytes', 'computedGzipBytes']) assert.equal(measured[key], before.files.find(row => row.file === output.file)[key]);
+  assert.deepEqual(result.roles, before.roles, 'Virtual module metadata cannot remove emitted costs or grant a source edge.');
+  for (const id of virtual) assert.equal(Object.hasOwn(result.roleInputs.sourceTextByPath, id), false);
+});
+
+test('D11 rejects virtual-ID lookalikes and missing ordinary modules', async t => {
+  const f = await fixture(t), output = f.evidence.outputs.find(row => row.file === 'assets/shared.js');
+  const original = [...output.modules];
+  for (const id of ['__vite-browser-external:fs', '__vite-browser-external?commonjs-proxy', '__vite-browser-external/child',
+    '__vite-browser-external.js', 'src/__vite-browser-external', 'missing-ordinary.js']) {
+    output.modules = [...original, id]; await f.saveEvidence();
+    await assert.rejects(loadD11Build({ repo: f.repo }), { code: 'ENOENT' }, id);
+  }
+});
+
+test('D11 refuses physical file, directory and symlink shadows of the bare virtual module', async t => {
+  const f = await fixture(t), id = '__vite-browser-external', path = join(f.repo, id);
+  f.evidence.outputs.find(row => row.file === 'assets/shared.js').modules.push(id); await f.saveEvidence();
+  await f.put(id, 'physical source');
+  await assert.rejects(loadD11Build({ repo: f.repo }), /virtual module conflicts with a physical source/);
+  await rm(path); await mkdir(path);
+  await assert.rejects(loadD11Build({ repo: f.repo }), /virtual module conflicts with a physical source/);
+  await rm(path, { recursive: true }); await symlink(join(f.repo, 'absent-target'), path);
+  await assert.rejects(loadD11Build({ repo: f.repo }), /virtual module conflicts with a physical source/);
+});
+
 test('D11 inventory binds actual raw/gzip bytes, exact fonts, and static lazy closures', async t => {
   const f = await fixture(t), result = await loadD11Build({ repo: f.repo });
   assert.equal(result.kind, 'perf-d11-build-1'); assert.match(result.sha256, /^sha256:[a-f0-9]{64}$/);
@@ -354,6 +388,24 @@ test('actual compiled feature graph retains shared costs, rejects unproved refin
   assert.equal(build.roles.complete, true, build.roles.missing.join('; '));
   assert.equal(graph?.kind, 'd11-emitted-static-graph-1');
   assert.equal(graph.policy, 'verified-compiled-chunk-dependencies');
+  // The same source is truthfully compiled into page and Worker outputs. Keep
+  // both identities/costs; only the authenticated emitted graph can distinguish
+  // their actual edges from conservative source-attribution candidates.
+  const sharedSource = 'src/observability/diagnostic-memory.ts', sharedImporter = 'src/observability/phases.ts';
+  const sharedOwners = build.files.filter(file => file.modules.includes(sharedSource)).map(file => file.file).sort();
+  assert.equal(sharedOwners.length, 2);
+  const workerTarget = build.roles.excludedWorkers[0].target;
+  assert(sharedOwners.includes(workerTarget));
+  assert(build.roles.textEngineFiles.includes(workerTarget));
+  assert(!build.roles.startupFiles.includes(workerTarget));
+  const duplicatedSourceOmissions = graph.omittedSourceAttributions.filter(row => row.source === sharedImporter);
+  assert(duplicatedSourceOmissions.some(row => row.output === workerTarget && row.target !== workerTarget));
+  assert(duplicatedSourceOmissions.some(row => row.target === workerTarget && row.output !== workerTarget));
+  for (const owner of sharedOwners) {
+    const actual = byFile.get(owner), sealed = graph.outputs.find(row => row.file === owner);
+    assert.equal(sealed.rawBytes, actual.rawBytes); assert.equal(sealed.sha256, actual.sha256);
+    assert(sealed.modules.includes(sharedSource));
+  }
   assert(!graph.edges.some(edge => edge.output === origin && edge.target === shell));
   const omitted = graph.omittedSourceAttributions.filter(edge => edge.source === sourcePath && edge.start === 479 && edge.end === 543 && edge.output === origin && edge.target === shell);
   assert.equal(omitted.length, 1);
@@ -428,6 +480,15 @@ test('actual compiled feature graph retains shared costs, rejects unproved refin
       files: build.files.map(file => file.file === origin ? { ...file, rawBytes: bytes.length,
         sha256: 'sha256:' + hash(bytes), gzipBytes, computedGzipBytes: gzipBytes } : file) };
   };
+  // An actual emitted dependency remains charged even when its source has
+  // candidates in both compilations. There is no Worker-cost exemption.
+  const importedWorker = changedOutput(`import ${JSON.stringify('./' + workerTarget.slice(workerTarget.lastIndexOf('/') + 1))};\n` + input.outputTextByFile[origin]);
+  const importedWorkerRoles = deriveD11Roles(importedWorker);
+  assert(importedWorkerRoles.staticImportGraph.edges.some(row => row.output === origin && row.target === workerTarget));
+  assert(importedWorkerRoles.startupFiles.includes(workerTarget));
+  assert.equal(importedWorkerRoles.complete, false);
+  assert.match(importedWorkerRoles.missing.join('; '), /text engine is in startup/);
+
   // This is a synthetic role-analysis control, not a finalized build or an
   // authenticated receipt. Reintroducing a real emitted dependency must count
   // its full closure; a fresh canonical reducer seal does not authenticate it.
@@ -462,7 +523,19 @@ test('actual compiled feature graph retains shared costs, rejects unproved refin
     assert.equal(refused.complete, false, label);
     assert.equal(Object.hasOwn(refused, 'staticImportGraph'), false, label);
     assert(refused.missing.length > 0, label);
+    assert(refused.missing.some(reason => reason.includes('source import maps to multiple emitted chunks')), label + ' must restore source ambiguity');
+    assert(refused.startupFiles.includes(workerTarget), label + ' must retain conservative candidate costs');
   }
+
+  // Even authentic compiler/corpus authority cannot choose between dynamic
+  // targets. This metadata-only specimen deliberately duplicates a page target
+  // in the worker while keeping the real output bytes/costs intact.
+  const duplicateDynamic = { ...input, files: input.files.map(file => file.file === workerTarget
+    ? { ...file, modules: [...file.modules, 'src/ui/storage-library.ts'] } : file) };
+  const refusedDynamic = deriveD11Roles(duplicateDynamic);
+  assert.equal(refusedDynamic.complete, false);
+  assert.equal(Object.hasOwn(refusedDynamic, 'staticImportGraph'), false);
+  assert(refusedDynamic.missing.some(reason => reason.includes('source import maps to multiple emitted chunks') && reason.includes('storage-library')));
 
   // Independently read actual files to form a test-local outer identity map.
   // These rows are neither copied hashes from the packet nor a campaign receipt.

@@ -89,8 +89,8 @@ test('missing or changed source receipts and bootstrap bodies provide no profile
 const expectedAssignments = [
   ['src/ui/adapter-library.ts', 54112, '[next[index-1],next[index]]=[next[index]!,next[index-1]!]'],
   ['src/ui/adapter-library.ts', 54385, '[next[index+1],next[index]]=[next[index]!,next[index+1]!]'],
-  ['src/ui/composition.ts', 43965, '[es[i],es[j]]=[es[j],es[i]]'],
-  ['src/ui/composition.ts', 55237, '[a[i-1],a[i]]=[a[i],a[i-1]]'],
+  ['src/ui/composition.ts', 44026, '[es[i],es[j]]=[es[j],es[i]]'],
+  ['src/ui/composition.ts', 56460, '[a[i-1],a[i]]=[a[i],a[i-1]]'],
   ['src/ui/request-v45-edit.ts', 12316, '[next.references[index],next.references[target]]=[next.references[target],next.references[index]]'],
   ['src/ui/shell.ts', 87723, '[ids[i],ids[i+1]]=[ids[i+1],ids[i]]'],
   ['src/ui/shell.ts', 87781, '[ids[i],ids[i-1]]=[ids[i-1],ids[i]]'],
@@ -273,18 +273,18 @@ test('verified profile binds the one request operation lookup and all four exact
   const source = 'src/ui/request.ts', text = value.sourceTextByPath[source];
   const expression = 'operations[labels.indexOf(label)]', declarationExpression = 'op=' + expression;
   const callExpression = "op.endsWith('-v45')";
-  assert.equal(text.indexOf(expression), 49039);
-  assert.equal(text.indexOf(expression, 49040), -1);
-  assert.equal(text.indexOf(declarationExpression), 49036);
-  const calls = [49131, 49549, 49574, 50164].map(start => {
+  assert.equal(text.indexOf(expression), 49125);
+  assert.equal(text.indexOf(expression, 49126), -1);
+  assert.equal(text.indexOf(declarationExpression), 49122);
+  const calls = [49217, 49635, 49660, 50250].map(start => {
     assert.equal(text.slice(start, start + callExpression.length), callExpression);
     return { start, end: start + callExpression.length, expressionSha256: identity(source, callExpression).sha256, method: 'endsWith', argument: '-v45' };
   });
   assert.equal(text.split(callExpression).length - 1, calls.length);
   const expected = { kind: 'reviewed-d11-event-data-calls-1', sites: [{
-    source, start: 49039, end: 49072, expressionSha256: identity(source, expression).sha256,
+    source, start: 49125, end: 49158, expressionSha256: identity(source, expression).sha256,
     sourceSha256: identity(source, text).sha256,
-    declaration: { start: 49036, end: 49072, expressionSha256: identity(source, declarationExpression).sha256 },
+    declaration: { start: 49122, end: 49158, expressionSha256: identity(source, declarationExpression).sha256 },
     calls, effect: 'request-operation-literal-string-method',
   }] };
   assert.deepEqual(profile.eventDataEffects, expected);

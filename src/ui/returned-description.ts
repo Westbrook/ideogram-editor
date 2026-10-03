@@ -4,6 +4,7 @@ import type {BlobRef} from '../protocol/store.js';
 import type {CandidateView} from '../protocol/candidates.js';
 import {inspectReturnedDescription,approximateReturnedTextBox,type ReturnedDescriptionInspection,type ReturnedTextProposal} from '../text/returned-description.js';
 import {SHA256} from '../protocol/sha256.js';
+import {compositionObservations,type RawInspection} from '../observability/composition-observations.js';
 import {allocationLedger} from '../observability/allocations.js';
 import {cloneOwnedModel,createOwnedModel,type OwnedModel} from '../observability/model-memory.js';
 import {PromptReaderCleanupError} from '../observability/prompt-memory.js';
@@ -22,15 +23,16 @@ export class ReturnedDescriptionEditing {
  private async inspect(target:Target,owns:()=>boolean){
   if(!owns())throw new DOMException('Caption owner changed.','AbortError');const sessionId=this.editor.sessionId,draftOwner=this.editor.draftOwner;this.currentGuard=()=>owns()&&this.editor.sessionId===sessionId&&this.editor.draftOwner===draftOwner;
   for(const read of this.reads)read.abort();const epoch=++this.epoch,owned=cloneOwnedModel('returned-description-target',target),abort=new AbortController();this.reads.add(abort);this.retire();this.selected=-1;this.acknowledged=false;this.message='Reading exact retained caption…';this.changed();
-  let workspace:ReturnType<typeof allocationLedger.reserve>|undefined;
-  try{const t=owned.value,length=Number(t.returnedPrompt.byteLength);if(!Number.isSafeInteger(length)||length<0||length>262144)throw Error('The retained caption exceeds the supported local parser limit.');workspace=allocationLedger.reserve({owner:'returned-description-parser',kind:'prompt',cpuBytes:length*8+65536,handles:2});
+  let workspace:ReturnType<typeof allocationLedger.reserve>|undefined,inspection:RawInspection|undefined;
+  try{const t=owned.value,length=Number(t.returnedPrompt.byteLength);if(!Number.isSafeInteger(length)||length<0||length>262144)throw Error('The retained caption exceeds the supported local parser limit.');inspection=compositionObservations.beginRawInspection(t.returnedPrompt,'decode');workspace=allocationLedger.reserve({owner:'returned-description-parser',kind:'prompt',cpuBytes:length*8+65536,handles:2});
    const bytes=new Uint8Array(length);let at=0,pages=0;
    do{if(++pages>9)throw Error('Retained caption page count exceeds its bound.');const page=await this.editor.ownedJSON<{bytes:string;byteLength:string;offset:string;nextOffset:string|null}>('/api/v1/jobs/'+t.jobId+'/candidates?attempt='+t.attemptId+'&prompt=returned&offset='+at,'returned-description-page',{signal:abort.signal},()=>this.own(t,epoch),65536,'prompt');
     try{if(!this.own(t,epoch))throw new DOMException('Caption review changed.','AbortError');const p=page.value;if(typeof p.bytes!=='string'||p.bytes.length>44000||p.byteLength!==t.returnedPrompt.byteLength||p.offset!==String(at))throw Error('Caption page identity changed.');const decoded=atob(p.bytes);if(decoded.length>32768||at+decoded.length>length||!decoded.length&&at!==length)throw Error('Caption page size changed.');for(let i=0;i<decoded.length;i++)bytes[at+i]=decoded.charCodeAt(i);at+=decoded.length;if(p.nextOffset!==(at<length?String(at):null))throw Error('Caption page boundary changed.');}finally{page.release();}
    }while(at<length);
+   inspection.materialized(bytes.byteLength);
    if(new SHA256().update(bytes).digest()!==t.returnedPrompt.hash)throw Error('Retained caption identity changed.');if(!this.own(t,epoch))throw new DOMException('Caption review changed.','AbortError');
-   const result=createOwnedModel<Inspection>('returned-description-inspection',length*6+65536,()=>({target:structuredClone(t),value:inspectReturnedDescription(bytes)}),'prompt');this.current=result;this.message=result.value.value.state==='available'?'Choose a supported text element. Original caption bytes stay unchanged.':result.value.value.reason;this.changed();
-  }finally{workspace?.release();owned.release();this.reads.delete(abort);}
+   const result=createOwnedModel<Inspection>('returned-description-inspection',length*6+65536,()=>({target:structuredClone(t),value:inspectReturnedDescription(bytes)}),'prompt');this.current=result;this.message=result.value.value.state==='available'?'Choose a supported text element. Original caption bytes stay unchanged.':result.value.value.reason;this.changed();inspection.finish('decoded');
+  }finally{workspace?.release();owned.release();this.reads.delete(abort);inspection?.close();}
  }
  private async open(trigger:HTMLElement){
   const model=this.current;if(!model||!this.acknowledged)throw Error('Review duplication and approximate placement first.');const unpin=model.pin(),epoch=this.epoch;

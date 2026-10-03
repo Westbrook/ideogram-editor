@@ -654,3 +654,36 @@ test('Composition release drains a pending automatic read and does not retain it
   await f.controller.dispose();await f.controller.sync();assert.equal(f.reads.length,2,'Disposed controllers never retry');
  }finally{gate.resolve(f.jsonResponse({composition:null,layers:[],bindings:{},revision:'1'}));await initial.catch(()=>{});await closing;}
 });
+
+
+// These execute the real raw inspection owners. The fixtures remain controller
+// doubles and do not establish browser allocation or physical-memory results.
+const {compositionObservations:rawInspectionObserver}=await import(observationURL);
+function rawInspectionSnapshot(){const owned=rawInspectionObserver.readSnapshot();try{return structuredClone(owned.value);}finally{owned.release();}}
+test('retained import witnesses the actual rejection probe independently of parser and copy reservations',async t=>{
+ const f=fixture(t);await f.initial();const before=rawInspectionSnapshot();await f.controller.retain(new Blob([' '.repeat(262145)]));const after=rawInspectionSnapshot(),rows=after.records.filter(row=>row.sequence>before.cursor),begins=rows.filter(row=>row.kind==='raw-inspection-begin');
+ assert.deepEqual(begins.map(row=>[row.mode,row.sourceBytes,row.offset]),[['page',262145,0],['parse',262145,0]]);
+ assert(begins.every(row=>row.sourceHash==='sha256:'+'1'.repeat(64)),'A released staging graph must not replace the captured source hash');
+ assert.deepEqual(rows.filter(row=>row.kind==='raw-inspection-read').map(row=>row.receivedBytes),[32768,262145]);
+ assert.deepEqual(rows.filter(row=>row.kind==='raw-inspection-end').map(row=>[row.outcome,row.parseState]),[['page',undefined],['opaque','over-limit']]);
+ assert.equal(after.activeInspections,0);assert.equal(after.inspectionInvalid,before.inspectionInvalid);assert.equal(f.controller.rawResult.state,'over-limit');
+});
+test('a stale raw blob completion closes its bound inspection as failed without publishing a successful page',async t=>{
+ const f=fixture(t);await f.initial();const gate=deferred(),entered=deferred(),blob=new Blob(['{}']);blob.slice=()=>({arrayBuffer(){entered.resolve();return gate.promise;}});
+ const before=rawInspectionSnapshot(),work=f.controller.retain(blob);await boundary(work,entered);f.controller.generation++;gate.resolve(new TextEncoder().encode('{}').buffer);await work;
+ const after=rawInspectionSnapshot(),rows=after.records.filter(row=>row.sequence>before.cursor);assert.equal(after.activeInspections,0);
+ assert.equal(rows.filter(row=>row.kind==='raw-inspection-begin').length,1);assert.deepEqual(rows.filter(row=>row.kind==='raw-inspection-end').map(row=>row.outcome),['failed']);assert.equal(rows.filter(row=>row.kind==='raw-page').length,0);
+});
+test('manual conversion edits do not reuse original-source inspection identity',async t=>{
+ const f=fixture(t);await f.initial();await f.controller.retain(new Blob(['{}']));f.setRead(()=>new Response('{}',{headers:{'content-length':'2'}}));const before=rawInspectionSnapshot();await f.controller.convertOwned();
+ let after=rawInspectionSnapshot(),rows=after.records.filter(row=>row.sequence>before.cursor);assert.deepEqual(rows.filter(row=>row.kind==='raw-inspection-begin').map(row=>row.mode),['decode']);assert.deepEqual(rows.filter(row=>row.kind==='raw-inspection-read').map(row=>row.receivedBytes),[2]);assert.deepEqual(rows.filter(row=>row.kind==='raw-inspection-end').map(row=>row.outcome),['decoded']);
+ const cursor=after.cursor;f.controller.parseText('{"new":"author text"}');after=rawInspectionSnapshot();assert.equal(after.records.filter(row=>row.sequence>cursor&&row.kind.startsWith('raw-inspection-')).length,0,'Authored conversion parsing has no original-source token');assert.equal(after.activeInspections,0);
+});
+
+
+test('large retained source inspection reads a page at its actual offset and makes only a metadata parse decision',async t=>{
+ const f=fixture(t);await f.initial();const source={hash:'sha256:'+'a'.repeat(64),byteLength:String(70*1048576),mediaType:'application/octet-stream'};f.controller.c.raw.push(source);f.controller.rawIndex=0;f.controller.rawOffset=64*1048576-32768;
+ f.setRead(path=>{assert(path.includes('&offset='+64*1048576));assert(!path.includes('download=1'));return new Response(new Uint8Array(32768),{headers:{'content-length':'32768'}});});const before=rawInspectionSnapshot();await f.controller.rawPage(1);
+ const after=rawInspectionSnapshot(),rows=after.records.filter(row=>row.sequence>before.cursor);assert.deepEqual(rows.filter(row=>row.kind==='raw-inspection-begin').map(row=>[row.mode,row.offset,row.sourceBytes]),[['page',64*1048576,70*1048576],['opaque',0,70*1048576]]);
+ assert.deepEqual(rows.filter(row=>row.kind==='raw-inspection-read').map(row=>row.receivedBytes),[32768]);assert.deepEqual(rows.filter(row=>row.kind==='raw-inspection-end').map(row=>row.outcome),['opaque','page']);assert.equal(after.activeInspections,0);assert.equal(f.controller.rawResult.state,'over-limit');
+});

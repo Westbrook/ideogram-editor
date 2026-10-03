@@ -6,7 +6,7 @@ import {deriveCompositionMeasurements} from './browser-composition-counters.mjs'
 export const LIFECYCLE_COMPOSITION_NAMES = Object.freeze(['R38DerivedSnapshotBytes', 'R38IssueBytes', 'R38RawPageBytes',
   'R38MaterializedRawInspectionBytes', 'R38TextCaptionWorkspaceBytes', 'R38RawTruncationOrFalseCompletenessCount']);
 const names = new Set(LIFECYCLE_COMPOSITION_NAMES);
-const workspaceNames = new Set(['R38MaterializedRawInspectionBytes', 'R38TextCaptionWorkspaceBytes']);
+const workspaceNames = new Set(['R38TextCaptionWorkspaceBytes']);
 const natural = value => Number.isSafeInteger(value) && value >= 0;
 const time = value => Number.isFinite(value) && value >= 0;
 const demand = (value, message) => {if (!value) throw Error('Lifecycle Composition: ' + message);};
@@ -24,10 +24,13 @@ export function projectLifecycleComposition({allocations, required, failed = fal
     allocations.at(-1).label === 'after-release' && allocations.every(value => value.compositionObservations);
   const derived = deriveCompositionMeasurements(allocations.map(value => value.compositionObservations).filter(Boolean),
     {required: selected, failed: failed || !boundaries});
-  const measurements = derived.measurements.filter(row => !workspaceNames.has(row.name));
+  const measurements = derived.measurements.filter(row => !workspaceNames.has(row.name) &&
+    (row.name !== 'R38MaterializedRawInspectionBytes' || boundaries && (row.complete === true || row.lowerBound === true)));
   const logicalReservations = derived.measurements.filter(row => workspaceNames.has(row.name)).map(row => ({...row,
-    complete: false, scope: row.name === 'R38TextCaptionWorkspaceBytes' ?
-      'prompt-and-selected-composition-control-logical-reservations-only' : 'prompt-kind-raw-inspection-logical-reservations-only', ceilingAssessment: 'unavailable'}));
+    complete: false, scope: 'prompt-and-selected-composition-control-logical-reservations-only', ceilingAssessment: 'unavailable'}));
+  const rawReservations = derived.evidence.rawInspectionReservations;
+  if (selected.includes('R38MaterializedRawInspectionBytes') && natural(rawReservations?.observedPeakBytes)) logicalReservations.unshift({name: 'R38MaterializedRawInspectionBytes', value: rawReservations.observedPeakBytes, unit: 'bytes',
+    method: 'Selected prompt-kind allocation reservation peak; not original input extent', complete: false, scope: 'prompt-kind-raw-inspection-logical-reservations-only', ceilingAssessment: 'unavailable'});
   if (selected.includes('R38TextCaptionWorkspaceBytes') && !logicalReservations.some(row => row.name === 'R38TextCaptionWorkspaceBytes')) {
     const observed = allocations.map(value => value.captionWorkspaceBytes).filter(natural);
     if (observed.length) logicalReservations.push({name: 'R38TextCaptionWorkspaceBytes', value: Math.max(...observed), unit: 'bytes',

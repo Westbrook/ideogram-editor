@@ -1,7 +1,7 @@
 import {allocationLedger,StreamReaderCompletion,type AllocationLease} from '../observability/allocations.js';
 import {jsonPayloadUnits,reservePromptPayload,PromptReaderCleanupError} from '../observability/prompt-memory.js';
 import {LIMITS,bytes,parseCaption,serialize,projectBounds} from './core.js';
-import {compositionObservations} from '../observability/composition-observations.js';
+import {compositionObservations,type RawInspection} from '../observability/composition-observations.js';
 import {CompositionError} from './core.js';
 import {COMPOSITION_DRAFT_VIEW_BYTES,COMPOSITION_VIEW_BYTES} from './view.js';
 import type {Composition,LayerValue,ParseResult} from './core.js';
@@ -81,12 +81,12 @@ export function serializeCompositionValue(c:Composition,layers:LayerValue[],bind
  try{return createCompositionValue('composition-projection',compositionPayloadBytes(c)*2+units*2+262144,()=>{const result=serialize(c,layers,bindings);compositionObservations.value('derived-snapshot',result.caption,'serialize');compositionObservations.value('issues',[],'serialize');return result;});}catch(error){if(error instanceof CompositionError)compositionObservations.value('issues',error.issues,'serialize');throw error;}finally{scratch.release();}
 }
 export function projectCompositionValue(...args:Parameters<typeof projectBounds>){return createCompositionValue('composition-box',4096,()=>projectBounds(...args));}
-export async function readCompositionBlob(file:Blob,limit:number){
+export async function readCompositionBlob(file:Blob,limit:number,inspection?:RawInspection){
  const length=Math.min(file.size,limit),owner=compositionAllowance('composition-raw-copy',length);
- try{const value=new Uint8Array(await file.slice(0,length).arrayBuffer());compositionObservations.read('blob-read',value.byteLength,file.size);return {value,owner};}catch(error){owner.release();throw error;}
+ try{const value=new Uint8Array(await file.slice(0,length).arrayBuffer());compositionObservations.read('blob-read',value.byteLength,file.size,inspection);return {value,owner};}catch(error){owner.release();throw error;}
 }
 export {PromptReaderCleanupError as CompositionReadCleanupError};
-export async function readCompositionBytes(response:Response,limit:number,owns:()=>boolean,signal:AbortSignal,admitted?:AllocationLease,observeRaw=true){
+export async function readCompositionBytes(response:Response,limit:number,owns:()=>boolean,signal:AbortSignal,admitted?:AllocationLease,observeRaw=true,inspection?:RawInspection){
  let completion:StreamReaderCompletion|undefined,reader:ReadableStreamDefaultReader<Uint8Array>|undefined,retainedReader:ReadableStreamDefaultReader<Uint8Array>|undefined,cancelled:Promise<void>|undefined;
  let lease:AllocationLease|undefined=admitted,complete=false,primary:unknown,cancelFailure:unknown,unlockFailure:unknown,cancelFailed=false,unlockFailed=false;
  const cancel=()=>cancelled??=Promise.resolve().then(async()=>{if(!reader&&response.body){lease?.resize({handles:2});reader=response.body.getReader();completion=new StreamReaderCompletion(reader);retainedReader=reader;}if(completion)await completion.cancel();else await response.body?.cancel();});
@@ -101,7 +101,7 @@ export async function readCompositionBytes(response:Response,limit:number,owns:(
   for(;;){if(signal.aborted||!owns())throw Error('COMPOSITION_READ_STALE');const item=await completion.read();if(signal.aborted||!owns())throw Error('COMPOSITION_READ_STALE');if(item.done)break;if(offset+item.value.byteLength>length)throw Error('COMPOSITION_CONTENT_SIZE');output.set(item.value,offset);offset+=item.value.byteLength;}
   if(offset!==length)throw Error('COMPOSITION_CONTENT_SIZE');
   reader.releaseLock();reader=undefined;complete=true;lease.resize({handles:1});
-  const owner=new CompositionPayload(lease,length);lease=undefined;if(observeRaw)compositionObservations.read('stream-read',output.byteLength,length);return {value:output,owner};
+  const owner=new CompositionPayload(lease,length);lease=undefined;if(observeRaw)compositionObservations.read('stream-read',output.byteLength,length,inspection);return {value:output,owner};
  }catch(error){primary=error;throw error;}finally{
   signal.removeEventListener('abort',abort);
   if(!complete){try{await cancel();}catch(error){cancelFailed=true;cancelFailure=error;}if(reader)try{reader.releaseLock();reader=undefined;}catch(error){unlockFailed=true;unlockFailure=error;}}

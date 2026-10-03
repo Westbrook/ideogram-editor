@@ -791,3 +791,30 @@ test('a failed required app build stops the selected D11 product integration bef
  assert.equal(result.plan.gates.find(gate=>gate.id==='node:campaigns').files[0],f.file);
  assert.equal(existsSync(join(f.cwd,'dist')),false,'The synthetic failure does not fabricate a finalized application');
 });
+
+
+test('reviewed renderer ownership integration retains the real application build under focused selection', t => {
+ const f=d11ApplicationSelectionFixture(t),file='tests/campaigns/renderer-ownership-approved.test.mjs';
+ const lookalike='tests/campaigns/nested/renderer-ownership-approved.test.mjs';
+ for(const path of [file,lookalike])writeFileSync(join(f.cwd,path),'// Discovery fixture only; no renderer approval or runtime.\n');
+ for(const options of [
+  {groups:'campaigns',nodeFiles:file},
+  {groups:'campaigns',nodeFiles:[file,f.unrelated].join(',')},
+  {groups:'campaigns'}, {groups:'helpers'}, {groups:'all'},
+ ]){
+  const plan=developmentPlan(f.cwd,{...options,browsers:'none'}),ids=plan.gates.map(gate=>gate.id);
+  const gate=plan.gates.find(gate=>gate.id==='node:campaigns');
+  assert.ok(gate.files.includes(file));
+  assert.deepEqual(gate.requiredEnvironment,{IE_CAMPAIGN_PRODUCT_INTEGRATION:'1'});
+  assert.ok(gate.dependencies.includes('build-app'));
+  for(const id of ['build-server','build-app']){
+   assert.equal(ids.filter(value=>value===id).length,1);
+   assert.ok(ids.indexOf('imports')<ids.indexOf(id));
+   assert.ok(ids.indexOf(id)<ids.indexOf(gate.id));
+  }
+ }
+ for(const nodeFiles of [lookalike,f.unrelated]){
+  const plan=developmentPlan(f.cwd,{groups:'campaigns',nodeFiles,browsers:'none'});
+  assert.equal(plan.gates.some(gate=>gate.id==='build-app'),false,'Only the exact actual-build consumer requires app output');
+ }
+});

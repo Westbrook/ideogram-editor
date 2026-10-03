@@ -39,6 +39,17 @@ export const fixtureRequirements = [
   ['evidence/p1b6-linkage-correction/original-review/revision-tail-control-2.zip', 28467, '23ef675fb48394f2396e233c2e9326a801f46e33acfa6d8ea8206dae3630a94e'],
   ['evidence/p1b6-linkage-correction/original-review/revision-tail-control-null.zip', 28468, '9770d1a9ace1cc6f5e2993ce77d9f7ff1910029cd59237623e70d0fa7a326283'],
   ['artifacts/p27-evidence/fal-public-lora-example/provider-example.safetensors', 85299896, 'bd0b96a2fcc3141400ebeffd8585b2d3c4c0d475b10e1468ba5c40acad748bc5'],
+  ['artifacts/evidence-browser-03/run-202/receipt.json', 830348, 'a764db1f0280365649b3056b56b7f726caba8b2aaa56382e693622ac063789a4'],
+  ['artifacts/evidence-browser-03/run-298/receipt.json', 840623, 'ef1a494f83a2b9c9e379207318c504191dabc22ae3bd044a3775946c77c64b42'],
+  ['artifacts/evidence-browser-04/run-249/receipt.json', 832472, 'e59a9d1a6eaeceb4c17f15bea90b6be56cdc3770962f64e67a5fa09912dfa6ea'],
+  ['artifacts/evidence-browser-04/run-250/receipt.json', 843682, 'e2d138ffee348f727c06dea4cea29e57c3ca3125ccc2aa06a6f86d82e1bb949e'],
+  ['artifacts/evidence-browser-04/run-286/receipt.json', 837447, 'f0472713943729f55a64aaad045b7b42e807eebb4dbbe8bbf1be4a9237f924f0'],
+  ['artifacts/evidence-browser-05/run-299/receipt.json', 866791, 'e5eb44584e715af026d6ee951f57e3f835f317ab9b740b39ae35b3290a312f3b'],
+  ['artifacts/evidence-browser-05/run-306/receipt.json', 859241, '56b7333fd4532ac2aa039529c4da880717ef879380c1d281c60827c3674a565f'],
+  ['artifacts/evidence-browser-06/run-300/receipt.json', 866928, '3f735a4831728ffd28396630b0fc9118274875f8cdede98621887f0b3e53e811'],
+  ['artifacts/evidence-browser-06/run-304/receipt.json', 860062, '0d286f4033751b09ee068a8ffd741582cdd7e1bf7cd1f1d0711dad2f3da96dd5'],
+  ['artifacts/evidence-browser-07/run-301/receipt.json', 866872, 'd0540a2800e642622e5c6d8aafb71feed22ac20f56065960dbcef9fc0c238971'],
+  ['artifacts/evidence-browser-07/run-305/receipt.json', 859392, 'a4a6fbbd26d6a620175b7811aa359bf0cd551bb53a0311f87f1b46f101e78d1e'],
 ].map(([path, bytes, sha256]) => ({ path, bytes, sha256 }));
 export const defaultPacket = 'artifacts/qualification-container-inputs';
 export const adapterSourceURL = 'https://v3b.fal.media/files/b/0a9dc89d/NkZw9CyYSB3ojbDx2a2s5_ideogram_v4_lora.safetensors';

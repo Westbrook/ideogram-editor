@@ -14,14 +14,15 @@ const {buildEvidence}=await import('data:text/javascript;base64,'+Buffer.from(tr
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const hook=(plugin,name,context,...args)=>Reflect.apply(typeof plugin[name]==='function'?plugin[name]:plugin[name].handler,context,args);
 
-function fixture(run,{beforeConfig,beforeStart,skipConfig=false}={}){
+function fixture(run,{beforeConfig,beforeStart,beforeGenerate,skipConfig=false}={}){
  const cwd=process.cwd(),root=realpathSync(mkdtempSync(join(tmpdir(),'ie-build-evidence-')));
  const put=(path,bytes)=>{const target=join(root,path);mkdirSync(dirname(target),{recursive:true});writeFileSync(target,bytes);};
  try{
-  for(const path of ['src/main.ts','index.html','vite.app.config.ts','tsconfig.json','tsconfig.app.json','package.json','package-lock.json','.progress-report/project.json','tooling/build-evidence.ts','tooling/theme/input.css','vendor/text/manifest.json'])put(path,'fixture '+path);
+  for(const path of ['src/main.ts','src/text/worker.ts','index.html','vite.app.config.ts','tsconfig.json','tsconfig.app.json','package.json','package-lock.json','.progress-report/project.json','tooling/build-evidence.ts','tooling/theme/input.css','vendor/text/manifest.json'])put(path,'fixture '+path);
   // Arbitrary bounded bytes test the plugin's provenance capture only. They do
   // not satisfy the reviewed invocation contract and never claim qualification.
   for(const path of D11_INVOCATION_DEPENDENCY_PATHS)put(path,'dependency fixture '+path);
+  for(const path of ['node_modules/canvaskit-wasm/package.json','node_modules/canvaskit-wasm/bin/canvaskit.js','node_modules/canvaskit-wasm/bin/canvaskit.wasm'])put(path,'native fixture '+path);
   process.chdir(root);
   const plugin=buildEvidence(true),bundle={
    'assets/index-test.js':{type:'chunk',fileName:'assets/index-test.js',code:'const entry=1;',isEntry:true,imports:[],dynamicImports:['assets/lazy-test.js'],modules:{}},
@@ -38,15 +39,21 @@ function fixture(run,{beforeConfig,beforeStart,skipConfig=false}={}){
    const options=config.inlineConfig[name];options.rolldownOptions=undefined;
    Object.defineProperty(options,'rollupOptions',{get(){return this.rolldownOptions;},set(value){this.rolldownOptions=value;},configurable:true,enumerable:true});
   }
-  const userConfig={plugins:[plugin]};
+  const userConfig={plugins:[plugin],worker:{format:'iife',plugins:plugin.api.workerPlugins}};
   beforeConfig?.({root,put,plugin,bundle,context,config,userConfig});
   if(!skipConfig){hook(plugin,'config',context,userConfig,{command:'build',mode:'production'});hook(plugin,'configResolved',context,config);}
   const bytes=item=>Buffer.from(item.type==='chunk'?item.code:item.source);
   const write=()=>{for(const item of Object.values(bundle))put('dist/app/'+item.fileName,bytes(item));};
   beforeStart?.({root,put,plugin,bundle,context});
   hook(plugin,'buildStart',context);
+  const worker=(workerBundle,{format='iife'}={})=>{
+   const workerPlugin=plugin.api.workerPlugins()[0];
+   hook(workerPlugin,'configResolved',context,{...config,isWorker:true,mainConfig:config,worker:{format:'iife'}});
+   hook(workerPlugin,'generateBundle',context,{format},workerBundle);
+  };
+  beforeGenerate?.({root,put,plugin,bundle,context,worker});
   hook(plugin,'generateBundle',context,{dir:join(root,'dist/app')},bundle,true);
-  return run({root,put,plugin,bundle,context,bytes,write,finish:()=>hook(plugin,'writeBundle',context,{dir:join(root,'dist/app')},bundle)});
+  return run({root,put,plugin,bundle,context,bytes,write,worker,finish:()=>hook(plugin,'writeBundle',context,{dir:join(root,'dist/app')},bundle)});
  }finally{process.chdir(cwd);rmSync(root,{recursive:true,force:true});}
 }
 
@@ -61,10 +68,10 @@ test('application receipt captures final preload rewrite and final HTML/manifest
  assert.deepEqual(receipt.capture,{phase:'writeBundle',finalized:true});assert.deepEqual(receipt.sourceInputs,provisional.sourceInputs);
  assert.deepEqual(receipt.dependencyInputs,provisional.dependencyInputs);
  assert.deepEqual(receipt.compilation,provisional.compilation);
- assert.deepEqual(receipt.compilation,{schema:1,profile:'reviewed-vite-app-1',configFile:'vite.app.config.ts',configLoader:'bundle',command:'build',mode:'production',
+ assert.deepEqual(receipt.compilation,{schema:1,profile:'reviewed-vite-app-2',configFile:'vite.app.config.ts',configLoader:'bundle',command:'build',mode:'production',
   env:{BASE_URL:'/',MODE:'production',DEV:false,PROD:true},
   configInputs:receipt.sourceInputs.filter(input=>['.progress-report/project.json','tooling/build-evidence.ts','vite.app.config.ts'].includes(input.path)),
-  inlineTransformOptions:'none',userPlugins:['consumer-build-evidence']});
+  inlineTransformOptions:'none',userPlugins:['consumer-build-evidence'],worker:{format:'iife',userPlugins:['consumer-worker-build-evidence']}});
  assert.deepEqual(receipt.dependencyInputs.map(input=>input.path),[...D11_INVOCATION_DEPENDENCY_PATHS]);
  assert.equal(receipt.dependencyInputs.length,53);
  assert(receipt.sourceInputs.every(input=>!input.path.startsWith('node_modules/')));
@@ -197,3 +204,81 @@ test('application development server does not acquire production configuration r
  hook(plugin,'config',context,{plugins:[plugin]},{command:'serve',mode:'development'});
  hook(plugin,'configResolved',context,{command:'serve'});assert.doesNotThrow(()=>hook(plugin,'buildStart',context));
 });
+
+
+function workerChunk(f,{file='assets/text-worker.js',code='self.postMessage(1);',modules=['src/text/worker.ts','node_modules/canvaskit-wasm/bin/canvaskit.js']}={}){
+ return {type:'chunk',fileName:file,code,isEntry:true,facadeModuleId:join(f.root,'src/text/worker.ts'),imports:[],dynamicImports:[],
+  modules:Object.fromEntries(modules.map(path=>[join(f.root,path),{}]))};
+}
+function captureWorker(f,options){
+ const chunk=workerChunk(f,options);f.worker({[chunk.fileName]:chunk});
+ f.bundle[chunk.fileName]={type:'asset',fileName:chunk.fileName,source:chunk.code};
+ return chunk;
+}
+test('worker chunk provenance joins only exact final assets and preserves native loader modules',()=>fixture(f=>{
+ f.write();f.finish();const receipt=JSON.parse(readFileSync(join(f.root,'dist/app/build-evidence.json')));
+ const output=receipt.outputs.find(output=>output.file==='assets/text-worker.js');
+ assert.equal(output.entry,false);assert.equal(output.workerBundle.schema,1);assert.equal(output.workerBundle.phase,'generateBundle');
+ assert.equal(output.workerBundle.entry,'src/text/worker.ts');assert.equal(output.workerBundle.facade,'src/text/worker.ts');assert.equal(output.workerBundle.chunkEntry,true);
+ assert.deepEqual(output.modules,['src/text/worker.ts','node_modules/canvaskit-wasm/bin/canvaskit.js']);
+ assert.deepEqual(output.workerBundle.modules,output.modules);assert.deepEqual(output.workerBundle.imports,output.imports);
+ for(const key of ['file','bytes','sha256'])assert.equal(output.workerBundle[key],output[key]);
+ assert.equal(receipt.observations.D11.startupJsRawBytes,f.bytes(f.bundle['assets/index-test.js']).length+f.bytes(f.bundle['assets/lazy-test.js']).length);
+ assert.equal(receipt.nativeInputs.length,3);
+ for(const pin of receipt.nativeInputs){const bytes=readFileSync(join(f.root,pin.path));assert.deepEqual(pin,{path:pin.path,bytes:bytes.length,sha256:hash(bytes)});}
+},{beforeGenerate:captureWorker}));
+test('worker provenance rejects changed final asset bytes even when disk matches the changed root bundle',()=>fixture(f=>{
+ f.bundle['assets/text-worker.js'].source+='changed';f.write();assert.throws(f.finish,/Worker bundle differs from final emitted asset/);
+},{beforeGenerate:captureWorker}));
+test('worker provenance refuses duplicate captures and a root chunk impersonating the worker asset',()=>fixture(f=>{
+ assert.throws(()=>f.worker({'assets/text-worker.js':workerChunk(f)}),/Duplicate worker bundle output/);
+ const chunk=workerChunk(f);f.bundle[chunk.fileName]=chunk;f.write();assert.throws(f.finish,/Worker bundle differs from final emitted asset/);
+},{beforeGenerate:captureWorker}));
+test('captured but tree-shaken worker outputs are not added to the final build',()=>fixture(f=>{
+ f.write();f.finish();const receipt=JSON.parse(readFileSync(join(f.root,'dist/app/build-evidence.json')));
+ assert(!receipt.outputs.some(output=>Object.hasOwn(output,'workerBundle')));
+},{beforeGenerate:f=>{const chunk=workerChunk(f);f.worker({[chunk.fileName]:chunk});}}));
+test('worker provenance retains nested installations and rejects modules outside the owned consumer',()=>fixture(f=>{
+ const nested='node_modules/other/node_modules/canvaskit-wasm/bin/canvaskit.js';f.put(nested,'nested loader');
+ captureWorker(f,{modules:['src/text/worker.ts',nested]});f.write();f.finish();
+ const output=JSON.parse(readFileSync(join(f.root,'dist/app/build-evidence.json'))).outputs.find(output=>output.file==='assets/text-worker.js');
+ assert(output.modules.includes(nested));assert(!output.modules.includes('node_modules/canvaskit-wasm/bin/canvaskit.js'));
+ const other=workerChunk(f,{file:'assets/outside.js'});other.modules={[process.execPath]:{}};
+ assert.throws(()=>f.worker({[other.fileName]:other}),/Module resolved outside the consumer/);
+}));
+test('worker factory and output format must match the reviewed application configuration',()=>{
+ for(const patch of [undefined,{format:'iife',plugins:()=>[]},{format:'es'},{format:'iife',rolldownOptions:{}}]){
+  assert.throws(()=>fixture(()=>assert.fail('unreviewed worker config accepted'),{beforeConfig:f=>{f.userConfig.worker=patch&&{plugins:f.plugin.api.workerPlugins,...patch};}}),/sole reviewed worker plugin and IIFE format/);
+ }
+ fixture(f=>{const chunk=workerChunk(f);assert.throws(()=>f.worker({[chunk.fileName]:chunk},{format:'es'}),/reviewed IIFE build/);});
+});
+test('worker capture requires its root build lifecycle and cannot reuse a preceding build map',()=>fixture(f=>{
+ hook(f.plugin,'buildStart',f.context);hook(f.plugin,'generateBundle',f.context,{dir:join(f.root,'dist/app')},f.bundle,true);
+ assert(!JSON.parse(f.bundle['build-evidence.json'].source).outputs.find(output=>output.file==='assets/text-worker.js').workerBundle);
+ hook(f.plugin,'closeBundle',f.context);assert.throws(()=>f.worker({'assets/text-worker.js':workerChunk(f)}),/reviewed application build/);
+},{beforeGenerate:captureWorker}));
+test('native input seal admits the actual loader size without widening invocation member bounds',()=>fixture(f=>{
+ f.write();f.finish();const receipt=JSON.parse(readFileSync(join(f.root,'dist/app/build-evidence.json')));
+ assert.equal(receipt.nativeInputs.find(pin=>pin.path.endsWith('/canvaskit.js')).bytes,73594);
+},{beforeStart:f=>f.put('node_modules/canvaskit-wasm/bin/canvaskit.js',Buffer.alloc(73594))}));
+test('native input changes after worker capture cannot finalize even with unchanged emitted worker bytes',()=>fixture(f=>{
+ const path='node_modules/canvaskit-wasm/bin/canvaskit.js',changed=readFileSync(join(f.root,path));changed[0]^=1;f.put(path,changed);f.write();
+ assert.throws(f.finish,/Application native renderer inputs changed/);
+},{beforeGenerate:captureWorker}));
+test('native input seal rejects symlinked members and members above its separate retained-input bound',()=>{
+ assert.throws(()=>fixture(()=>assert.fail('symlinked native input accepted'),{beforeStart:f=>{
+  const path=join(f.root,'node_modules/canvaskit-wasm/bin/canvaskit.js'),target=join(f.root,'original-loader.js');renameSync(path,target);symlinkSync(target,path,'file');
+ }}),/native renderer input is not a bounded canonical ordinary file/);
+ assert.throws(()=>fixture(()=>assert.fail('oversized native input accepted'),{beforeStart:f=>f.put('node_modules/canvaskit-wasm/bin/canvaskit.wasm',Buffer.alloc(32*1024*1024+1))}),/native renderer input is not a bounded canonical ordinary file/);
+});
+
+test('worker capture rejects missing or competing actual entry chunks',()=>fixture(f=>{
+ const first=workerChunk(f),second=workerChunk(f,{file:'assets/second-worker.js'});
+ assert.throws(()=>f.worker({[first.fileName]:{...first,isEntry:false}}),/exactly one actual entry chunk/);
+ assert.throws(()=>f.worker({[first.fileName]:first,[second.fileName]:second}),/exactly one actual entry chunk/);
+}));
+test('native loader mutation during worker compilation is detected before worker provenance is retained',()=>fixture(f=>{
+ const chunk=workerChunk(f),path='node_modules/canvaskit-wasm/bin/canvaskit.js';
+ Object.defineProperty(chunk,'code',{get(){const changed=readFileSync(join(f.root,path));changed[0]^=1;f.put(path,changed);return 'self.postMessage(1);';}});
+ assert.throws(()=>f.worker({[chunk.fileName]:chunk}),/Application native renderer inputs changed/);
+}));

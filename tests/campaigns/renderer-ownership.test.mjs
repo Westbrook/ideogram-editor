@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { digestJSON } from '../../tooling/qualification/core.mjs';
 import { digest } from '../../tooling/qualification/campaigns/common.mjs';
 import { CANVAS2D_RENDERER_CONTRACT, REVIEWED_RENDERER_OWNERSHIP, captureRendererOwnershipProof,
-  verifyRendererOwnershipProof, isRendererTextureNotApplicable } from '../../tooling/qualification/campaigns/renderer-ownership.mjs';
+  verifyRendererOwnershipProof, isRendererTextureNotApplicable, validateRendererWorkerProvenance } from '../../tooling/qualification/campaigns/renderer-ownership.mjs';
 
 function context() {
   // Intentionally unreviewed in-memory inputs. A caller cannot approve these
@@ -85,4 +85,35 @@ test('changing a serialized review digest cannot introduce an approval', () => {
   const proof = unreviewedProof(); proof.reviewSha256 = digest({ review: 'new renderer declaration', contract: CANVAS2D_RENDERER_CONTRACT });
   assert.equal(isRendererTextureNotApplicable(claim(128), proof, { gpuBytes: 128 }), false);
   assert.equal(isRendererTextureNotApplicable(claim(128), proof, { gpuBytes: 0 }), false);
+});
+
+
+// These deliberately synthetic structural operands do not supply a registry
+// approval. They exercise the worker-to-final-output join independently of an
+// outer artifact checksum, so resealed malformed metadata cannot pass it.
+function workerProvenance(){
+ const nativeFiles=[['package','package.json'],['loader','bin/canvaskit.js'],['wasm','bin/canvaskit.wasm']].map(([role,path])=>({role,path:'node_modules/canvaskit-wasm/'+path,bytes:10,sha256:digest(role),encoding:role==='wasm'?'base64':'utf8'}));
+ const modules=['src/text/worker.ts',nativeFiles[1].path],imports=[],file='assets/worker.js',bytes=42,sha256=digest('worker').slice(7);
+ const workerBundle={schema:1,phase:'generateBundle',format:'iife',entry:modules[0],chunkEntry:true,facade:modules[0],file,bytes,sha256,modules:[...modules],imports:[...imports]};
+ return {nativeFiles,evidence:{nativeInputs:nativeFiles.map(({path,bytes,sha256})=>({path,bytes,sha256:sha256.slice(7)})),outputs:[{file,bytes,sha256,modules,imports,entry:false,workerBundle}]}};
+}
+test('worker provenance binds native identities and exact emitted asset metadata without granting approval',()=>{
+ const {nativeFiles,evidence}=workerProvenance();assert.doesNotThrow(()=>validateRendererWorkerProvenance(evidence,nativeFiles));
+ assert.equal(isRendererTextureNotApplicable(claim(4096),{status:'PASS',evidence},{gpuBytes:4096}),false);
+});
+test('worker provenance rejects omitted native inputs and changed native identities after outer resealing',()=>{
+ for(const change of [e=>{delete e.nativeInputs;},e=>{e.nativeInputs.pop();},e=>{e.nativeInputs[1].sha256=digest('other loader').slice(7);},e=>{e.nativeInputs.push(e.nativeInputs[0]);}]){
+  const {nativeFiles,evidence}=workerProvenance();change(evidence);assert.throws(()=>validateRendererWorkerProvenance(evidence,nativeFiles),/sealed native|compiled native inputs differ/);
+ }
+});
+test('worker provenance rejects omitted, duplicated or inconsistent worker-to-output joins after outer resealing',()=>{
+ const mutations=[
+  e=>{delete e.outputs[0].workerBundle;},e=>{e.outputs[0].workerBundle.bytes++;},e=>{e.outputs[0].workerBundle.sha256=digest('other chunk').slice(7);},
+  e=>{e.outputs[0].workerBundle.file='assets/other.js';},e=>{e.outputs[0].workerBundle.modules.pop();},e=>{e.outputs[0].workerBundle.imports.push('assets/other.js');},
+  e=>{e.outputs[0].workerBundle.facade='src/other.ts';},e=>{e.outputs[0].workerBundle.chunkEntry=false;},e=>{e.outputs[0].workerBundle.entry='../outside.ts';},
+  e=>{e.outputs[0].entry=true;},e=>{e.outputs[0].workerBundle.phase='writeBundle';},e=>{e.outputs[0].workerBundle.format='es';},
+  e=>{e.outputs.push(structuredClone(e.outputs[0]));},e=>{e.outputs[0].workerBundle.unknown=true;},
+  e=>{const o=e.outputs[0];o.modules=o.workerBundle.modules=['src/text/worker.ts','node_modules/other/node_modules/canvaskit-wasm/bin/canvaskit.js'];},
+ ];
+ for(const change of mutations){const {nativeFiles,evidence}=workerProvenance();change(evidence);const resealed=JSON.parse(JSON.stringify(evidence));assert.throws(()=>validateRendererWorkerProvenance(resealed,nativeFiles),Error);}
 });

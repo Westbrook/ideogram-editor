@@ -153,7 +153,7 @@ export async function sampleVolume(allocation, { maxEntries = LIMIT, statEntry =
     }
   };
   async function walk(path, depth, ancestors = []) {
-    const children = new Set(); let phase = 'bound', before;
+    let children, phase = 'bound', before;
 
     try {
       if (traversalFailed) throw traversalFailure;
@@ -182,6 +182,7 @@ export async function sampleVolume(allocation, { maxEntries = LIMIT, statEntry =
         if (traversalFailed) throw traversalFailure;
         if (pendingEntry) {
           if (branches < 3) {
+            children ??= new Set();
             branches++;
             let child;
             child = walk(join(path, pendingEntry.name), depth + 1, lineage)
@@ -193,14 +194,14 @@ export async function sampleVolume(allocation, { maxEntries = LIMIT, statEntry =
         pendingEntry = entry;
       }
       if (pendingEntry) await walk(join(path, pendingEntry.name), depth + 1, lineage);
-      if (children.size) await Promise.allSettled(children);
+      if (children?.size) await Promise.allSettled(children);
       if (traversalFailed) throw traversalFailure;
     }
     phase = 'stat-after'; const after = await statEntry(path, { bigint: true });
     phase = 'identity';
     if (after.isSymbolicLink() || !after.isFile() && !after.isDirectory()) throw Object.assign(Error('Unsupported evidence entry'), { code: 'EVIDENCE_ENTRY' });
     if (before.dev !== after.dev || before.ino !== after.ino || before.isDirectory() !== after.isDirectory() || before.isFile() !== after.isFile()) throw Object.assign(Error('Evidence identity changed during sample'), { code: depth === 0 ? 'EVIDENCE_ROOT' : 'EVIDENCE_MUTATION' });
-    if (stamp(before) !== stamp(after)) { concurrentChanges++; if (before.isDirectory()) throw Object.assign(Error('Evidence membership changed during sample'), { code: 'EVIDENCE_MUTATION' }); }
+    if (before.size !== after.size || before.mtimeNs !== after.mtimeNs || before.ctimeNs !== after.ctimeNs) { concurrentChanges++; if (before.isDirectory()) throw Object.assign(Error('Evidence membership changed during sample'), { code: 'EVIDENCE_MUTATION' }); }
     } catch (error) {
       let failure = error;
       if (!observationDiagnostics.has(error)) {
@@ -213,7 +214,7 @@ export async function sampleVolume(allocation, { maxEntries = LIMIT, statEntry =
         failure = observationError(failure, allocation.root, path, phase, error?.code);
       }
       rememberFailure(failure); throw failure;
-    } finally { if (children.size) await Promise.allSettled(children); }
+    } finally { if (children?.size) await Promise.allSettled(children); }
   }
   try {
     await walk(allocation.root, 0);

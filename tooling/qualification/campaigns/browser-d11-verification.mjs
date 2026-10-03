@@ -5,7 +5,7 @@ import { VERSION as rolldownVersion } from 'rolldown';
 import { parseSync } from 'rolldown/utils';
 import { analyzeD11Observation } from './browser-d11.mjs';
 import { deriveD11StaticDocument } from './browser-d11-build.mjs';
-import { deriveD11Roles } from './browser-d11-roles.mjs';
+import { D11_VITE_BROWSER_EXTERNAL, deriveD11Roles, isD11VirtualModule } from './browser-d11-roles.mjs';
 import { D11_ROLE_CONTEXT, verifyD11RegistrationContract } from './browser-d11-registration.mjs';
 import { D11_INVOCATION_DEPENDENCY_PATHS, verifyD11CompilationCapture, verifyD11InvocationContract } from './browser-d11-invocation-contract.mjs';
 
@@ -153,7 +153,7 @@ function reproduceBuildMetadata(build) {
     if (emitted.has(file) || file === 'build-evidence.json') throw Error('Duplicate retained D11 output');
     const modules = strings(output.modules, 'retained output modules'), sources = [...sourceByFile.get(file) ?? []];
     strings(output.imports, 'retained output imports').forEach(pathName);
-    for (const module of modules) if (!module.startsWith('\0') && !module.startsWith('virtual:')) sources.push(pathName(module.split('?')[0]));
+    for (const module of modules) if (!isD11VirtualModule(module)) sources.push(pathName(module.split('?')[0]));
     const sha256 = 'sha256:' + output.sha256;
     if (authoring.has(sha256)) sources.push(authoring.get(sha256));
     const kind = artifactKind(file);
@@ -278,6 +278,7 @@ function verifyBuild(build, compiled, sources) {
     const inline = path === 'inline:bootstrap';
     if (!integer(file.gzipBytes) || file.computedGzipBytes !== file.gzipBytes || file.kind !== (inline ? 'js' : artifactKind(path)) || typeof file.authoringFont !== 'boolean' || file.authoringFont && file.kind !== 'font') throw Error('Invalid D11 emitted byte accounting');
     strings(file.modules, 'emitted modules'); strings(file.sources, 'emitted sources').forEach(pathName);
+    if (file.modules.includes(D11_VITE_BROWSER_EXTERNAL) && sources.get(D11_VITE_BROWSER_EXTERNAL)) throw Error('D11 virtual module conflicts with a retained physical source: ' + D11_VITE_BROWSER_EXTERNAL);
     if (!inline) { bindIdentity({ ...file, path: 'dist/app/' + path }, compiled, 'emitted file'); appPaths.add('dist/app/' + path); }
     files.set(path, file);
   }

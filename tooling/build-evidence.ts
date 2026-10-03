@@ -62,14 +62,24 @@ const invocationDependencyPaths = [
   'node_modules/signal-utils/package.json',
 ] as const;
 const compilationPaths = ['.progress-report/project.json', 'tooling/build-evidence.ts', 'vite.app.config.ts'] as const;
+type WorkerBundleProvenance = {
+  schema: 1; phase: 'generateBundle'; format: 'iife'; entry: string; chunkEntry: boolean; facade: string | null;
+  file: string; bytes: number; sha256: string; modules: string[]; imports: string[];
+};
+type EvidencePlugin = Plugin & { api: { workerPlugins: () => Plugin[] } };
+const nativeInputPaths = ['node_modules/canvaskit-wasm/package.json', 'node_modules/canvaskit-wasm/bin/canvaskit.js', 'node_modules/canvaskit-wasm/bin/canvaskit.wasm'] as const;
+// Native members use the existing renderer retained-input ceiling. Invocation
+// dependency/config members retain their independent 64 KiB cap below.
+const nativeMemberMaximum = 32 * 1024 * 1024;
 type CompilationEvidence = {
-  schema: 1; profile: 'reviewed-vite-app-1'; configFile: 'vite.app.config.ts'; configLoader: 'bundle';
+  schema: 1; profile: 'reviewed-vite-app-2'; configFile: 'vite.app.config.ts'; configLoader: 'bundle';
   command: 'build'; mode: 'production'; configInputs: { path: string; bytes: number; sha256: string }[];
   env: { BASE_URL: '/'; MODE: 'production'; DEV: false; PROD: true };
   inlineTransformOptions: 'none'; userPlugins: ['consumer-build-evidence'];
+  worker: { format: 'iife'; userPlugins: ['consumer-worker-build-evidence'] };
 };
 
-export function buildEvidence(app = false): Plugin {
+export function buildEvidence(app = false): EvidencePlugin {
   const files = (directory: string): string[] => readdirSync(directory, { withFileTypes: true }).flatMap(entry =>
     entry.isDirectory() ? files(`${directory}/${entry.name}`) : [`${directory}/${entry.name}`]);
   const sourceSeal = () => [...files('src'), 'index.html', 'vite.app.config.ts', 'tsconfig.json', 'tsconfig.app.json',
@@ -78,13 +88,13 @@ export function buildEvidence(app = false): Plugin {
       const bytes = readFileSync(path);
       return { path, bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex') };
     });
-  const canonicalSeal = (paths: readonly string[], label: string) => {
+  const canonicalSeal = (paths: readonly string[], label: string, maximum = 64 * 1024) => {
     const root = realpathSync(process.cwd());
     const unchanged = (before: Stats, after: Stats) => after.isFile() && !after.isSymbolicLink() &&
       (['dev', 'ino', 'size', 'mtimeMs', 'ctimeMs'] as const).every(key => before[key] === after[key]);
     return paths.map(path => {
       const absolute = resolve(root, path), before = lstatSync(absolute);
-      if (!absolute.startsWith(root + sep) || realpathSync(absolute) !== absolute || !before.isFile() || before.size > 64 * 1024) throw new Error(`Application ${label} is not a bounded canonical ordinary file: ${path}`);
+      if (!absolute.startsWith(root + sep) || realpathSync(absolute) !== absolute || !before.isFile() || before.size > maximum) throw new Error(`Application ${label} is not a bounded canonical ordinary file: ${path}`);
       const handle = openSync(absolute, constants.O_RDONLY | constants.O_NOFOLLOW);
       try {
         if (!unchanged(before, fstatSync(handle))) throw new Error(`Application ${label} changed before reading: ${path}`);
@@ -102,6 +112,42 @@ export function buildEvidence(app = false): Plugin {
     });
   };
   const dependencySeal = () => canonicalSeal(invocationDependencyPaths, 'invocation dependency');
+  const nativeSeal = () => canonicalSeal(nativeInputPaths, 'native renderer input', nativeMemberMaximum);
+  const workerBundles = new Map<string, WorkerBundleProvenance>();
+  let applicationConfig: ResolvedConfig | undefined;
+  let building = false;
+  const modulePath = (id: string) => {
+    const root = realpathSync(process.cwd()), file = id.split('?')[0]!;
+    if (isAbsolute(file) && !realpathSync(file).startsWith(root + sep)) throw new Error(`Module resolved outside the consumer: ${id}`);
+    return isAbsolute(id) ? relative(root, id).split(sep).join('/') : id;
+  };
+  const workerPlugins = (): Plugin[] => [{
+    name: 'consumer-worker-build-evidence',
+    configResolved(config) {
+      if (!app || !building || config.command !== 'build' || !config.isWorker || !('mainConfig' in config) || config.mainConfig !== applicationConfig || config.worker.format !== 'iife') throw new Error('Worker evidence requires its reviewed application build.');
+    },
+    generateBundle: {
+      // Rolldown runs generateBundle hooks sequentially; only post ordering is configurable.
+      order: 'post',
+      handler(options, bundle) {
+        if (!app || !building || options.format !== 'iife') throw new Error('Worker evidence requires the reviewed IIFE build.');
+        assertSources();
+        const entries = Object.values(bundle).filter((item): item is Rolldown.OutputChunk => item.type === 'chunk' && item.isEntry);
+        if (entries.length !== 1 || !entries[0]!.facadeModuleId) throw new Error('Worker evidence requires exactly one actual entry chunk.');
+        const entry = modulePath(entries[0]!.facadeModuleId);
+        for (const item of Object.values(bundle)) {
+          if (item.type !== 'chunk') continue;
+          const bytes = Buffer.from(item.code);
+          const captured: WorkerBundleProvenance = { schema: 1, phase: 'generateBundle', format: 'iife', entry, chunkEntry: item.isEntry,
+            facade: item.facadeModuleId ? modulePath(item.facadeModuleId) : null, file: item.fileName, bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex'),
+            modules: Object.keys(item.modules).map(modulePath), imports: [...item.imports, ...item.dynamicImports] };
+          if (workerBundles.has(item.fileName)) throw new Error(`Duplicate worker bundle output: ${item.fileName}`);
+          workerBundles.set(item.fileName, captured);
+        }
+        assertSources();
+      },
+    },
+  }];
   let compilation: CompilationEvidence | undefined;
   let configuredForBuild = false;
   let resolvedCommand: ResolvedConfig['command'] | undefined;
@@ -130,14 +176,16 @@ export function buildEvidence(app = false): Plugin {
       if (['build', 'worker', 'optimizeDeps'].includes(key) && value && typeof value === 'object' && !Array.isArray(value) && Object.getPrototypeOf(value) === Object.prototype && Object.values(value).every(item => item === undefined)) continue;
       throw new Error(`Application compilation rejects inline override: ${key}`);
     }
-    return { schema: 1, profile: 'reviewed-vite-app-1', configFile: 'vite.app.config.ts', configLoader: 'bundle', command: 'build', mode: 'production', env: { BASE_URL: '/', MODE: 'production', DEV: false, PROD: true },
-      configInputs: canonicalSeal(compilationPaths, 'compilation input'), inlineTransformOptions: 'none', userPlugins: ['consumer-build-evidence'] };
+    return { schema: 1, profile: 'reviewed-vite-app-2', configFile: 'vite.app.config.ts', configLoader: 'bundle', command: 'build', mode: 'production', env: { BASE_URL: '/', MODE: 'production', DEV: false, PROD: true },
+      configInputs: canonicalSeal(compilationPaths, 'compilation input'), inlineTransformOptions: 'none', userPlugins: ['consumer-build-evidence'], worker: { format: 'iife', userPlugins: ['consumer-worker-build-evidence'] } };
   };
   let sourceInputs: ReturnType<typeof sourceSeal> | undefined;
   let dependencyInputs: ReturnType<typeof dependencySeal> | undefined;
+  let nativeInputs: ReturnType<typeof nativeSeal> | undefined;
   const assertSources = () => {
     if (app && (!sourceInputs || JSON.stringify(sourceSeal()) !== JSON.stringify(sourceInputs))) throw new Error('Application inputs changed during the build; rebuild before qualification.');
     if (app && (!dependencyInputs || JSON.stringify(dependencySeal()) !== JSON.stringify(dependencyInputs))) throw new Error('Application invocation dependencies changed during the build; rebuild before qualification.');
+    if (app && (!nativeInputs || JSON.stringify(nativeSeal()) !== JSON.stringify(nativeInputs))) throw new Error('Application native renderer inputs changed during the build; rebuild before qualification.');
     if (app && (!compilation || JSON.stringify(canonicalSeal(compilationPaths, 'compilation input')) !== JSON.stringify(compilation.configInputs))) throw new Error('Application compilation inputs changed during the build; rebuild before qualification.');
   };
   const report = (bundle: Rolldown.OutputBundle, directory?: string) => {
@@ -153,14 +201,17 @@ export function buildEvidence(app = false): Plugin {
           if (!file.startsWith(directory + sep)) throw new Error(`Emitted output escaped the build directory: ${item.fileName}`);
           if (!readFileSync(file).equals(bytes)) throw new Error(`Final bundle differs from emitted file: ${item.fileName}`);
         }
+        const worker = app ? workerBundles.get(item.fileName) : undefined;
+        if (worker && (item.type !== 'asset' || bytes.length !== worker.bytes || createHash('sha256').update(bytes).digest('hex') !== worker.sha256)) throw new Error(`Worker bundle differs from final emitted asset: ${item.fileName}`);
         return { file: item.fileName, bytes: bytes.length, ...(app ? { sha256: createHash('sha256').update(bytes).digest('hex') } : {}), gzipBytes: gzipSync(bytes).length,
           entry: item.type === 'chunk' && item.isEntry,
-          imports: item.type === 'chunk' ? [...item.imports, ...(app ? item.dynamicImports : [])] : [],
+          imports: item.type === 'chunk' ? [...item.imports, ...(app ? item.dynamicImports : [])] : worker?.imports ?? [],
+          ...(worker ? { workerBundle: worker } : {}),
           // Preserve every installation segment for the app's provenance. A
           // nested dependency must never impersonate its sealed root member.
           modules: item.type === 'chunk' ? Object.keys(item.modules).map(path => app
             ? isAbsolute(path) ? relative(boundary, path).split(sep).join('/') : path
-            : path.replace(/^.*\/node_modules\//, 'node_modules/').replace(process.cwd() + '/', '')) : [] };
+            : path.replace(/^.*\/node_modules\//, 'node_modules/').replace(process.cwd() + '/', '')) : worker?.modules ?? [] };
       });
       const startup = new Set<string>();
       function collect(file: string) {
@@ -173,7 +224,7 @@ export function buildEvidence(app = false): Plugin {
       const forbidden = initial.flatMap(output => output.modules).filter(path => /@en-reve\/elements\/dist\/index\.js$|node_modules\/prosemirror-/.test(path));
       if (forbidden.length) throw new Error(`Forbidden startup dependency: ${forbidden.join(', ')}`);
       return JSON.stringify({
-        schema: 1, ...(app ? { sourceInputs, dependencyInputs, compilation, capture: { phase: directory ? 'writeBundle' : 'generateBundle', finalized: !!directory }, toolchain: { node: process.versions.node,
+        schema: 1, ...(app ? { sourceInputs, dependencyInputs, nativeInputs, compilation, capture: { phase: directory ? 'writeBundle' : 'generateBundle', finalized: !!directory }, toolchain: { node: process.versions.node,
           npm: /^npm\/(\S+)/.exec(process.env.npm_config_user_agent ?? '')?.[1] ?? null } } : {}),
         workload: app ? 'P1a.3 browser shell; all initial dynamic shell imports counted' : 'P1a.1 qualification fixture; not the editor W0/W1 workload',
         observations: { D11: { startupJsRawBytes: initial.reduce((n, item) => n + item.bytes, 0),
@@ -182,26 +233,31 @@ export function buildEvidence(app = false): Plugin {
         qualification: 'Unqualified: single artifact, no required campaign or evaluated-module timing', outputs,
       }, null, 2) + '\n';
   };
-  const plugin: Plugin = {
+  const plugin: EvidencePlugin = {
+    api: { workerPlugins },
     name: 'consumer-build-evidence',
     config(config, environment) {
       if (!app || environment.command !== 'build') return;
       // Compare the actual object, not a trusted-looking plugin name. The
       // config source seal supplies the reviewed implementation identity.
       if (!Array.isArray(config.plugins) || config.plugins.length !== 1 || config.plugins[0] !== plugin) throw new Error('Application compilation requires its sole reviewed user plugin.');
+      const worker = config.worker;
+      if (!worker || worker.plugins !== workerPlugins || worker.format !== 'iife' || Object.entries(worker).some(([key, value]) => value !== undefined && !['plugins', 'format'].includes(key))) throw new Error('Application compilation requires its sole reviewed worker plugin and IIFE format.');
       configuredForBuild = true;
     },
     configResolved(config) {
       resolvedCommand = config.command;
-      if (app && config.command === 'build') compilation = captureCompilation(config);
+      if (app && config.command === 'build') { applicationConfig = config; compilation = captureCompilation(config); }
     },
     buildStart() {
       if (app && resolvedCommand !== 'serve') {
         if (!compilation) throw new Error('Application compilation configuration was not captured.');
-        sourceInputs = sourceSeal(); dependencyInputs = dependencySeal();
+        workerBundles.clear(); building = true;
+        sourceInputs = sourceSeal(); dependencyInputs = dependencySeal(); nativeInputs = nativeSeal();
         assertSources();
       }
     },
+    closeBundle() { building = false; },
     generateBundle(_options, bundle) {
       assertSources();
       this.emitFile({ type: 'asset', fileName: 'build-evidence.json', source: report(bundle) });

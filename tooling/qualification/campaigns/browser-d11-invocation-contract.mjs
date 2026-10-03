@@ -18,8 +18,8 @@ const equal = (actual, expected, label) => { if (!isDeepStrictEqual(actual, expe
 const decoder = new TextDecoder('utf-8', { fatal: true });
 export const D11_COMPILATION_INPUT_PATHS = Object.freeze(['.progress-report/project.json', 'tooling/build-evidence.ts', 'vite.app.config.ts']);
 const REVIEWED_COMPILATION = [
-  { path: 'vite.app.config.ts', rawBytes: 459, sha256: 'sha256:1254165ea4fb9b0cc2a83552b3f87c9132d45225e38959f11ce99f6130e89c4a' },
-  { path: 'tooling/build-evidence.ts', rawBytes: 16426, sha256: 'sha256:7652412f0fea29ab93c8e3b69722ee81f0a0af98db0fa96e59aabb02c5a78c59' },
+  { path: 'vite.app.config.ts', rawBytes: 554, sha256: 'sha256:ba4874b23f6f789ac56db7916bb0d0b1304bf3d2ff7c9a00bb0b4f298fe6c024' },
+  { path: 'tooling/build-evidence.ts', rawBytes: 20934, sha256: 'sha256:483a863f126ff181d94897b3ca5defcbe00ff7104584bfbd8fa42478e54070c7' },
 ];
 
 // These are reviewed production members, not package-name exemptions. Runtime
@@ -139,10 +139,10 @@ export function verifyD11CompilationCapture(compilation, { sourceTextByPath } = 
     if (text(bytes) !== value) throw Error('D11 compilation source does not round-trip');
     return identity(path, bytes);
   });
-  equal(compilation, { schema: 1, profile: 'reviewed-vite-app-1', configFile: 'vite.app.config.ts', configLoader: 'bundle',
+  equal(compilation, { schema: 1, profile: 'reviewed-vite-app-2', configFile: 'vite.app.config.ts', configLoader: 'bundle',
     command: 'build', mode: 'production', env: { BASE_URL: '/', MODE: 'production', DEV: false, PROD: true },
     configInputs: inputs.map(input => ({ path: input.path, bytes: input.rawBytes, sha256: input.sha256.slice(7) })),
-    inlineTransformOptions: 'none', userPlugins: ['consumer-build-evidence'] }, 'compilation capture');
+    inlineTransformOptions: 'none', userPlugins: ['consumer-build-evidence'], worker: { format: 'iife', userPlugins: ['consumer-worker-build-evidence'] } }, 'compilation capture');
   return { kind: 'verified-d11-compilation-capture-1', inputs };
 }
 function lockPackages(lock) {

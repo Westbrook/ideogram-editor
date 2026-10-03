@@ -17,6 +17,54 @@ function rejected(changes, { reseal = false } = {}) {
   }
 }
 
+// This explicitly updated synthetic finalized specimen changes both the retained
+// evidence and its independent test identity. It grants no production authority.
+function virtualModuleSpecimen(modules = ['__vite-browser-external', '\0rolldown/virtual-specimen.js', 'virtual:retained-specimen']) {
+  const state = specimen(), build = state.payload.build;
+  const file = build.files.find(row => row.file === 'assets/worker.js');
+  file.modules.push(...modules);
+  const evidence = JSON.parse(build.retainedInputs.buildEvidence);
+  evidence.outputs.find(row => row.file === file.file).modules = [...file.modules];
+  const text = JSON.stringify(evidence), bytes = Buffer.byteLength(text), sha256 = hash(text);
+  build.retainedInputs.buildEvidence = text;
+  Object.assign(build.inputs.buildEvidence, { rawBytes: bytes, sha256 });
+  Object.assign(state.options.buildFiles.find(row => row.path === inputPaths.buildEvidence), { bytes, sha256 });
+  refresh(state);
+  return state;
+}
+
+test('D11 retained replay keeps exact virtual IDs while excluding fabricated source provenance', () => {
+  const baseline = specimen(), state = virtualModuleSpecimen();
+  assert.deepEqual(verify(state), state.payload.result);
+  const file = state.payload.build.files.find(row => row.file === 'assets/worker.js');
+  assert(file.modules.includes('__vite-browser-external'));
+  assert(file.modules.includes('\0rolldown/virtual-specimen.js'));
+  assert.deepEqual(file.sources, ['src/text/worker.ts']);
+  assert.deepEqual(state.payload.build.roles, baseline.payload.build.roles);
+  for (const key of ['rawBytes', 'sha256', 'gzipBytes', 'computedGzipBytes']) assert.equal(file[key], baseline.payload.build.files.find(row => row.file === file.file)[key]);
+});
+
+test('D11 retained replay rejects lookalikes even with refreshed outer and evidence identities', () => {
+  for (const id of ['__vite-browser-external:fs', '__vite-browser-external?commonjs-proxy', '__vite-browser-external/child',
+    '__vite-browser-external.js', 'src/__vite-browser-external', 'missing-ordinary.js']) {
+    const state = virtualModuleSpecimen([id]);
+    assert.throws(() => verify(state), /D11 emitted accounting differs from retained finalized inputs/, id);
+  }
+});
+
+test('D11 retained replay rejects virtual-module omission, forged source attribution and physical-name collisions', () => {
+  for (const change of [
+    state => { const file = state.payload.build.files.find(row => row.file === 'assets/worker.js'); file.modules = file.modules.filter(id => id !== '__vite-browser-external'); },
+    state => { state.payload.build.files.find(row => row.file === 'assets/worker.js').sources.push('__vite-browser-external'); },
+  ]) {
+    const state = virtualModuleSpecimen(); change(state); refresh(state);
+    assert.throws(() => verify(state), /D11 emitted accounting differs from retained finalized inputs/);
+  }
+  const state = virtualModuleSpecimen();
+  state.options.sourceFiles.push({ path: '__vite-browser-external', bytes: 1, sha256: hash('x').slice(7) });
+  assert.throws(() => verify(state), /virtual module conflicts with a retained physical source/);
+});
+
 test('D11 retained verification recomputes the observation against exact receipt identities', () => {
   const state = specimen();
   assert.equal(state.payload.result.status, 'PASS');

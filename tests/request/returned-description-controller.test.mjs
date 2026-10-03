@@ -1,7 +1,7 @@
 // Actual controllers, ControlAdapter and owned JSON/model ledger. Lit, native
 // controls, font loading and text workers are explicit NON-BROWSER doubles.
 // This suite claims neither browser focus behavior nor native font/raster proof.
-import {allocationsURL,promptMemoryURL as promptURL} from '../owned-preview-module.mjs';
+import {allocationsURL,promptMemoryURL as promptURL,compositionObservationsURL} from '../owned-preview-module.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -27,7 +27,7 @@ const modelsURL=await source('src/observability/model-memory.ts',{'./allocations
 const adapterURL=await source('src/ui/adapters.ts'),shaURL=await source('src/protocol/sha256.ts');
 const lit=data('export const nothing=null;export const html=(strings,...values)=>({strings,values});');
 const returnedURL=compiled('src/text/returned-description.js'),textURL=compiled('src/protocol/text.js'),jsonURL=compiled('src/protocol/json.js'),compositionURL=compiled('src/composition/core.js');
-const controllerURL=await source('src/ui/returned-description.ts',{'lit':lit,'../text/returned-description.js':returnedURL,'../protocol/sha256.js':shaURL,'../observability/allocations.js':allocationsURL,'../observability/model-memory.js':modelsURL,'../observability/prompt-memory.js':promptURL,'./adapters.js':adapterURL});
+const controllerURL=await source('src/ui/returned-description.ts',{'../observability/composition-observations.js':compositionObservationsURL,'lit':lit,'../text/returned-description.js':returnedURL,'../protocol/sha256.js':shaURL,'../observability/allocations.js':allocationsURL,'../observability/model-memory.js':modelsURL,'../observability/prompt-memory.js':promptURL,'./adapters.js':adapterURL});
 const {ReturnedDescriptionEditing}=await import(controllerURL),{readOwnedJSON}=await import(modelsURL),{allocationLedger,ALLOCATION_LIMITS}=await import(allocationsURL);
 const digest=bytes=>'sha256:'+createHash('sha256').update(bytes).digest('hex');
 const ref=(value,mediaType='text/plain')=>{const bytes=Buffer.from(value);return {hash:digest(bytes),byteLength:String(bytes.length),mediaType};};
@@ -191,4 +191,17 @@ test('pending draft3 restore refuses a replaced owner and a fresh explicit retry
  const f=nativeFixture(t),value=proposal(),gate=deferred(),checkpoint={id:'recovered',kind:'text',status:'saved-unapplied',documentId:'document',targetLayerId:null,expectedDocumentRevision:'4',generation:'1'},payload={draft:checkpoint,value:{schemaVersion:3,kind:'text-draft-3',textUtf8:ref(value.literal),style:{primaryFont:f.font.bytes.hash},frame:value.frame,fonts:[f.font],placement:value.placement,description:value.selection}};
  f.editor.ui.drafts=[checkpoint];f.editor.json=()=>gate.promise;f.native.readText=async()=>cloneOwnedModel('fixture-text',value.literal);const pending=f.native.sync();f.editor.draftOwner={drafts:new Map()};gate.resolve(payload);await pending;assert.equal(f.native.session,undefined);assert.deepEqual(f.saved,[]);
  f.editor.json=async()=>payload;await f.native.sync();await flush();assert.deepEqual(f.native.session.description,value.selection);assert.equal(f.native.session.text,value.literal);
+});
+
+
+const {compositionObservations:inspectionObserver}=await import(compositionObservationsURL);
+function inspectionSnapshot(){const owner=inspectionObserver.readSnapshot();try{return structuredClone(owner.value);}finally{owner.release();}}
+test('multi-page returned caption records one complete logical input extent',async t=>{
+ const f=fixture(t,{bytes:captionBytes(65537)}),before=inspectionSnapshot();await f.click('review');const after=inspectionSnapshot(),rows=after.records.filter(row=>row.sequence>before.cursor);
+ assert.equal(f.calls.length,3);assert.deepEqual(rows.filter(row=>row.kind==='raw-inspection-begin').map(row=>[row.sourceHash,row.sourceBytes,row.mode]),[[digest(f.bytes),65537,'decode']]);
+ assert.deepEqual(rows.filter(row=>row.kind==='raw-inspection-read').map(row=>row.receivedBytes),[65537]);assert.deepEqual(rows.filter(row=>row.kind==='raw-inspection-end').map(row=>row.outcome),['decoded']);assert.equal(after.activeInspections,0);assert.equal(after.inspectionInvalid,before.inspectionInvalid);
+});
+test('failed returned caption hash verification cannot complete its materialized-input witness',async t=>{
+ const f=fixture(t),before=inspectionSnapshot();f.setPage(offset=>{const p=f.page(offset),bytes=Buffer.from(p.bytes,'base64');bytes[0]^=1;p.bytes=bytes.toString('base64');return f.response(p);});await f.click('review');
+ const after=inspectionSnapshot(),rows=after.records.filter(row=>row.sequence>before.cursor);assert.equal(f.controller.current,undefined);assert.deepEqual(rows.filter(row=>row.kind==='raw-inspection-read').map(row=>row.receivedBytes),[f.bytes.length]);assert.deepEqual(rows.filter(row=>row.kind==='raw-inspection-end').map(row=>row.outcome),['failed']);assert.equal(after.activeInspections,0);
 });
