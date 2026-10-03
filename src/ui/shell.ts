@@ -132,7 +132,7 @@ class EditorShell extends LitElement {
   private singleKeyShortcuts=singleKeyShortcutsEnabled();
   private interactionEpoch=0;
   private operation:string=operations[0];
-  private deletionFlow=new DocumentDeletion(this,editor,()=>this.composition);
+  private deletionFlow=new DocumentDeletion(this,editor,()=>this.composition,documentId=>this.requestFlow.pauseDocumentObservation(documentId));
   private storageFlow?:StorageLibrary;
   private reviewedCanvasPreview:ReviewedCanvasPreview|null=null;
   private requestFlow=new RequestEditing(this,editor,(preview,restoreReviewId)=>this.showReviewedCanvas(preview,restoreReviewId),(trigger,proposal)=>this.textEditing.beginFromReturnedDescription(trigger,proposal),()=>{this.structure='composition';this.inspectorOpen=true;this.requestUpdate();void this.updateComplete.then(()=>this.querySelector<HTMLElement>('#inspector')?.focus());},value=>this.requestOperationChanged(value));

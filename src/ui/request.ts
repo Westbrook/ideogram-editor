@@ -38,6 +38,8 @@ import {createOwnedModel,modelPayloadBytes,type OwnedModel} from '../observabili
 import {PromptReaderCleanupError} from '../observability/prompt-memory.js';
 import {createRequestEntry,ownRequestEntry,changeRequestEntry,serializeRequestEntry,REQUEST_ENTRY_COUNT,REQUEST_ENTRY_BYTES,type RequestEntry as Entry} from './request-entry-memory.js';
 import {canonical} from '../protocol/json.js';
+type ObservationOwner={session:EditorClient['session'];identity:string|null;sessionId:string;draftOwner:EditorClient['draftOwner'];documentId:string|undefined;documentEpoch:number};
+type DeletionObservationBarrier={owner:ObservationOwner;accepted:boolean};
 type EntryRestoreAuthority={owner:EditorClient['draftOwner'];session:EditorClient['session'];identity:string|null;sessionId:string;documentId:string;revision:string;documentEpoch:number};
 const promptRef=(text:string)=>{const lease=reservePromptPayload('request-prompt-hash',text.length*3+4096,4);try{return {hash:hash(text),byteLength:String(bytes(text)),mediaType:'text/plain'};}finally{lease.release();}};
 export class RequestEditing{
@@ -121,6 +123,7 @@ export class RequestEditing{
  private cancelPreviewReads(){this.sourcePreviewRead?.abort();this.sourcePreviewRead=null;this.candidatePreviewRead?.abort();this.candidatePreviewRead=null;}
  private releaseRequest(){
   if(this.requestRelease)return this.requestRelease;
+  this.observationBarrier=null;this.observationGeneration++;
   this.queueEditLifetime++;this.preferredQueuedOwner=undefined;this.queueEditReview=null;this.entryRestoreFailure=null;this.requestReleasing=true;this.entryReleasing=true;this.cancelEntryReads();this.epoch++;this.intent++;this.adapter.invalidate();this.capDraftAdapter.invalidate();
   const pending:Promise<unknown>[]=[],errors:unknown[]=[];
   const start=(release:()=>unknown)=>{try{pending.push(Promise.resolve(release()));}catch(error){errors.push(error);}};
@@ -140,11 +143,74 @@ export class RequestEditing{
  dispose(){this.disposed=true;return this.releaseRequest();}
  releaseDocument(){return this.releaseRequest();}
  inspectMemory(){return {promptInput:{retired:this.promptRetired.size,capacity:this.promptInput?.capacity??0,maximum:this.promptInput?.maximum??0,refused:this.promptInput?.refused??false,nativeOverflow:this.promptInput?.nativeOverflow??false,observedCPUBytes:this.promptInput?.observedCPUBytes??0,observationGeneration:this.promptInput?.observationGeneration??0,settlementFailed:this.promptInput?.settlementFailed??false,unavailable:this.promptUnavailable},navigation:this.navigation.lifecycle,entries:this.entryModels.size,retiredEntries:this.entryRetired.size,entryTasks:this.entryTasks.size,entryHolds:this.entryHolds.size,entryReads:this.entryReads.size,entryCleanup:this.entryCleanup.size,promptReads:this.promptReads.size,announcementStates:this.announcementStates.size,transferAnnouncements:this.transferAnnouncements.size,repairFiles:this.repairFiles.size,releasing:this.requestReleasing,disposed:this.disposed};}
+ private observationGeneration=0;
+ private observationBarrier:DeletionObservationBarrier|null=null;
+ private observationTasks=new Map<Promise<void>,ObservationOwner>();
+ private observationOwner():ObservationOwner{const session=this.editor.session;return {session,identity:session.identity(),sessionId:this.editor.sessionId,draftOwner:this.editor.draftOwner,documentId:this.editor.view.document?.id,documentEpoch:this.editor.documentEpoch};}
+ private sameObservationOwner(owner:ObservationOwner){return owner.session===this.editor.session&&owner.identity===owner.session.identity()&&owner.sessionId===this.editor.sessionId&&owner.draftOwner===this.editor.draftOwner&&owner.documentId===this.editor.view.document?.id&&owner.documentEpoch===this.editor.documentEpoch;}
+ private observationBlocked(){
+  const barrier=this.observationBarrier;
+  if(barrier&&!this.sameObservationOwner(barrier.owner)){this.observationBarrier=null;this.observationGeneration++;}
+  return !!this.observationBarrier;
+ }
+ /** Track actual read settlement, including superseded reads. This registry
+  * never includes the deletion action/command that is waiting for the drain. */
+ private observeRequest(work:(current:()=>boolean)=>Promise<void>,skipped:()=>void=()=>{}):Promise<void>{
+  if(this.disposed||this.requestReleasing||this.observationBlocked()){skipped();return Promise.resolve();}
+  const owner=this.observationOwner(),generation=this.observationGeneration;
+  const current=()=>!this.disposed&&!this.requestReleasing&&this.sameObservationOwner(owner)&&generation===this.observationGeneration&&!this.observationBlocked();
+  const task=Promise.resolve().then(()=>{if(!current()){skipped();return;}return work(current);}).catch(error=>{
+   // Only the owned read's abort caused by this local deletion fence settles
+   // quietly. HTTP errors, including another client's NOT_FOUND, still reject.
+   const barrier=this.observationBarrier;
+   if(error instanceof DOMException&&error.name==='AbortError'&&barrier&&this.sameObservationOwner(owner)&&barrier.owner.session===owner.session&&barrier.owner.identity===owner.identity&&barrier.owner.sessionId===owner.sessionId&&barrier.owner.draftOwner===owner.draftOwner&&barrier.owner.documentId===owner.documentId&&barrier.owner.documentEpoch===owner.documentEpoch&&generation!==this.observationGeneration)return;
+   throw error;
+  });
+  this.observationTasks.set(task,owner);void task.then(()=>this.observationTasks.delete(task),()=>this.observationTasks.delete(task));return task;
+ }
+ /** A confirmed local deletion fences only request observations. It does not
+  * clear retained models/drafts, dispose the shell, or cancel provider work. */
+ pauseDocumentObservation(documentId:string){
+  if(this.disposed||this.requestReleasing||this.editor.view.document?.id!==documentId)throw Error('Deletion request observation owner changed.');
+  if(this.observationBlocked())throw Error('Document deletion is already coordinating request observation.');
+  const barrier:DeletionObservationBarrier={owner:this.observationOwner(),accepted:false};this.observationBarrier=barrier;this.observationGeneration++;
+  if(this.pollTimer)clearTimeout(this.pollTimer);this.pollTimer=null;
+  const drain=(async()=>{
+   // New work is fenced synchronously above. Drain every actual older promise,
+   // not merely the current candidate token or the latest poll callback.
+   const pending=[...this.observationTasks].filter(([,owner])=>owner.session===barrier.owner.session&&owner.identity===barrier.owner.identity&&owner.sessionId===barrier.owner.sessionId&&owner.draftOwner===barrier.owner.draftOwner&&owner.documentId===barrier.owner.documentId&&owner.documentEpoch===barrier.owner.documentEpoch).map(([task])=>task);
+   await Promise.allSettled(pending);
+   const owners=[this.navigation.controls,this.navigation.candidates,this.navigation.prompts];
+   if(owners.some(owner=>owner.lifecycle.cleanupFailures))throw Error('Request observation cleanup is incomplete; document deletion was not sent.');
+  })();
+  let released=false;
+  return {drain,accepted:()=>{if(!released&&this.observationBarrier===barrier)barrier.accepted=true;},release:()=>{
+   if(released)return;released=true;if(this.observationBarrier!==barrier)return;
+   // Matching acknowledgement can precede projection removal. Keep this one
+   // owner fenced until it retires rather than reviving its old candidate URLs.
+   if(barrier.accepted&&this.sameObservationOwner(barrier.owner))return;
+   this.observationBarrier=null;this.observationGeneration++;
+   if(this.sameObservationOwner(barrier.owner)&&!this.disposed&&!this.requestReleasing)this.poll();
+  }};
+ }
  private pollTimer:ReturnType<typeof setTimeout>|null=null;
  private polling=false;private pollAction:object|null=null;
  // An explicit queue action owns its receipt-following refresh. A scheduled
  // poll must not supersede that read and turn a saved command into an error.
- private poll(){if(this.disposed||this.requestReleasing||this.pollTimer||this.polling||this.queueBusy||this.queueNavigating||!this.queue)return;this.pollTimer=setTimeout(()=>{this.pollTimer=null;if(this.queueBusy)return;const owns=this.owns(false),token={},cursor=this.queueCursor,navigation=this.queueNavigation;this.pollAction=token;this.polling=true;void this.refreshQueue().then(async()=>{if(this.queueBusy||!owns()||cursor!==this.queueCursor||navigation!==this.queueNavigation)return;for(const job of this.queue?.jobs??[])if(job.documentId===this.editor.view.document?.id&&job.disposition!=='deleted')for(const a of job.attempts){if(this.queueBusy||!owns()||cursor!==this.queueCursor||navigation!==this.queueNavigation)return;if(a.requestId&&!a.recoveryRequired)await this.inspectCandidates(job.id,a.id);}}).catch(()=>{}).finally(()=>{if(this.pollAction!==token)return;this.pollAction=null;this.polling=false;if(owns())this.poll();});},150);}
+ private poll(){
+  if(this.disposed||this.requestReleasing||this.observationBlocked()||this.pollTimer||this.polling||this.queueBusy||this.queueNavigating||!this.queue)return;
+  this.pollTimer=setTimeout(()=>{
+   this.pollTimer=null;if(this.queueBusy||this.observationBlocked()||this.disposed||this.requestReleasing)return;
+   const owns=this.owns(false),token={},cursor=this.queueCursor,navigation=this.queueNavigation;this.pollAction=token;this.polling=true;
+   void this.observeRequest(async current=>{
+    await this.refreshQueue();if(!current()||this.queueBusy||!owns()||cursor!==this.queueCursor||navigation!==this.queueNavigation)return;
+    for(const job of this.queue?.jobs??[])if(job.documentId===this.editor.view.document?.id&&job.disposition!=='deleted')for(const a of job.attempts){
+     if(!current()||this.queueBusy||!owns()||cursor!==this.queueCursor||navigation!==this.queueNavigation)return;
+     if(a.requestId&&!a.recoveryRequired)await this.inspectCandidates(job.id,a.id);
+    }
+   }).catch(()=>{}).finally(()=>{if(this.pollAction!==token)return;this.pollAction=null;this.polling=false;if(owns())this.poll();});
+  },150);
+ }
  private changed(){this.host.requestUpdate();}
  private syncAnnouncements(){const session=this.editor.session,owner=this.editor.draftOwner,identity=session.identity(),sessionId=this.editor.sessionId,documentId=this.editor.view.document?.id,old=this.announcementOwner;if(old&&old.owner===owner&&old.session===session&&old.identity===identity&&old.sessionId===sessionId&&old.documentId===documentId)return;this.announcementOwner={owner,session,identity,sessionId,documentId};this.announcementStates.clear();if(this.transferTimer)clearTimeout(this.transferTimer);this.transferTimer=null;this.transferAnnouncements.clear();this.transferLastAt=-Infinity;if(this.announcement){this.announcement='';this.changed();}}
  private announcementChange(key:string,state:string,text:string){const previous=this.announcementStates.get(key);if(previous===state||key.startsWith('provider:')&&previous&&['completed','failed','cancelled','locally-cancelled'].includes(previous)&&!['completed','failed','cancelled','locally-cancelled'].includes(state)||key.startsWith('candidate:')&&previous==='prepared'&&['received','downloaded'].includes(state))return '';this.announcementStates.set(key,state);return text;}
@@ -411,10 +477,10 @@ export class RequestEditing{
  private async accept(){const review=this.review,owns=this.owns(),intent=this.intent;if(!review)throw Error('Prepare a review first.');const settle=this.beginReviewProgress('review:'+review.id,'accepting','Saving request review acceptance…',()=>owns()&&intent===this.intent);try{const receipt=await this.editor.ownedRequestReview({type:'AcceptRequestReview',reviewId:review.id,token:review.token});try{if(!owns()||intent!==this.intent)return;this.accepted=receipt.value.acceptedReview===review.id;this.acceptanceId=this.accepted?receipt.value.requestId:'';this.busy=false;this.message='Request review accepted locally. No job was queued and no provider call was made.';this.announce('review:'+review.id,'accepted',this.message);this.changed();}finally{receipt.release();}}finally{settle();}}
 
  private resetQueuePage(){this.navigation.controls.clear('queue-history');this.navigation.controls.clear('queue');this.queueCursor='';this.queueBack=[];this.queueRead++;this.queueNavigation++;this.queueNavigating=false;this.queueKnownTotal=null;this.queueNewJobs=false;}
- private refreshQueue(after=this.queueCursor,back?:OwnedModel<string[]>){try{return this.navigation.controls.run(()=>this.refreshQueueOwned(after,back));}catch(error){back?.release();throw error;}}
- private async refreshQueueOwned(after:string,back?:OwnedModel<string[]>){
-  const navigating=back!==undefined;if(this.queueNavigating&&!navigating)return;
-  const owns=this.owns(false),read=++this.queueRead;let model:OwnedModel<QueueView>|undefined,retained=false,backRetained=false;
+ private refreshQueue(after=this.queueCursor,back?:OwnedModel<string[]>){return this.observeRequest(current=>{try{return this.navigation.controls.run(()=>this.refreshQueueOwned(after,back,current));}catch(error){back?.release();throw error;}},()=>back?.release());}
+ private async refreshQueueOwned(after:string,back:OwnedModel<string[]>|undefined,observation:()=>boolean){
+  const navigating=back!==undefined;if(!observation()||this.queueNavigating&&!navigating){back?.release();return;}
+  const entryOwns=this.owns(false),owns=()=>entryOwns()&&observation(),read=++this.queueRead;let model:OwnedModel<QueueView>|undefined,retained=false,backRetained=false;
   try{
    if(navigating){this.queueNavigation++;this.queueNavigating=true;this.changed();}
    model=await this.navigation.controls.read<QueueView>('/api/v1/queue'+(after?'?after='+encodeURIComponent(after):''),()=>owns()&&read===this.queueRead,REQUEST_NAVIGATION_LIMITS.pageBytes);if(!owns()||read!==this.queueRead)return;const view=model.value,total=view.totalJobs;
@@ -490,7 +556,7 @@ export class RequestEditing{
  private capChange(event:Event,owns:()=>boolean){if(!owns())return;this.capPending=true;this.capDraft=null;this.capChangeBlocked=true;const host=event.currentTarget as HTMLElement&{value:string};this.adapter.settled(event,()=>host.value,value=>{if(!owns())return;try{this.cap=value;this.capChangeBlocked=false;const draft=this.capDraft;this.capPending=!!draft&&(draft.isComposing||draft.value!==value);}catch(error){this.adapter.write(host,'value',this.cap);this.error(error);}});}
  private setCap(cap:number|null,queue:QueueView){if(!queue)throw Error('Refresh the queue first.');if(cap!==null&&(this.composing||this.capPending||!/^[1-9][0-9]*$/.test(this.cap)||!Number.isSafeInteger(cap)))throw new RequestError([{field:'cap',code:'REQUEST_CAP',message:'Enter a positive whole request count.'}]);return this.queueCommand({type:'SetSpendGuard',spendSessionId:queue.session.id,expectedConfigVersion:queue.session.version,cap});}
   private async confirmRisk(r:NonNullable<RequestEditing['riskReview']>){if(this.riskReview!==r)return;await this.queueCommand(r.kind==='override'?{type:'OverrideUncertainHold',jobId:r.jobId,attemptId:r.attemptId,expectedVersion:r.expectedVersion,acknowledgeOverlapAndChargeRisk:true}:{type:'RetryUncertainJob',jobId:r.jobId,attemptId:r.attemptId,expectedVersion:r.expectedVersion,acknowledgeDuplicateWorkAndChargeRisk:true});if(this.riskReview===r)this.riskReview=null;this.changed();}
- private inspectHistory(after=''){return this.navigation.controls.run(async()=>{const owns=this.owns(false),model=await this.navigation.controls.read<CandidateHistory>('/api/v1/documents/'+this.documentId+'/candidates?after='+encodeURIComponent(after),owns,REQUEST_NAVIGATION_LIMITS.pageBytes);let retained=false;try{if(!owns())return;this.navigation.controls.replace('candidate-history',model);retained=true;this.candidateHistory=model.value;this.pruneCandidateViews();this.changed();}finally{if(!retained)model.release();}});}
+ private inspectHistory(after=''){return this.observeRequest(observation=>this.navigation.controls.run(async()=>{if(!observation())return;const entryOwns=this.owns(false),owns=()=>entryOwns()&&observation(),model=await this.navigation.controls.read<CandidateHistory>('/api/v1/documents/'+this.documentId+'/candidates?after='+encodeURIComponent(after),owns,REQUEST_NAVIGATION_LIMITS.pageBytes);let retained=false;try{if(!owns())return;this.navigation.controls.replace('candidate-history',model);retained=true;this.candidateHistory=model.value;this.pruneCandidateViews();this.changed();}finally{if(!retained)model.release();}}));}
  private async inspectImage(id:string,assetId:string){this.candidatePreviewRead?.abort();const abort=new AbortController();this.candidatePreviewRead=abort;const current=this.owns(false),owns=()=>!abort.signal.aborted&&current();try{const transport=this.editor.session.transport.bind(this.editor.session),url=await withDisplaySource(transport,assetId,{owner:'request-candidate-descriptor',signal:abort.signal,owns},source=>createDisplayPreviewURL(transport,source,{owner:'request-candidate-preview',edge:256,signal:abort.signal,owns}));if(!owns()){revokeDisplayPreviewURL(url);return;}if(this.candidateImage)revokeDisplayPreviewURL(this.candidateImage.url);this.candidateImage={id,url};this.changed();}catch(error){if(owns())throw error;}finally{if(this.candidatePreviewRead===abort)this.candidatePreviewRead=null;}}
  private async recoverOriginal(candidateId:string,expectedVersion:string,expected:import('../protocol/store.js').BlobRef|undefined){
   if(!expected)throw Error('Retained candidate repair details changed.');const file=this.repairFiles.get(candidateId),owns=this.owns(),expectedHash=expected.hash,expectedBytes=expected.byteLength,mediaType=expected.mediaType;if(!file)throw Error('Choose the exact original image file.');
@@ -503,9 +569,9 @@ export class RequestEditing{
   // Polls refresh the selected page. An explicit page action may supersede a
   // pending refresh; its actual old read remains owned until cancellation/settle.
   if(after===undefined&&this.navigation.candidatePending(attemptId))return Promise.resolve();
-  return this.navigation.candidates.run(async()=>{
-   const gate=this.navigation.beginCandidateRead(attemptId,proposal!==undefined),entryOwns=this.owns(false),page=this.queueNavigation;
-   const owns=()=>entryOwns()&&page===this.queueNavigation&&gate.current(),prior=this.navigation.candidatePage(attemptId),cursor=after??prior?.cursor??'';
+  return this.observeRequest(observation=>this.navigation.candidates.run(async()=>{
+   if(!observation())return;const gate=this.navigation.beginCandidateRead(attemptId,proposal!==undefined),entryOwns=this.owns(false),page=this.queueNavigation;
+   const owns=()=>entryOwns()&&observation()&&page===this.queueNavigation&&gate.current(),prior=this.navigation.candidatePage(attemptId),cursor=after??prior?.cursor??'';
    let model:OwnedModel<CandidateView>|undefined,pageToken:ReturnType<RequestNavigationMemory['prepareCandidate']>|undefined,indexToken:ReturnType<RequestEdits['prepareCandidates']>|undefined,retained=false;
    try{
     this.changed();
@@ -519,7 +585,7 @@ export class RequestEditing{
     pageToken.commit();retained=true;indexToken.commit();
     this.candidateViews.set(attemptId,model.value);this.candidateVersions.set(attemptId,++this.candidateSerial);this.announceCandidates(model.value,attemptId);this.pruneRepairFiles();this.changed();
    }finally{pageToken?.release();indexToken?.release();if(!retained)model?.release();gate.close();this.changed();}
-  });
+  }));
  }
  private navigateCandidatePage(jobId:string,attemptId:string,direction:'first'|'previous'|'next'){
   const current=this.navigation.candidatePage(attemptId),view=this.candidateViews.get(attemptId);if(!current||!view)return;
@@ -527,12 +593,12 @@ export class RequestEditing{
   if(direction==='previous'){if(current.back.length){const cursor=current.back.at(-1)!;return this.inspectCandidates(jobId,attemptId,cursor,{cursor,back:current.back,take:current.back.length-1});}return;}
   if(view.nextCursor)return this.inspectCandidates(jobId,attemptId,view.nextCursor,{cursor:view.nextCursor,back:current.back,last:current.cursor});
  }
- private readPrompt(jobId:string,attemptId:string,kind:'requested'|'submitted'|'returned',offset='0'){return this.navigation.prompts.run(async()=>{
-  const view=this.candidateViews.get(attemptId),source=view?.jobId===jobId?(kind==='returned'?view.provenance?.returnedPrompt:kind==='requested'?view.provenance?.requestedPrompt??view.request.prompt:view.provenance?.submittedPrompt??view.request.prompt):undefined;
+ private readPrompt(jobId:string,attemptId:string,kind:'requested'|'submitted'|'returned',offset='0'){return this.observeRequest(observation=>this.navigation.prompts.run(async()=>{
+  if(!observation())return;const view=this.candidateViews.get(attemptId),source=view?.jobId===jobId?(kind==='returned'?view.provenance?.returnedPrompt:kind==='requested'?view.provenance?.requestedPrompt??view.request.prompt:view.provenance?.submittedPrompt??view.request.prompt):undefined;
   if(!source||!/^(0|[1-9][0-9]*)$/.test(offset)||!Number.isSafeInteger(Number(offset))||Number(offset)>Number(source.byteLength))throw Error('PROMPT_PAGE_IDENTITY');
   // The fixed job/attempt/kind source is immutable once retained. Capture it
   // before awaiting the page; a page response cannot supply a new identity.
-  const sourceBytes=source.byteLength,at=Number(offset),owns=this.owns(false),inspection=compositionObservations.beginRawInspection(source,'page',at);
+  const sourceBytes=source.byteLength,at=Number(offset),entryOwns=this.owns(false),owns=()=>entryOwns()&&observation(),inspection=compositionObservations.beginRawInspection(source,'page',at);
   let model:OwnedModel<{bytes:string;byteLength:string;offset:string;nextOffset:string|null}>|undefined;
   try{model=await this.navigation.prompts.read<{bytes:string;byteLength:string;offset:string;nextOffset:string|null}>('/api/v1/jobs/'+encodeURIComponent(jobId)+'/candidates?attempt='+encodeURIComponent(attemptId)+'&prompt='+kind+'&offset='+encodeURIComponent(offset),owns,65536);if(!owns())return;const page=model.value;
    if(typeof page.bytes!=='string'||page.bytes.length>44000)throw Error('PROMPT_PAGE_SIZE');if(page.byteLength!==sourceBytes||page.offset!==offset)throw Error('PROMPT_PAGE_IDENTITY');
@@ -542,7 +608,7 @@ export class RequestEditing{
     const text=new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(Uint8Array.from(raw,character=>character.charCodeAt(0))),value={jobId,attemptId,kind,text,next:page.nextOffset};retained=this.navigation.prompts.model(value,128*1024);this.navigation.prompts.replace('page',retained);this.promptPage=value;retained=undefined;this.changed();inspection.finish('page');
    }finally{retained?.release();scratch.release();}
   }finally{model?.release();inspection.close();}
- });}
+ }));}
  private candidatePageControls(jobId:string,attemptId:string,view:CandidateView,act:(event:Event,work:()=>void|Promise<void>)=>void){
   const location=this.navigation.candidatePage(attemptId),pending=this.navigation.candidatePending(attemptId),navigating=this.navigation.candidateNavigating(attemptId);if(!location)return nothing;
   return html`<nav aria-label="Retained output pages"><p role="status">Retained output page ${location.back.length+1}. ${view.items.length} outputs on this page. ${navigating?'Loading requested page; current outputs remain available.':''}</p><en-button ?disabled=${pending||!location.cursor} @click=${(event:Event)=>act(event,()=>this.navigateCandidatePage(jobId,attemptId,'first'))}>First retained outputs</en-button><en-button ?disabled=${pending||!location.back.length} @click=${(event:Event)=>act(event,()=>this.navigateCandidatePage(jobId,attemptId,'previous'))}>Previous retained outputs</en-button><en-button ?disabled=${pending||!view.nextCursor} @click=${(event:Event)=>act(event,()=>this.navigateCandidatePage(jobId,attemptId,'next'))}>Next retained outputs</en-button></nav>`;

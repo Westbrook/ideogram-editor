@@ -870,3 +870,81 @@ test('retired rendered request composition callbacks cannot mutate a successor i
  const f=fixture();await f.initial();const [start,end]=e3CompositionCallbacks(f),saved=f.saved.length;f.identity('replacement-owner');
  start({composedPath:()=>[{id:'prompt'}]});end({composedPath:()=>[{id:'prompt'}]});await flush();assert.equal(f.saved.length,saved);assert.equal(f.instance.composing,false);
 });
+
+// E4: local deletion coordinates only request observation; server NOT_FOUND
+// and actual owned-read cleanup retain their existing authority.
+test('confirmed deletion pause keeps retained request state and resumes one scheduled poll',async t=>{
+ const f=await paginationFixture(t),queue=f.instance.queue,drafts=[...f.editor.draftOwner.drafts],reads=f.reads.length;
+ const lease=f.instance.pauseDocumentObservation('doc');await lease.drain;
+ try{
+  await f.advance(1000);assert.equal(f.reads.length,reads);assert.equal(f.instance.pollTimer,null);
+  assert.strictEqual(f.instance.queue,queue);assert.deepEqual([...f.editor.draftOwner.drafts],drafts);assert.equal(f.instance.requestReleasing,false);
+  lease.release();lease.release();await f.advance(150);assert.equal(f.reads.length,reads+1,'An idempotent release restores one poll');
+ }finally{lease.release();await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
+});
+test('deletion drains the real held queue read before its candidate continuation can start',async t=>{
+ const f=await paginationFixture(t),held=pendingPage(),view=structuredClone(f.pages.get(''));view.jobs[0].attempts[0].requestId='provider-known';let candidates=0,drained=false;
+ const json=f.editor.json.bind(f.editor);f.editor.json=(path,...args)=>path.includes('/candidates')?(candidates++,candidateObservation()):json(path,...args);f.setReader(()=>held.promise);
+ await f.advance(150);assert.equal(f.instance.polling,true);const lease=f.instance.pauseDocumentObservation('doc');void lease.drain.then(()=>{drained=true;});
+ try{
+  await f.advance(450);assert.equal(drained,false);assert.equal(candidates,0);
+  held.resolve(view);await lease.drain;await flush();assert.equal(drained,true);assert.equal(candidates,0);assert.equal(f.instance.observationTasks.size,0);assert.equal(f.instance.polling,false);assert.equal(f.instance.pollTimer,null);
+  assert.equal(f.instance.queue.jobs[0].attempts[0].requestId,null,'The fenced read did not replace the retained queue');
+  f.setReader(null);lease.release();await f.advance(150);assert.equal(candidates,0);
+ }finally{held.resolve(view);lease.release();await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
+});
+test('deletion drains superseded and current actual candidate readers without late publication',async t=>{
+ const f=fixture();await f.initial();t.mock.timers.enable({apis:['setTimeout']});const old=pendingPage(),latest=pendingPage(),observed=observeRequestAnnouncements(f);let calls=0;
+ f.editor.json=()=>++calls===1?old.promise:latest.promise;
+ const first=f.instance.inspectCandidates('job','attempt','',{cursor:'',back:[]});void first.catch(()=>{});await flush();
+ const second=f.instance.inspectCandidates('job','attempt','next',{cursor:'next',back:['']});void second.catch(()=>{});await flush();assert.equal(calls,2);assert.equal(f.instance.inspectMemory().navigation.candidateReads,2);
+ const lease=f.instance.pauseDocumentObservation('doc');let drained=false;void lease.drain.then(()=>{drained=true;});
+ try{
+  latest.resolve(candidateObservation());await second;await flush();assert.equal(drained,false,'The superseded older read is still owned');
+  old.resolve(candidateObservation());await first;await lease.drain;await flush();assert.equal(drained,true);
+  assert.equal(f.instance.candidateViews.size,0);assert.equal(f.instance.inspectMemory().navigation.candidateReads,0);assert.equal(f.instance.observationTasks.size,0);assert.deepEqual(observed.focus,[]);assert.deepEqual(f.instance.issues,[]);
+ }finally{old.resolve(candidateObservation());latest.resolve(candidateObservation());lease.release();await Promise.allSettled([first,second]);await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
+});
+test('deletion pause fences captured and fresh result controls plus history and exact-prompt paths',async t=>{
+ const f=fixture();await f.initial();t.mock.timers.enable({apis:['setTimeout']});await publishCandidates(f,candidateObservation());
+ const current=f.instance.candidateViews.get('attempt'),old=f.instance.results('job','attempt').values[0],draft=f.instance.entry();assert.equal(typeof old,'function');let reads=0;f.editor.json=async()=>{reads++;throw Error('No observation is admitted during deletion');};
+ const lease=f.instance.pauseDocumentObservation('doc');await lease.drain;
+ try{
+  old(event());f.instance.results('job','attempt').values[0](event());t.mock.timers.tick(0);await flush();
+  await Promise.all([f.instance.refreshQueue(),f.instance.inspectHistory(),f.instance.inspectCandidates('job','attempt','next',{cursor:'next',back:['']}),f.instance.readPrompt('job','attempt','requested')]);
+  assert.equal(reads,0);assert.strictEqual(f.instance.candidateViews.get('attempt'),current);assert.strictEqual(f.instance.entry(),draft);assert.equal(f.instance.requestReleasing,false);assert.deepEqual(f.instance.issues,[]);
+ }finally{lease.release();await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
+});
+test('accepted deletion remains fenced while the old document projection is still visible',async t=>{
+ const f=await paginationFixture(t),reads=f.reads.length,lease=f.instance.pauseDocumentObservation('doc');await lease.drain;lease.accepted();lease.release();
+ try{
+  assert.equal(f.editor.view.document.id,'doc');await f.advance(600);await f.instance.inspectHistory();assert.equal(f.reads.length,reads);assert.equal(f.instance.pollTimer,null);assert.equal(f.instance.observationBarrier.accepted,true);
+  f.editor.documentEpoch++;f.editor.view.document={id:'next-document',revision:'1'};f.editor.draftOwner={drafts:new Map()};await f.instance.sync();await flush();
+  await f.instance.refreshQueue();assert.equal(f.reads.length,reads+1,'A genuinely new document owner can observe again');
+ }finally{await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
+});
+for(const boundary of ['document','session','identity','connection','draft-owner','document-epoch'])test('old deletion lease cannot release the successor observation barrier after '+boundary,async t=>{
+ const f=await paginationFixture(t),old=f.instance.pauseDocumentObservation('doc');await old.drain;
+ if(boundary==='document')f.editor.view.document={id:'next-document',revision:'1'};
+ if(boundary==='session')f.editor.sessionId='next-session';
+ if(boundary==='identity')f.identity('next-identity');
+ if(boundary==='connection')f.editor.session={...f.editor.session};
+ if(boundary==='draft-owner')f.editor.draftOwner={drafts:new Map()};
+ if(boundary==='document-epoch')f.editor.documentEpoch++;
+ const successor=f.instance.pauseDocumentObservation(f.editor.view.document.id);await successor.drain;const token=f.instance.observationBarrier,reads=f.reads.length;
+ try{old.accepted();old.release();await f.advance(300);assert.strictEqual(f.instance.observationBarrier,token);assert.equal(f.reads.length,reads);successor.release();await f.advance(150);assert.equal(f.reads.length,reads+1);}
+ finally{old.release();successor.release();await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
+});
+test('local deletion fencing never turns a genuine candidate NOT_FOUND into an empty success',async()=>{
+ const f=fixture();await f.initial();let reject;const pending=new Promise((_,no)=>{reject=no;}),failure=Error('NOT_FOUND: another client deleted the document');f.editor.json=()=>pending;
+ const read=f.instance.inspectCandidates('job','attempt');void read.catch(()=>{});await flush();const lease=f.instance.pauseDocumentObservation('doc');
+ try{reject(failure);await assert.rejects(read,error=>error===failure);await lease.drain;assert.equal(f.instance.candidateViews.size,0);assert.equal(f.instance.observationTasks.size,0);}
+ finally{reject(failure);lease.release();await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
+});
+
+test('deletion fence covers reads queued before their owned transport callback starts',async()=>{
+ const f=fixture();await f.initial();let requests=0;f.editor.json=async()=>{requests++;return candidateObservation();};
+ const read=f.instance.inspectCandidates('job','attempt'),lease=f.instance.pauseDocumentObservation('doc');
+ try{await Promise.all([read,lease.drain]);assert.equal(requests,0);assert.equal(f.instance.observationTasks.size,0);assert.equal(f.instance.candidateViews.size,0);}
+ finally{lease.release();await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
+});

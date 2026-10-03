@@ -92,8 +92,8 @@ const expectedAssignments = [
   ['src/ui/composition.ts', 44026, '[es[i],es[j]]=[es[j],es[i]]'],
   ['src/ui/composition.ts', 56460, '[a[i-1],a[i]]=[a[i],a[i-1]]'],
   ['src/ui/request-v45-edit.ts', 12316, '[next.references[index],next.references[target]]=[next.references[target],next.references[index]]'],
-  ['src/ui/shell.ts', 87723, '[ids[i],ids[i+1]]=[ids[i+1],ids[i]]'],
-  ['src/ui/shell.ts', 87781, '[ids[i],ids[i-1]]=[ids[i-1],ids[i]]'],
+  ['src/ui/shell.ts', 87789, '[ids[i],ids[i+1]]=[ids[i+1],ids[i]]'],
+  ['src/ui/shell.ts', 87847, '[ids[i],ids[i-1]]=[ids[i-1],ids[i]]'],
 ];
 let retainedClosure;
 async function provisional() {
@@ -221,7 +221,7 @@ const treeEffect={treeSelectedKeys:'immutable-string-array-from-reviewed-value-m
 test('verified application profile binds both exact tree observations and requires their producer effect',async()=>{
   const value=await specimen(),profile=verifyD11ApplicationProfile(value),proof=await provisional();
   const source='src/ui/shell.ts',expression='(tree as EnTree).selectedKeys[0]';
-  const expected=[77471,78144].map(start=>({source,start,end:start+expression.length,
+  const expected=[77537,78210].map(start=>({source,start,end:start+expression.length,
     sourceSha256:identity(source,value.sourceTextByPath[source]).sha256,expressionSha256:identity(source,expression).sha256,effect:'en-tree-selected-keys-zero-read'}));
   assert.deepEqual(profile.domDataEffects,{kind:'reviewed-d11-dom-data-reads-1',sites:expected});
   assert.deepEqual(assertD11DOMDataEffects(proof.witness.conditionalDOMEffects,profile,treeEffect),expected);
@@ -273,18 +273,18 @@ test('verified profile binds the one request operation lookup and all four exact
   const source = 'src/ui/request.ts', text = value.sourceTextByPath[source];
   const expression = 'operations[labels.indexOf(label)]', declarationExpression = 'op=' + expression;
   const callExpression = "op.endsWith('-v45')";
-  assert.equal(text.indexOf(expression), 49125);
-  assert.equal(text.indexOf(expression, 49126), -1);
-  assert.equal(text.indexOf(declarationExpression), 49122);
-  const calls = [49217, 49635, 49660, 50250].map(start => {
+  assert.equal(text.indexOf(expression), 54272);
+  assert.equal(text.indexOf(expression, 54273), -1);
+  assert.equal(text.indexOf(declarationExpression), 54269);
+  const calls = [54364, 54782, 54807, 55397].map(start => {
     assert.equal(text.slice(start, start + callExpression.length), callExpression);
     return { start, end: start + callExpression.length, expressionSha256: identity(source, callExpression).sha256, method: 'endsWith', argument: '-v45' };
   });
   assert.equal(text.split(callExpression).length - 1, calls.length);
   const expected = { kind: 'reviewed-d11-event-data-calls-1', sites: [{
-    source, start: 49125, end: 49158, expressionSha256: identity(source, expression).sha256,
+    source, start: 54272, end: 54305, expressionSha256: identity(source, expression).sha256,
     sourceSha256: identity(source, text).sha256,
-    declaration: { start: 49122, end: 49158, expressionSha256: identity(source, declarationExpression).sha256 },
+    declaration: { start: 54269, end: 54305, expressionSha256: identity(source, declarationExpression).sha256 },
     calls, effect: 'request-operation-literal-string-method',
   }] };
   assert.deepEqual(profile.eventDataEffects, expected);
@@ -366,9 +366,9 @@ const expectedFileSelections = [
   ["src/ui/native-text.ts", 98022, "this.control.select", "this.control.select()"],
   ["src/ui/native-text.ts", 102683, "this.select", "this.select('Text alignment',s.style.align,['left','center','right','start','end'],(s,v)=>s.style={...s.style,align:v as TextStyle['align']})"],
   ["src/ui/native-text.ts", 102827, "this.select", "this.select('Text direction',s.style.direction,['auto','ltr','rtl'],(s,v)=>s.style={...s.style,direction:v as TextStyle['direction']})"],
-  ["src/ui/shell.ts", 11998, "editor.select", "editor.select([id])"],
-  ["src/ui/shell.ts", 73071, "controls.select", "controls.select(files)"],
-  ["src/ui/shell.ts", 90766, "editor.select", "editor.select(ids)"],
+  ["src/ui/shell.ts", 12064, "editor.select", "editor.select([id])"],
+  ["src/ui/shell.ts", 73137, "controls.select", "controls.select(files)"],
+  ["src/ui/shell.ts", 90832, "editor.select", "editor.select(ids)"],
 ];
 test('exact current selection receivers close every FileUpload activation obligation', async () => {
   const value = await specimen(), profile = verifyD11ApplicationProfile(value);

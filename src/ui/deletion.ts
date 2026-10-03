@@ -7,6 +7,7 @@ import {ControlAdapter} from './adapters.js';
 import {UIModelOwner} from './model-owner.js';
 type Owner={session:EditorClient['session'];identity:string|null;lifetime:number;draftOwner:EditorClient['draftOwner'];documentId:string|undefined;revision:string|undefined};
 type Action=Owner&{token:number;deleting:string|null;deleted:string|null};
+type RequestObservationLease={drain:Promise<void>;accepted():void;release():void};
 const deletionIdentity=(value:unknown):value is string=>typeof value==='string'&&/^[A-Za-z0-9_-]{1,128}$/.test(value);
 function deletionPath(documentId:string,after?:string){if(!deletionIdentity(documentId)||after!==undefined&&after!==''&&!deletionIdentity(after))throw Error('Deletion identity is unavailable.');return '/api/v1/documents/'+documentId+'/deletion'+(after===undefined?'':'?after='+encodeURIComponent(after));}
 /** Each asynchronous operation and retained control belongs to its original owner. */
@@ -14,7 +15,7 @@ export class DocumentDeletion {
  private receipts:DeletionReceipt[]=[];private next:string|null=null;private jobs:QueueJob[]=[];private nextJob:string|null=null;private risk:QueueJob|null=null;
  private adapter=new ControlAdapter();private plan:DeletionPlan|null=null;private receipt:DeletionReceipt|null=null;private busy=false;private message='';private lifetime=0;private composing=false;
  private stateOwner:Owner|null=null;private active:Action|null=null;private generation=0;private planReady=false;private models:UIModelOwner;
- constructor(private host:LitElement,private editor:EditorClient,private composition:()=>boolean=()=>false){this.models=new UIModelOwner(host,editor,'deletion-ui-model');}
+ constructor(private host:LitElement,private editor:EditorClient,private composition:()=>boolean=()=>false,private pauseRequests:(documentId:string)=>RequestObservationLease=()=>({drain:Promise.resolve(),accepted(){},release(){}})){this.models=new UIModelOwner(host,editor,'deletion-ui-model');}
  dispose(){this.lifetime++;this.adapter.invalidate();this.invalidate();return this.models.release();}
  get lifecycle(){return this.models.lifecycle;}
  private changed(){this.host.requestUpdate();}
@@ -56,15 +57,21 @@ export class DocumentDeletion {
  }
  private async confirm(plan:DeletionPlan,c:Action){
   if(this.plan!==plan||!this.planReady||!this.current(c)||plan.documentId!==c.documentId||plan.documentRevision!==c.revision)return;
-  this.planReady=false;c.deleting=plan.documentId;
+  this.planReady=false;const observation=this.pauseRequests(plan.documentId);
+  try{
+  await observation.drain;
+  if(this.plan!==plan||!this.current(c)||plan.documentId!==c.documentId||plan.documentRevision!==c.revision)return;
+  c.deleting=plan.documentId;
   await this.editor.withCommandEvents({type:'DeleteDocument',documentId:plan.documentId,planId:plan.id,planHash:plan.planHash,expectedRevision:plan.documentRevision,rootGeneration:plan.rootGeneration,acknowledgeRunningAndUncertain:true},async events=>{
+  const acknowledged=events.some(e=>e.type==='DocumentDeleted'&&e.payload.id===plan.documentId);if(acknowledged)observation.accepted();
   if(this.active!==c||!this.sameOwner(c)||!this.ready()||!this.selection(c)&&this.editor.view.document!==null)return;
-  if(!events.some(e=>e.type==='DocumentDeleted'&&e.payload.id===plan.documentId))throw Error('Deletion acknowledgement unavailable; inspect the retained receipt before another action');
+  if(!acknowledged)throw Error('Deletion acknowledgement unavailable; inspect the retained receipt before another action');
   c.deleted=plan.documentId;c.deleting=null;if(!this.current(c))return;
   this.plan=null;this.models.clear('plan');const model=await this.models.read<{receipt:DeletionReceipt}>(deletionPath(plan.documentId),()=>this.current(c),4*1024**2);
   try{if(!this.current(c))return;await this.inspect(model.value.receipt,c);}finally{model.release();}if(!this.current(c))return;
   this.message=this.receipt?.status==='cleanup-complete'?'Document deleted; retained receipt reports cleanup complete.':'Document deleted; cleanup pending. No space has been claimed as freed.';
   },null);
+  }finally{observation.release();}
  }
  private async collect(receipt:DeletionReceipt,c:Action){
   if(this.receipt!==receipt||!this.current(c))return;

@@ -25,3 +25,62 @@ test('a real deletion review still announces and clears stale authority after a 
  assert.match(f.flow.message,/Deletion view changed/);assert.equal(f.flow.plan,null);assert.equal(f.flow.planReady,false);assert.equal(f.flow.active,null);assert.equal(f.flow.busy,false);
  assert.deepEqual(f.commands.map(c=>c.type),['PreviewDocumentDeletion']);await f.flow.dispose();
 });
+
+// E4 request-observation coordination uses the rendered confirmation path.
+const e4Deferred=()=>{let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});return {promise,resolve,reject};};
+function e4Confirmation(template){
+ if(!template||typeof template!=='object')return;
+ if(template.strings){const at=template.values.findIndex(value=>value==='Confirm permanent document deletion');if(at>=1&&typeof template.values[at-1]==='function')return template.values[at-1];}
+ for(const value of Array.isArray(template)?template:template.values??[]){const found=e4Confirmation(value);if(found)return found;}
+}
+async function e4DeletionFixture(){
+ const f=fixture();await f.flow.dispose();const drain=e4Deferred(),command=e4Deferred(),calls=[],receipt={documentId:'doc',status:'cleanup-complete',actualFreedBytes:'1',pendingBytes:'0',retainedBytes:'0'};let accepted=0,released=0,composition=false;
+ f.flow=new DocumentDeletion({requestUpdate(){},updateComplete:Promise.resolve()},f.editor,()=>composition,documentId=>{calls.push(documentId);return {drain:drain.promise,accepted(){accepted++;},release(){released++;}};});
+ f.editor.command=async body=>{f.commands.push(body);return body.type==='DeleteDocument'?command.promise:[];};
+ f.editor.json=async()=>f.flow.planReady||f.flow.active?.deleting||f.flow.active?.deleted?{receipt,jobs:[],next:null}:{plan:f.plan};
+ const preview=find(f.flow.render(),'<en-button id="preview-document-deletion" ?disabled=').values.find(value=>typeof value==='function');preview(f.event());await tick();assert.equal(f.flow.planReady,true);
+ const confirm=e4Confirmation(f.flow.render());assert.equal(typeof confirm,'function');
+ return {...f,drain,command,calls,receipt,confirm,setComposition:value=>{composition=value;},accepted:()=>accepted,released:()=>released};
+}
+test('rendered deletion confirmation waits for observation drainage and retains exact command authority',async()=>{
+ const f=await e4DeletionFixture();f.confirm(f.event());await tick();
+ try{
+  assert.deepEqual(f.calls,['doc']);assert.deepEqual(f.commands.map(command=>command.type),['PreviewDocumentDeletion']);assert.equal(f.released(),0);
+  f.drain.resolve();await tick();assert.deepEqual(f.commands[1],{type:'DeleteDocument',documentId:'doc',planId:'plan',planHash:'hash',expectedRevision:'1',rootGeneration:'root',acknowledgeRunningAndUncertain:true});
+  f.command.resolve([{type:'DocumentDeleted',payload:{id:'doc'}}]);await tick();assert.equal(f.accepted(),1);assert.equal(f.released(),1);assert.equal(f.flow.busy,false);assert.equal(f.editor.view.document.id,'doc','The test deliberately retains the prior projection through acknowledgement');
+ }finally{f.drain.resolve();f.command.resolve([]);await tick();await f.flow.dispose();}
+});
+for(const boundary of ['revision','document','identity','session','draft-owner','pending-draft','composition','plan','dispose'])test('confirmation revalidates '+boundary+' after actual observation drainage',async()=>{
+ const f=await e4DeletionFixture();f.confirm(f.event());await tick();assert.deepEqual(f.calls,['doc']);let disposal;
+ if(boundary==='revision')f.editor.view.document.revision='2';
+ if(boundary==='document')f.editor.view.document={id:'other',revision:'1'};
+ if(boundary==='identity')f.setIdentity('other');
+ if(boundary==='session')f.editor.session={...f.editor.session};
+ if(boundary==='draft-owner')f.editor.draftOwner={drafts:new Map()};
+ if(boundary==='pending-draft')f.editor.draftOwner.drafts.set('draft',{pending:true,generation:'2',savedGeneration:'1'});
+ if(boundary==='composition')f.setComposition(true);
+ if(boundary==='plan')f.flow.plan={...f.plan,id:'replacement-plan'};
+ if(boundary==='dispose')disposal=f.flow.dispose();
+ try{f.drain.resolve();await tick();assert.deepEqual(f.commands.map(command=>command.type),['PreviewDocumentDeletion']);assert.equal(f.accepted(),0);assert.equal(f.released(),1);await disposal;}
+ finally{f.drain.resolve();f.command.resolve([]);await tick();await f.flow.dispose();}
+});
+for(const boundary of ['late-veto','detach'])test('confirmation '+boundary+' does not acquire a request-observation pause',async()=>{
+ const f=await e4DeletionFixture(),event=f.event();f.confirm(event);if(boundary==='late-veto')event.defaultPrevented=true;else event.currentTarget.isConnected=false;await tick();
+ try{assert.deepEqual(f.calls,[]);assert.deepEqual(f.commands.map(command=>command.type),['PreviewDocumentDeletion']);assert.equal(f.released(),0);}
+ finally{f.drain.resolve();f.command.resolve([]);await f.flow.dispose();}
+});
+test('genuine deletion command rejection releases observation pause and retains rejection feedback',async()=>{
+ const f=await e4DeletionFixture(),failure=Error('STALE_EPOCH retained deletion plan');f.confirm(f.event());await tick();f.drain.resolve();await tick();f.command.reject(failure);await tick();
+ try{assert.equal(f.accepted(),0);assert.equal(f.released(),1);assert.match(f.flow.message,/STALE_EPOCH retained deletion plan/);assert.equal(f.editor.view.document.id,'doc');assert.equal(f.flow.busy,false);}
+ finally{f.drain.resolve();await f.flow.dispose();}
+});
+test('failed observation cleanup prevents DeleteDocument and releases only its own pause',async()=>{
+ const f=await e4DeletionFixture();f.confirm(f.event());await tick();f.drain.reject(Error('owned read cleanup incomplete'));await tick();
+ try{assert.deepEqual(f.commands.map(command=>command.type),['PreviewDocumentDeletion']);assert.equal(f.accepted(),0);assert.equal(f.released(),1);assert.match(f.flow.message,/owned read cleanup incomplete/);assert.equal(f.editor.view.document.id,'doc');}
+ finally{f.command.resolve([]);await f.flow.dispose();}
+});
+test('matching accepted deletion fences observation even when draft readiness changes before callback',async()=>{
+ const f=await e4DeletionFixture();f.confirm(f.event());await tick();f.drain.resolve();await tick();f.editor.draftOwner.drafts.set('draft',{pending:true,generation:'2',savedGeneration:'1'});f.command.resolve([{type:'DocumentDeleted',payload:{id:'doc'}}]);await tick();
+ try{assert.equal(f.accepted(),1,'Durable matching event is observed before UI publication eligibility');assert.equal(f.released(),1);}
+ finally{await f.flow.dispose();}
+});
