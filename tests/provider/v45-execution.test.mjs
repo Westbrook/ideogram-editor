@@ -1,9 +1,14 @@
-// Source-only packet. The scheduler cases use an explicit contract harness;
-// they do not qualify real-queue V45 execution. The writer case proves its denial.
+// Scheduler contract harnesses remain separate from the actual durable loopback
+// tests below. Neither path qualifies live V45 admission or safe image use.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import {fixture,caption,ui,accept,enqueue,auth,envelope,encode} from '../queue/helpers.mjs';
+import {createServer} from 'node:http';
+import {once} from 'node:events';
+import {DatabaseSync} from 'node:sqlite';
+import {join} from 'node:path';
+import {createV45LoopbackGeneration} from '../../dist/local/server/provider/v45-loopback-fixture.js';
+import {fixture,caption,ui,accept,enqueue,auth,envelope,encode,prepare,config as spendGuard} from '../queue/helpers.mjs';
 import {StoreDatabase} from '../../dist/local/server/storage/database.js';
 import {acquireRoot} from '../../dist/local/server/storage/ownership.js';
 import {ProviderExecution} from '../../dist/local/server/provider/runtime-core.js';
@@ -143,8 +148,8 @@ test('isolated scheduler harness never schedules an uncertain attempt again',asy
  const x=scheduler(t,{submit:job=>{Object.assign(job.attempts[0],{state:'submission-uncertain',count:'dispatched',hold:true});throw Error('Fixture lost acknowledgement');}});x.authorize();await x.runtime.tick();await x.runtime.tick();await x.reopen();await x.runtime.tick();assert.deepEqual(x.calls,['job_1']);assert.equal(x.jobs[0].attempts.length,1);assert.equal(x.jobs[0].attempts[0].hold,true);assert.equal(x.runtime.view().limits.usedRequests,1);
 });
 
-async function owned(f){
- await f.close();const owner=await acquireRoot(f.root);let db;try{db=new StoreDatabase(f.root,()=>{});}catch(error){owner.close();throw error;}let closed=false;
+async function owned(f,barrier=()=>{}){
+ await f.close();const owner=await acquireRoot(f.root);let db;try{db=new StoreDatabase(f.root,barrier);}catch(error){owner.close();throw error;}let closed=false;
  return {db,async close(){if(closed)return;closed=true;await db.candidates.close();await db.queue.close();await db.portables.close();await db.histories.close();await db.rasters.close();await db.assets.close();await db.recovery.settle();db.close();owner.close();}};
 }
 test('actual writer keeps V45 authorization, reservation and final dispatch blocked with a valid fixture engine',async t=>{
@@ -170,4 +175,126 @@ test('actual writer keeps V45 authorization, reservation and final dispatch bloc
   assert.deepEqual(o.db.queue.view(),before);
  }finally{o.db.queue.authorizeProvider=installed;}
  await runtime.close();assert.equal(o.db.queue.authorizeProvider,undefined);
+});
+
+
+const durablePrompt='Durable V45 Café 東京; exact saved text';
+const durableSeed='900719925474099312345';
+const withheldPNG=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/mxQAAAAASUVORK5CYII=','base64');
+/** All positives go through the real writer/UI review/enqueue API. SQL below
+ * is read-only observation of durable fences and retained wire joins. */
+async function durableLoopback(t,{barrier=()=>{},lost=false,holdPost=false,cap=null,priorV4=false,fields={}}={}){
+ const cleanup=[],ports=[],observations=[],serverErrors=[];let owner,server,origin='',resolvePost;const postObserved=new Promise(resolve=>{resolvePost=resolve;});
+ t.after(async()=>{for(const port of ports)await port.close();await owner?.close();if(server)await new Promise(resolve=>server.close(resolve));for(const finish of cleanup)await finish();assert.deepEqual(serverErrors,[]);assert.deepEqual(egressAttempts(),[]);});
+ const f=await fixture({name:t.name,after:fn=>cleanup.push(fn)});let prior;
+ if(priorV4){const prepared=await prepare(f.writer);prior=(await enqueue(f.writer,prepared.body)).job;}
+ const text=await caption(f.writer,durablePrompt),draft=newV45Draft(text.blob);Object.assign(draft.fields,{seed:durableSeed},fields);const asset=await caption(f.writer,JSON.stringify(draft));
+ assert.equal((await ui(f.writer,{type:'SaveDraft',draft:{id:'queue_draft',generation:priorV4?'2':'1',kind:'request',documentId:'document_1',targetLayerId:null,expectedDocumentRevision:await f.writer.documentRevision('document_1'),assetId:asset.id,composing:false}})).status,'accepted');
+ const prepared=await accept(f.writer,priorV4?'2':'1'),queued=await enqueue(f.writer,prepared.body);if(cap!==null)assert.equal((await spendGuard(f.writer,cap)).status,'accepted');
+ owner=await owned(f,barrier);
+ server=createServer(async(req,res)=>{try{
+  const read=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});let fence;
+  try{fence=JSON.parse(read.prepare('SELECT json FROM queue_outbox WHERE attempt_id=?').get(queued.job.attempts[0].id).json);}finally{read.close();}
+  const bytes=Buffer.concat(await Array.fromAsync(req));observations.push({method:req.method,path:req.url,headers:{...req.headers},bytes,fence});
+  if(req.method==='POST'){
+   assert.equal(req.url,'/ideogram/v4.5');assert.equal(fence.state,'dispatching');assert.equal(fence.epoch,owner.db.epoch);assert.equal(fence.payloadHash,sha(bytes));
+   assert.deepEqual(bytes,Buffer.from(bodyTemplate(prepared.review.request,durablePrompt)));assert.match(bytes.toString(),/"seed":900719925474099312345/);
+   resolvePost();if(lost){req.socket.destroy();return;}if(holdPost)return;
+   const base=origin+'/ideogram/v4.5/requests/durable_returned';res.setHeader('Content-Type','application/json');res.end(JSON.stringify({request_id:'durable_returned',status_url:base+'/status',response_url:base,cancel_url:base+'/cancel'}));return;
+  }
+  if(req.url==='/protected.png'){assert.equal(req.headers.authorization,undefined);assert.equal(req.headers.cookie,undefined);res.setHeader('Content-Type','image/png');res.setHeader('Content-Length',String(withheldPNG.length));res.end(withheldPNG);return;}
+  assert.equal(req.headers.authorization,'Key '+SENTINEL_KEY);res.setHeader('Content-Type','application/json');
+  if(req.method==='PUT'){assert.equal(req.url,'/ideogram/v4.5/requests/durable_returned/cancel');res.statusCode=202;res.end('{"accepted":true}');return;}
+  if(req.url.endsWith('/status')){res.end('{"request_id":"durable_returned","status":"COMPLETED"}');return;}
+  assert.equal(req.url,'/ideogram/v4.5/requests/durable_returned');res.end('{"images":[{"url":'+JSON.stringify(origin+'/protected.png')+',"content_type":"image/png","file_size":'+withheldPNG.length+'}],"seed":'+durableSeed+'}');
+ }catch(error){serverErrors.push(String(error?.stack??error));res.statusCode=500;res.end();}});
+ server.listen(0,'127.0.0.1');await once(server,'listening');origin='http://127.0.0.1:'+server.address().port;
+ const selection=()=>({jobId:queued.job.id,attemptId:queued.job.attempts[0].id,reviewToken:prepared.review.token,origin});
+ const port=()=>{const value=createV45LoopbackGeneration(owner.db.queue,owner.db.candidates,selection());ports.push(value);return value;};
+ const job=()=>owner.db.queue.view().jobs.find(value=>value.id===queued.job.id);
+ return {f,prior,prepared,queued,selection,port,job,observations,postObserved,get db(){return owner.db;},
+  async command(type,id=queued.job.id){const current=owner.db.queue.view().jobs.find(value=>value.id===id);const receipt=await owner.db.queue.command(encode(envelope({type,jobId:id,attemptId:current.attempts.at(-1).id,expectedVersion:current.version})),auth());assert.equal(receipt.status,'accepted',JSON.stringify(receipt));return receipt;},
+  async reopen(){for(const value of ports)await value.close();await owner.close();owner=await owned(f);}};
+}
+
+test('durable V45 loopback POST follows the real fence and completed output stays protected',async t=>{
+ const x=await durableLoopback(t),port=x.port(),before=structuredClone(x.job().review);let decoded=0;const realPrepare=x.db.rasters.prepareDocument.bind(x.db.rasters);
+ t.mock.method(x.db.rasters,'prepareDocument',(...args)=>{decoded++;return realPrepare(...args);});
+ const accepted=await port.submit();assert.equal(accepted.attempts[0].requestId,'durable_returned');assert.equal(accepted.attempts[0].state,'acknowledged');assert.equal(accepted.attempts[0].providerAuthorization,undefined);
+ assert.equal(x.db.queue.reserve(accepted.id),null);assert.equal(await port.submit(),null);await port.tick();
+ const view=x.db.candidates.view(accepted.id),candidate=view.items[0];assert.equal(view.observation.phase,'completed');assert.equal(view.actualCount,1);assert.equal(candidate.safety,'unknown');assert.equal(candidate.state,'withheld');assert(candidate.encodedAssetId);assert.equal(candidate.preparedAssetId,null);assert.equal(decoded,0);
+ assert.deepEqual(x.job().review,before);assert.equal(before.dispatch,false);assert.deepEqual(before.providerReview.admission,V45_ADMISSION);assert.equal(queueModelAdmission(before),'blocked-unavailable-evidence');
+ const asset=x.db.assets.asset(candidate.encodedAssetId);assert.deepEqual(Buffer.from(x.db.objects.verify(asset.blob,true)),withheldPNG);assert.throws(()=>x.db.assets.safeAsset(asset.id),{code:'CONTENT_WITHHELD'});
+ await assert.rejects(x.db.candidates.reviewAdoption(candidate.id,'full-candidate','fixture_forbidden_adoption','no-slot',()=>{}),{code:'INCOMPATIBLE'});
+ assert.equal(view.provenance.availability.safety,'unavailable-by-contract');assert.equal(view.provenance.complete,false);assert.equal(view.provenance.returnedSeed,durableSeed);
+ const out=x.db.queue.recovery(accepted.id,accepted.attempts[0].id).outbox;assert(out.wireEvidence.submission);assert.equal(out.wireEvidence.conflicted,false);assert.equal(out.wireEvidence.submission.payloadHash,sha(x.observations[0].bytes));
+ for(const ref of [out.wireEvidence.submission.body,out.wireEvidence.submission.response]){const meta=x.db.queue.evidence.inspect(ref.recordId);assert.equal(meta.wireExecution.boundary,'loopback-fixture-1');assert.equal(meta.wireExecution.role,'submit');assert.equal(meta.wireExecution.attemptId,accepted.attempts[0].id);}
+ const slot=JSON.parse(x.db.db.prepare('SELECT json FROM candidate_private WHERE id=?').get(candidate.id).json);assert(slot.mediaEvidence);assert.equal(x.db.queue.evidence.inspect(slot.mediaEvidence.recordId).wireExecution.role,'media');
+ assert.deepEqual(x.observations.map(v=>v.method+' '+v.path),['POST /ideogram/v4.5','GET /ideogram/v4.5/requests/durable_returned/status','GET /ideogram/v4.5/requests/durable_returned','GET /protected.png']);
+ assert.equal(x.observations[0].headers.authorization,'Key '+SENTINEL_KEY);assert.equal(x.observations[0].headers['x-fal-no-retry'],'1');assert.equal(x.observations[0].headers['x-fal-store-io'],'0');
+ assert.equal(x.db.queue.view().counts.dispatched,1);assert.equal(x.db.queue.view().counts.active,0);assert.equal(x.db.objects.reservationInventory().activeTransfers,0);
+});
+
+test('durable V45 reopen has no implicit GET or POST and requires the actual RecoverJob command',async t=>{
+ const x=await durableLoopback(t),old=x.port();await old.submit();const before=x.observations.length;await x.reopen();
+ await assert.rejects(old.submit(),{code:'STALE_EPOCH'});assert.equal(x.db.queue.reserve(x.job().id),null);assert.equal(x.job().attempts[0].recoveryRequired,true);assert.equal(x.observations.length,before);
+ const fresh=x.port();await fresh.tick();await assert.rejects(fresh.readKnown('status'),{code:'STALE_EPOCH'});assert.equal(x.observations.length,before);assert.equal(await fresh.submit(),null);
+ await x.command('RecoverJob');await fresh.tick();assert.equal(x.db.candidates.view(x.job().id).items[0].state,'withheld');assert.equal(x.observations.filter(v=>v.method==='POST').length,1);assert.equal(x.job().attempts.length,1);
+});
+
+test('durable V45 lost ACK preserves one uncertain held attempt and never invents a request ID',async t=>{
+ const x=await durableLoopback(t,{lost:true}),port=x.port();await assert.rejects(port.submit());let attempt=x.job().attempts[0];assert.equal(attempt.state,'submission-uncertain');assert.equal(attempt.requestId,null);assert.equal(attempt.hold,true);assert.equal(attempt.count,'dispatched');assert.equal(await port.submit(),null);
+ await x.reopen();const fresh=x.port();await fresh.tick();await x.command('RecoverJob');await fresh.recoverRetained();await fresh.tick();assert.equal(await fresh.submit(),null);
+ attempt=x.job().attempts[0];assert.equal(attempt.requestId,null);assert.equal(attempt.state,'submission-uncertain');assert.equal(attempt.hold,true);assert.equal(x.job().attempts.length,1);assert.equal(x.db.queue.view().counts.dispatched,1);assert.equal(x.observations.length,1);
+ assert.match(attempt.controlWarning,/No validated acknowledgement/);await assert.rejects(fresh.readKnown('status'),{code:'STALE_EPOCH'});
+});
+
+test('durable V45 real retained ACK recovers after its commit fails without a second POST',async t=>{
+ let failed=false;const x=await durableLoopback(t,{barrier:phase=>{if(phase==='queue-outcome-before-commit'&&!failed){failed=true;throw Error('Lost durable ACK commit');}}}),port=x.port();
+ await assert.rejects(port.submit(),/Lost durable ACK commit/);assert.equal(x.job().attempts[0].state,'submission-uncertain');assert.equal(x.job().attempts[0].requestId,null);
+ const records=[...x.db.queue.evidence.records(x.job().attempts[0].id)],acks=records.filter(id=>{const meta=x.db.queue.evidence.inspect(id);return meta.wireExecution?.role==='submit'&&meta.direction==='response'&&meta.completeness==='complete';});assert.equal(acks.length,1);
+ await x.reopen();const fresh=x.port();await fresh.recoverRetained();assert.equal(x.job().attempts[0].requestId,null);await x.command('RecoverJob');await fresh.recoverRetained();assert.equal(x.job().attempts[0].requestId,'durable_returned');assert.equal(x.job().attempts[0].state,'acknowledged');
+ // Recovery restores semantic identity from real bytes but cannot retrospectively
+ // create the missing live dispatch/submission join.
+ assert.equal(x.db.queue.recovery(x.job().id,x.job().attempts[0].id).outbox.wireEvidence.submission,null);await fresh.tick();assert.equal(x.db.candidates.view(x.job().id).items[0].state,'withheld');assert.equal(x.observations.filter(v=>v.method==='POST').length,1);assert.equal(x.db.queue.view().counts.dispatched,1);
+});
+
+test('durable V45 cancel PUT acknowledgement is not confirmed cancellation and late bytes remain withheld',async t=>{
+ const x=await durableLoopback(t),port=x.port();await port.submit();await x.command('CancelJob');assert.equal(x.job().attempts[0].cancel,'requested');
+ const result=await port.readKnown('cancel');assert.equal(result.status,202);assert.equal(result.providerCancelled,false);assert.equal(x.job().attempts[0].cancel,'requested');
+ await port.tick();assert.equal(x.job().attempts[0].cancel,'acknowledged');assert.equal(x.job().attempts[0].terminal,'completed');assert.equal(x.job().disposition,'cancel-requested');assert.equal(x.db.candidates.view(x.job().id).items[0].state,'withheld');assert.equal(x.observations.filter(v=>v.method==='POST').length,1);assert.equal(x.observations.filter(v=>v.method==='PUT').length,2);
+});
+
+test('durable V45 fixture keeps queue order, spend cap and ordinary live admission gates',async t=>{
+ const x=await durableLoopback(t,{priorV4:true}),port=x.port();assert.equal(await port.submit(),null);assert.equal(x.observations.length,0);assert.equal(x.db.queue.view().counts.active,0);
+ await x.command('CancelJob',x.prior.id);const state=x.db.queue.view();assert.equal((await x.db.queue.command(encode(envelope({type:'SetSpendGuard',spendSessionId:state.session.id,cap:0,expectedConfigVersion:state.session.version})),auth())).status,'accepted');
+ assert.equal(await port.submit(),null);assert.equal(x.job().local,'paused-spend-cap');assert.equal(x.observations.length,0);assert.equal(x.db.queue.reserve(x.job().id),null);
+ const next=x.db.queue.view();assert.equal((await x.db.queue.command(encode(envelope({type:'SetSpendGuard',spendSessionId:next.session.id,cap:1,expectedConfigVersion:next.session.version})),auth())).status,'accepted');
+ assert.equal((await port.submit()).attempts[0].state,'acknowledged');assert.equal(x.observations.length,1);assert.equal(x.job().attempts[0].providerAuthorization,undefined);
+});
+
+test('durable V45 factory refuses copied identities, boundary injection and nonliteral origins before effects',async t=>{
+ const x=await durableLoopback(t),selection=x.selection(),before=structuredClone(x.db.queue.view());
+ for(const change of [{jobId:'wrong_job'},{attemptId:'wrong_attempt'},{reviewToken:sha('wrong')},{origin:'https://queue.fal.run'},{origin:'http://localhost:12345'},{origin:'http://127.0.0.1:80'},{origin:selection.origin+'/'},{boundary:{}},{credential:()=>SENTINEL_KEY},{wire:()=>{throw Error('Injected wire');}}])assert.throws(()=>createV45LoopbackGeneration(x.db.queue,x.db.candidates,{...selection,...change}));
+ assert.throws(()=>createV45LoopbackGeneration({...x.db.queue},x.db.candidates,selection));assert.throws(()=>createV45LoopbackGeneration(x.db.queue,{...x.db.candidates},selection));
+ const second=await durableLoopback(t),other=second.port();assert.throws(()=>createV45LoopbackGeneration(second.db.queue,second.db.candidates,selection));await other.close();await assert.rejects(other.submit(),{code:'STALE_EPOCH'});
+ const released=x.port();await released.close();await assert.rejects(released.submit(),{code:'STALE_EPOCH'});assert.deepEqual(x.db.queue.view(),before);assert.equal(x.observations.length,0);assert.equal(second.observations.length,0);
+});
+
+test('durable V45 lease revocation is rechecked inside the final dispatch fence',async t=>{
+ let x,port;const marker='Fixture lease closed at final fence';x=await durableLoopback(t,{barrier:phase=>{if(phase==='queue-before-dispatch-fence'){void port.close();}}});port=x.port();
+ await assert.rejects(port.submit(),{code:'STALE_EPOCH'});assert.equal(x.observations.length,0,marker);assert.equal(x.job().attempts[0].state,'not-started');assert.equal(x.job().attempts[0].count,'reserved');assert.equal(x.job().attempts[0].providerAuthorization,undefined);assert.equal(x.db.queue.reserve(x.job().id),null);
+});
+
+
+test('durable V45 close aborts and drains an actual in-flight POST while restart preserves uncertainty',async t=>{
+ const x=await durableLoopback(t,{holdPost:true}),port=x.port(),pending=port.submit(),rejected=assert.rejects(pending,{code:'STALE_EPOCH'});
+ await x.postObserved;assert.equal(x.job().attempts[0].state,'dispatching');await port.close();await rejected;
+ assert.equal(x.db.objects.reservationInventory().activeTransfers,0);assert.equal(x.job().attempts[0].count,'dispatched');assert.equal(x.job().attempts[0].hold,true);assert.equal(x.job().attempts[0].requestId,null);
+ await x.reopen();assert.equal(x.job().attempts[0].state,'submission-uncertain');const fresh=x.port();assert.equal(await fresh.submit(),null);assert.equal(x.observations.length,1);assert.equal(x.job().attempts.length,1);
+});
+
+
+for(const fields of [{quality:'low'},{count:'2'}])test('durable V45 fixture refuses an accepted generation outside its exact one-medium-output scope '+JSON.stringify(fields),async t=>{
+ const x=await durableLoopback(t,{fields}),before=structuredClone(x.db.queue.view());assert.throws(()=>x.port(),{code:'IDENTITY'});assert.deepEqual(x.db.queue.view(),before);assert.equal(x.observations.length,0);
 });

@@ -1,3 +1,4 @@
+import {registerQueueExecution} from './queue-execution-bridge.js';
 import {localQueuePhases,serverPhases} from '../observability/phases.js';
 import {adapterResources} from '../observability/adapter-resources.js';
 import {randomUUID} from 'node:crypto';
@@ -41,6 +42,7 @@ export type QueueWireEvidence={kind:'queue-wire-evidence-1';uploads:RuntimeUploa
 type Outbox={state:'safe-unstarted'|'dispatching'|'acknowledged'|'uncertain'|'cancelled'|'terminal';epoch:string|null;endpoint:string;mapping:Record<string,string>;bodyRecord:string|null;payloadHash:string|null;requestId:string|null;urls:{status:string;result:string;cancel:string}|null;responseRecord:string|null;wireEvidence?:QueueWireEvidence};
 export class QueueStore {
  private inputStreams=0;
+ private readonly releaseExecutionBridge:()=>void;
  resourceOwnership(){return {preparing:this.preparing.size,inputStreams:this.inputStreams,inputStreamsObserved:true,transportEvidenceObserved:false};}
  readonly evidence:TransportEvidenceStore;
  onDocumentDeleted:((documentId:string)=>void)|undefined;
@@ -67,6 +69,9 @@ export class QueueStore {
    for(const job of this.jobs()) {let changed=false;for(const a of job.attempts)if(a.requestId&&a.state!=='locally-cancelled'&&!a.recoveryRequired){a.recoveryRequired=true;a.recoveryRequested=false;changed=true;}if(changed){job.version=String(BigInt(job.version)+1n);this.record('job',job,'RecoveryRequiresExplicitAction');}}
    this.db.exec('COMMIT');
   }catch(e){if(this.db.isTransaction)this.db.exec('ROLLBACK');throw e;}
+  this.releaseExecutionBridge=registerQueueExecution(this,{root,epoch,check:()=>this.check(),job:id=>this.job(id),
+   reserve:(id,admit)=>this.reserveWithAdmission(id,admit),
+   dispatch:(id,attempt,mapping,policy,admit)=>this.dispatchWithAdmission(id,attempt,mapping,policy,admit)});
  }
  private project(family:'job'|'session',value:QueueJob|SpendSession){this.db.prepare(`INSERT INTO ${family==='job'?'queue_jobs':'spend_sessions'} VALUES (?,?) ON CONFLICT(id) DO UPDATE SET json=excluded.json`).run(value.id,canonical(value));}
  private record(family:'job'|'session',value:QueueJob|SpendSession,event:string){this.db.prepare('INSERT INTO queue_journal(json) VALUES (?)').run(canonical({family,event,epoch:this.epoch,at:new Date().toISOString(),value}));this.project(family,value);}
@@ -96,7 +101,7 @@ export class QueueStore {
  private *attempts():Generator<Attempt>{for(const job of this.jobs())for(const attempt of job.attempts)yield attempt;}
  private counts(sessionId:string,exclude?:string){let reserved=0,dispatched=0,active=0;for(const attempt of this.attempts()){if(attempt.id===exclude)continue;if(attempt.hold)active++;if(attempt.spendSessionId===sessionId){if(attempt.count==='reserved')reserved++;if(attempt.count==='dispatched')dispatched++;}}return {reserved,dispatched,active};}
  private unresolved(){for(const attempt of this.attempts())if(attempt.hold||attempt.state==='submission-uncertain')return true;return false;}
- private firstEligible(){for(const job of this.jobs()){const a=job.attempts.at(-1);if(!this.deleted(job.documentId)&&job.disposition==='eligible'&&job.local!=='locally-cancelled'&&a?.state==='not-started'&&['none','released'].includes(a.count)&&queueModelAdmission(job.review)==='provider-profile-required')return job;}return null;}
+ private firstEligible(admit:(job:QueueJob)=>boolean=job=>queueModelAdmission(job.review)==='provider-profile-required'){for(const job of this.jobs()){const a=job.attempts.at(-1);if(!this.deleted(job.documentId)&&job.disposition==='eligible'&&job.local!=='locally-cancelled'&&a?.state==='not-started'&&['none','released'].includes(a.count)&&admit(job))return job;}return null;}
  private eligibility(){const job=this.firstEligible();if(!job)return null;const counts=this.counts(this.session().id),cap=this.session().cap;if(counts.active||cap!==null&&counts.reserved+counts.dispatched>=cap)return null;return {jobId:job.id,documentId:job.documentId,attemptId:job.attempts.at(-1)!.id};}
  // Observation only: callers cannot obtain dispatch authority from this probe.
  observeEligibility(){try{return this.eligibility();}catch{return undefined;}}
@@ -345,22 +350,24 @@ export class QueueStore {
   out.wireEvidence=wire;this.writeOutbox(attemptId,jobId,out);return true;
  });}
  private transaction<T>(fn:()=>T):T{this.check();const before=this.observeEligibility();this.db.exec('BEGIN IMMEDIATE');try{const result=fn(),after=this.observeEligibility();this.check();this.db.exec('COMMIT');this.eligibleChanged(before,after);return result;}catch(e){if(this.db.isTransaction)this.db.exec('ROLLBACK');throw e;}}
- reserve(jobId:string){const result=this.transaction(()=>{
+ reserve(jobId:string){return this.reserveWithAdmission(jobId,job=>queueModelAdmission(job.review)==='provider-profile-required');}
+ private reserveWithAdmission(jobId:string,admit:(job:QueueJob)=>boolean){const result=this.transaction(()=>{
   const job=this.job(jobId),a=job.attempts.at(-1)!;if(this.deleted(job.documentId))return null;if(a.state!=='not-started'||job.local==='locally-cancelled')return null;
-  // Neither replay, local acceptance, nor an injected scheduler can turn a
-  // V4.5 request into a billable attempt while its admission is unavailable.
-  if(queueModelAdmission(job.review)!=='provider-profile-required')return null;
+  // The ordinary public entry point retains its model gate. A separate
+  // in-process fixture lease must validate before this common transition.
+  if(!admit(job))return null;
   if(a.count==='reserved')return {job,attempt:a};
-  if(this.firstEligible()?.id!==jobId)return null;
+  if(this.firstEligible(candidate=>queueModelAdmission(candidate.review)==='provider-profile-required'||admit(candidate))?.id!==jobId)return null;
   const session=this.session(),counts=this.counts(session.id);if(counts.active)return null;
   const used=counts.reserved+counts.dispatched;
   if(session.cap!==null&&used>=session.cap){job.local='paused-spend-cap';job.version=String(BigInt(job.version)+1n);this.record('job',job,'PausedSpendCap');return null;}
   a.count='reserved';a.spendSessionId=session.id;a.hold=true;a.writerEpoch=this.epoch;a.version=String(BigInt(a.version)+1n);job.local='ready-to-dispatch';job.version=String(BigInt(job.version)+1n);this.record('job',job,'AttemptReserved');return {job,attempt:a};
  });if(result)localQueuePhases.eligible(jobId,result.job.documentId,result.attempt.id);return result;}
- dispatch(jobId:string,attemptId:string,mapping:Record<string,string>,policy:AppliedPrivacyPolicy){
+ dispatch(jobId:string,attemptId:string,mapping:Record<string,string>,policy:AppliedPrivacyPolicy){return this.dispatchWithAdmission(jobId,attemptId,mapping,policy,job=>queueModelAdmission(job.review)==='provider-profile-required');}
+ private dispatchWithAdmission(jobId:string,attemptId:string,mapping:Record<string,string>,policy:AppliedPrivacyPolicy,admit:(job:QueueJob)=>boolean){
   // Materialize exact body once before the fence, preserving exact integer seed tokens.
   this.check();const job=this.job(jobId),a=job.attempts.find(a=>a.id===attemptId);if(this.deleted(job.documentId)||!a||a.state!=='not-started'||a.count!=='reserved'||!a.hold)throw new StoreError('STALE_EPOCH');
-  if(queueModelAdmission(job.review)!=='provider-profile-required')throw new AssetRejection('INCOMPATIBLE','V45_SAFETY_ADMISSION_BLOCKED');
+  if(!admit(job))throw new AssetRejection('INCOMPATIBLE','V45_SAFETY_ADMISSION_BLOCKED');
   const template=new TextDecoder('utf-8',{fatal:true}).decode(readRequestBytes(this.objects,job.review.template));
   for(const item of job.stagePlan)this.objects.verify(item.transport);
   // V4.5 retains prompt bytes by reference. Hydration verifies that exact
@@ -372,6 +379,7 @@ export class QueueStore {
   this.barrier('queue-before-dispatch-fence');
   const result=this.transaction(()=>{
    const current=this.job(jobId),attempt=current.attempts.find(a=>a.id===attemptId)!;
+   if(!admit(current))throw new AssetRejection('INCOMPATIBLE','V45_SAFETY_ADMISSION_BLOCKED');
    const session=this.session(),counts=this.counts(session.id,attemptId);if(this.deleted(current.documentId)||attempt.state!=='not-started'||attempt.count!=='reserved'||!attempt.hold||counts.active)throw new StoreError('STALE_EPOCH');
    const used=counts.reserved+counts.dispatched;
    if(session.cap!==null&&used>=session.cap){attempt.count='released';attempt.hold=false;attempt.version=String(BigInt(attempt.version)+1n);current.local='paused-spend-cap';current.version=String(BigInt(current.version)+1n);this.record('job',current,'PausedSpendCap');return null;}
@@ -423,5 +431,5 @@ export class QueueStore {
   const a=job.attempts.find(a=>a.id===attemptId)!;a.state='provider-terminal';a.terminal=status;a.hold=false;if(status==='cancelled')a.cancel='confirmed';a.version=String(BigInt(a.version)+1n);job.version=String(BigInt(job.version)+1n);
   const out=this.outbox(a.id);out.state='terminal';this.writeOutbox(a.id,job.id,out);this.record('job',job,'ProviderTerminal');
  }
- async close(){await Promise.allSettled([...this.preparing.values()].map(p=>p.promise));}
+ async close(){this.releaseExecutionBridge();await Promise.allSettled([...this.preparing.values()].map(p=>p.promise));}
 }
