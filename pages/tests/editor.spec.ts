@@ -128,8 +128,9 @@ test('full editor uses the shared light dark and density themes without saved do
 });
 
 test('desktop drawer and narrow editor layouts keep the actual panels reachable', async ({ page, browserName }, info) => {
+  await page.goto('./'); await shell(page);
   for (const width of [1440, 900, 320]) {
-    await page.setViewportSize({ width, height: 1000 }); await page.goto('./'); await shell(page);
+    await page.setViewportSize({ width, height: 1000 }); await shell(page);
     if (width === 1440) {
       await expect(page.locator('#request')).toBeVisible(); await expect(page.locator('#inspector')).toBeVisible();
       await expect(page.locator('.mobile-openers')).toBeHidden();
