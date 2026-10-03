@@ -1,5 +1,6 @@
 """Pure setup admission and real filesystem refusals; never invokes setup."""
 import copy
+import ast
 import contextlib
 import importlib.util
 import io
@@ -10,10 +11,19 @@ import sys
 import stat
 import tempfile
 import types
+import textwrap
 import unittest
+from unittest import mock
 
 spec = importlib.util.spec_from_file_location('hosted_setup_test_subject', sys.argv.pop())
 subject = importlib.util.module_from_spec(spec); spec.loader.exec_module(subject)
+workflow = (Path(__file__).resolve().parents[3]/'.github/workflows/hosted-native.yml').read_text()
+first_step = ast.parse(textwrap.dedent(workflow.split("<<'PY'\n",1)[1].split('\n          PY',1)[0]))
+marker_guard = next(node for node in first_step.body if isinstance(node,ast.FunctionDef) and node.name=='require_marker_parent')
+marker_namespace = {'json':json,'stat':stat}
+# Exercise only the actual guard function, never the marker-writing workflow.
+exec(compile(ast.Module(body=[marker_guard],type_ignores=[]),'workflow-marker-guard','exec'),marker_namespace)
+require_marker_parent = marker_namespace['require_marker_parent']
 HEAD = 'b'*40
 FIRST = subject.utc_ms('2026-10-03T12:00:01Z')
 
@@ -24,6 +34,50 @@ def closed(phase, outcome='PASS', released=True):
     return {'kind':'hosted-native-phase-finalization-1','phase':phase,'effectiveOutcome':outcome,'timingLockReleased':released}
 
 class Boundaries(unittest.TestCase):
+    def test_marker_and_setup_directory_guards_refuse_unsafe_ancestors(self):
+        class Member:
+            def __init__(self,name):
+                self.name=name;self.parents=[];self.info=types.SimpleNamespace(st_uid=0,st_gid=0,st_mode=stat.S_IFDIR|0o755)
+            def __str__(self):return self.name
+            def is_absolute(self):return True
+            def resolve(self,strict):return self
+            def lstat(self):return self.info
+        root,var,leaf=(Member(name) for name in ('/','/var','/var/lib'));leaf.parents=[var,root]
+        with mock.patch.object(subject,'canonical',return_value=leaf):
+            for guard in (require_marker_parent,subject.require_immutable_directory):
+                guard(leaf)
+                for member in (leaf,var,root):
+                    original=member.info
+                    for uid,mode in ((1001,stat.S_IFDIR|0o755),(0,stat.S_IFDIR|0o777),(0,stat.S_IFDIR|0o775),(0,stat.S_IFDIR|0o757),(0,stat.S_IFREG|0o755),(0,stat.S_IFLNK|0o777)):
+                        member.info=types.SimpleNamespace(st_uid=uid,st_gid=0,st_mode=mode)
+                        with self.assertRaises(ValueError):guard(leaf)
+                    member.info=original
+        with tempfile.TemporaryDirectory() as raw:
+            parent=Path(raw).resolve();alias=parent/'alias';alias.symlink_to(parent,target_is_directory=True)
+            with self.assertRaisesRegex(ValueError,'Canonical native marker parent'):require_marker_parent(alias)
+            with self.assertRaisesRegex(ValueError,'Path alias'):subject.require_immutable_directory(alias)
+
+    def test_first_marker_write_is_preceded_by_actual_ancestry_admission(self):
+        calls=[]
+        for index,node in enumerate(first_step.body):
+            if isinstance(node,ast.FunctionDef):continue
+            for child in ast.walk(node):
+                if isinstance(child,ast.Call):calls.append((index,ast.unparse(child.func),child))
+        guards=[(index,call) for index,name,call in calls if name=='require_marker_parent']
+        writes=[index for index,name,call in calls if name=='os.open']
+        self.assertEqual(len(guards),1);self.assertEqual(len(writes),1)
+        self.assertLess(guards[0][0],writes[0]);self.assertEqual(ast.unparse(guards[0][1].args[0]),'path.parent')
+        self.assertIn("path = Path('/var/lib')",workflow)
+
+    def test_fresh_root_refusal_occurs_before_creation_without_ancestor_repair(self):
+        root=Path('/var/lib/ideogram-native-control-123-2')
+        with mock.patch.object(subject,'require_immutable_directory',side_effect=ValueError('unsafe ancestry')) as guard, mock.patch.object(subject,'fresh_directory') as create:
+            with self.assertRaisesRegex(ValueError,'unsafe ancestry'):subject.fresh_control_root(root)
+            guard.assert_called_once_with(root.parent);create.assert_not_called()
+        with mock.patch.object(subject,'require_immutable_directory') as guard, mock.patch.object(subject,'fresh_directory',return_value=root) as create:
+            self.assertEqual(subject.fresh_control_root(root),root)
+            guard.assert_called_once_with(root.parent);create.assert_called_once_with(root)
+
     def test_immutable_owner_and_write_guard_is_unchanged(self):
         info=lambda uid,mode:types.SimpleNamespace(st_uid=uid,st_gid=999,st_mode=stat.S_IFREG|mode)
         for mode in (0o444,0o644,0o555,0o755,0o700): subject.require_immutable_member(Path('/selected'),info(0,mode),0)

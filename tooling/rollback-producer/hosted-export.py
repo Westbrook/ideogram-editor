@@ -77,9 +77,9 @@ def setup_export_entries(inventory,setup,config):
     require(inventory.get('kind')=='hosted-native-unmeasured-setup-export-1' and inventory.get('run')==setup['run'] and inventory.get('attempt')==setup['attempt'] and inventory.get('head')==setup['controlHead'],'Setup export job identity differs')
     require(inventory.get('setupSuccessful') is True and inventory.get('setupOwnedProcessGroupsAbsent') is True and all(inventory.get(key) is False for key in ('setupMeasured','qualification','payloadFilesCopied','originalsChanged')) and inventory.get('maximumBytes')==64*1024**2,'Setup export claims differ')
     parent=worker.absolute(config['exportRoot']).parent
-    require(parent==Path(f"/opt/ideogram-native-export-{setup['run']}-{setup['attempt']}"),'Fixed setup export parent differs')
+    require(parent==Path(f"/var/lib/ideogram-native-export-{setup['run']}-{setup['attempt']}"),'Fixed setup export parent differs')
     meta=Path(config['controlRoot'])/'meta'
-    allowed={'first-step-original.json':Path(f"/opt/ideogram-native-job-{setup['run']}-{setup['attempt']}.json"),**{name:meta/name for name in SETUP_METADATA},**{'commands/'+label+suffix:meta/'setup-commands'/(label+suffix) for label in SETUP_LABELS for suffix in ('.json','.stdout','.stderr')}}
+    allowed={'first-step-original.json':Path(f"/var/lib/ideogram-native-job-{setup['run']}-{setup['attempt']}.json"),**{name:meta/name for name in SETUP_METADATA},**{'commands/'+label+suffix:meta/'setup-commands'/(label+suffix) for label in SETUP_LABELS for suffix in ('.json','.stdout','.stderr')}}
     rows=inventory.get('files');omitted=inventory.get('omitted')
     require(isinstance(rows,list) and isinstance(omitted,list) and len(rows)+len(omitted)==len(allowed),'Exact finite setup membership required')
     seen=set();total=0

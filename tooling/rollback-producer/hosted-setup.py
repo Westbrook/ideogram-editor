@@ -45,7 +45,7 @@ class ImmutablePathRefusal(ValueError):
     def __init__(self, member, info, position):
         text = str(member)
         anchors = {'/', '/opt', '/var', '/var/lib', '/usr', '/usr/bin', '/usr/sbin'}
-        marker = re.fullmatch(r'/opt/ideogram-native-job-[1-9][0-9]{0,19}-[1-9][0-9]{0,8}\.json', text)
+        marker = re.fullmatch(r'/var/lib/ideogram-native-job-[1-9][0-9]{0,19}-[1-9][0-9]{0,8}\.json', text)
         label = text if text in anchors or marker else '<selected-input-component>'
         kind = 'directory' if stat.S_ISDIR(info.st_mode) else 'regular' if stat.S_ISREG(info.st_mode) else 'symlink' if stat.S_ISLNK(info.st_mode) else 'other'
         self.observation = {'kind':'hosted-native-immutable-path-refusal-1','member':label,'position':position,'uid':info.st_uid,'gid':info.st_gid,'mode':format(stat.S_IMODE(info.st_mode),'04o'),'type':kind,'requiredUid':0,'forbiddenWriteBits':'0022','contentsRead':False}
@@ -55,6 +55,13 @@ def require_immutable_member(member, info, position):
     # Preserve the exact existing owner/write-bit guard; only refusal evidence changes.
     if not (info.st_uid == 0 and not stat.S_IMODE(info.st_mode) & 0o022):
         raise ImmutablePathRefusal(member, info, position)
+
+def require_immutable_directory(path):
+    path = canonical(str(path))
+    for position, member in enumerate([path, *path.parents]):
+        info = member.lstat()
+        require(stat.S_ISDIR(info.st_mode), 'Immutable directory ancestry required')
+        require_immutable_member(member, info, position)
 
 def read(path, maximum=4*1024**2, root_owned=False):
     path = canonical(str(path)); before = path.lstat()
@@ -117,6 +124,11 @@ def fresh_directory(path, mode=0o755, owner=None):
     require(path.parent.resolve(strict=True) == path.parent, 'Directory parent alias refused'); path.mkdir(mode=mode)
     if owner: os.chown(path, owner['uid'], owner['gid'])
     return path
+
+def fresh_control_root(path):
+    # Admit shared ancestors before the first write; never repair their modes.
+    require_immutable_directory(path.parent)
+    return fresh_directory(path)
 
 class SetupCommands:
     def __init__(self, directory, environment, deadline):
@@ -184,11 +196,11 @@ def setup(args):
     require(sys.platform == 'linux' and platform.machine() == 'x86_64' and os.getuid() == os.geteuid() == 0, 'Root Linux x64 setup required')
     require(os.getgroups() == [0] or not os.getgroups(), 'Unexpected setup supplementary groups')
     require(re.fullmatch('[0-9a-f]{40}', args.head) and re.fullmatch('[0-9a-f]{64}', args.source_sha256) and args.run > 0 and args.attempt > 0, 'Fixed run identity required')
-    checkout = canonical(args.checkout); marker_path = Path(f'/opt/ideogram-native-job-{args.run}-{args.attempt}.json')
+    checkout = canonical(args.checkout); marker_path = Path(f'/var/lib/ideogram-native-job-{args.run}-{args.attempt}.json')
     marker_raw = read(marker_path, 16384, True); marker = json.loads(marker_raw)
     require(marker['kind'] == 'hosted-native-first-step-1' and marker['run'] == args.run and marker['attempt'] == args.attempt and marker['head'] == args.head, 'Actual first-step identity differs')
     runner_uid = marker['runnerUid']; require(type(runner_uid) is int and runner_uid > 0 and runner_uid != OWNER['uid'], 'Dedicated producer differs from runner')
-    prefix = fresh_directory(Path(f'/opt/ideogram-native-{args.run}-{args.attempt}'))
+    prefix = fresh_control_root(Path(f'/var/lib/ideogram-native-control-{args.run}-{args.attempt}'))
     control = fresh_directory(prefix/'control'); meta = fresh_directory(control/'meta'); logs = fresh_directory(meta/'setup-commands')
     save(meta/'first-step.json', marker_raw)
     token = sys.stdin.buffer.read(4097).decode('ascii'); url, response = fetch_job(token, args.run, args.attempt); del token
@@ -222,7 +234,7 @@ def setup(args):
     commands.run('producer-group', ['/usr/sbin/groupadd', '--gid', str(OWNER['gid']), 'ie-hosted-producer'])
     commands.run('producer-account', ['/usr/sbin/useradd', '--uid', str(OWNER['uid']), '--gid', str(OWNER['gid']), '--no-create-home', '--no-user-group', '--home-dir', '/nonexistent', '--shell', '/usr/sbin/nologin', 'ie-hosted-producer'])
     account = pwd.getpwnam('ie-hosted-producer'); require((account.pw_uid, account.pw_gid) == (OWNER['uid'], OWNER['gid']) and all('ie-hosted-producer' not in g.gr_mem for g in grp.getgrall()), 'Dedicated account identity differs')
-    storage = fresh_directory(Path(f'/var/lib/ideogram-native-{args.run}-{args.attempt}')); private = fresh_directory(storage/'setup-private', 0o700, OWNER)
+    storage = fresh_control_root(Path(f'/var/lib/ideogram-native-{args.run}-{args.attempt}')); private = fresh_directory(storage/'setup-private', 0o700, OWNER)
     home = fresh_directory(private/'home', 0o700, OWNER); tmp = fresh_directory(private/'tmp', 0o700, OWNER)
     setup_env = clean_environment(home, tmp); observed = private/'observed'
     argv = [tools['setpriv']['path'], '--reuid=20000', '--regid=20000', '--clear-groups', '--inh-caps=-all', '--ambient-caps=-all', '--bounding-set=-all', '--no-new-privs', '--', tools['python']['path'], '-I', '-S', '-B', str(control/'tooling/rollback-producer/hosted-host.py'), '--producer-root', str(control/'tooling/rollback-producer/schema18'), '--producer-seal', SEALS['18'], '--output', str(observed)]
@@ -230,7 +242,7 @@ def setup(args):
     host_selection = save(meta/'host-selection.json', read(observed/'selection.json', 4*1024**2))
     host_observation = save(meta/'host-observation.json', read(observed/'observation.json', 16*1024**2))
     data = fresh_directory(storage/'data', 0o700, OWNER); evidence = fresh_directory(storage/'evidence', 0o700)
-    export_parent = fresh_directory(Path(f'/opt/ideogram-native-export-{args.run}-{args.attempt}'))
+    export_parent = fresh_control_root(Path(f'/var/lib/ideogram-native-export-{args.run}-{args.attempt}'))
     require(not list(data.iterdir()) and not list(evidence.iterdir()), 'Actual allocations must start empty')
     run_id = 'ie-native-'+uuid.uuid4().hex; now = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='milliseconds').replace('+00:00', 'Z')
     allocations = {}
@@ -261,14 +273,15 @@ def retain_setup_diagnostics(args, successful):
     """Copy finite setup files after owned groups disappear; no payload files."""
     require(not SETUP_CHILD_UNCERTAIN, 'Undrained setup child prevents diagnostic export')
     require(os.getuid() == os.geteuid() == 0 and args.run > 0 and args.attempt > 0, 'Root actual setup identity required')
-    marker = Path(f'/opt/ideogram-native-job-{args.run}-{args.attempt}.json')
+    marker = Path(f'/var/lib/ideogram-native-job-{args.run}-{args.attempt}.json')
     marker_value = json.loads(read(marker, 16384, True)); require(marker_value['head'] == args.head and marker_value['run'] == args.run and marker_value['attempt'] == args.attempt, 'Setup diagnostic identity differs')
-    parent = Path(f'/opt/ideogram-native-export-{args.run}-{args.attempt}')
+    parent = Path(f'/var/lib/ideogram-native-export-{args.run}-{args.attempt}')
     try: parent.lstat()
-    except FileNotFoundError: fresh_directory(parent)
+    except FileNotFoundError: fresh_control_root(parent)
+    require_immutable_directory(parent)
     require(canonical(str(parent)) == parent and parent.stat().st_uid == 0 and stat.S_IMODE(parent.stat().st_mode) == 0o755, 'Fixed setup export parent differs')
     require_directory_members(parent, set())
-    target = fresh_directory(parent/'setup'); meta = Path(f'/opt/ideogram-native-{args.run}-{args.attempt}/control/meta')
+    target = fresh_directory(parent/'setup'); meta = Path(f'/var/lib/ideogram-native-control-{args.run}-{args.attempt}/control/meta')
     selected = [('first-step-original.json', marker, 16384)]
     for name in ('first-step.json','github-jobs.json','source-selection.json','host-selection.json','host-observation.json','setup.json','evidence-allocation.json','data-allocation.json','config.json'):
         selected.append((name,meta/name,16*1024**2))

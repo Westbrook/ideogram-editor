@@ -20,6 +20,14 @@ jobs:
           sudo -n /usr/bin/python3 -I -S -B - "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" "$GITHUB_SHA" "$(id -u)" <<'PY'
           import json, os, re, stat, sys, time
           from pathlib import Path
+          def require_marker_parent(path):
+              if not path.is_absolute() or path.resolve(strict=True) != path:
+                  raise ValueError('Canonical native marker parent required')
+              for position, member in enumerate([path, *path.parents]):
+                  info = member.lstat()
+                  if not stat.S_ISDIR(info.st_mode) or info.st_uid != 0 or stat.S_IMODE(info.st_mode) & 0o022:
+                      value = {'kind':'hosted-native-marker-ancestor-refusal-1','member':str(member),'position':position,'uid':info.st_uid,'gid':info.st_gid,'mode':format(stat.S_IMODE(info.st_mode),'04o'),'directory':stat.S_ISDIR(info.st_mode),'contentsRead':False}
+                      raise ValueError(json.dumps(value,separators=(',',':')))
           run, attempt, head, uid = sys.argv[1:]
           assert run.isdecimal() and attempt.isdecimal() and re.fullmatch('[0-9a-f]{40}', head)
           assert os.getuid() == os.geteuid() == 0 and int(uid) > 0
@@ -33,7 +41,8 @@ jobs:
                   anchors.append({'path':name,'available':False,'errno':error.errno})
           print(json.dumps({'kind':'hosted-native-fixed-anchor-observation-1','setupMeasured':False,'authorityGranted':False,'contentsRead':False,'anchors':anchors},separators=(',',':')))
           value = {'kind':'hosted-native-first-step-1','run':int(run),'attempt':int(attempt),'head':head,'runnerUid':int(uid),'firstStepEpochMs':time.time_ns()//1000000,'meaning':'First executable workflow step; not the GitHub job.started_at deadline origin.'}
-          path = Path('/opt') / ('ideogram-native-job-'+run+'-'+attempt+'.json')
+          path = Path('/var/lib') / ('ideogram-native-job-'+run+'-'+attempt+'.json')
+          require_marker_parent(path.parent)
           fd = os.open(path, os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW, 0o444)
           with os.fdopen(fd,'w') as stream: json.dump(value,stream); stream.write('\n'); stream.flush(); os.fsync(stream.fileno())
           PY
@@ -49,7 +58,7 @@ jobs:
         shell: bash
         env:
           IE_SETUP_TOKEN: ${{ github.token }}
-          IE_SOURCE_SELECTION_SHA256: be42594bd59145dcc550e0fd65b07f5e7eb74aefada6b4540144cf4d17b147e2
+          IE_SOURCE_SELECTION_SHA256: ade37a124e3ac3a740d8e892ec71bec1ca06c5f230d81d5b35713e6c618b182c
         run: |
           set -euo pipefail
           printf '%s' "$IE_SETUP_TOKEN" | sudo -n /usr/bin/python3 -I -S -B tooling/rollback-producer/hosted-setup.py setup \

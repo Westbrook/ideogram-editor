@@ -43,11 +43,15 @@ def controls():
         actual={str(path.relative_to(root)) for path in exporter.diagnostic_members(root,'build16')}
         assert actual=={'logs/typecheck.log','logs/typecheck.log.control.json','logs/typecheck.log.receipt.json','failure-'+'a'*32+'.json','source/payload.tar.gz','source/manifest.json'}
         (root/'logs/unexpected-socket').symlink_to('/dev/null');must_fail(lambda:exporter.diagnostic_members(root,'build16'))
-    setup={'run':11,'attempt':2,'controlHead':'b'*40};config={'controlRoot':'/opt/control','exportRoot':'/opt/ideogram-native-export-11-2/ie-native-'+'a'*32}
-    allowed={'first-step-original.json':'/opt/ideogram-native-job-11-2.json',**{name:'/opt/control/meta/'+name for name in exporter.SETUP_METADATA},**{'commands/'+label+suffix:'/opt/control/meta/setup-commands/'+label+suffix for label in exporter.SETUP_LABELS for suffix in ('.json','.stdout','.stderr')}}
-    rows=[{'source':{'path':origin,'bytes':1,'sha256':'c'*64},'copy':{'path':'/opt/ideogram-native-export-11-2/setup/'+name,'bytes':1,'sha256':'c'*64}} for name,origin in allowed.items()]
+    setup={'run':11,'attempt':2,'controlHead':'b'*40};config={'controlRoot':'/var/lib/ideogram-native-control-11-2/control','exportRoot':'/var/lib/ideogram-native-export-11-2/ie-native-'+'a'*32}
+    allowed={'first-step-original.json':'/var/lib/ideogram-native-job-11-2.json',**{name:'/var/lib/ideogram-native-control-11-2/control/meta/'+name for name in exporter.SETUP_METADATA},**{'commands/'+label+suffix:'/var/lib/ideogram-native-control-11-2/control/meta/setup-commands/'+label+suffix for label in exporter.SETUP_LABELS for suffix in ('.json','.stdout','.stderr')}}
+    rows=[{'source':{'path':origin,'bytes':1,'sha256':'c'*64},'copy':{'path':'/var/lib/ideogram-native-export-11-2/setup/'+name,'bytes':1,'sha256':'c'*64}} for name,origin in allowed.items()]
     inventory={'kind':'hosted-native-unmeasured-setup-export-1','run':11,'attempt':2,'head':'b'*40,'setupSuccessful':True,'setupOwnedProcessGroupsAbsent':True,'setupMeasured':False,'qualification':False,'payloadFilesCopied':False,'originalsChanged':False,'maximumBytes':64*1024**2,'regularBytes':len(rows),'files':rows,'omitted':[]}
     assert exporter.setup_export_entries(inventory,setup,config)==rows
+    old_config={**config,'exportRoot':config['exportRoot'].replace('/var/lib/','/opt/',1)}
+    must_fail(lambda:exporter.setup_export_entries(inventory,setup,old_config))
+    old_marker=json.loads(json.dumps(inventory));old_marker['files'][0]['source']['path']='/opt/ideogram-native-job-11-2.json'
+    must_fail(lambda:exporter.setup_export_entries(old_marker,setup,config))
     for change in ('identity','path','hash','bytes','extra'):
         bad=json.loads(json.dumps(inventory))
         if change=='identity':bad['head']='d'*40

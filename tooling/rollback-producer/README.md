@@ -51,6 +51,12 @@ actual successful finalized predecessor; an interrupted producer tree is not a
 resume point. Changes to selected control sources require updating
 `hosted-sources.json` and the workflow's manifest hash together.
 
+Fixed marker, control and export roots live below `/var/lib`, alongside the
+separate data/evidence root. The first marker write and later root creation
+require canonical root-owned directory ancestry without group/other write bits.
+Setup never changes shared ancestor ownership or permissions. Existing marker,
+root or export collisions refuse; there is no alternate-path fallback.
+
 Control-toolchain, package and dedicated-account setup is explicitly unmeasured.
 It freezes actual root-owned control binaries and compiler/library observations.
 Both storage monitors and the host lease start before input transfer, payload
