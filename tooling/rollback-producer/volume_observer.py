@@ -96,6 +96,9 @@ class Clock:
     def wall_us(self):
         return time.time_ns() // 1000
 
+    def sleep_us(self, duration_us):
+        time.sleep(duration_us / 1_000_000)
+
 
 class Filesystem:
     """Only directory FDs are opened; symlinks receive lstat only."""
@@ -334,6 +337,16 @@ def observe(request, filesystem=None, clock=None):
     window_start, wall_start = clock.monotonic_us(), clock.wall_us()
     attempts, selected, previous = [], None, None
     for sequence in range(MAX_ATTEMPTS):
+        if sequence:
+            # Only a fully drained mutation reaches another attempt. Separate
+            # scans inside the original window; the producer keeps running.
+            retry_at = min(attempts[-1]['endMonotonicUs'] + 100_000,
+                           window_start + MAX_WINDOW_US)
+            while True:
+                remaining = retry_at - clock.monotonic_us()
+                if remaining <= 0:
+                    break
+                clock.sleep_us(remaining)
         start, start_wall = clock.monotonic_us(), clock.wall_us()
         if sequence and start >= window_start + MAX_WINDOW_US:
             break

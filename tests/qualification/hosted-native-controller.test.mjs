@@ -6,7 +6,7 @@ import {fileURLToPath} from 'node:url';
 import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {PHASES, TIMEOUTS, sealedMemberPath, REQUIRED_SOURCE_PATHS, EXPORT_RESERVE_MS, validateConfig, payloadArgv, phaseBudgetMs, admitJobPhase, successfulChild, childClosureUncertain, nativeSummary, replayDataRecords, monitoredBody} from '../../tooling/rollback-producer/hosted-control.mjs';
-import {coverage, workerCanonical} from '../../tooling/rollback-producer/hosted-accounting.mjs';
+import {coverage, workerCanonical, volumeSize} from '../../tooling/rollback-producer/hosted-accounting.mjs';
 
 const hash = value => createHash('sha256').update(value).digest('hex');
 const fixedHash = 'a'.repeat(64);
@@ -139,4 +139,18 @@ test('unprivileged Linux kernel installs the exact offline filter and preserves 
 test('input materialization creates private intermediate parents under ordinary umask and refuses drift',async()=>{
   const {stdout}=await promisify(execFile)('python3',['-I','-S','-B',fileURLToPath(new URL('./fixtures/hosted-native-controls.py',import.meta.url)),'--input-directories'],{maxBuffer:65536,timeout:10000});
   assert.deepEqual(JSON.parse(stdout),{publishedMembers:73,umasks:[18,0,63],privateIntermediates:true,existingMismatchRefusedWithoutRepair:true,aliasesAndSpecialPathsRefused:true,actualMetadataDiagnostic:true});
+});
+
+// The Python fixture drives the real scanner with injected time and filesystem
+// observations; it never sleeps on wall time or starts a producer.
+test('native mutation retries are separated inside the original bounded window and retain refusals',async()=>{
+  const {stdout}=await promisify(execFile)('python3',['-I','-S','-B',fileURLToPath(new URL('./fixtures/volume-observer-unit.py',import.meta.url)),fileURLToPath(new URL('../../tooling/rollback-producer/volume_observer.py',import.meta.url))],{maxBuffer:65536,timeout:10000});
+  const {delayedObservation,...result}=JSON.parse(stdout);
+  assert.deepEqual(result,{tests:17,failures:0,errors:0});
+  assert.equal(TIMEOUTS.observe,2000);
+  assert.equal(volumeSize(delayedObservation,delayedObservation.request).bytes,4608);
+  assert.equal(delayedObservation.selectedAttempt,1);
+  assert.equal(delayedObservation.attempts[1].startMonotonicUs-delayedObservation.attempts[0].endMonotonicUs,100000);
+  const records=[{boundary:'initial',startedMs:0,endedMs:1,bytes:4608,error:null},{boundary:'periodic',startedMs:1000,endedMs:1100,bytes:null,error:{code:'EVIDENCE_MUTATION'}},{boundary:'final',startedMs:2000,endedMs:2001,bytes:4608,error:null}];
+  const retained=coverage(records,100000);assert.equal(retained.status,'INCONCLUSIVE');assert.equal(retained.unknownSamples,1);assert.equal(retained.coverageComplete,false);
 });
