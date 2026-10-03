@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createContext, runInContext} from 'node:vm';
-import {installE4DeliveryObserver} from './e4-delivery-observer.mjs';
+import {installE4DeliveryObserver,matchV45Deliveries} from './e4-delivery-observer.mjs';
 
 const origin = 'http://127.0.0.1:4381';
 const encode = value => new TextEncoder().encode(value);
@@ -91,8 +91,8 @@ function fixture(t, options = {}) {
     assert.equal(await promise, record.response, 'fetch returns its original response');
     return record.response;
   }
-  async function consume(record, chunks = [encode(record.text)]) {
-    await fetchResponse(record);
+  async function consume(record, chunks = [encode(record.text)], init) {
+    await fetchResponse(record, record.response.url, init);
     const reader = record.response.body.getReader();
     assert.equal(reader, record.calls.getReader.at(-1).reader);
     for (const chunk of chunks) {
@@ -419,4 +419,117 @@ test('fetch native throws and rejections pass through unchanged and invalid limi
     assert.throws(() => runInContext(`(${installE4DeliveryObserver.toString()})(__options)`, context), /E4_OBSERVER_LIMITS/);
     assert.equal(context.__p25DeliveryObserver, undefined);
   }
+});
+
+
+const v45Post = (path, identity, epoch = 0) => ({epoch, path, request: path === '/api/v1/commands'
+  ? {protocolVersion: 1, command: {commandId: identity, body: {type: 'CreateDocument'}}}
+  : {protocolVersion: 1, sessionId: path.slice('/api/v1/ui/'.length), requestId: identity, body: {type: 'SetPreferences'}}});
+const postInit = f => runInContext('({method:"POST"})', f.context);
+const epochRows = (f, epoch = 0) => f.rows().map(row => ({...plain(row), epoch}));
+
+test('V45 opt-in keeps original native JSON promise/receiver/result and pending command IDs without invented UI IDs', async t => {
+  const f = fixture(t, {profile: 'v45-post'}), value = {protocolVersion: 1, kind: 'pending', commandId: 'command-1', operationId: 'operation-1', phase: 'running', receiptUrl: '/api/v1/commands/command-1'};
+  const r = f.response(JSON.stringify(value), {path: '/api/v1/commands', status: 202});
+  await f.fetchResponse(r, r.response.url, postInit(f));
+  const argument = {ignored: true}, promise = r.response.json(argument), original = r.calls.json.at(-1);
+  assert.equal(promise, original.promise); assert.equal(original.receiver, r.response); assert.equal(original.args[0], argument);
+  r.controller.enqueue(encode(r.text)); r.controller.close(); const result = await promise;
+  assert.equal(result, await original.promise); assert.deepEqual(result, value);
+  const joined = matchV45Deliveries([v45Post('/api/v1/commands', 'command-1')], epochRows(f), true);
+  assert.equal(joined.length, 1); assert.deepEqual(joined[0].delivery.value, value); assert.equal(joined[0].delivery.value.requestId, undefined);
+  result.phase = 'mutated'; assert.equal(f.rows()[0].value.phase, 'running'); assert.equal(Object.isFrozen(f.rows()[0].value), true);
+  assert.deepEqual(r.calls.forbidden, []); assert.equal(f.errors().length, 0); assert.equal(f.observer.snapshot().pending, 0);
+});
+
+test('V45 complete original reader parse retains exact nested review and ordinary UI receipt fields', async t => {
+  const f = fixture(t, {profile: 'v45-post'}), path = '/api/v1/ui/ui_1';
+  const value = {protocolVersion: 1, requestId: 'review-1', status: 'accepted', uiSeq: '7', review: {kind: 'request-review-v45-1', prompt: 'Café 東京', request: {modelRequest: {seed: '900719925474099312345'}, references: [{assetId: 'a', version: '1'}]}}};
+  const r = f.response(JSON.stringify(value), {path}); await f.consume(r, [...encode(r.text)].map(byte => Uint8Array.of(byte)), postInit(f));
+  assert.equal(f.rows().length, 0, 'EOF and unlock alone cannot qualify');
+  const receiver = {parse: true}, result = Reflect.apply(f.json.parse, receiver, [r.text]), original = f.context.__parseCalls.findLast(call => call.receiver === receiver);
+  assert.equal(original.receiver, receiver); assert.equal(result, original.value); assert.equal(original.args[0], r.text);
+  const joined = matchV45Deliveries([v45Post(path, 'review-1')], epochRows(f), true); assert.deepEqual(joined[0].delivery.value, value);
+  result.review.request.references[0].assetId = 'mutated'; assert.equal(f.rows()[0].value.review.request.references[0].assetId, 'a'); assert.equal(Object.isFrozen(f.rows()[0].value.review.request.references[0]), true);
+  assert.equal(r.calls.read.length, encode(r.text).length + 1); assert.deepEqual(r.calls.forbidden, []);
+  const ordinary = {protocolVersion: 1, requestId: 'preferences-1', status: 'accepted', reason: null, uiSeq: '8'}, next = f.response(JSON.stringify(ordinary), {path});
+  await f.consume(next, undefined, postInit(f)); f.parse(next.text);
+  assert.equal(matchV45Deliveries([v45Post(path, 'review-1'), v45Post(path, 'preferences-1')], epochRows(f), true).length, 2);
+});
+
+test('V45 scope is exact, opt-in, same-origin and POST-only without changing E4 default projection', async t => {
+  const ordinary = {protocolVersion: 1, requestId: 'preferences-1', status: 'accepted', uiSeq: '8'}, text = JSON.stringify(ordinary);
+  const f = fixture(t, {profile: 'v45-post'});
+  for (const [path, method] of [['/api/v1/ui/ui_1', 'GET'], ['/api/v1/ui/ui_1/extra', 'POST'], ['/api/v1/ui/ui_1?extra=1', 'POST'], ['/api/v1/ui/ui_1#extra', 'POST'], ['/api/v1/ui/' + 'x'.repeat(129), 'POST'], ['https://other.invalid/api/v1/ui/ui_1', 'POST'], ['http://user:password@127.0.0.1:4381/api/v1/ui/ui_1', 'POST'], ['/api/v1/queue', 'GET'], ['/api/v1/commands/command-1', 'GET']]) {
+    const r = f.response(text, {path}); await f.fetchResponse(r, r.response.url, runInContext('({method:' + JSON.stringify(method) + '})', f.context));
+    r.controller.enqueue(encode(text)); r.controller.close(); assert.deepEqual(await r.response.json(), ordinary); assert.equal(r.response.json, r.originals.json);
+  }
+  assert.equal(f.rows().length, 0); assert.equal(f.errors().length, 0);
+  const defaultObserver = fixture(t), ui = defaultObserver.response(text, {path: '/api/v1/ui/ui_1'});
+  await defaultObserver.fetchResponse(ui, ui.response.url, postInit(defaultObserver)); ui.controller.enqueue(encode(text)); ui.controller.close(); await ui.response.json();
+  assert.equal(defaultObserver.rows().length, 0); assert.equal(defaultObserver.errors().length, 0);
+  for (const profile of ['v45', 'all', false, null, {}, 1]) {
+    const context = createContext({__options: {profile}}); runInContext('globalThis.window = globalThis', context);
+    assert.throws(() => runInContext(`(${installE4DeliveryObserver.toString()})(__options)`, context), /E4_OBSERVER_PROFILE/); assert.equal(context.__p25DeliveryObserver, undefined);
+  }
+});
+
+test('V45 join requires a bijection of real UI, pending and final command identities across document epochs', () => {
+  const post = v45Post('/api/v1/commands', 'command-1');
+  const delivery = {epoch: 0, path: post.path, method: 'POST', status: 200, scope: 'original-response-parse-delivery', source: 'original-reader-json-parse', value: {protocolVersion: 1, kind: 'receipt', receipt: {commandId: 'command-1', status: 'accepted', fromSeq: '1', toSeq: '2'}}};
+  assert.equal(matchV45Deliveries([post], [], false).length, 0);
+  assert.throws(() => matchV45Deliveries([post], [], true), /V45_DELIVERY_MISSING_RESPONSE/);
+  assert.deepEqual(matchV45Deliveries([post], [delivery], true), [{post, delivery}]);
+  assert.throws(() => matchV45Deliveries([post, post], [delivery], true), /V45_DELIVERY_AMBIGUOUS_POST/);
+  assert.throws(() => matchV45Deliveries([post], [delivery, delivery], true), /V45_DELIVERY_AMBIGUOUS_RESPONSE/);
+  assert.throws(() => matchV45Deliveries([], [delivery], false), /V45_DELIVERY_UNMATCHED_RESPONSE/);
+  for (const changed of [{epoch: 1}, {value: {...delivery.value, receipt: {commandId: 'different'}}}]) assert.throws(() => matchV45Deliveries([post], [{...delivery, ...changed}], true), /V45_DELIVERY_UNMATCHED_RESPONSE/);
+  for (const changed of [{method: 'GET'}, {scope: 'network-body'}, {source: 'durable-database'}, {epoch: -1}, {path: '/api/v1/commands/command-1'}, {value: {kind: 'receipt', receipt: {commandId: 'command-1'}}}]) assert.throws(() => matchV45Deliveries([post], [{...delivery, ...changed}], true), /V45_DELIVERY_RESPONSE_IDENTITY/);
+  for (const changed of [{status: 202}, {value: {protocolVersion: 1, kind: 'pending', commandId: 'command-1'}}, {value: {protocolVersion: 1, requestId: 'command-1', status: 'accepted'}}]) assert.throws(() => matchV45Deliveries([post], [{...delivery, ...changed}], true), /V45_DELIVERY_COMMAND_RECEIPT/);
+  const ui = v45Post('/api/v1/ui/ui_1', 'ui-1'), uiDelivery = {...delivery, path: ui.path, value: {protocolVersion: 1, requestId: 'ui-1', status: 'accepted', uiSeq: '3'}};
+  assert.equal(matchV45Deliveries([ui], [uiDelivery], true).length, 1);
+  assert.throws(() => matchV45Deliveries([{...ui, request: {...ui.request, sessionId: 'foreign'}}], [uiDelivery], true), /V45_DELIVERY_POST_IDENTITY/);
+  assert.throws(() => matchV45Deliveries([ui], [{...uiDelivery, value: {protocolVersion: 1, status: 'accepted', commandId: 'ui-1'}}], true), /V45_DELIVERY_RESPONSE_IDENTITY/);
+  assert.equal(matchV45Deliveries([post, {...post, epoch: 1}], [delivery, {...delivery, epoch: 1}], true).length, 2);
+});
+
+test('V45 missing, cancelled, errored or unparsable original consumers cannot be replaced by inspector or durable receipt claims', async t => {
+  for (const mode of ['unconsumed', 'eof-only', 'cancel', 'read-error', 'parse-error']) await t.test(mode, async t => {
+    const f = fixture(t, {profile: 'v45-post'}), path = '/api/v1/ui/ui_1', text = mode === 'parse-error' ? '{' : JSON.stringify({protocolVersion: 1, requestId: 'ui-1', status: 'accepted', uiSeq: '1'}), r = f.response(text, {path});
+    if (mode === 'parse-error' || mode === 'eof-only') {
+      await f.consume(r, undefined, postInit(f));
+      if (mode === 'parse-error') assert.throws(() => f.parse(text), error => error === f.context.__parseCalls.at(-1).error);
+    } else {
+      await f.fetchResponse(r, r.response.url, postInit(f));
+      if (mode !== 'unconsumed') {
+        const reader = r.response.body.getReader(), reason = Error(mode);
+        if (mode === 'cancel') { const promise = reader.cancel(reason); assert.equal(promise, r.calls.cancel.at(-1).promise); await promise; assert.equal(r.calls.streamCancel[0], reason); }
+        else { const promise = reader.read(); assert.equal(promise, r.calls.read.at(-1).promise); r.controller.error(reason); await assert.rejects(promise, error => error === reason); }
+      }
+    }
+    assert.equal(f.rows().length, 0); assert.throws(() => matchV45Deliveries([v45Post(path, 'ui-1')], epochRows(f), true), /V45_DELIVERY_MISSING_RESPONSE/);
+    assert.deepEqual(r.calls.forbidden, []);
+  });
+});
+
+test('V45 identical complete bodies remain ambiguous even when the two POST paths differ', async t => {
+  const f = fixture(t, {profile: 'v45-post'}), text = JSON.stringify({protocolVersion: 1, requestId: 'ui-1', status: 'accepted', uiSeq: '1'});
+  for (const path of ['/api/v1/ui/ui_1', '/api/v1/ui/ui_2']) await f.consume(f.response(text, {path}), undefined, postInit(f));
+  assert.equal(f.parse(text).requestId, 'ui-1'); assert.equal(f.rows().length, 0); assert.equal(f.observer.snapshot().disabled, true);
+  assert.ok(f.errors().some(error => error.code === 'E4_OBSERVER_AMBIGUOUS_BODY'));
+  assert.throws(() => matchV45Deliveries([v45Post('/api/v1/ui/ui_1', 'ui-1'), v45Post('/api/v1/ui/ui_2', 'ui-1')], epochRows(f), true), /V45_DELIVERY_MISSING_RESPONSE/);
+});
+
+test('V45 full receipt capture preserves body and cumulative evidence ceilings without consuming ahead', async t => {
+  const path = '/api/v1/ui/ui_1', value = {protocolVersion: 1, requestId: 'ui-1', status: 'accepted', uiSeq: '1', review: {prompt: 'retained'}}, text = JSON.stringify(value);
+  await t.test('body cap', async t => {
+    const f = fixture(t, {profile: 'v45-post', limits: {bodyBytes: encode(text).length - 1}}), r = f.response(text, {path}); await f.fetchResponse(r, r.response.url, postInit(f));
+    assert.equal(r.response.bodyUsed, false); assert.equal(r.calls.read.length, 0); assert.ok(f.errors().some(error => error.code === 'E4_OBSERVER_BODY_LIMIT'));
+    assert.throws(() => matchV45Deliveries([v45Post(path, 'ui-1')], epochRows(f), true), /V45_DELIVERY_MISSING_RESPONSE/);
+  });
+  await t.test('row retention cap', async t => {
+    const f = fixture(t, {profile: 'v45-post', limits: {totalBytes: encode(text).length * 3}}), r = f.response(text, {path}); await f.consume(r, undefined, postInit(f));
+    assert.equal(f.parse(text).requestId, 'ui-1'); assert.equal(f.rows().length, 0); assert.equal(f.observer.snapshot().disabled, true); assert.ok(f.errors().some(error => error.code === 'E4_OBSERVER_ROW_LIMIT'));
+    assert.equal(f.observer.snapshot().retainedBytes, 0); assert.throws(() => matchV45Deliveries([v45Post(path, 'ui-1')], epochRows(f), true), /V45_DELIVERY_MISSING_RESPONSE/);
+  });
 });

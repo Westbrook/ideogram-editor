@@ -9,6 +9,7 @@ import {ownedOPFS} from '../editor/owned-opfs.js';
 import {recordDOMErrors} from '../editor/error-monitor.js';
 import {runs,step,throwFailures,finishFixture,errorRecord,type RunState} from '../editor/harness-lifecycle.js';
 import {publicReadRequest} from '../request/persistence-witness.js';
+import {installE4DeliveryObserver,matchV45Deliveries} from '../recovery/e4-delivery-observer.mjs';
 
 const receipt=resolve(process.env.EDITOR_RECEIPT??'artifacts/v45-edit-browser');
 const test=base.extend({context:async({playwright,browserName,contextOptions,viewport},use,info)=>{
@@ -39,11 +40,13 @@ const hash=(bytes:Uint8Array)=>'sha256:'+createHash('sha256').update(bytes).dige
 for(const masked of [false,true])test('V45 '+(masked?'masked transport preserves R16 coverage':'unmasked references retain exact order')+' through public review and local queue',async({page,context,browserName})=>{
  const prefix=masked?'masked-':'unmasked-',operation=masked?'inpaint-v45':'transform-v45';
  const guard=await ownedOPFS(context,'v45-edit-'+operation),errors=await recordDOMErrors(context);
- const csp:unknown[]=[],external:string[]=[],consoleErrors:string[]=[],commands:any[]=[],uiRequests:any[]=[],replies:any[]=[],pending:Promise<void>[]=[];
+ const csp:unknown[]=[],external:string[]=[],consoleErrors:string[]=[],commands:any[]=[],uiRequests:any[]=[],replies:any[]=[],posts:any[]=[],deliveries:any[]=[],deliveryErrors:unknown[]=[],deliverySnapshots:unknown[]=[];
+ let deliveryEpoch=0,deliveryOpen=false,deliverySealed=false;
+ await context.addInitScript(installE4DeliveryObserver,{profile:'v45-post'});
  const dir=await mkdtemp(join(await realpath(tmpdir()),'v45-edit-')),root=join(dir,'private');
  const state:RunState={failures:[],roots:[dir],writerClosed:false,contextClosed:false,browserClosed:false,retention:[],receipt,prefix};runs.set(context,state);
  const evidence:Record<string,unknown>={};let server:Awaited<ReturnType<typeof serverProcess>>|undefined,effects:any;
- type ResponseObservation={id:number;kind:'command-post'|'ui-post'|'command-lookup'|'command-result';commandId:string|null;uiRequestId:string|null;bodyType:string|null;postIndex:number|null;method:string;path:string;startedMs:number;startedPhase:string;headersMs:number|null;headersPhase:string|null;status:number|null;body:'not-observed'|'pending'|'complete'|'failed';bodySettledMs:number|null;bodySettledPhase:string|null;bodyError:string|null;terminal:'pending'|'finished'|'failed';terminalMs:number|null;terminalPhase:string|null;nativeFailure:string|null;finishedMs:number|null;finishedPhase:string|null;finishedError:string|null};
+ type ResponseObservation={id:number;epoch:number;kind:'command-post'|'ui-post'|'command-lookup'|'command-result';commandId:string|null;uiRequestId:string|null;bodyType:string|null;postIndex:number|null;method:string;path:string;startedMs:number;startedPhase:string;headersMs:number|null;headersPhase:string|null;status:number|null;body:'not-observed'|'pending'|'complete'|'failed';bodySettledMs:number|null;bodySettledPhase:string|null;bodyError:string|null;terminal:'pending'|'finished'|'failed';terminalMs:number|null;terminalPhase:string|null;nativeFailure:string|null;finishedMs:number|null;finishedPhase:string|null;finishedError:string|null};
  const responseLimit=512,navigationLimit=32,responseObservations:ResponseObservation[]=[],navigationObservations:unknown[]=[],responseIdentity=new WeakMap<Request,ResponseObservation>(),metadataWork:Promise<void>[]=[];
  let observationPhase='setup',refusedResponseMetadata=0,refusedNavigationMetadata=0,metadataTruncated=0,metadataFailed=false;
  const metadataFailure=()=>{if(!metadataFailed){metadataFailed=true;state.failures.push({phase:'response-metadata',error:Error('V45_RESPONSE_METADATA_LIMIT')});}};
@@ -51,31 +54,54 @@ for(const masked of [false,true])test('V45 '+(masked?'masked transport preserves
  const nativeTerminal=(request:Request,terminal:'finished'|'failed')=>{const row=responseIdentity.get(request);if(!row)return;row.terminal=terminal;row.terminalMs=performance.now();row.terminalPhase=observationPhase;row.nativeFailure=request.failure()?bounded(request.failure()!.errorText,256):null;};
  const responseFinished=(request:Request)=>nativeTerminal(request,'finished'),responseFailed=(request:Request)=>nativeTerminal(request,'failed');
  const navigated=(frame:Frame)=>{if(frame!==page.mainFrame())return;if(navigationObservations.length>=navigationLimit){refusedNavigationMetadata++;metadataFailure();return;}const url=new URL(frame.url());navigationObservations.push({atMs:performance.now(),phase:observationPhase,protocol:bounded(url.protocol,16),origin:bounded(url.origin,256),path:bounded(url.pathname,1024)});};
- state.observe=()=>({evidence,commands,uiRequests,replies,effects,errors,csp,external,consoleErrors,responseObserver:{limit:responseLimit,navigationLimit,refusedResponseMetadata,refusedNavigationMetadata,metadataTruncated,observations:responseObservations,navigations:navigationObservations},process:server?.lifecycle,requestLifecycle:guard.requests,cleanup:guard.ledger});
- state.finalCheck=async()=>{observationPhase='fixture-final-check';try{await Promise.all(pending);await Promise.all(metadataWork);expect(state.failures.filter(failure=>failure.phase==='response-observation')).toEqual([]);guard.verify();expect(guard.ledger.filter(entry=>entry.phase==='refused')).toEqual([]);expect(errors).toEqual([]);expect(csp).toEqual([]);expect(external).toEqual([]);expect(consoleErrors).toEqual([]);}finally{page.off('requestfinished',responseFinished);page.off('requestfailed',responseFailed);page.off('framenavigated',navigated);}};
+ state.observe=()=>({evidence,commands,uiRequests,replies,deliveryObservation:{scope:'completed-original-consumer-parse-return; not model adoption or paint',posts,deliveries,errors:deliveryErrors,snapshots:deliverySnapshots,sealed:deliverySealed},effects,errors,csp,external,consoleErrors,responseObserver:{bodyEvidence:'original-consumer-parse-return',bodySettledClock:'Node collection time; browser parse time retained in deliveryObservation',limit:responseLimit,navigationLimit,refusedResponseMetadata,refusedNavigationMetadata,metadataTruncated,observations:responseObservations,navigations:navigationObservations},process:server?.lifecycle,requestLifecycle:guard.requests,cleanup:guard.ledger});
+ state.finalCheck=async()=>{observationPhase='fixture-final-check';try{expect(deliverySealed).toBe(true);matchV45Deliveries(posts,deliveries,true);expect(deliveryErrors).toEqual([]);await Promise.all(metadataWork);expect(state.failures.filter(failure=>failure.phase==='response-observation')).toEqual([]);guard.verify();expect(guard.ledger.filter(entry=>entry.phase==='refused')).toEqual([]);expect(errors).toEqual([]);expect(csp).toEqual([]);expect(external).toEqual([]);expect(consoleErrors).toEqual([]);}finally{page.off('requestfinished',responseFinished);page.off('requestfailed',responseFailed);page.off('framenavigated',navigated);}};
  await context.exposeBinding('v45EditCSP',(_source,value)=>csp.push(value));
  await context.addInitScript(()=>addEventListener('securitypolicyviolation',event=>(window as any).v45EditCSP({directive:event.effectiveDirective,blocked:event.blockedURI})));
  page.on('console',message=>{if(message.type()==='error')consoleErrors.push(message.text());});
  page.on('request',request=>{
   const method=request.method(),path=new URL(request.url()).pathname,commandPost=method==='POST'&&path==='/api/v1/commands',uiPost=method==='POST'&&path.startsWith('/api/v1/ui/');
-  if(commandPost)commands.push(JSON.parse(request.postData()!).command);if(uiPost)uiRequests.push(JSON.parse(request.postData()!));
+  if(commandPost||uiPost){const value=JSON.parse(request.postData()!);posts.push({epoch:deliveryEpoch,path,request:value});if(commandPost)commands.push(value.command);if(uiPost)uiRequests.push(value);}
   const lookup=method==='GET'?/^\/api\/v1\/commands\/([0-9a-f-]{36})(\/result)?$/.exec(path):null;if(!commandPost&&!uiPost&&!lookup)return;
   if(responseObservations.length>=responseLimit){refusedResponseMetadata++;metadataFailure();return;}
   const command=commandPost?commands.at(-1):null,ui=uiPost?uiRequests.at(-1):null;
-  const row:ResponseObservation={id:responseObservations.length+1,kind:commandPost?'command-post':uiPost?'ui-post':lookup![2]?'command-result':'command-lookup',commandId:command?bounded(command.commandId,128):lookup?bounded(lookup[1],128):null,uiRequestId:ui?bounded(ui.requestId,128):null,bodyType:command||ui?bounded((command??ui).body.type,128):null,postIndex:commandPost?commands.length:uiPost?uiRequests.length:null,method,path:bounded(path,1024),startedMs:performance.now(),startedPhase:observationPhase,headersMs:null,headersPhase:null,status:null,body:'not-observed',bodySettledMs:null,bodySettledPhase:null,bodyError:null,terminal:'pending',terminalMs:null,terminalPhase:null,nativeFailure:null,finishedMs:null,finishedPhase:null,finishedError:null};responseObservations.push(row);responseIdentity.set(request,row);
+  const row:ResponseObservation={id:responseObservations.length+1,epoch:deliveryEpoch,kind:commandPost?'command-post':uiPost?'ui-post':lookup![2]?'command-result':'command-lookup',commandId:command?bounded(command.commandId,128):lookup?bounded(lookup[1],128):null,uiRequestId:ui?bounded(ui.requestId,128):null,bodyType:command||ui?bounded((command??ui).body.type,128):null,postIndex:commandPost?commands.length:uiPost?uiRequests.length:null,method,path:bounded(path,1024),startedMs:performance.now(),startedPhase:observationPhase,headersMs:null,headersPhase:null,status:null,body:'not-observed',bodySettledMs:null,bodySettledPhase:null,bodyError:null,terminal:'pending',terminalMs:null,terminalPhase:null,nativeFailure:null,finishedMs:null,finishedPhase:null,finishedError:null};responseObservations.push(row);responseIdentity.set(request,row);
  });
  page.on('requestfinished',responseFinished);page.on('requestfailed',responseFailed);page.on('framenavigated',navigated);
  page.on('response',response=>{
   const path=new URL(response.url()).pathname,row=responseIdentity.get(response.request());
   if(row){row.headersMs=performance.now();row.headersPhase=observationPhase;row.status=response.status();metadataWork.push(response.finished().then(error=>{row.finishedError=error?bounded(error.message):null;}).catch(error=>{row.finishedError=bounded(error instanceof Error?error.message:String(error));}).finally(()=>{row.finishedMs=performance.now();row.finishedPhase=observationPhase;}));}
-  if(response.request().method()==='POST'&&(path==='/api/v1/commands'||path.startsWith('/api/v1/ui/'))){if(row)row.body='pending';pending.push(response.json().then(value=>{replies.push({path,request:JSON.parse(response.request().postData()!),value});if(row)row.body='complete';}).catch(error=>{if(row){row.body='failed';row.bodyError=bounded(error instanceof Error?error.message:String(error));}state.failures.push({phase:'response-observation',error});}).finally(()=>{if(row){row.bodySettledMs=performance.now();row.bodySettledPhase=observationPhase;}}));}
+  if(response.request().method()==='POST'&&(path==='/api/v1/commands'||path.startsWith('/api/v1/ui/'))&&row&&row.body!=='complete')row.body='pending';
  });
+ async function collectResponses(){
+  const observed=await page.evaluate(()=>{
+   const observer=(window as any).__p25DeliveryObserver,rows=(window as any).__p25Deliveries,errors=(window as any).__p25DeliveryErrors;
+   if(!observer||!Array.isArray(rows)||!Array.isArray(errors))throw Error('V45_DELIVERY_OBSERVER_MISSING');
+   return {rows:rows.splice(0),errors:errors.splice(0),snapshot:observer.snapshot()};
+  });
+  deliveries.push(...observed.rows.map((row:any)=>({...row,epoch:deliveryEpoch})));deliveryErrors.push(...observed.errors);
+  expect(deliveryErrors).toEqual([]);expect(observed.snapshot.disabled).toBe(false);expect(observed.snapshot.droppedErrors).toBe(0);
+  const joined=matchV45Deliveries(posts,deliveries);replies.splice(0,replies.length,...joined.map(({post,delivery}:any)=>({path:post.path,request:post.request,value:delivery.value})));
+  for(const {post} of joined){
+   const rows=responseObservations.filter(row=>row.epoch===post.epoch&&row.path===post.path&&(post.path==='/api/v1/commands'?row.commandId===post.request.command.commandId:row.uiRequestId===post.request.requestId));
+   expect(rows).toHaveLength(1);const row=rows[0];if(row.body!=='complete'){row.body='complete';row.bodySettledMs=performance.now();row.bodySettledPhase=observationPhase;}
+  }
+  return {joined,snapshot:observed.snapshot};
+ }
+ async function sealResponses(){
+  if(!deliveryOpen)return;
+  await expect.poll(async()=>{const {joined,snapshot}=await collectResponses();return joined.length===posts.length&&snapshot.pending===0;}).toBe(true);
+  matchV45Deliveries(posts,deliveries,true);
+  const snapshot=await page.evaluate(()=>{const observer=(window as any).__p25DeliveryObserver;if(observer.snapshot().pending||(window as any).__p25Deliveries.length||(window as any).__p25DeliveryErrors.length)throw Error('V45_DELIVERY_CHANGED_DURING_SEAL');observer.dispose();return observer.snapshot();});
+  deliverySnapshots.push({epoch:deliveryEpoch,...snapshot});expect(snapshot.errors).toBe(0);expect(snapshot.droppedErrors).toBe(0);expect(snapshot.pending).toBe(0);expect(snapshot.ownedMethods).toBe(0);expect(snapshot.retainedBytes).toBe(0);
+  deliveryOpen=false;deliverySealed=true;
+ }
  async function read(path:string){return page.evaluate(async spec=>{const response=await fetch(spec.path,spec.init);if(!response.ok)throw Error('Public read '+response.status+' '+spec.path);return response.json();},publicReadRequest(path));}
  async function objectBytes(ref:{hash:string;byteLength:string}){const bytes=await readFile(join(root,'objects','sha256',ref.hash.slice(7,9),ref.hash.slice(7)));expect(String(bytes.length)).toBe(ref.byteLength);expect(hash(bytes)).toBe(ref.hash);return bytes;}
  async function savedDraft(predicate:(value:any)=>boolean){
   let found:any;
   await expect.poll(async()=>{
-   await Promise.all(pending);if(!await page.getByRole('contentinfo').getByText('Accepted edits saved locally · Draft saved locally; not applied to the document',{exact:true}).isVisible())return false;const request=uiRequests.find(value=>value.body.type==='SaveDraft');if(!request)return false;
+   await collectResponses();if(!await page.getByRole('contentinfo').getByText('Accepted edits saved locally · Draft saved locally; not applied to the document',{exact:true}).isVisible())return false;const request=uiRequests.find(value=>value.body.type==='SaveDraft');if(!request)return false;
    const checkpoint=await read('/api/v1/ui/'+request.sessionId);
    for(const draft of checkpoint.drafts.filter((value:any)=>value.kind==='request')){
     const value=(await read('/api/v1/ui/'+request.sessionId+'/request?draftId='+encodeURIComponent(draft.id)+'&generation='+draft.generation)).value;
@@ -87,9 +113,9 @@ for(const masked of [false,true])test('V45 '+(masked?'masked transport preserves
   const before=uiRequests.filter(value=>value.body.type==='PrepareRequestReview').length;
   await keyboard(page.getByRole('button',{name:'Review exact request',exact:true}));
   await expect(page.getByRole('heading',{name:'Immutable request review',exact:true})).toBeVisible();await expect(page.locator('#request-review')).toBeFocused();
-  await expect.poll(async()=>{await Promise.all(pending);return uiRequests.filter(value=>value.body.type==='PrepareRequestReview').length;}).toBe(before+1);
+  await expect.poll(async()=>{await collectResponses();return uiRequests.filter(value=>value.body.type==='PrepareRequestReview').length;}).toBe(before+1);
   const request=uiRequests.filter(value=>value.body.type==='PrepareRequestReview').at(-1);
-  await expect.poll(async()=>{await Promise.all(pending);return replies.find(value=>value.value.requestId===request.requestId)?.value.status;}).toBe('accepted');
+  await expect.poll(async()=>{await collectResponses();return replies.find(value=>value.value.requestId===request.requestId)?.value.status;}).toBe('accepted');
   const value=replies.find(value=>value.value.requestId===request.requestId).value.review;
   expect(value.kind).toBe('request-review-v45-1');expect(value.endpoint).toBe('ideogram/v4.5/edit');expect(value.dispatch).toBe(false);expect(value.request.kind).toBe(operation);
   return value;
@@ -107,7 +133,7 @@ for(const masked of [false,true])test('V45 '+(masked?'masked transport preserves
  try{
   server=await serverProcess(root);
   await context.route('**/*',route=>{const url=new URL(route.request().url());if(['http:','https:'].includes(url.protocol)&&url.origin!==server!.origin){external.push(url.origin);return route.abort();}return route.continue();});
-  await mkdir(receipt,{recursive:true});await guard.admit(page,server.origin);observationPhase='initial-navigation';await page.goto(await server.pair());observationPhase='body';
+  await mkdir(receipt,{recursive:true});await guard.admit(page,server.origin);observationPhase='initial-navigation';await page.goto(await server.pair());deliveryOpen=true;observationPhase='body';
   evidence.runtime={version:context.browser()?.version()??null,userAgent:await page.evaluate(()=>navigator.userAgent),pin:JSON.parse(await readFile('node_modules/playwright-core/browsers.json','utf8')).browsers.find((browser:any)=>browser.name===browserName)};
   await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();
   await click(page,'New');await number(page,'Width (px)','128');await number(page,'Height (px)','128');await click(page,'Create');await expect(page.getByRole('dialog',{name:'New document',exact:true})).toBeHidden();
@@ -196,7 +222,8 @@ for(const masked of [false,true])test('V45 '+(masked?'masked transport preserves
   expect(wire).toEqual({prompt:'V45 '+operation+' Café 東京 exact review',image_url:'asset:'+retained.preparedInputs.source.blob.hash,...(masked?{mask_url:'asset:'+retained.preparedInputs.mask.blob.hash}:{}),reference_image_urls:retained.preparedInputs.references.map((value:any)=>'asset:'+value.blob.hash),image_size:masked?'auto':{width:288,height:256},edit_precision:masked?'high':'regular',quality:'medium',num_images:1,sync_mode:false});
   expect((await read('/api/v1/documents/'+documentId)).projection.value).toEqual(originalDocument);expect(await read('/api/v1/documents/'+documentId+'/image')).toEqual(originalImage);expect(await objectBytes(originalAsset.projection.value.raster.pixels)).toEqual(originalPixels);
   evidence.review=acceptedReview;evidence.queued=queue;
-  observationPhase='reload';await page.reload();observationPhase='reopened';await expect(page.getByRole('textbox',{name:'Prompt',exact:true})).toBeVisible();await page.getByRole('combobox',{name:'Operation',exact:true}).selectOption(masked?'Edit masked region with Ideogram v4.5':'Transform with Ideogram v4.5');
+  observationPhase='pre-reload-deliveries';await sealResponses();deliveryEpoch++;deliverySealed=false;
+  observationPhase='reload';await page.reload();deliveryOpen=true;observationPhase='reopened';await expect(page.getByRole('textbox',{name:'Prompt',exact:true})).toBeVisible();await page.getByRole('combobox',{name:'Operation',exact:true}).selectOption(masked?'Edit masked region with Ideogram v4.5':'Transform with Ideogram v4.5');
   await expect(page.getByRole('textbox',{name:'Prompt',exact:true})).toHaveValue('V45 '+operation+' Café 東京 exact review');await expect(page.getByRole('heading',{name:'Confirmed prepared input descriptors',exact:true})).toBeVisible();
   const reopened=await savedDraft(value=>!!value.preparedInputs);expect(reopened.source).toEqual(retained.source);expect(reopened.references).toEqual(retained.references);expect(reopened.preparedInputs).toEqual(retained.preparedInputs);
   expect((await read('/api/v1/queue')).jobs.find((value:any)=>value.id===job.id).review).toEqual(acceptedReview);
@@ -205,11 +232,12 @@ for(const masked of [false,true])test('V45 '+(masked?'masked transport preserves
   expect(commands.filter(value=>value.body.type==='QueueInference')).toHaveLength(1);expect(commands.filter(value=>value.body.type==='AuthorizeProviderJob')).toHaveLength(0);
   effects=await server.effects();expect(Object.values(effects).every(value=>value===0)).toBe(true);
  }catch(error){state.failures.push({phase:'body',error});}finally{
+  observationPhase='original-response-drain';await step(state,'response-observation',sealResponses);
   observationPhase='quiesce-pages';await step(state,'quiesce-pages',async()=>{for(const current of context.pages())await current.goto('about:blank');});
-  observationPhase='response-drain';await step(state,'response-observations',()=>Promise.all(pending));
+  observationPhase='response-drain';await step(state,'response-observations',async()=>{matchV45Deliveries(posts,deliveries,true);});
   observationPhase='logical-cleanup';if(!state.failures.length)await step(state,'logical-cleanup',async()=>{await guard.cleanup();guard.verify();});
   observationPhase='writer-close';if(server){await step(state,'final-effects',async()=>{effects=await server!.effects();expect(Object.values(effects).every(value=>value===0)).toBe(true);});state.writerClosed=await step(state,'writer-close',()=>server!.close());}
-  observationPhase='final-response-drain';await step(state,'final-response-observations',()=>Promise.all(pending));
+  observationPhase='final-response-drain';await step(state,'final-response-observations',async()=>{matchV45Deliveries(posts,deliveries,true);});
   throwFailures(state.failures);
  }
 });

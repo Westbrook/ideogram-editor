@@ -5,7 +5,8 @@ import {join} from 'node:path';
 import {serverProcess} from '../editor/process.js';
 import {ownedOPFS} from '../editor/owned-opfs.js';
 import {recordDOMErrors} from '../editor/error-monitor.js';
-import {runs,step,throwFailures,finishFixture,errorRecord,type RunState,type Failure} from '../editor/harness-lifecycle.js';
+import {runs,step,throwFailures,finishFixture,errorRecord,type RunState} from '../editor/harness-lifecycle.js';
+import {installE4DeliveryObserver,matchV45Deliveries} from '../recovery/e4-delivery-observer.mjs';
 
 const receipt=process.env.EDITOR_RECEIPT??'artifacts/v45-generation-browser';
 const prefix='generation-';
@@ -38,12 +39,12 @@ const choice=(page:Page,name:string)=>page.getByRole('combobox',{name,exact:true
 const field=(page:Page,name:string)=>page.getByRole('textbox',{name,exact:true});
 async function number(page:Page,name:string,value:string){const input=page.getByRole('spinbutton',{name,exact:true});await input.fill(value);await input.press('Tab');}
 async function closeReview(page:Page){await button(page,'Close request review').click();await expect(button(page,'Review exact request')).toBeFocused();}
-async function prepare(page:Page){
+async function prepare(page:Page,delivered:(request:any)=>Promise<any>){
  const received=page.waitForResponse(response=>response.request().method()==='POST'&&new URL(response.url()).pathname.startsWith('/api/v1/ui/')&&response.request().postDataJSON()?.body?.type==='PrepareRequestReview');
  await button(page,'Review exact request').focus();
  await page.keyboard.press('Enter');
  const response=await received;expect(response.ok()).toBe(true);
- const body=await response.json();expect(body.review).toBeTruthy();
+ const body=await delivered(response.request().postDataJSON());expect(body.review).toBeTruthy();
  await expect(page.getByRole('heading',{name:'Immutable request review',exact:true})).toBeVisible();
  await expect(page.locator('#request-review')).toBeFocused();
  await expect(button(page,'Enqueue accepted request')).toBeDisabled();
@@ -101,25 +102,47 @@ async function expectV4Draft(page:Page,prompt:string){
 
 test('public v4.5 generation reviews exact fields and restores separate V4 drafts without dispatch',async({page,context,browserName})=>{
  const guard=await ownedOPFS(context,'v45-generation'),errors=await recordDOMErrors(context);
- const csp:unknown[]=[],external:string[]=[],consoleErrors:string[]=[],requests:any[]=[],responses:any[]=[],responseWork:Promise<void>[]=[],responseFailures:Failure[]=[];
+ const csp:unknown[]=[],external:string[]=[],consoleErrors:string[]=[],requests:any[]=[],responses:any[]=[],posts:any[]=[],deliveries:any[]=[],deliveryErrors:unknown[]=[],deliverySnapshots:unknown[]=[];
+ let deliveryEpoch=0,deliveryOpen=false,deliverySealed=false;
+ await context.addInitScript(installE4DeliveryObserver,{profile:'v45-post'});
  await context.exposeBinding('generationCSP',(_source,value)=>csp.push(value));
  await context.addInitScript(()=>addEventListener('securitypolicyviolation',event=>(window as any).generationCSP({directive:event.effectiveDirective,blocked:event.blockedURI})));
  page.on('console',message=>{if(message.type()==='error')consoleErrors.push(message.text());});
- page.on('request',request=>{const path=new URL(request.url()).pathname;if(request.method()==='POST'&&(path.startsWith('/api/v1/ui/')||path==='/api/v1/commands'))requests.push(request.postDataJSON());});
+ page.on('request',request=>{const path=new URL(request.url()).pathname;if(request.method()==='POST'&&(path.startsWith('/api/v1/ui/')||path==='/api/v1/commands')){const value=request.postDataJSON();requests.push(value);posts.push({epoch:deliveryEpoch,path,request:value});}});
  const dir=await mkdtemp(join(await realpath(tmpdir()),'ie-v45-generation-'));
  let server:Awaited<ReturnType<typeof serverProcess>>|undefined,effects:unknown,runtime:unknown;
  const state:RunState={failures:[],roots:[dir],writerClosed:false,contextClosed:false,browserClosed:false,retention:[],receipt,prefix};runs.set(context,state);
- async function drainResponses(){let count=0;while(count<responseWork.length){const batch=responseWork.slice(count);count=responseWork.length;await Promise.all(batch);}}
- state.observe=()=>({runtime,errors,csp,external,consoleErrors,requests,responses,responseFailures:responseFailures.map(failure=>({phase:failure.phase,error:errorRecord(failure.error)})),requestLifecycle:guard.requests,effects,cleanup:{opfs:guard.ledger,serverClosed:state.writerClosed,privateRootRemoved:state.retention.some((entry:any)=>entry.root===dir&&entry.removed)?dir:null}});
- state.finalCheck=async()=>{await drainResponses();expect(responseFailures).toEqual([]);guard.verify();expect(guard.ledger.filter(entry=>entry.phase==='refused')).toEqual([]);expect(errors).toEqual([]);expect(csp).toEqual([]);expect(external).toEqual([]);expect(consoleErrors).toEqual([]);};
- page.on('response',response=>{
-  if(response.request().method()==='POST'&&new URL(response.url()).pathname.startsWith('/api/v1/ui/'))responseWork.push(response.json().then(body=>{responses.push(body);}).catch(error=>{const failure={phase:'response-json',error};responseFailures.push(failure);state.failures.push(failure);}));
- });
+ async function collectResponses(){
+  const observed=await page.evaluate(()=>{
+   const observer=(window as any).__p25DeliveryObserver,rows=(window as any).__p25Deliveries,errors=(window as any).__p25DeliveryErrors;
+   if(!observer||!Array.isArray(rows)||!Array.isArray(errors))throw Error('V45_DELIVERY_OBSERVER_MISSING');
+   return {rows:rows.splice(0),errors:errors.splice(0),snapshot:observer.snapshot()};
+  });
+  deliveries.push(...observed.rows.map((row:any)=>({...row,epoch:deliveryEpoch})));deliveryErrors.push(...observed.errors);
+  expect(deliveryErrors).toEqual([]);expect(observed.snapshot.disabled).toBe(false);expect(observed.snapshot.droppedErrors).toBe(0);
+  const joined=matchV45Deliveries(posts,deliveries);responses.splice(0,responses.length,...joined.map((row:any)=>row.delivery.value));
+  return {joined,snapshot:observed.snapshot};
+ }
+ async function delivered(request:any){
+  let found:any;
+  await expect.poll(async()=>{const {joined}=await collectResponses();found=joined.find((row:any)=>row.post.request.requestId===request.requestId&&row.post.path==='/api/v1/ui/'+request.sessionId);return !!found;}).toBe(true);
+  expect(found.delivery.status).toBe(200);return found.delivery.value;
+ }
+ async function sealResponses(){
+  if(!deliveryOpen)return;
+  await expect.poll(async()=>{const {joined,snapshot}=await collectResponses();return joined.length===posts.length&&snapshot.pending===0;}).toBe(true);
+  matchV45Deliveries(posts,deliveries,true);
+  const snapshot=await page.evaluate(()=>{const observer=(window as any).__p25DeliveryObserver;if(observer.snapshot().pending||(window as any).__p25Deliveries.length||(window as any).__p25DeliveryErrors.length)throw Error('V45_DELIVERY_CHANGED_DURING_SEAL');observer.dispose();return observer.snapshot();});
+  deliverySnapshots.push({epoch:deliveryEpoch,...snapshot});expect(snapshot.errors).toBe(0);expect(snapshot.droppedErrors).toBe(0);expect(snapshot.pending).toBe(0);expect(snapshot.ownedMethods).toBe(0);expect(snapshot.retainedBytes).toBe(0);
+  deliveryOpen=false;deliverySealed=true;
+ }
+ state.observe=()=>({runtime,errors,csp,external,consoleErrors,requests,responses,deliveryObservation:{scope:'completed-original-consumer-parse-return; not model adoption or paint',posts,deliveries,errors:deliveryErrors,snapshots:deliverySnapshots,sealed:deliverySealed},requestLifecycle:guard.requests,effects,cleanup:{opfs:guard.ledger,serverClosed:state.writerClosed,privateRootRemoved:state.retention.some((entry:any)=>entry.root===dir&&entry.removed)?dir:null}});
+ state.finalCheck=async()=>{expect(deliverySealed).toBe(true);matchV45Deliveries(posts,deliveries,true);expect(deliveryErrors).toEqual([]);guard.verify();expect(guard.ledger.filter(entry=>entry.phase==='refused')).toEqual([]);expect(errors).toEqual([]);expect(csp).toEqual([]);expect(external).toEqual([]);expect(consoleErrors).toEqual([]);};
  try{
   server=await serverProcess(join(dir,'private'));
   await page.route('**/*',route=>{const url=new URL(route.request().url());if(['http:','https:'].includes(url.protocol)&&url.origin!==server!.origin){external.push(url.origin);return route.abort();}return route.continue();});
   await mkdir(receipt,{recursive:true});
-  await guard.admit(page,server.origin);await page.goto(await server.pair());
+  await guard.admit(page,server.origin);await page.goto(await server.pair());deliveryOpen=true;
   runtime={version:context.browser()?.version(),pin:JSON.parse(await readFile('node_modules/playwright-core/browsers.json','utf8')).browsers.find((browser:any)=>browser.name===browserName)};
   await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();
   await button(page,'New').click();await number(page,'Width (px)','1024');await number(page,'Height (px)','1024');await button(page,'Create').click();
@@ -136,7 +159,7 @@ test('public v4.5 generation reviews exact fields and restores separate V4 draft
   await expectV45Controls(page,false);
   // A new family can copy plain prompt text, but never translates V4 model settings.
   await expect(field(page,'Prompt')).toHaveValue(v4Prompt);await field(page,'Prompt').fill(v45Prompt);
-  const defaults=await prepare(page);expectV45Review(defaults,false);
+  const defaults=await prepare(page,delivered);expectV45Review(defaults,false);
   await expect(page.getByRole('region',{name:'Ideogram v4.5 request contract',exact:true})).toContainText('Requested 1024 × 1024 · 1 output(s) · medium quality. Prompt expansion enabled.');
   await expect(page.locator('#request-review')).toContainText('Seed: Random.');
   await closeReview(page);
@@ -153,7 +176,7 @@ test('public v4.5 generation reviews exact fields and restores separate V4 draft
   const seed=field(page,'Exact seed (empty means Random)');await seed.fill('01');await button(page,'Review exact request').click();await expect(seed).toHaveValue('01');await expect(seed).toHaveAttribute('aria-invalid','true');await page.locator('#request-errors').getByRole('link',{name:/V45_SEED:/}).click();await expect(seed).toBeFocused();expect(requests.filter(request=>request.body?.type==='PrepareRequestReview')).toHaveLength(reviewsBeforeInvalidCount);
   await seed.fill('900719925474099312345');await expect(seed).not.toHaveAttribute('aria-invalid','true');
   await expectV45Controls(page,true);
-  const configured=await prepare(page);expectV45Review(configured,true);
+  const configured=await prepare(page,delivered);expectV45Review(configured,true);
   const contract=page.getByRole('region',{name:'Ideogram v4.5 request contract',exact:true});
   await expect(contract).toContainText('Requested 1248 × 832 · 3 output(s) · high quality. Prompt expansion disabled.');
   await expect(contract).toContainText('Seed: 900719925474099312345. Asynchronous delivery (sync_mode false).');
@@ -171,17 +194,18 @@ test('public v4.5 generation reviews exact fields and restores separate V4 draft
   await choice(page,'Operation').selectOption('Generate image');await expectV4Draft(page,v4Prompt);
   await choice(page,'Operation').selectOption('Generate with Ideogram v4.5');await expectV45Controls(page,true);await expect(field(page,'Prompt')).toHaveValue(v45Prompt);
   await expect(page.locator('footer')).toContainText('Draft saved locally');
-  await page.reload();
+  await sealResponses();deliveryEpoch++;deliverySealed=false;
+  await page.reload();deliveryOpen=true;
   // Reload opens the default operation; both saved families remain independently recoverable.
   await expectV4Draft(page,v4Prompt);await expect(page.getByRole('heading',{name:'Immutable request review',exact:true})).toBeHidden();
   await choice(page,'Operation').selectOption('Generate with Ideogram v4.5');await expectV45Controls(page,true);await expect(field(page,'Prompt')).toHaveValue(v45Prompt);
   await expect(page.getByRole('heading',{name:'Immutable request review',exact:true})).toBeHidden();
-  const recovered=await prepare(page);expectV45Review(recovered,true);
+  const recovered=await prepare(page,delivered);expectV45Review(recovered,true);
   expect(recovered.request).toEqual(configured.request);expect(recovered.prompt).toEqual(configured.prompt);expect(recovered.template).toEqual(configured.template);
   await button(page,'Exact request provenance').click();await expect(field(page,'Frozen prompt')).toHaveValue(v45Prompt);
   await closeReview(page);
   await choice(page,'Operation').selectOption('Generate image');await expectV4Draft(page,v4Prompt);
-  await drainResponses();
+  await collectResponses();
   expect(requests.filter(request=>request.body?.type==='PrepareRequestReview')).toHaveLength(3);
   expect(requests.filter(request=>request.body?.type==='AcceptRequestReview')).toHaveLength(1);
   expect(requests.filter(request=>request.command?.body?.type==='QueueInference')).toEqual([]);
@@ -189,15 +213,16 @@ test('public v4.5 generation reviews exact fields and restores separate V4 draft
   effects=await server.effects();expect(Object.values(effects as object).every(value=>value===0)).toBe(true);
   expect(errors).toEqual([]);expect(csp).toEqual([]);expect(external).toEqual([]);expect(consoleErrors).toEqual([]);
  }catch(error){state.failures.push({phase:'body',error});}finally{
+  await step(state,'original-response-observations',sealResponses);
   await step(state,'quiesce-owned-pages',async()=>{const outcomes=await Promise.allSettled(context.pages().map(ownedPage=>ownedPage.goto('about:blank')));const rejected=outcomes.filter((outcome):outcome is PromiseRejectedResult=>outcome.status==='rejected');if(rejected.length)throw new AggregateError(rejected.map(outcome=>outcome.reason),'Owned pages did not all become quiescent.');});
-  await step(state,'response-observations',drainResponses);
+  await step(state,'response-observations',async()=>{matchV45Deliveries(posts,deliveries,true);});
   if(!state.failures.length)await step(state,'logical-cleanup',async()=>{await guard.cleanup();guard.verify();});
-  await step(state,'response-observations-after-cleanup',drainResponses);
+  await step(state,'response-observations-after-cleanup',async()=>{matchV45Deliveries(posts,deliveries,true);});
   if(server){
    await step(state,'final-effects',async()=>{effects=await server!.effects();expect(Object.values(effects as object).every(value=>value===0)).toBe(true);});
    state.writerClosed=await step(state,'writer-close',()=>server!.close());
   }
-  await step(state,'final-response-observations',drainResponses);
+  await step(state,'final-response-observations',async()=>{matchV45Deliveries(posts,deliveries,true);});
   throwFailures(state.failures);
  }
 });

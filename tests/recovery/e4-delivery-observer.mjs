@@ -6,8 +6,10 @@ export function installE4DeliveryObserver(options) {
   if (options === undefined) options = {};
   const realm = window;
   const ceilings = { bodyBytes: 65536, totalBytes: 1048576, pending: 32, rows: 4096, errors: 64 };
-  if (!options || typeof options !== 'object' || Array.isArray(options) || Object.prototype.toString.call(options) !== '[object Object]' || Object.keys(options).some(key => key !== 'limits')) throw Error('E4_OBSERVER_LIMITS');
+  if (!options || typeof options !== 'object' || Array.isArray(options) || Object.prototype.toString.call(options) !== '[object Object]' || Object.keys(options).some(key => key !== 'limits' && key !== 'profile')) throw Error('E4_OBSERVER_LIMITS');
   if (options.limits !== undefined && (!options.limits || typeof options.limits !== 'object' || Array.isArray(options.limits) || Object.prototype.toString.call(options.limits) !== '[object Object]')) throw Error('E4_OBSERVER_LIMITS');
+  if (options.profile !== undefined && options.profile !== 'v45-post') throw Error('E4_OBSERVER_PROFILE');
+  const v45 = options.profile === 'v45-post';
   const limits = { ...ceilings, ...(options.limits ?? {}) };
   if (Object.keys(limits).some(key => !Object.hasOwn(ceilings, key)) || Object.entries(limits).some(([key, value]) => !Number.isSafeInteger(value) || value < 1 || value > ceilings[key])) throw Error('E4_OBSERVER_LIMITS');
   if (realm.__p25DeliveryObserver) throw Error('E4_OBSERVER_ALREADY_INSTALLED');
@@ -48,7 +50,7 @@ export function installE4DeliveryObserver(options) {
     const url = new URL(raw, location.href);
     if (url.origin !== location.origin || url.username || url.password) return null;
     const reads = /^\/api\/v1\/(?:queue|(?:jobs|documents)\/[A-Za-z0-9_-]{1,128}\/candidates|commands\/[A-Za-z0-9_-]{1,128})$/.test(url.pathname);
-    if (!(method === 'GET' && reads || method === 'POST' && url.pathname === '/api/v1/commands')) return null;
+    if (v45 ? method !== 'POST' || url.search || url.hash || !/^\/api\/v1\/(?:commands|ui\/[A-Za-z0-9_-]{1,128})$/.test(url.pathname) : !(method === 'GET' && reads || method === 'POST' && url.pathname === '/api/v1/commands')) return null;
     if (url.href.length > 4096) { fail('E4_OBSERVER_URL_LIMIT'); return null; }
     return url;
   }
@@ -67,6 +69,18 @@ export function installE4DeliveryObserver(options) {
     throw Error('E4_OBSERVER_PROJECTION');
   }
   function project(value) {
+    if (v45) {
+      // Only a completed original consumer reaches this point. Retain a bounded
+      // independent JSON snapshot, never an application-owned result reference.
+      const text = nativeStringify(value);
+      if (typeof text !== 'string' || text.length * 2 > limits.totalBytes) throw Error('E4_OBSERVER_PROJECTION');
+      const copy = Reflect.apply(nativeParse, JSON, [text]), pending = [copy];
+      while (pending.length) {
+        const item = pending.pop();
+        if (item && typeof item === 'object') { pending.push(...Object.values(item)); Object.freeze(item); }
+      }
+      return copy;
+    }
     if (!value || typeof value !== 'object' || Array.isArray(value)) return Object.freeze({});
     const result = {};
     if (Array.isArray(value.jobs)) {
@@ -241,4 +255,47 @@ export function installE4DeliveryObserver(options) {
       restores.length = 0;
     },
   });
+}
+
+/** Join only public IDs present in the original POST and its actual parse return.
+ * A pending command acknowledgement has commandId; a final receipt nests it.
+ * UI receipts use requestId. Never assign identical deliveries by FIFO or invent
+ * a UI-style requestId for command acknowledgements. Incomplete joins are useful
+ * while an original consumer is running; completed boundaries require a bijection. */
+export function matchV45Deliveries(posts, deliveries, complete = false) {
+  const id = value => typeof value === 'string' && /^[A-Za-z0-9_-]{1,128}$/.test(value);
+  const pathOK = path => typeof path === 'string' && /^\/api\/v1\/(?:commands|ui\/[A-Za-z0-9_-]{1,128})$/.test(path);
+  const epochOK = epoch => Number.isSafeInteger(epoch) && epoch >= 0;
+  const postKey = post => {
+    if (!post || !epochOK(post.epoch) || !pathOK(post.path) || post.request?.protocolVersion !== 1) throw Error('V45_DELIVERY_POST_IDENTITY');
+    const command = post.path === '/api/v1/commands', identity = command ? post.request.command?.commandId : post.request.requestId;
+    if (!id(identity) || !command && post.path !== '/api/v1/ui/' + post.request.sessionId) throw Error('V45_DELIVERY_POST_IDENTITY');
+    return post.epoch + ':' + post.path + ':' + identity;
+  };
+  const deliveryKey = delivery => {
+    if (!delivery || !epochOK(delivery.epoch) || !pathOK(delivery.path) || delivery.method !== 'POST' || delivery.scope !== 'original-response-parse-delivery' || !['original-response-json', 'original-reader-json-parse'].includes(delivery.source)) throw Error('V45_DELIVERY_RESPONSE_IDENTITY');
+    const value = delivery.value;
+    if (!value || value.protocolVersion !== 1) throw Error('V45_DELIVERY_RESPONSE_IDENTITY');
+    let identity;
+    if (delivery.path === '/api/v1/commands') {
+      if (value.kind === 'pending' && delivery.status === 202) identity = value.commandId;
+      else if (value.kind === 'receipt' && delivery.status === 200) identity = value.receipt?.commandId;
+      else throw Error('V45_DELIVERY_COMMAND_RECEIPT');
+    } else {
+      if (delivery.status !== 200 || !['accepted', 'rejected'].includes(value.status)) throw Error('V45_DELIVERY_UI_RECEIPT');
+      identity = value.requestId;
+    }
+    if (!id(identity)) throw Error('V45_DELIVERY_RESPONSE_IDENTITY');
+    return delivery.epoch + ':' + delivery.path + ':' + identity;
+  };
+  const expected = new Map(), observed = new Map();
+  for (const post of posts) { const key = postKey(post); if (expected.has(key)) throw Error('V45_DELIVERY_AMBIGUOUS_POST'); expected.set(key, post); }
+  for (const delivery of deliveries) {
+    const key = deliveryKey(delivery);
+    if (!expected.has(key)) throw Error('V45_DELIVERY_UNMATCHED_RESPONSE');
+    if (observed.has(key)) throw Error('V45_DELIVERY_AMBIGUOUS_RESPONSE');
+    observed.set(key, delivery);
+  }
+  if (complete && expected.size !== observed.size) throw Error('V45_DELIVERY_MISSING_RESPONSE');
+  return [...expected].flatMap(([key, post]) => observed.has(key) ? [{post, delivery: observed.get(key)}] : []);
 }
