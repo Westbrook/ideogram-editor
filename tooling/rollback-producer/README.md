@@ -9,8 +9,12 @@ Physical C/H qualification remains separate.
 `hosted-inputs.json` is the exact reviewed 72-file source-input inventory:
 219,487,623 bytes, manifest SHA-256
 `5b71db1fd6c60980c8297b9fe48922a75c0a4dcaac6f73d6c4c0925a3e921e45`.
-It contains no source archives itself. Those original byte inputs require the
-root-selected immutable input commit; no input commit is issued by these files.
+It contains no source archives itself. The exact original inputs are published in
+parentless commit `850b10cfa4853a14290c7220538f4d6f49ba124d`, tree
+`769d56f65b15b7c5a420c22ec9160da38b0401ab`, on
+`codex/linux-prerequisite-inputs-01` in the public project repository. Fetch by the
+fixed commit and authenticate the complete inventory. The input branch is a
+transport for reviewed archives: **never merge it into main or a product branch**.
 Input manifest membership, hashes, byte bounds, canonical paths, private ownership,
 single-link files and active helper seals are checked before any wrapper is made.
 
@@ -36,6 +40,55 @@ shape/status, archive identity and inert lineage before identifying that exact
 manifest as historical provenance. This preserves its bytes while preventing
 collection from reopening its original Mac archive path. Other live references
 remain mandatory. No executable authority or historical-source identity changes.
+
+## Manual hosted production
+
+Dispatch **Hosted native prerequisites** (`.github/workflows/hosted-native.yml`)
+on the reviewed control revision. This manual-only Ubuntu 24.04 route runs
+`inputs → toolchain → build16 → build17 → build18 → verify16 → verify17 → verify18`
+serially and stops at the first failed or refused phase. Later phases require an
+actual successful finalized predecessor; an interrupted producer tree is not a
+resume point. Changes to selected control sources require updating
+`hosted-sources.json` and the workflow's manifest hash together.
+
+Control-toolchain, package and dedicated-account setup is explicitly unmeasured.
+It freezes actual root-owned control binaries and compiler/library observations.
+Both storage monitors and the host lease start before input transfer, payload
+extraction/toolchain setup, builds and independent offline restores. The data
+root starts empty; the fixed measured initializer creates its private HOME/TMP
+paths. The 4 GiB evidence and 32 GiB data allocations are ceilings, not disk
+reservations. Setup observations and hosted execution do not qualify physical C/H.
+
+The job has a six-hour cap measured from authenticated GitHub `job.started_at`,
+including setup, and keeps the controller's 30-minute cleanup/export reserve.
+Every phase must fit its unchanged maximum before it starts; all eight phases
+are not guaranteed to fit. A deadline or failed observation cannot be repaired by
+a later stable sample, omitted phase or larger budget.
+
+## Retained results and limits
+
+Authenticate the actual run/attempt/control revision, artifact digest and exported
+file identities before interpreting results. `setup/inventory.json` describes
+only the bounded unmeasured setup copy. A run-ID `inventory.json` describes a
+completed bounded export; it does not turn a failed phase into success. Partial
+exports have no completed export inventory. Export requires an actually closed
+phase and released lease; an existing unfinalized phase prevents fallback.
+A refusal before creating a phase may retain its earlier closed predecessor.
+Hidden evidence is included, originals remain unchanged, and setup plus run
+exports share the original 4 GiB parent cap. GitHub's 90-day expiry does not satisfy
+longer aggregate retention: retain authenticated copies for the declared minima.
+
+A unit-test PASS alone supplies no executable prerequisite. Genuine packets need
+all three actual builds, independent offline fresh restores, successful storage
+audits and complete source/runtime/qualification-evidence closures. Downloaded
+packet references still need the existing reviewed private install/rebinding
+contract; producing or exporting them does not adopt current product pins.
+Only the current Mac is available for local work, so hosted Ubuntu is not a
+substitute for the specified physical qualification machines. The user's live
+V4.5 hold also remains: stronger provider retention terms are required before live
+enablement, independently of this prerequisite route.
+
+## Data-only input admission
 
 The Node entry is data-only and uses pinned Node26.10.0. The controller runs these
 commands as its selected nonroot input owner inside the measured producer-data
@@ -63,11 +116,12 @@ Recheck rereads the fixed full input closure, current helper seals and every
 derived wrapper. A serialized receipt is never a cross-process admission grant.
 Failures retain partial outputs and never delete or overwrite a previous run.
 
-The source-only Node owner is
+The input Node owner is
 `tests/qualification/rollback-hosted-inputs.test.mjs`, discovered by the guarded
-qualification/tooling inventory. It covers manifest and filesystem admission,
+qualification/tooling inventory alongside `hosted-native-controller.test.mjs` and
+`hosted-native-workflow.test.mjs`. The input owner covers manifest and filesystem admission,
 identity-preserving rebinding, persisted-receipt refusal and the schema16 foreign
-manifest through a portable Python source-boundary fixture. Run the whole file
-with its owning group through the shared validation runner after source adoption.
+manifest through a portable Python source-boundary fixture. Run affected whole owners together
+with their owning group through the shared validation runner after source adoption.
 These tests cannot establish a Linux native build, namespace admission, storage
 coverage or genuine executable qualification.
