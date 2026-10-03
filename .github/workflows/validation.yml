@@ -95,7 +95,18 @@ jobs:
           echo "$GITHUB_WORKSPACE/.toolchain/bin" >> "$GITHUB_PATH"
       - name: Install exact dependencies
         timeout-minutes: ${{ github.event_name == 'workflow_dispatch' && (inputs.node_files != '' || inputs.browser_family != '' && inputs.browser_family != 'none') && 10 || 20 }}
-        run: npm ci
+        run: |
+          npm ci
+          node --input-type=module <<'NODE'
+          import {execFileSync} from 'node:child_process';
+          import {appendFileSync,realpathSync,statSync} from 'node:fs';
+          import {isAbsolute} from 'node:path';
+          const configured=execFileSync('npm',['config','get','cache'],{encoding:'utf8',timeout:10000,maxBuffer:4096}).trim();
+          if(!isAbsolute(configured))throw Error('Explicit npm install cache must be absolute');
+          const cache=realpathSync(configured);
+          if(/[\r\n]/.test(cache)||!statSync(cache).isDirectory())throw Error('Invalid npm install cache directory');
+          appendFileSync(process.env.GITHUB_ENV,'IE_D11_NPM_CACHE='+cache+'\n');
+          NODE
       - name: Allocate private evidence for supplemental correctness
         env:
           EVIDENCE_CAPACITY_BYTES: ${{ vars.QUALIFICATION_EVIDENCE_CAPACITY_BYTES }}
