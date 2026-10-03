@@ -1,0 +1,250 @@
+{
+  "kind": "linux-capsule-controller-phase-2",
+  "phase": "source",
+  "config": {
+    "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/evidence-linux-source-01/source-config-04.json",
+    "bytes": 1695,
+    "sha256": "a8f3b7914df653e1f4b702c37a9efab52b9343f754c6b576300780fb2458c371"
+  },
+  "result": "passed",
+  "commands": [
+    {
+      "label": "source16",
+      "binary": "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+      "argv": [
+        "-I",
+        "-S",
+        "-B",
+        "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/linux-rollback-staging/producer-successor-03/schema16/run.py",
+        "--seal-sha256",
+        "sha256:c330622c4b5286ec8537ab04ed4e2fa1cc5642ba4a61d4b32c6467630cb4b450",
+        "source-input",
+        "--repo",
+        "/Users/westbrook/Documents/repos/ideogram-edit",
+        "--git",
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "--output",
+        "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/evidence-linux-source-01/run-02/sources/schema16"
+      ],
+      "timeoutMs": 300000,
+      "startedAt": "2026-10-03T16:07:34.159Z",
+      "result": {
+        "code": 0,
+        "signal": null,
+        "timedOut": false,
+        "interrupted": false,
+        "timeoutMs": 300000
+      },
+      "logFailure": null,
+      "stdout": {
+        "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/evidence-linux-source-01/run-02/source/001-source16.out",
+        "bytes": 317,
+        "sha256": "b0e5e5e9cfc8e9c4f10dc91ae5294c91025eed4047bf63e1e5fe3ff055306884"
+      },
+      "stderr": {
+        "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/evidence-linux-source-01/run-02/source/001-source16.err",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "source17",
+      "binary": "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+      "argv": [
+        "-I",
+        "-S",
+        "-B",
+        "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/linux-rollback-staging/producer-successor-03/schema17/run.py",
+        "--seal-sha256",
+        "sha256:403083498d96297da60fc33fe17835df00abe286c3e26a981ce5e01f14dd8e3f",
+        "source-input",
+        "--origin-packet",
+        "/private/tmp/ideogram-schema17-rollback-v1/verified-02/packet.json",
+        "--origin-packet-sha256",
+        "sha256:4413e57ec41f5e070e9d17d8b7a40989f157e41e673487b1c1cd31aab75f2631",
+        "--origin-pin",
+        "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/schema17-rollback-staging/schema17-pin.json",
+        "--origin-pin-sha256",
+        "sha256:76077fa11a4044f0e0c89ace34305af7446986c40178a0f521e56dd8685ec717",
+        "--output",
+        "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/evidence-linux-source-01/run-02/sources/schema17"
+      ],
+      "timeoutMs": 300000,
+      "startedAt": "2026-10-03T16:07:50.533Z",
+      "result": {
+        "code": 0,
+        "signal": null,
+        "timedOut": false,
+        "interrupted": false,
+        "timeoutMs": 300000
+      },
+      "logFailure": null,
+      "stdout": {
+        "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/evidence-linux-source-01/run-02/source/002-source17.out",
+        "bytes": 316,
+        "sha256": "c4c40a38e1514704ebc9a65ffd60e016ff1b8336058893e8602baa916636428e"
+      },
+      "stderr": {
+        "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/evidence-linux-source-01/run-02/source/002-source17.err",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "source18",
+      "binary": "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+      "argv": [
+        "-I",
+        "-S",
+        "-B",
+        "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/linux-rollback-staging/producer-successor-03/schema18/run.py",
+        "--seal-sha256",
+        "sha256:4b61813dc558928169c36c1883268ac8e55dc3e2b9867b33c22cf1981f27a3e9",
+        "source-input",
+        "--origin-packet",
+        "/private/tmp/ideogram-schema18-build13-verified-04/packet.json",
+        "--origin-packet-sha256",
+        "sha256:1a72a2299d1939bd9b9ab7f702ee574489c8572d9b5507d2cf82decf1275da2c",
+        "--origin-pin",
+        "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/v45-composition-text-01/schema19-sealing-04/sealed-result-01/schema18-pin.json",
+        "--origin-pin-sha256",
+        "sha256:18b3155ae8feaa546344535472ca2f042c662406cfff5519bcf90a41e57dae4c",
+        "--output",
+        "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/evidence-linux-source-01/run-02/sources/schema18"
+      ],
+      "timeoutMs": 300000,
+      "startedAt": "2026-10-03T16:07:51.146Z",
+      "result": {
+        "code": 0,
+        "signal": null,
+        "timedOut": false,
+        "interrupted": false,
+        "timeoutMs": 300000
+      },
+      "logFailure": null,
+      "stdout": {
+        "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/evidence-linux-source-01/run-02/source/003-source18.out",
+        "bytes": 316,
+        "sha256": "79cc150b31420f3211197c663234a7c4be11d0052a35c7b32786503b2aa0a2f0"
+      },
+      "stderr": {
+        "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/evidence-linux-source-01/run-02/source/003-source18.err",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "containers": {},
+  "imageId": null,
+  "sourceInputs": {
+    "16": {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/evidence-linux-source-01/run-02/sources/schema16/source-input.json",
+      "bytes": 1127,
+      "sha256": "be81efa599f92edc693a0916b7d7b1d2ee9fc33a40194ee715965855680d3c7a"
+    },
+    "17": {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/evidence-linux-source-01/run-02/sources/schema17/source-input.json",
+      "bytes": 818,
+      "sha256": "3bf7f41c89e0128abbbf9a33907b60f9523be95d5cb5b33da30335ce87b1ce77"
+    },
+    "18": {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/evidence-linux-source-01/run-02/sources/schema18/source-input.json",
+      "bytes": 901,
+      "sha256": "cffa2ec859e7ebf7af7a2a3775317747aa2f5c45468fd0f986317b0c4963a37a"
+    }
+  },
+  "hostSelection": null,
+  "drafts": {},
+  "packets": {},
+  "failure": null,
+  "timingLockReleased": false,
+  "runId": "ie-linux-0c9ca8d9e4ad4072a11099707f76d6d0",
+  "runRoot": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/evidence-linux-source-01/run-02",
+  "knownInputs": {
+    "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/linux-rollback-staging/controller-02-git-successor-01/known-inputs.json",
+    "bytes": 42504,
+    "sha256": "114a8640b3e1b915f7d945352e7d67f17234a723c38219285a139275b9faa9fb"
+  },
+  "allocation": {
+    "root": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/evidence-linux-source-01",
+    "receipt": {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/evidence-linux-source-01/allocation.json",
+      "bytes": 325,
+      "sha256": "c1bb982648a536ace8b6926b76fefe8690ccb86930f17a8b05ae6a9c9a95f232"
+    }
+  },
+  "dockerAllocation": {
+    "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/evidence-linux-source-01/docker-allocation-03.json",
+    "bytes": 554,
+    "sha256": "673707b695d039ee592702e0ce562d6e317da0511a9051af984dad60d914c679"
+  },
+  "startedAt": "2026-10-03T16:07:33.775Z",
+  "evidenceStorage": {
+    "kind": "evidence-volume-reference-1",
+    "allocationId": "linux-source-01",
+    "allocationIdentity": {
+      "bytes": 325,
+      "sha256": "c1bb982648a536ace8b6926b76fefe8690ccb86930f17a8b05ae6a9c9a95f232"
+    },
+    "auditId": "a16cf791-e410-4c08-8db9-772feaaea875",
+    "auditPath": ".evidence-lifecycle/a16cf791-e410-4c08-8db9-772feaaea875/audit.json",
+    "retainedPath": "evidence-storage/audit.json",
+    "root": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/evidence-linux-source-01",
+    "campaignId": "ie-linux-0c9ca8d9e4ad4072a11099707f76d6d0-source",
+    "intervalMs": 2000,
+    "qualification": false,
+    "status": "PENDING"
+  },
+  "dockerObservations": {
+    "kind": "linux-docker-observation-summary-1",
+    "status": "PASS",
+    "scopes": [
+      {
+        "key": "host-journal-watchdog",
+        "meaning": "Failure watchdog only, zero is not an allocation measurement",
+        "status": "PASS",
+        "coverageComplete": true,
+        "maximumStartGapMs": 2002.2754590000004,
+        "maximumPossibleObservationStartGapMs": 2018.909667,
+        "peakBytes": 0,
+        "capacityBytes": 1,
+        "samples": 10,
+        "unknownSamples": 0,
+        "targetPercent": 80,
+        "ceilingPercent": 90
+      }
+    ],
+    "records": 10,
+    "journalHead": "a7df156f57fd451ecdf76c9ff44c7e7329997f336210d481002afb0b7cb78e66",
+    "intervalMs": 2000,
+    "maxSuccessfulStartGapMs": 4000,
+    "physicalDockerUsageStatus": "UNOBSERVABLE",
+    "unobserved": [
+      "Docker daemon metadata and container log allocation",
+      "Docker VM backing-file allocation, sparse extents and host filesystem overhead",
+      "Transient commit/layer construction and exclusive physical attribution of shared base layers"
+    ],
+    "exclusivePhysicalTotalBytes": null,
+    "qualification": false
+  },
+  "observationJournal": {
+    "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/evidence-linux-source-01/run-02/source/docker-observations.jsonl",
+    "bytes": 3928,
+    "sha256": "628ae0a9a2c29085388d89eab248267d30f93b93c60ba3f6ec59c530989058b1"
+  },
+  "finishedAt": "2026-10-03T16:07:51.817Z",
+  "cleanupComplete": true,
+  "timingLock": {
+    "path": "/private/tmp/ideogram-perf-8b3795aa25390811064d8e72.lock",
+    "identity": {
+      "kind": "perf-exclusive-runner-lock-1",
+      "pid": 21781,
+      "processStartedAt": "Sat Oct  3 12:07:33 2026",
+      "receiptId": "ie-linux-0c9ca8d9e4ad4072a11099707f76d6d0-source",
+      "host": "sha256:8b3795aa25390811064d8e7276e56384b720d78e3ab2780e415c7dc9d4e9522b",
+      "nonce": "881acd0a-c76c-4226-afb9-f20b030d2d59",
+      "createdAt": "2026-10-03T16:07:33.947Z"
+    },
+    "heldAtReceiptSeal": true
+  }
+}

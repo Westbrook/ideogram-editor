@@ -1,0 +1,75 @@
+{
+  "files": {
+    "foreign_source.py": {
+      "hash": "sha256:167ed961ce52f224e0f395f512bc5531bef7f35ab67066581299bbbcb723084d",
+      "byteLength": "1131"
+    },
+    "linux_build.py": {
+      "hash": "sha256:67f99b6da308ea94132bd0c8f7a4bdd1dde89c9eafb9bf7a97851a896b7865ee",
+      "byteLength": "12259"
+    },
+    "linux_build_evidence.py": {
+      "hash": "sha256:b6f9987560350aeadda8215ccbf989af62c15d4a2336cdf0d936f32cac768a5d",
+      "byteLength": "2433"
+    },
+    "linux_host.py": {
+      "hash": "sha256:1ffa4771bfaafb085bf12c2389064fbee71095f33bf8d8efd87e0f7e345c3442",
+      "byteLength": "23752"
+    },
+    "linux_transport_exact.py": {
+      "hash": "sha256:29e8dbebe70c0ee1bde8ff058f266eb3f43f68a09d91ca1bedcd41f430b70089",
+      "byteLength": "46383"
+    },
+    "metadata_policy.py": {
+      "hash": "sha256:f7799fd83847bdc209b7ba810457fd9fc631f21a8bb9252f1222360ec103b29c",
+      "byteLength": "606"
+    },
+    "owned_process.py": {
+      "hash": "sha256:3138751fd6a5a33eaa34e3be7e32f774c71cbb76bc8fe82f608ebf57b23bf424",
+      "byteLength": "32892"
+    },
+    "packet.py": {
+      "hash": "sha256:bc1342a906d95efd20d9323b00496dde1e2e4877299bedc0094b3cc5e067a12b",
+      "byteLength": "41295"
+    },
+    "prepare_source_input.py": {
+      "hash": "sha256:a8744eb27141a618297be8a1f350fc87c932d1ba855ebe64b0ad783498674579",
+      "byteLength": "4311"
+    },
+    "proof-library-policy.mjs": {
+      "hash": "sha256:c3b6317f5908dbf2a1fee2b31d1d528fbddb5f613e99429cead93dd9bbec4f72",
+      "byteLength": "4958"
+    },
+    "proof.mjs": {
+      "hash": "sha256:dc792813a3ccf02e5927e4bdf59177d9212f72e6dd3241d52f8476d96b811f23",
+      "byteLength": "14967"
+    },
+    "run.py": {
+      "hash": "sha256:97f1595fe8bdf6a7d56c3fe2fee150782f6dccf61571ba0b88fc6cfa1c5925d1",
+      "byteLength": "4249"
+    },
+    "runtime-selection.mjs": {
+      "hash": "sha256:a889932ea8f3e12d4534f371087df84c2d90c959293bca9c503f8add88e541dd",
+      "byteLength": "3152"
+    },
+    "source_reconstitution.py": {
+      "hash": "sha256:83d4437db0a1a089401ffe751dd81d0c637c9848c8247cabe103b79a95d50697",
+      "byteLength": "13283"
+    },
+    "test_evidence.py": {
+      "hash": "sha256:97f14c20bb4088d3777604e2ca378a654a8be3378bbbfd0f420f57421ae6a3c9",
+      "byteLength": "7031"
+    },
+    "toolchain.py": {
+      "hash": "sha256:324b52dc555251827a7af90eaf466f40fa09a59e370a980277857a2e69e3ac01",
+      "byteLength": "28834"
+    },
+    "transport.py": {
+      "hash": "sha256:267c18ff697e5b6d65fc4d382adb51c5b5a91f15052c7b0f64d7d32343936e27",
+      "byteLength": "41554"
+    }
+  },
+  "kind": "linux-rollback-producer-source-seal-1",
+  "status": "source-only-unexecuted",
+  "storageVersion": 18
+}

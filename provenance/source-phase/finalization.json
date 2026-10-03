@@ -1,0 +1,72 @@
+{
+  "kind": "linux-capsule-controller-finalization-2",
+  "receipt": {
+    "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/evidence-linux-source-01/run-02/source/receipt.json",
+    "bytes": 10455,
+    "sha256": "3978c7e747dc1eaa2bc86da24a4db53758f631f337038635de5fcc60cfbf7536"
+  },
+  "result": "passed",
+  "hostAudit": {
+    "kind": "evidence-volume-audit-2",
+    "auditId": "a16cf791-e410-4c08-8db9-772feaaea875",
+    "campaignId": "ie-linux-0c9ca8d9e4ad4072a11099707f76d6d0-source",
+    "allocationId": "linux-source-01",
+    "allocationIdentity": {
+      "bytes": 325,
+      "sha256": "c1bb982648a536ace8b6926b76fefe8690ccb86930f17a8b05ae6a9c9a95f232"
+    },
+    "output": "run-02/source",
+    "outcome": "passed",
+    "startedMonotonicMs": 523.472416,
+    "recordedAt": "2026-10-03T16:07:51.829Z",
+    "elapsedMs": 17773.714874999998,
+    "intervalMs": 2000,
+    "maximumGapMs": 1995.4160420000007,
+    "coverageComplete": true,
+    "counterMode": "periodic-bounded-observation-windows",
+    "samples": 20,
+    "journalHead": "62e5e61511a4cbffe1748275457a2765bcd4a03462d5765b2e58222329dc90ad",
+    "journal": {
+      "bytes": 43007,
+      "sha256": "df52f98adf438a39e170b9362f8580e5978c3869730e4b53851a08481079e7c6"
+    },
+    "peakObservedAllocatedBytes": 84721664,
+    "capacityBytes": 4294967296,
+    "alarms": {
+      "targetPercent": 80,
+      "ceilingPercent": 90,
+      "final": {
+        "status": "PASS",
+        "level": "normal",
+        "percent": 1.9725799560546875
+      }
+    },
+    "unknownSamples": 0,
+    "observationError": null,
+    "receipt": {
+      "path": "run-02/source/receipt.json",
+      "bytes": 10455,
+      "sha256": "3978c7e747dc1eaa2bc86da24a4db53758f631f337038635de5fcc60cfbf7536"
+    },
+    "observationPolicy": {
+      "maxAttempts": 3,
+      "maxWindowMs": 1000,
+      "retryCode": "EVIDENCE_MUTATION"
+    },
+    "attempts": 20,
+    "failedAttempts": 0,
+    "status": "PASS",
+    "qualification": true,
+    "finalization": "Audit/index bytes created after final observation are not claimed as measured. Subsequent runs include them.",
+    "automaticPruning": false
+  },
+  "hostVerification": {
+    "status": "PASS",
+    "qualification": true,
+    "auditPath": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/evidence-linux-source-01/run-02/source/evidence-storage/audit.json"
+  },
+  "dockerObservationStatus": "NOT_APPLICABLE",
+  "timingLockReleased": true,
+  "failure": null,
+  "qualification": false
+}
