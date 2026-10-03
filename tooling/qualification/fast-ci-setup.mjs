@@ -4,7 +4,7 @@ import {execFileSync} from 'node:child_process';
 import {readFileSync, writeFileSync} from 'node:fs';
 import {join, posix, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import ts from 'typescript';
+import {parseSync} from 'rolldown/utils';
 import {developmentPlan} from './development-plan.mjs';
 import {historyRequirements} from './container/inputs.mjs';
 
@@ -25,44 +25,54 @@ export const fastSelectedJobMinutes = 180;
 const setupReserveMs = 40 * 60_000, finalizationReserveMs = 15 * 60_000;
 
 function parsed(path, text) {
-  const source = ts.createSourceFile(path, text, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
-  if (source.parseDiagnostics.length) throw Error(`Historical declaration does not parse: ${path}`);
-  return source;
+  // The pinned TypeScript 7 root export contains version metadata, not the
+  // legacy compiler AST API. Use the same lock-pinned parser as preflight.
+  const result = parseSync(path, text, {lang: 'js', sourceType: 'module'});
+  if (result.errors?.length || result.program?.type !== 'Program') throw Error(`Historical declaration does not parse: ${path}`);
+  return {fileName: path, program: result.program};
 }
 function calls(source, name) {
-  const found = [];
-  function visit(node) {
-    if (ts.isCallExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === name) found.push(node);
-    ts.forEachChild(node, visit);
+  const found = [], pending = [source.program];
+  while (pending.length) {
+    const node = pending.pop();
+    if (!node || typeof node.type !== 'string') continue;
+    if (node.type === 'CallExpression' && identifier(node.callee, name)) found.push(node);
+    for (const [key, value] of Object.entries(node)) {
+      if (['parent', 'tokens', 'comments', 'loc', 'range'].includes(key)) continue;
+      if (Array.isArray(value)) pending.push(...value);
+      else if (value && typeof value === 'object') pending.push(value);
+    }
   }
-  visit(source); return found;
+  return found;
 }
-const identifier = (node, name) => !!node && ts.isIdentifier(node) && node.text === name;
+const identifier = (node, name) => node?.type === 'Identifier' && node.name === name;
+const stringLiteral = node => node?.type === 'Literal' && typeof node.value === 'string';
+const declarations = source => source.program.body.map(node => node.type === 'ExportNamedDeclaration' ? node.declaration : node).filter(Boolean);
+const literalPaths = node => node?.type === 'ArrayExpression' && node.elements.every(stringLiteral) ? node.elements.map(item => item.value) : null;
 function literalCommit(source, name) {
-  const declarations = source.statements.filter(ts.isVariableStatement).flatMap(statement => [...statement.declarationList.declarations]).filter(declaration => identifier(declaration.name, name));
-  const value = declarations.length === 1 && declarations[0].initializer;
-  if (!value || !ts.isStringLiteral(value) || !/^[a-f0-9]{40}$/.test(value.text)) throw Error(`Require one literal historical ${name} in ${source.fileName}`);
-  return value.text;
+  const matches = declarations(source).filter(node => node.type === 'VariableDeclaration').flatMap(node => node.declarations).filter(node => identifier(node.id, name));
+  const value = matches.length === 1 && matches[0].init;
+  if (!stringLiteral(value) || !/^[a-f0-9]{40}$/.test(value.value)) throw Error(`Require one literal historical ${name} in ${source.fileName}`);
+  return value.value;
 }
 function requireImport(path, source, name, target) {
-  const imports = source.statements.filter(ts.isImportDeclaration).filter(node => ts.isStringLiteral(node.moduleSpecifier) && posix.normalize(posix.join(posix.dirname(path), node.moduleSpecifier.text)) === target);
-  const bindings = imports.flatMap(node => node.importClause?.namedBindings && ts.isNamedImports(node.importClause.namedBindings) ? [...node.importClause.namedBindings.elements] : []);
-  if (bindings.filter(node => identifier(node.name, name) && (!node.propertyName || identifier(node.propertyName, name))).length !== 1) throw Error(`Historical ${name} import changed: ${path}`);
+  const imports = source.program.body.filter(node => node.type === 'ImportDeclaration' && stringLiteral(node.source) && posix.normalize(posix.join(posix.dirname(path), node.source.value)) === target);
+  const bindings = imports.flatMap(node => node.specifiers).filter(node => node.type === 'ImportSpecifier');
+  if (bindings.filter(node => identifier(node.local, name) && identifier(node.imported, name)).length !== 1) throw Error(`Historical ${name} import changed: ${path}`);
 }
 function directHistory(source) {
   requireImport(directHistoryOwner, source, 'compileLegacy', compilerPath);
   const uses = calls(source, 'compileLegacy'), args = uses[0]?.arguments;
-  if (uses.length !== 1 || args.length !== 3 || !ts.isStringLiteral(args[1]) || !/^[a-f0-9]{40}$/.test(args[1].text) || !ts.isArrayLiteralExpression(args[2]) || !args[2].elements.every(ts.isStringLiteral) || !same(args[2].elements.map(item => item.text), codePaths)) throw Error('Direct historical compiler declaration changed');
-  return {commit: args[1].text, paths: [...codePaths]};
+  if (uses.length !== 1 || args.length !== 3 || !stringLiteral(args[1]) || !/^[a-f0-9]{40}$/.test(args[1].value) || !same(literalPaths(args[2]), codePaths)) throw Error('Direct historical compiler declaration changed');
+  return {commit: args[1].value, paths: [...codePaths]};
 }
 function priorContract(source) {
   requireImport(priorPath, source, 'compileLegacy', compilerPath);
-  const functions = source.statements.filter(node => ts.isFunctionDeclaration(node) && identifier(node.name, 'priorWriter'));
-  const fn = functions[0], parameters = fn?.parameters;
-  if (functions.length !== 1 || parameters.length !== 2 || !identifier(parameters[0].name, 't') || !identifier(parameters[1].name, 'commit') || !identifier(parameters[1].initializer, 'priorCommit')) throw Error('Historical priorWriter signature changed');
-  const compile = calls(source, 'compileLegacy');
-  const args = compile[0]?.arguments, paths = args?.[2];
-  if (compile.length !== 1 || args.length !== 3 || !identifier(args[1], 'commit') || !ts.isArrayLiteralExpression(paths) || !paths.elements.every(ts.isStringLiteral) || !same(paths.elements.map(item => item.text), archivePaths)) throw Error('Historical compiler archive closure changed');
+  const functions = declarations(source).filter(node => node.type === 'FunctionDeclaration' && identifier(node.id, 'priorWriter'));
+  const parameters = functions[0]?.params, commit = parameters?.[1];
+  if (functions.length !== 1 || parameters.length !== 2 || !identifier(parameters[0], 't') || commit?.type !== 'AssignmentPattern' || !identifier(commit.left, 'commit') || !identifier(commit.right, 'priorCommit')) throw Error('Historical priorWriter signature changed');
+  const compile = calls(source, 'compileLegacy'), args = compile[0]?.arguments;
+  if (compile.length !== 1 || args.length !== 3 || !identifier(args[1], 'commit') || !same(literalPaths(args[2]), archivePaths)) throw Error('Historical compiler archive closure changed');
   return literalCommit(source, 'priorCommit');
 }
 function requiredCommit(path, source, defaultCommit) {

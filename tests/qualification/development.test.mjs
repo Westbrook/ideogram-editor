@@ -931,3 +931,19 @@ test('Fast ordinary R33 setup provisions the actual prior reader without a brows
   ["from '../../tooling/qualification/legacy-compiler.mjs'","from './different-compiler.mjs'",/import changed/],
  ])assert.throws(()=>fastSetupPlan(plan,{sourceFor:path=>{const text=sourceFor(path);assert(text.includes(from));return text.replace(from,to);}}),expected);
 });
+
+
+test('Fast historical AST parsing ignores commented declarations and refuses malformed or nonliteral authority',()=>{
+ const owner='tests/history/mask-text-compatibility.test.mjs';
+ const plan=developmentPlan(process.cwd(),{groups:'all',nodeFiles:owner,browsers:'none'});
+ const sourceFor=path=>readFileSync(path,'utf8');
+ const expected=selectedFastSetup(process.cwd(),owner);
+ const comments=fastSetupPlan(plan,{sourceFor:path=>sourceFor(path)+"\n/* const oldCommit='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'; priorWriter(t,other); compileLegacy(directory,other,[]); */\n"});
+ assert.deepEqual(comments.history,expected.history);
+ assert.notDeepEqual(comments.sources,expected.sources,'observed source identity still retains the comments');
+ assert.throws(()=>fastSetupPlan(plan,{sourceFor:path=>sourceFor(path)+(path===owner?'\nconst = ;':'')}),/does not parse/);
+ assert.throws(()=>fastSetupPlan(plan,{sourceFor:path=>path===owner?sourceFor(path).replace("const oldCommit='4b2c82ccc41dd72c3f83480f23481b7b62135d23'","const oldCommit=`4b2c82ccc41dd72c3f83480f23481b7b62135d23`"):sourceFor(path)}),/literal historical/);
+ const direct='tests/history/returned-description.test.mjs';
+ const directPlan=developmentPlan(process.cwd(),{groups:'all',nodeFiles:direct,browsers:'none'});
+ assert.throws(()=>fastSetupPlan(directPlan,{sourceFor:path=>sourceFor(path).replace("compileLegacy(directory,'8901d923f309125c5bc19605efe76a871a7ee1df'","compileLegacy(directory,`8901d923f309125c5bc19605efe76a871a7ee1df`")}),/declaration changed/);
+});
