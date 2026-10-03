@@ -1,5 +1,3 @@
-@import '../src/theme/shell.css';
-
 /* The real production Spectrum theme supplies every UI color and control token.
    The checkerboard is deliberately neutral: it denotes transparent image pixels. */
 .pages-preview { max-inline-size: 1600px; margin-inline: auto; min-block-size: 100dvh; }
