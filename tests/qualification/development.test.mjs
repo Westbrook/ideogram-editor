@@ -9,6 +9,7 @@ import {executeDevelopment,argumentsFor} from '../../tooling/qualification/devel
 import {gateInputKey,treeIdentity,treeIdentityAsync,outputIdentity,outputIdentityAsync,reusable,reusableAsync} from '../../tooling/qualification/development-cache.mjs';
 import {sha256,digestJSON,sourceIdentity,sourceIdentityAsync} from '../../tooling/qualification/core.mjs';
 import {developmentPlan} from '../../tooling/qualification/development-plan.mjs';
+import {selectedFastSetup, fastSetupPlan, provisionFastSetup} from '../../tooling/qualification/fast-ci-setup.mjs';
 import {functionalGates} from '../../tooling/qualification/manifest.mjs';
 import {createBrowserPlan} from '../../tooling/qualification/container/browser-plan.mjs';
 
@@ -817,4 +818,116 @@ test('reviewed renderer ownership integration retains the real application build
   const plan=developmentPlan(f.cwd,{groups:'campaigns',nodeFiles,browsers:'none'});
   assert.equal(plan.gates.some(gate=>gate.id==='build-app'),false,'Only the exact actual-build consumer requires app output');
  }
+});
+
+
+const fastHostedSelection = [
+ 'tests/history/mask-text-compatibility.test.mjs',
+ 'tests/composition/retained-text.test.mjs',
+ 'tests/text-state/native.test.mjs',
+ 'tests/text-state/placement-text-compatibility.test.mjs',
+];
+test('Fast hosted setup follows actual selected historical executables and existing whole-gate deadlines',()=>{
+ const setup=selectedFastSetup(process.cwd(),fastHostedSelection.join(','));
+ assert.deepEqual([...setup.selectedFiles].sort(),[...fastHostedSelection].sort());
+ assert.deepEqual(setup.requiredBrowsers,['chromium']);
+ assert.deepEqual(setup.history.map(row=>row.commit).sort(),[
+  '4b2c82ccc41dd72c3f83480f23481b7b62135d23','d3b8e5f5ec4568547f21a2826792450367144a17',
+  'd3c6046a44d29d89ccdcb219cc37d40f02bad84f','dcd5f11dbd57cd7ed00c8ddf410857ce4700440e',
+ ].sort());
+ assert.equal(setup.gates.reduce((n,g)=>n+g.timeoutMs,0),7_335_000);
+ assert.equal(setup.gates.filter(g=>g.id.endsWith(':browser')).length,3);
+ assert.equal(setup.jobMinutes,180);assert(setup.totalBudgetMs<180*60_000);
+ assert(setup.sources.some(row=>row.path==='tests/text-state/prior-writer.mjs'));
+ for(const row of setup.history)assert.deepEqual(row.paths,['server','src','tests','tooling','tsconfig.server.json']);
+ const one=selectedFastSetup(process.cwd(),fastHostedSelection[0]);
+ assert.deepEqual(one.history.map(row=>row.commit),['4b2c82ccc41dd72c3f83480f23481b7b62135d23']);
+ const ordinary=selectedFastSetup(process.cwd(),'tests/portable/failure.test.mjs');
+ assert.deepEqual(ordinary.history,[]);assert.deepEqual(ordinary.sources,[]);assert.deepEqual(ordinary.requiredBrowsers,[]);
+});
+test('Fast setup refuses unknown or duplicate owners, unprovisioned browsers and missing genuine packet inputs',()=>{
+ for(const selection of ['', 'tests/not-a-file.test.mjs',fastHostedSelection[0]+','+fastHostedSelection[0]])assert.throws(()=>selectedFastSetup(process.cwd(),selection));
+ assert.throws(()=>selectedFastSetup(process.cwd(),'tests/editor/model-memory-browser.test.mjs'),/not provisioned/);
+ const plan=developmentPlan(process.cwd(),{groups:'all',nodeFiles:fastHostedSelection[0],browsers:'none'});
+ const fresh=structuredClone(plan);fresh.gates[0].freshFixtureFiles=['tests/portable/fixture.test.mjs'];
+ assert.throws(()=>fastSetupPlan(fresh),/genuine schema18/);
+ const tooLarge=structuredClone(plan);tooLarge.gates[0].timeoutMs=180*60_000;
+ assert.throws(()=>fastSetupPlan(tooLarge),/exceeds the 180-minute/);
+ const unbounded=structuredClone(plan);delete unbounded.gates[0].timeoutMs;
+ assert.throws(()=>fastSetupPlan(unbounded),/bounded deadline/);
+});
+test('Fast setup fails changed historical declarations, calls and archive authority before provisioning',()=>{
+ const owner=fastHostedSelection[0],prior='tests/text-state/prior-writer.mjs';
+ const plan=developmentPlan(process.cwd(),{groups:'all',nodeFiles:owner,browsers:'none'});
+ const sourceFor=path=>readFileSync(path,'utf8');
+ for(const [target,from,to,expected] of [
+  [owner,"const oldCommit='4b2c82ccc41dd72c3f83480f23481b7b62135d23'","const oldCommit='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'",/not admitted/],
+  [owner,'priorWriter(t,oldCommit)','priorWriter(t)',/call changed/],
+  [owner,"from '../text-state/prior-writer.mjs'","from '../different-writer.mjs'",/import changed/],
+  [prior,"['server','src','tests','tooling','tsconfig.server.json']","['server','src']",/archive closure changed/],
+  [prior,'commit=priorCommit','commit=otherCommit',/signature changed/],
+ ])assert.throws(()=>fastSetupPlan(plan,{sourceFor:path=>{
+   const text=sourceFor(path);if(path!==target)return text;assert(text.includes(from));return text.replace(from,to);
+ }}),expected);
+ assert.throws(()=>fastSetupPlan(plan,{sourceFor,history:[]}),/not admitted/);
+ const native=developmentPlan(process.cwd(),{groups:'all',nodeFiles:'tests/text-state/native.test.mjs',browsers:'none'});
+ assert.throws(()=>fastSetupPlan(native,{sourceFor:path=>path===prior?sourceFor(path).replace("export const priorCommit=", "const copy='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'; export const priorCommit=copy; const unused="):sourceFor(path)}),/literal historical/);
+});
+test('Fast provisioning fetches only selected literal commits, verifies archive bytes and preserves HEAD',()=>{
+ const plan=selectedFastSetup(process.cwd(),fastHostedSelection[0]),commands=[],records=[],head='f'.repeat(40),archive=Buffer.from('synthetic archive bytes');
+ const execute=(command,args,options)=>{
+  commands.push({command,args,options});
+  if(command===process.execPath){assert.deepEqual(args.slice(1),['install','--with-deps','chromium']);return Buffer.alloc(0);}
+  assert.equal(command,'git');const operation=args[4];
+  if(operation==='rev-parse')return Buffer.from(head+'\n');
+  if(operation==='cat-file')return Buffer.from('commit\n');
+  if(operation==='archive')return archive;
+  assert.equal(operation,'fetch');return Buffer.alloc(0);
+ };
+ const result=provisionFastSetup(process.cwd(),plan,{execute,record:value=>records.push(structuredClone(value))});
+ assert.equal(result.status,'PASS');assert.equal(result.headBefore,head);assert.equal(result.headAfter,head);
+ const fetch=commands.filter(row=>row.args[4]==='fetch');assert.equal(fetch.length,1);
+ assert.deepEqual(fetch[0].args.slice(4),['fetch','--no-tags','--depth=1','--no-recurse-submodules','origin','4b2c82ccc41dd72c3f83480f23481b7b62135d23']);
+ assert.deepEqual(commands.find(row=>row.args[4]==='archive').args.slice(4),['archive','--format=tar','4b2c82ccc41dd72c3f83480f23481b7b62135d23','--','server','src','tests','tooling','tsconfig.server.json']);
+ assert.deepEqual(result.history[0].archive,{bytes:archive.length,sha256:sha256(archive)});
+ assert.equal(records.at(-1).status,'PASS');
+});
+test('Fast provisioning retains failure without fallback fetch or browser install and rejects HEAD drift',()=>{
+ const plan=selectedFastSetup(process.cwd(),fastHostedSelection[0]);
+ for(const phase of ['fetch','archive','head']){
+  const records=[],commands=[];let heads=0;
+  const execute=(command,args)=>{
+   commands.push([command,...args]);
+   if(command===process.execPath){assert.equal(phase,'head');return Buffer.alloc(0);}
+   assert.equal(command,'git');const operation=args[4];
+   if(operation==='rev-parse')return Buffer.from((phase==='head'&&++heads===2?'b':'a').repeat(40));
+   if(operation===phase)throw Error('actual setup refusal: '+phase);
+   if(operation==='cat-file')return Buffer.from('commit');
+   if(operation==='archive')return Buffer.from('archive');
+   assert.equal(operation,'fetch');return Buffer.alloc(0);
+  };
+  // Even otherwise successful provisioning must reject changed HEAD; failed
+  // fetch/archive paths never install browsers or try an alternate commit.
+  assert.throws(()=>provisionFastSetup(process.cwd(),plan,{execute,record:r=>records.push(structuredClone(r))}));
+  assert.equal(records.at(-1).status,'FAIL');
+  assert.equal(commands.filter(row=>row[5]==='fetch').length,1);
+  assert.deepEqual(records.at(-1).plan.selectedFiles,plan.selectedFiles);
+ }
+ const ordinary=selectedFastSetup(process.cwd(),'tests/portable/failure.test.mjs'),commands=[];
+ const result=provisionFastSetup(process.cwd(),ordinary,{execute:(command,args)=>{commands.push([command,...args]);assert.equal(args[4],'rev-parse');return Buffer.from('a'.repeat(40));}});
+ assert.equal(result.status,'PASS');assert.equal(commands.length,2);assert.equal(result.browser,null);
+});
+
+
+test('Fast ordinary R33 setup provisions the actual prior reader without a browser or invented archive',()=>{
+ const owner='tests/history/returned-description.test.mjs',plan=developmentPlan(process.cwd(),{groups:'all',nodeFiles:owner,browsers:'none'});
+ const setup=selectedFastSetup(process.cwd(),owner);
+ assert.deepEqual(setup.requiredBrowsers,[]);assert.deepEqual(setup.history,[{commit:'8901d923f309125c5bc19605efe76a871a7ee1df',paths:['server','src','tooling','tsconfig.server.json'],owners:[owner]}]);
+ assert.deepEqual(setup.sources.map(row=>row.path),[owner]);
+ const sourceFor=path=>readFileSync(path,'utf8');
+ for(const [from,to,expected] of [
+  ["'8901d923f309125c5bc19605efe76a871a7ee1df'","'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'",/not admitted/],
+  ["['server','src','tooling','tsconfig.server.json']","['server','src']",/declaration changed/],
+  ["from '../../tooling/qualification/legacy-compiler.mjs'","from './different-compiler.mjs'",/import changed/],
+ ])assert.throws(()=>fastSetupPlan(plan,{sourceFor:path=>{const text=sourceFor(path);assert(text.includes(from));return text.replace(from,to);}}),expected);
 });
