@@ -41,9 +41,13 @@ test('Density changes real geometry, preserves focus and draft selection, and su
       await step(prefix + '-selection-preserved', async () => expect(await prompt.evaluate(node => {const input = node as HTMLTextAreaElement; return [input.selectionStart, input.selectionEnd, input.selectionDirection];})).toEqual([2, 11, 'backward']));
       await step(prefix + '-paints-preserved', async () => expect(await root.evaluate(node => {const style = getComputedStyle(node); return [style.backgroundColor, style.color, style.fontFamily];})).toEqual(paint));
       await step(prefix + '-geometry', async () => {
+        // A native select's accessible picker floor may clamp smaller densities.
         const box = await density.boundingBox(); if (!box) throw Error('Density control is not laid out');
-        heights[prefix] = box.height;
-        await record({phase: 'density-geometry', mode, density: value, box});
+        expect(box.width).toBeGreaterThanOrEqual(24); expect(box.height).toBeGreaterThanOrEqual(24);
+        const actionBox = await page.getByRole('button', {name: 'Command search', exact: true}).boundingBox();
+        if (!actionBox) throw Error('Command search control is not laid out');
+        heights[prefix] = actionBox.height;
+        await record({phase: 'density-geometry', mode, density: value, box, action: 'Command search', actionBox});
       });
       await step(prefix + '-no-overflow', async () => expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true));
     }

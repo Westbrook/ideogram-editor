@@ -1,6 +1,14 @@
 # Continue Ideogram Editor in another harness
 
-## Current implementation checkpoint — Full offline editor preview
+## Current continuation — Shared Spectrum button paint
+
+The full editor preview is committed and pushed on the implementation branch through b4a22dd7313f906402abd957208d0a587d811bac. Main and the live site still serve checkpoint79 until a complete new Pages validation passes. Pages14 passed typecheck, 28 publisher tests, 19 boundary tests, seven Python cases and the build, then exposed an incorrect Document actions toolbar test; the actual component is a group. That selector was corrected. Pages15 was startup-INCONCLUSIVE before gates; its first scan exceeded the one-second window while two subsequent scans passed. Root retained it and deliberately admitted unchanged-source16 without altering limits.
+
+Pages16 passed the same prerequisites and the first offline-shell case, then exposed an invalid density oracle: compact and comfortable native selects both satisfy a 36.5px accessibility floor. The corrected Pages test measures density progression on the real Command search button while retaining the select's 24px minimum. Pages17 passed prerequisites and that geometry check, then retained actual dark-transition contrast failures on secondary and selected ghost buttons. Its light screenshot shows the real full editor; dark/narrow review remains pending. All failed/inconclusive outputs are retained, and none is a complete deployment pass.
+
+The newly applied shared shell CSS synchronizes button foreground/background/border paint across variants and number-step buttons. Independent press/release scale/translation and focus motion are preserved. Its exact D11 CSS tuple is updated, and the existing core density case receives the same grounded geometry correction. Three source/test targets are independently reviewed; actual successor validation is pending. This CSS change invalidates the previous app335/R18 source binding: after adoption the core ledger is Node586 current/26 pending and browser13 current/125 pending (Chromium8/42, Firefox3/41, WebKit2/42). Fresh application build and six text/native origins are required before an R18 successor; no approval reseal is inferred. The separate Pages pipeline remains the next priority, followed by the broader core matrix and original external holds.
+
+## Checkpoint80 context — Full offline editor preview
 
 This source checkpoint follows published checkpoint 79, `aaab115e43ab4fbc46ebd436b95b0af3e6349112`, tree `8254bcce9e8908acf5a6cc7801b050917329e484`. Root fetched main during this continuation and found no newer plan or source updates. Checkpoint 79 reached main and the implementation branch. Its Pages preview 13 passed seven gates and all 30 browser cases; workflow 37120706864 attempt 1 and deployment 6827215001 succeeded. The resulting gh-pages commit is `5a118283d82786a760eeabd3e2da7762f8f4bc64`; live smoke 05 passed exact asset, native rendering, PNG, theme and ephemeral-state checks. These results describe the previous canvas demo, not the new full-shell preview.
 
