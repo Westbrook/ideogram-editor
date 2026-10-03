@@ -1,5 +1,13 @@
 # Continue Ideogram Editor in another harness
 
+## Current continuation — Evidence scanner directory scheduling
+
+A reviewed performance correction replaces only the fully default scanner's asynchronous directory backend with a streaming synchronous iterator. The existing shared 32-stat cooperative yield, four branches, one-entry lookahead, pre/post identity checks, error priority and descendant drainage remain unchanged. Explicit I/O injections retain their previous behavior. Eight added real-filesystem tests cover accounting/post-order, cooperative yielding, open/read/close failures and injected-hook compatibility. No speedup or resolution of the earlier observation failures is established before execution.
+
+The exact two-target review is retained in `artifacts/integration-corrections/evidence-sync-directory-363-01/peer-statistics-review.json` (SHA256 `667075e4f9de08ad23bdab1ee28bc1c4cfef941addb0d66354b4800fa6aadd04`). The revised sampler is60,316 bytes, SHA256 `7945c161c9967c73c4786bc9fb6e5d5d7c4518d9620e055b7c83332e505a88d6`. Its adoption reopens four whole Node owners: evidence-sampler, evidence-volume, evidence-observation-retry and ordinary-text-evidence. Coverage becomes582 current/30 pending out of612; browsers remain13/125. Unaffected results carry only under the narrow recorded source-impact review; no new test credit is claimed.
+
+Next run the exact four-owner selector in original allocation03 with the shared runner, cheapest prerequisites first, one worker and all unchanged guards. This changed-source validation is distinct from another unchanged retry of363/364. Preserve the one-second observation window, two-second interval, four-second coverage gap, original capacity and all previous failure evidence. Stop on any unsuccessful gate or audit. After conclusive closure, resume D11/app/R18 and the existing remaining sequence. Compiler/pair templates are being refreshed with pending functional inputs still unfilled. Main was fetched and remains17cb1ec4; the complete disconnected Pages UI and shared local Spectrum theme remain published and verified. Original qualification, reference hardware, manual/native, eligible LoRA and live-retention holds remain open.
+
 ## Qualification boundary after publication
 
 The full editor remains published and live-smoke verified from main `17cb1ec459d03f739057192fc3df9da2426a62b6`; only handoff documentation has changed on the implementation branch since that source. All product changes, including the shared Spectrum theme, are centralized in main. The independent report records the completed three-unit Pages addition at65/135; this is not original product qualification completion.

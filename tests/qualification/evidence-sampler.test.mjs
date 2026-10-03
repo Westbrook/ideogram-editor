@@ -33,6 +33,94 @@ function bufferedDirectories(){
  }};
 }
 
+// Observe real native directory handles on the optimized default path. Faults
+// below are test-owned; ordinary operations still use the original filesystem.
+function observeDefaultDirectories(t,{beforeOpen=()=>{},beforeRead=()=>{},afterClose=()=>{}}={}){
+ const records=[],original=fs.opendirSync;
+ const stub=t.mock.method(fs,'opendirSync',(path,options)=>{
+  beforeOpen(path);const handle=original(path,options),record={path,handle,yielded:0,closeCalls:0,closed:false};records.push(record);
+  const read=handle.readSync.bind(handle),close=handle.closeSync.bind(handle);
+  t.mock.method(handle,'readSync',()=>{beforeRead(record);const entry=read();if(entry!==null)record.yielded++;return entry;});
+  t.mock.method(handle,'closeSync',()=>{record.closeCalls++;const result=close();record.closed=true;afterClose(record);return result;});
+  return handle;
+ });syncBuiltinESMExports();
+ return {records,restore(){stub.mock.restore();syncBuiltinESMExports();}};
+}
+
+test('default directory stream counts every entry without pre-enumeration and closes before post-stat',async t=>{
+ const f=await fixture(t,70),leaf=join(f.volume,'branch','leaf');await mkdir(leaf,{recursive:true});await mkdir(join(f.volume,'empty'));
+ await writeFile(join(leaf,'payload'),Buffer.alloc(7));await link(join(f.volume,'entry-0'),join(f.volume,'alias'));
+ const dirs=observeDefaultDirectories(t),visits=new Map(),beforeStats=new Map(),order=[];let firstFileReadAhead;
+ const restore=observeDefaultStats(t,(original,path,options)=>{
+  const value=original(path,options),count=(visits.get(path)??0)+1;visits.set(path,count);order.push({path,count});
+  if(count===1)beforeStats.set(path,value);
+  if(value.isFile()&&count===1&&firstFileReadAhead===undefined)firstFileReadAhead=dirs.records.find(record=>record.path===f.volume).yielded;
+  if(value.isDirectory()&&count===2)assert.equal(dirs.records.find(record=>record.path===path).closed,true,'Directory closes before its post-stat');
+  return value;
+ });
+ try{
+  const result=await sampleVolume(f.allocation);
+  assert.equal(result.completeTraversal,true);assert.equal(result.entries,76);assert.equal(result.uniqueFiles,71);assert.equal(result.repeatedInodes,1);assert.equal(result.observedLogicalBytes,137);assert.deepEqual(result.failures,[]);
+  assert(firstFileReadAhead<70,'A real child is observed before the directory is fully enumerated');
+  assert.equal(visits.size,76);for(const count of visits.values())assert.equal(count,2);
+  for(const directory of dirs.records){
+   const parentPost=order.findIndex(item=>item.path===directory.path&&item.count===2);
+   for(const [index,item]of order.entries())if(item.path.startsWith(directory.path+'/'))assert(index<parentPost,'Every descendant completes before its ancestor post-stat');
+   assert.equal(directory.closeCalls,1);assert.equal(directory.closed,true);
+  }
+  const seen=new Set();let allocated=0n;for(const value of beforeStats.values()){const inode=`${value.dev}:${value.ino}`;if(!seen.has(inode)){seen.add(inode);allocated+=value.blocks*512n;}}assert.equal(result.observedAllocatedBytes,Number(allocated));
+  await closed(dirs.records.map(record=>record.handle));
+ }finally{restore();dirs.restore();}
+});
+
+for(const readFailure of [false,true])test('default directory traversal yields at the shared stat bound '+(readFailure?'and drains a subsequent read failure':'before completing'),async t=>{
+ const f=await fixture(t,96),observed=gate();let calls=0,queued=false,failReads=false,settled=false;
+ const dirs=observeDefaultDirectories(t,{beforeRead(){if(failReads)throw Object.assign(Error('test-owned read failure'),{code:'EIO'});}});
+ const restore=observeDefaultStats(t,(original,path,options)=>{
+  const value=original(path,options);calls++;
+  if(value.isFile()&&!queued){queued=true;setImmediate(()=>{failReads=readFailure;observed.resolve({calls,settled});});}
+  return value;
+ });
+ const pending=sampleVolume(f.allocation).then(result=>{settled=true;return result;});
+ try{
+  const boundary=await within(observed.promise);assert.equal(boundary.settled,false);assert.equal(boundary.calls,32);
+  const result=await pending;assert.equal(result.completeTraversal,!readFailure);
+  if(readFailure){assert.deepEqual(result.failures.map(value=>value.code),['EIO']);assert.match(result.failures[0].message,/phase=read-directory/);}
+  else{assert.equal(result.entries,97);assert.equal(result.uniqueFiles,96);assert.deepEqual(result.failures,[]);}
+  assert(dirs.records.length>0);for(const record of dirs.records){assert.equal(record.closeCalls,1);assert.equal(record.closed,true);}await closed(dirs.records.map(record=>record.handle));
+ }finally{try{await pending;}finally{restore();dirs.restore();}}
+});
+
+for(const phase of ['open','read','close'])test('default native directory '+phase+' failure retains its phase and closes every opened handle',async t=>{
+ const f=await fixture(t,1),target=join(f.volume,'target');await mkdir(target);await writeFile(join(target,'payload'),'x');
+ const code=phase==='open'?'EACCES':'EIO',fault=()=>{throw Object.assign(Error('private directory diagnostic'),{code});};
+ const dirs=observeDefaultDirectories(t,{
+  beforeOpen(path){if(phase==='open'&&path===target)fault();},
+  beforeRead(record){if(phase==='read'&&record.path===target)fault();},
+  afterClose(record){if(phase==='close'&&record.path===target)fault();},
+ });
+ try{
+  const result=await sampleVolume(f.allocation);assert.equal(result.completeTraversal,false);assert.equal(result.failures.length,1);assert.equal(result.failures[0].code,code);
+  assert.match(result.failures[0].message,new RegExp('phase='+(phase==='open'?'open-directory':'read-directory')));assert.match(result.failures[0].message,/member=target/);assert(!result.failures[0].message.includes('private directory diagnostic'));
+  for(const record of dirs.records){assert.equal(record.closeCalls,1);assert.equal(record.closed,true);}await closed(dirs.records.map(record=>record.handle));
+ }finally{dirs.restore();}
+});
+
+test('explicit stat injection retains the asynchronous default directory backend',async t=>{
+ const f=await fixture(t,64),dirs=observeDefaultDirectories(t);let calls=0;
+ try{
+  const result=await sampleVolume(f.allocation,{statEntry(path,options){calls++;return fs.lstatSync(path,options);}});
+  assert.equal(result.completeTraversal,true);assert.equal(result.entries,65);assert.equal(result.uniqueFiles,64);assert.equal(calls,130);assert.equal(dirs.records.length,0);assert.deepEqual(result.failures,[]);
+ }finally{dirs.restore();}
+});
+
+test('explicit null directory injection remains invalid without selecting the synchronous default',async t=>{
+ const f=await fixture(t,1),dirs=observeDefaultDirectories(t);
+ try{
+  const result=await sampleVolume(f.allocation,{openDirectory:null});assert.equal(result.completeTraversal,false);assert.equal(result.entries,1);assert.equal(dirs.records.length,0);assert.deepEqual(result.failures.map(value=>value.code),['EVIDENCE_IO']);assert.match(result.failures[0].message,/phase=open-directory/);
+ }finally{dirs.restore();}
+});
+
 test('default sync observations preserve bigint pre/post checks and unique inode accounting',async t=>{
  const f=await fixture(t,20);await link(join(f.volume,'entry-0'),join(f.volume,'alias'));
  const dirs=directories(),visits=new Map(),order=[],stats=new Map();
