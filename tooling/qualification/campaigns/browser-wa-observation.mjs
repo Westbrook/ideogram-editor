@@ -36,8 +36,8 @@ export const WA_OPAQUE_PATH_SOURCE_PINS = freeze([
   },
   {
     "path": "src/ui/adapter-library.ts",
-    "bytes": 54986,
-    "sha256": "sha256:2d74226de4868f840641a453d874cead9a35e432b23471d6b3d7e282ee595d80"
+    "bytes": 52982,
+    "sha256": "sha256:c36e5c21aa53d940b7fe0507a81185eef5525bb5ee628bb59b9d2a4b91ad366e"
   },
   {
     "path": "src/observability/browser.ts",

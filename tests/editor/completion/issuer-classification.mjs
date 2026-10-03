@@ -15,7 +15,7 @@ export const NETWORK_BOUNDARIES=Object.freeze({
  'src/state/editor-client.ts':'1798f543766352ddfaa0e850132b741680f7cbdb1f0cc303940ba93683d0a04b',
  'src/observability/adapter-upload-hook.ts':'756a93d71aff8092d41c9eefa8ddabbe5983acdcc2f5350e958b3b263db8ceb9',
  'src/observability/adapter-upload.ts':'77d8bc7603e9a7db0df09369078b02381bca012c92c30c7df1a3b014b198dbba',
- 'src/ui/adapter-library.ts':'2d74226de4868f840641a453d874cead9a35e432b23471d6b3d7e282ee595d80',
+ 'src/ui/adapter-library.ts':'c36e5c21aa53d940b7fe0507a81185eef5525bb5ee628bb59b9d2a4b91ad366e',
  'src/state/draft-persistence.ts':'677621bcddf8c2edebd9ba703552db3d3e41062a38e22e050dd7c0fd09060bdd',
  'src/state/command-results.ts':'b771ee97323f8393f0eea83998af06e733bfd7349b902f63b4abf32a63ea9b4b',
  'src/state/control-memory.ts':'80b1f564855ef58462d44a708fc211770ed73f481ba44f71db13fdef75716d75',

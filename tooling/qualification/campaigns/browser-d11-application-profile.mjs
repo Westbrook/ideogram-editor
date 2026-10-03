@@ -137,7 +137,7 @@ src/theme/spectrum.companion.css 27494 58c83bba8e5560b838a1b822ada08adab200be353
 src/theme/spectrum.css 49741 ca1216ca1efc6dd6c99be79b94a366f95939f593bb13eeec73fd5b0b84e6444b
 src/theme/spectrum.density.companion.css 58517 83d713adb38f1114fa4f18c38e3882c81240df56ddb42142f95e914c51e3565b
 src/theme/spectrum.density.css 99593 0f9d2b4d8a0cc498e73b29dcda5c3990b973d028f4cab58055dc4c953a76284c
-src/ui/adapter-library.ts 54986 2d74226de4868f840641a453d874cead9a35e432b23471d6b3d7e282ee595d80
+src/ui/adapter-library.ts 52982 c36e5c21aa53d940b7fe0507a81185eef5525bb5ee628bb59b9d2a4b91ad366e
 src/ui/adapters.ts 1338 8a3a2476552dba3e8bd33b6d1bbc35e7b6663472e92cbe7999e5409f105b7514
 src/ui/authoring.ts 65513 96eee099eb24452775f166b7c604ac9d46f23ebd2f7c53a2d686045b563d5b53
 src/ui/candidate-comparison.css 1614 acea87503cdcb9135eda4c9dccd532596ca05810d10b5b6fd5b4d78ee8f5384e
@@ -200,14 +200,14 @@ const fail = message => { throw Error('D11 application profile: ' + message); };
 const scoped = path => path === 'index.html' || path.startsWith('src/');
 const identity = (path, text) => ({ path, rawBytes: Buffer.byteLength(text), sha256: 'sha256:' + createHash('sha256').update(text).digest('hex') });
 
-// These are the complete seven member-destructuring effects in the reviewed
+// These are the complete six member-destructuring effects in the reviewed
 // corpus. They are source excerpts, not a general permutation exemption. Their
 // data producers and native numeric index origins were reviewed together with
 // the full corpus; changed surrounding code must fail that review before this
 // table is consulted. Offsets use JavaScript string indices, matching the AST.
 const memberAssignmentExpressions = [
-  ['src/ui/adapter-library.ts', '[next[index-1],next[index]]=[next[index]!,next[index-1]!]'],
-  ['src/ui/adapter-library.ts', '[next[index+1],next[index]]=[next[index]!,next[index+1]!]'],
+  // Shared move callback: the two exact render calls pass only -1 and +1.
+  ['src/ui/adapter-library.ts', '[next[index+offset],next[index]]=[next[index]!,next[index+offset]!]'],
   ['src/ui/composition.ts', '[es[i],es[j]]=[es[j],es[i]]'],
   ['src/ui/composition.ts', '[a[i-1],a[i]]=[a[i],a[i-1]]'],
   ['src/ui/request-v45-edit.ts', '[next.references[index],next.references[target]]=[next.references[target],next.references[index]]'],

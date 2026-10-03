@@ -87,8 +87,7 @@ test('missing or changed source receipts and bootstrap bodies provide no profile
 // Only the provisional source analysis runs here; no product module is imported
 // and no hand-built effect object can produce final Worker admission.
 const expectedAssignments = [
-  ['src/ui/adapter-library.ts', 54112, '[next[index-1],next[index]]=[next[index]!,next[index-1]!]'],
-  ['src/ui/adapter-library.ts', 54385, '[next[index+1],next[index]]=[next[index]!,next[index+1]!]'],
+  ['src/ui/adapter-library.ts', 40327, '[next[index+offset],next[index]]=[next[index]!,next[index+offset]!]'],
   ['src/ui/composition.ts', 44026, '[es[i],es[j]]=[es[j],es[i]]'],
   ['src/ui/composition.ts', 56460, '[a[i-1],a[i]]=[a[i],a[i-1]]'],
   ['src/ui/request-v45-edit.ts', 12316, '[next.references[index],next.references[target]]=[next.references[target],next.references[index]]'],
@@ -104,7 +103,7 @@ async function provisional() {
 }
 const conditionalFrom = sites => ({ kind: 'd11-conditional-member-assignments-1', sites: sites.map(({ effect, ...row }) => ({ ...row, requirement: 'reviewed-data-only-array-reordering' })) });
 
-test('fully verified profile derives the complete seven reviewed member effects from exact source spans', async () => {
+test('fully verified profile derives the complete six reviewed member effects from exact source spans', async () => {
   const value = await specimen(), profile = verifyD11ApplicationProfile(value);
   const expected = expectedAssignments.map(([source, start, expression]) => {
     const text = value.sourceTextByPath[source];
