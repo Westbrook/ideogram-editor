@@ -44,6 +44,39 @@ function postResponseMetadata(page:Page,state:RunState,apiOrigin?:()=>string|und
   };
 }
 
+// Diagnostic-only DOM chronology. It observes the existing reveal actions without
+// reading application internals, input text, request bodies, or changing focus/events.
+async function observeRevealChronology(page:Page,state:RunState,prefix:string,record:unknown[],work:()=>Promise<void>){
+  const probe=await page.evaluateHandle(({prefix})=>{
+    const limit=256,rows:Record<string,unknown>[]=[],candidateId=prefix.replace(/^candidate-comparison-/,'').replace(/-lettering-(alone-off|off-on)$/,''),deferredId='request-candidate-deferred-review-'+candidateId;
+    let dropped=0,stopped=false,last='';
+    const identity=(element:Element)=>({tag:element.localName,id:element.id.slice(0,160),role:element.getAttribute('role')?.slice(0,64)??null});
+    const active=()=>{const result:ReturnType<typeof identity>[]= [];let element=document.activeElement;for(let i=0;element&&i<6;i++){result.push(identity(element));element=element.shadowRoot?.activeElement??null;}return result;};
+    const snapshot=()=>{
+      const deferred=document.getElementById(deferredId),reveal=document.getElementById(prefix+'-reveal') as (HTMLElement&{value?:unknown})|null,treatment=document.getElementById('candidate-text-treatment-'+candidateId);
+      const editor=(performance.getEntriesByName('ie.editor.updated').at(-1) as PerformanceMark|undefined)?.detail;
+      return {deferredPresent:!!deferred,reviewId:deferred?.getAttribute('data-review-id')?.slice(0,160)??null,reviewHash:deferred?.getAttribute('data-review-hash')?.slice(0,160)??null,revealPresent:!!reveal,revealValue:typeof reveal?.value==='string'?reveal.value.slice(0,32):null,staleProvenance:!!treatment?.textContent?.includes('The candidate or document changed. Reload its retained provenance and review the placement again.'),active:active(),documentId:typeof editor?.documentId==='string'?editor.documentId.slice(0,160):null,revision:typeof editor?.revision==='string'?editor.revision.slice(0,64):null};
+    };
+    const retain=(kind:string,detail:Record<string,unknown>={})=>{if(stopped)return;if(rows.length===limit){dropped++;return;}rows.push({sequence:rows.length+1,kind,epochMs:performance.timeOrigin+performance.now(),...detail,dom:snapshot()});};
+    const events=['compositionstart','compositionupdate','compositionend','focusin','focusout','beforeinput','input','change','en-input','en-change'];
+    const observe=(event:Event)=>{
+      const elements=event.composedPath().filter((value):value is Element=>value instanceof Element);
+      if(!elements.some(element=>element.classList.contains('typed-request')))return;
+      retain('event',{type:event.type,eventTimeStamp:event.timeStamp,phase:event.eventPhase,defaultPrevented:event.defaultPrevented,isComposing:'isComposing'in event?(event as InputEvent).isComposing:null,inputType:'inputType'in event&&typeof(event as InputEvent).inputType==='string'?(event as InputEvent).inputType.slice(0,64):null,path:elements.slice(0,6).map(identity)});
+    };
+    for(const event of events)document.addEventListener(event,observe,true);
+    const mutations=new MutationObserver(()=>{const current=JSON.stringify(snapshot());if(current!==last){last=current;retain('dom-change');}});
+    mutations.observe(document,{subtree:true,childList:true,attributes:true,attributeFilter:['data-review-id','data-review-hash','disabled']});
+    retain('start');last=JSON.stringify(snapshot());
+    return {stop(){retain('finish');stopped=true;mutations.disconnect();for(const event of events)document.removeEventListener(event,observe,true);return {kind:'e3-reveal-dom-chronology-1',prefix,limit,dropped,rows,responseBodiesRead:false,applicationInternalsRead:false};}};
+  },{prefix});
+  try{await work();}finally{
+    try{const result=await probe.evaluate(value=>value.stop());record.push(result);if(result.dropped)state.failures.push({phase:'reveal-chronology',error:Error('E3_REVEAL_CHRONOLOGY_LIMIT')});}
+    catch(error){state.failures.push({phase:'reveal-chronology',error});}
+    finally{try{await probe.dispose();}catch(error){state.failures.push({phase:'reveal-chronology-dispose',error});}}
+  }
+}
+
 const receipt=process.env.EDITOR_RECEIPT??'artifacts/p26-request-edits';
 const maskReReviewTitle='E3 actual-output placement re-review retains the decoded mask element without another native load';
 const nativeDeferredAdoptionTitle='E3 native deferred adoption preserves the overlay and recovers frozen native copies through encoded rebuild';
@@ -671,6 +704,7 @@ test(nativeDeferredAdoptionTitle,async({page,context,browserName})=>{
     await expect(page.locator('#candidate-text-treatment-'+candidate.id).getByText('No lettering adoption choices are confirmed.',{exact:true})).toBeVisible();
     await keyboard(button(page,'candidate-text-confirm-'+candidate.id));
     await expect(page.locator('#candidate-text-treatment-'+candidate.id).getByText('Lettering choices confirmed. Review the actual placement or its lettering comparisons before adopting.',{exact:true})).toBeVisible();
+    const revealChronology:unknown[]=[];evidence.revealChronology=revealChronology;
     const candidateCard=page.locator('.request-candidate-review[data-candidate-id="'+candidate.id+'"]');
     async function confirmActualLettering(){
       const deferred=page.locator('#request-candidate-deferred-review-'+candidate.id);
@@ -690,7 +724,9 @@ test(nativeDeferredAdoptionTitle,async({page,context,browserName})=>{
       for(const pair of ['lettering-alone-off','lettering-off-on']){
         const prefix='candidate-comparison-'+candidate.id+'-'+pair,comparison=deferred.locator('.candidate-comparison-pair').filter({has:page.locator('#'+prefix+'-mode')});
         await keyboard(comparison.getByRole('button',{name:/^Show B:/}));await expect(page.locator('#'+prefix+'-mode').getByRole('combobox')).toHaveValue('b');
-        const reveal=page.locator('#'+prefix+'-reveal').getByRole('spinbutton');await reveal.fill('25');await reveal.press('Tab');await expect(page.locator('#'+prefix+'-status')).toContainText('Reveal 25% B on the left and A on the right');
+        await observeRevealChronology(page,state,prefix,revealChronology,async()=>{
+          const reveal=page.locator('#'+prefix+'-reveal').getByRole('spinbutton');await reveal.fill('25');await reveal.press('Tab');await expect(page.locator('#'+prefix+'-status')).toContainText('Reveal 25% B on the left and A on the right');
+        });
         const geometry=await comparison.locator('svg').evaluate(svg=>({viewBox:svg.getAttribute('viewBox'),clips:[...svg.querySelectorAll('clipPath rect')].map(rect=>({x:rect.getAttribute('x'),width:rect.getAttribute('width')})),images:[...svg.querySelectorAll('image')].map(image=>({href:image.getAttribute('href'),clip:image.getAttribute('clip-path')}))}));
         expect(geometry.viewBox).toBe('0 0 512 512');expect(geometry.clips).toEqual([{x:'128',width:'384'},{x:'0',width:'128'}]);expect(geometry.images).toHaveLength(2);expect(geometry.images.every(image=>displayed.some(actual=>actual.src===image.href)&&!!image.clip)).toBe(true);comparisons.push({pair,geometry});
       }
