@@ -161,7 +161,7 @@ test('reviewed network boundary hashes are fixed independently of candidates',()
   'src/text/contracts.ts':'08207c5aab6d234ac693fda1d8a0e4f3542bf446d67fc0b8370a5d8b9b024ca3',
   'src/text/durable.ts':'6b426048f78f1a95d8a23c9b4e7724ce2774e7a0cc47bea8968b4258a2682d52',
   'src/text/engine.ts':'c86d782ccb92de17fb4a01376e16989b13114156abcd6418a011af43efb5c830',
-  'src/state/editor-client.ts':'da4f0b401496715287ca10832a227bc753e2a460dceae5993ae6e1469e7609a1',
+  'src/state/editor-client.ts':'1798f543766352ddfaa0e850132b741680f7cbdb1f0cc303940ba93683d0a04b',
  'src/observability/adapter-upload-hook.ts':'756a93d71aff8092d41c9eefa8ddabbe5983acdcc2f5350e958b3b263db8ceb9',
  'src/observability/adapter-upload.ts':'77d8bc7603e9a7db0df09369078b02381bca012c92c30c7df1a3b014b198dbba',
  'src/ui/adapter-library.ts':'2d74226de4868f840641a453d874cead9a35e432b23471d6b3d7e282ee595d80',
