@@ -136,6 +136,7 @@ async function confirmDescendantMutation(allocation, path, ancestors, before) {
 /** Streaming traversal: no content is opened and no path outside the allocation is followed.
  * This is a periodic non-atomic filesystem counter, not a filesystem write-event oracle. */
 export async function sampleVolume(allocation, { maxEntries = LIMIT, statEntry, openDirectory } = {}) {
+  const synchronousDirectory = statEntry === undefined && openDirectory === undefined;
   if (!Number.isSafeInteger(maxEntries) || maxEntries < 1 || maxEntries > LIMIT) throw Error('Evidence traversal limit must remain bounded');
   try { await checkRoot(allocation); } catch (error) { throw observationError(error, allocation.root, allocation.root, 'root-before'); }
   const startedAt = new Date().toISOString(), startMs = performance.now(), seen = new Set();
@@ -210,7 +211,7 @@ export async function sampleVolume(allocation, { maxEntries = LIMIT, statEntry, 
       phase = 'read-directory';
       const lineage = [...ancestors, { path, before }];
       let pendingEntry;
-      for await (const entry of directory) {
+      const startPending = () => {
         if (traversalFailed) throw traversalFailure;
         if (pendingEntry) {
           if (branches < 3) {
@@ -221,9 +222,24 @@ export async function sampleVolume(allocation, { maxEntries = LIMIT, statEntry, 
               .catch(rememberFailure)
               .finally(() => { branches--; children.delete(child); });
             children.add(child);
-          } else await walk(join(path, pendingEntry.name), depth + 1, lineage);
+          } else return walk(join(path, pendingEntry.name), depth + 1, lineage);
         }
-        pendingEntry = entry;
+      };
+      // Only the ordinary synchronous generator bypasses async iterator
+      // adaptation. Native for-of retains IteratorClose on abrupt completion;
+      // explicit iterators keep their original awaited values and return().
+      if (synchronousDirectory) {
+        for (const entry of directory) {
+          const pending = startPending();
+          if (pending) await pending;
+          pendingEntry = entry;
+        }
+      } else {
+        for await (const entry of directory) {
+          const pending = startPending();
+          if (pending) await pending;
+          pendingEntry = entry;
+        }
       }
       if (pendingEntry) await walk(join(path, pendingEntry.name), depth + 1, lineage);
       if (children?.size) await Promise.allSettled(children);

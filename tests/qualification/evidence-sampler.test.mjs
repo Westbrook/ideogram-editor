@@ -106,6 +106,54 @@ for(const phase of ['open','read','close'])test('default native directory '+phas
  }finally{dirs.restore();}
 });
 
+test('default IteratorClose preserves an entry-bound body failure over a closing failure',async t=>{
+ const f=await fixture(t,6),dirs=observeDefaultDirectories(t,{afterClose(){throw Object.assign(Error('private close failure'),{code:'EIO'});}});
+ try{
+  const result=await sampleVolume(f.allocation,{maxEntries:1});
+  assert.equal(result.completeTraversal,false);assert.equal(result.entries,2);assert.equal(result.uniqueFiles,0);
+  assert.deepEqual(result.failures.map(value=>value.code),['EVIDENCE_BOUND']);
+  assert.equal(dirs.records.length,1);assert.equal(dirs.records[0].closeCalls,1);assert.equal(dirs.records[0].closed,true);
+  await closed(dirs.records.map(record=>record.handle));
+ }finally{dirs.restore();}
+});
+
+test('default generator read failure retains its original finally-close error precedence',async t=>{
+ const f=await fixture(t,1),dirs=observeDefaultDirectories(t,{
+  beforeRead(){throw Object.assign(Error('private read failure'),{code:'EIO'});},
+  afterClose(){throw Object.assign(Error('private close failure'),{code:'EACCES'});},
+ });
+ try{
+  const result=await sampleVolume(f.allocation);assert.equal(result.completeTraversal,false);
+  assert.deepEqual(result.failures.map(value=>value.code),['EACCES']);assert.match(result.failures[0].message,/phase=read-directory/);
+  assert.equal(dirs.records.length,1);assert.equal(dirs.records[0].closeCalls,1);assert.equal(dirs.records[0].closed,true);
+  await closed(dirs.records.map(record=>record.handle));
+ }finally{dirs.restore();}
+});
+
+test('an explicit synchronous iterator still unwraps promise-valued directory entries',async t=>{
+ const f=await fixture(t,6),handles=[];let closeCalls=0;
+ const result=await sampleVolume(f.allocation,{async openDirectory(path){
+  const handle=await opendir(path);handles.push(handle);
+  return (function*(){try{for(let entry=handle.readSync();entry;entry=handle.readSync())yield Promise.resolve(entry);}finally{handle.closeSync();closeCalls++;}})();
+ }});
+ assert.equal(result.completeTraversal,true);assert.equal(result.entries,7);assert.equal(result.uniqueFiles,6);assert.deepEqual(result.failures,[]);
+ assert.equal(closeCalls,1);await closed(handles);
+});
+
+test('an explicit async iterator return remains awaited while a bound failure drains',async t=>{
+ const f=await fixture(t,6),handles=[],closing=gate(),release=gate();let closeCalls=0,settled=false;
+ const pending=sampleVolume(f.allocation,{maxEntries:1,async openDirectory(path){
+  const handle=await opendir(path);handles.push(handle);
+  return {[Symbol.asyncIterator](){return this;},async next(){const entry=await handle.read();if(entry)return {value:entry,done:false};await handle.close();closeCalls++;return {done:true};},
+   async return(){closing.resolve();await release.promise;await handle.close();closeCalls++;return {done:true};}};
+ }}).then(result=>{settled=true;return result;});
+ try{
+  await within(closing.promise);assert.equal(settled,false);assert.equal(closeCalls,0);
+  release.resolve();const result=await pending;assert.equal(result.completeTraversal,false);assert.equal(result.entries,2);
+  assert.deepEqual(result.failures.map(value=>value.code),['EVIDENCE_BOUND']);assert.equal(closeCalls,1);await closed(handles);
+ }finally{release.resolve();await pending;}
+});
+
 test('explicit stat injection retains the asynchronous default directory backend',async t=>{
  const f=await fixture(t,64),dirs=observeDefaultDirectories(t);let calls=0;
  try{
