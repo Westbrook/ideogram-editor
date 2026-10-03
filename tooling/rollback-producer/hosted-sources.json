@@ -53,8 +53,8 @@
     },
     {
       "path": "tooling/rollback-producer/hosted-host.py",
-      "bytes": 10226,
-      "sha256": "903c858c7cbdd5c217729cb5f1119e3dc1bf00301109bc2b61e1e3f305d58a5a"
+      "bytes": 10551,
+      "sha256": "f0bc96bd9dc3f463a218f43d4f813bf79d88627012b844a24bf73ada0de04901"
     },
     {
       "path": "tooling/rollback-producer/hosted-inputs.json",
@@ -73,8 +73,8 @@
     },
     {
       "path": "tooling/rollback-producer/hosted-setup.py",
-      "bytes": 30597,
-      "sha256": "2972e0587dfb8d979a8c591c96f9119f6ccc28f86421dbb90b061d652d3a9ff7"
+      "bytes": 30617,
+      "sha256": "7588022567dcc83533d9e0173edd2d1d2f37dab5198f8ac479610492c7360136"
     },
     {
       "path": "tooling/rollback-producer/hosted-worker.py",
