@@ -931,6 +931,13 @@ for(const boundary of ['document','session','identity','connection','draft-owner
  if(boundary==='connection')f.editor.session={...f.editor.session};
  if(boundary==='draft-owner')f.editor.draftOwner={drafts:new Map()};
  if(boundary==='document-epoch')f.editor.documentEpoch++;
+ // The real shell syncs RequestEditing on public owner changes; this fixture's
+ // host only renders. A document/draft-owner replacement must restore its own
+ // entry and queue before a successor deletion lease can later resume reads.
+ if(boundary==='document'||boundary==='draft-owner')assert.equal(f.instance.owns(false)(),false,'The retired entry cannot authorize a successor read');
+ await f.instance.sync();await flush();
+ assert.strictEqual(f.instance.owner,f.editor.draftOwner);assert.equal(f.instance.documentId,f.editor.view.document.id);assert.equal(f.instance.owns(false)(),true,'The real sync restored current request authority');
+ await f.instance.refreshQueue();await flush();assert(f.instance.queue,'The successor queue is actually hydrated');assert.equal(f.instance.queue.jobs[0].id,'newest');assert.equal(pageNumber(f),1);
  const successor=f.instance.pauseDocumentObservation(f.editor.view.document.id);await successor.drain;const token=f.instance.observationBarrier,reads=f.reads.length;
  try{old.accepted();old.release();await f.advance(300);assert.strictEqual(f.instance.observationBarrier,token);assert.equal(f.reads.length,reads);successor.release();await f.advance(150);assert.equal(f.reads.length,reads+1);}
  finally{old.release();successor.release();await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
