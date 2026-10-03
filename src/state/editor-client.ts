@@ -278,18 +278,33 @@ export class EditorClient {
     void this.recoveryDrain.catch(error=>{this.recoveryFailure=error;this.fail(error);});return this.recoveryDrain;
   }
   private startStream(lifetime: number) {
-    const consumer=this.consumer;if(!consumer||this.syncTask||this.recoveryFailure||lifetime!==this.lifecycle||this.stream&&!this.stream.signal.aborted)return;
+    const consumer=this.consumer,cache=this.cache;if(!consumer||!cache||this.syncTask||this.recoveryFailure||lifetime!==this.lifecycle||this.stream&&!this.stream.signal.aborted)return;
     const abort = new AbortController(); this.stream=abort;
-    // Poll only the published pointer while the real SSE consumer publishes whole transactions.
-    let cursor=this.view.cursor;
-    const timer=setInterval(()=>{void this.cache?.published().then(p=>{if(p.cursor!==cursor){cursor=p.cursor;void this.refresh().catch(e=>this.fail(e));}});},100);
+    const owner=this.owner,session=this.session,identity=session.identity();let retired=false;
+    const current=()=>!retired&&!abort.signal.aborted&&this.stream===abort&&consumer===this.consumer&&cache===this.cache&&lifetime===this.lifecycle&&owner===this.owner&&session===this.session&&identity===session.identity()&&!this.syncTask&&!this.recoveryFailure&&!this.disposalPending;
+    // A whole recovery can replace the generation without advancing its cursor.
+    // This is a scheduling watermark, never proof that a model was published.
+    let observed:{generation:string;cursor:string;epoch:string|null}|undefined,pointerTask:Promise<void>|undefined,pointerFailed=false;
+    const timer=setInterval(()=>{
+      if(!current()||pointerTask||pointerFailed)return;
+      pointerTask=(async()=>{
+        try{
+          const pointer=await cache.published();if(!current())return;
+          if(observed&&pointer.generation===observed.generation&&pointer.cursor===observed.cursor&&pointer.epoch===observed.epoch)return;
+          observed={generation:pointer.generation,cursor:pointer.cursor,epoch:pointer.epoch};
+          // A changed identity coalesces through refreshAgain while an older
+          // version-fenced read drains; a stable refusal cannot spin on ticks.
+          void this.refresh().catch(error=>{if(current())this.fail(error);});
+        }catch(error){if(current()){pointerFailed=true;this.fail(error);}}
+      })().finally(()=>{pointerTask=undefined;});
+    },100);
     this.streamTask=consumer.consumeStream(abort.signal).catch(error=>{
       if(!abort.signal.aborted&&lifetime===this.lifecycle){
         this.patch({recovery:'Updates interrupted. Recovering complete transactions; the last valid view is retained.'});
         abort.abort();clearTimeout(this.retryTimer);
         this.retryTimer=setTimeout(()=>{const d=this.view.document,reconnect=browserPhases.recorder.start('reconnect',d?{documentId:d.id,revision:d.revision}:{});void this.sync().then(()=>{if(lifetime!==this.lifecycle){reconnect.end('cancelled');return;}reconnect.end('incomplete',{boundary:'observed'});this.retryDelay=250;this.patch({recovery:''});this.startStream(lifetime);}).catch(e=>{reconnect.end('error');this.fail(e);this.retryDelay=Math.min(4000,this.retryDelay*2);this.startStream(lifetime);});},this.retryDelay);
       }
-    }).finally(()=>clearInterval(timer));
+    }).finally(async()=>{retired=true;clearInterval(timer);await pointerTask;});
   }
   async sync() {
     if(this.syncTask)return this.syncTask;

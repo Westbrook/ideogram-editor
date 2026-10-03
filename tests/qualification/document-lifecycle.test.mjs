@@ -185,3 +185,93 @@ test('late command completion cannot restart SSE while another command owns reco
   editor.startStream(editor.lifecycle);assert.equal(streams,1);
  }finally{released.resolve();recovered.resolve();await sync;editor.stream?.abort();await editor.streamTask;}
 });
+
+// Actual startStream and retirement methods; the cache/refresh/consumer boundaries
+// expose scheduling outcomes only. Real refresh/read/model convergence is covered
+// separately by the unchanged view-model-ownership whole owner.
+async function pointerPollFixture(t){
+ const {allocationLedger}=await import(allocationsURL),totals=()=>{const s=allocationLedger.snapshot();return {cpuBytes:s.cpuBytes,gpuBytes:s.gpuBytes,handles:s.handles,activeRecords:s.activeRecords,promptBytes:s.promptBytes};},before=totals();
+ const {editor}=fixture(),timers=new Map(),nativeClearInterval=globalThis.clearInterval,gates=[],ends=[];
+ const state={pointer:{generation:'g0',cursor:'1',epoch:'1'},identity:'client',readGate:null,readError:null,refreshGate:null,refreshError:null,reads:0,active:0,maximumActive:0,refreshes:0,recoveries:0,streams:0,closed:0,errors:[]};let timerId=0;
+ t.mock.method(globalThis,'setInterval',(callback,delay)=>{assert.equal(delay,100);const timer={id:++timerId};timers.set(timer,callback);return timer;});
+ t.mock.method(globalThis,'clearInterval',timer=>{if(!timers.delete(timer))nativeClearInterval(timer);});
+ const gate=()=>{const value=deferred();gates.push(value);return value;},turn=()=>new Promise(resolve=>setImmediate(resolve));
+ editor.owner='client';editor.session.identity=()=>state.identity;editor.patch({cursor:'1'});
+ const cache={async published(){state.reads++;state.active++;state.maximumActive=Math.max(state.maximumActive,state.active);const value={...state.pointer},hold=state.readGate;try{if(hold)await hold.promise;if(state.readError)throw state.readError;return value;}finally{state.active--;}},close(){assert.equal(state.active,0,'Cache cannot close before its admitted pointer read drains');state.closed++;}};
+ const consumer={cancel(){},async release(){},async recover(){state.recoveries++;assert.fail('No recovery may repair this scheduling fixture');},consumeStream(signal){state.streams++;const end=gate();ends.push(end);if(signal.aborted)end.resolve();else signal.addEventListener('abort',()=>end.resolve(),{once:true});return end.promise;}};
+ editor.cache=cache;editor.consumer=consumer;
+ editor.refresh=async()=>{state.refreshes++;if(state.refreshGate)await state.refreshGate.promise;if(state.refreshError)throw state.refreshError;};
+ const fail=editor.fail.bind(editor);editor.fail=error=>{state.errors.push(error);fail(error);};
+ let closed=false;
+ const close=async()=>{if(closed)return;closed=true;for(const held of gates)held.resolve();if(state.closed===0){editor.cache=cache;editor.consumer=consumer;editor.syncTask=undefined;await editor.dispose();}editors.delete(editor);assert.equal(timers.size,0);assert.equal(state.closed,1);assert.equal(state.active,0);assert.equal(state.recoveries,0);assert.deepEqual(totals(),before);};
+ return {editor,state,cache,consumer,timers,gate,turn,ends,close,start(){editor.startStream(editor.lifecycle);},async poll(){assert.equal(timers.size,1);[...timers.values()][0]();await turn();}};
+}
+
+test('pointer polling wakes once for each generation, cursor and epoch identity',async t=>{
+ const f=await pointerPollFixture(t);try{
+  f.start();await f.poll();assert.equal(f.state.refreshes,1,'First observation cannot assume the current view is complete');
+  await f.poll();await f.poll();assert.equal(f.state.refreshes,1);
+  f.state.pointer={...f.state.pointer,generation:'g1'};await f.poll();assert.equal(f.state.refreshes,2,'Same cursor with a new generation must wake');
+  f.state.pointer={...f.state.pointer,cursor:'2'};await f.poll();assert.equal(f.state.refreshes,3);
+  f.state.pointer={...f.state.pointer,epoch:'2'};await f.poll();assert.equal(f.state.refreshes,4);await f.poll();assert.equal(f.state.refreshes,4);assert.equal(f.state.errors.length,0);
+ }finally{await f.close();}
+});
+
+test('pointer polling keeps one admitted read and stream disposal waits for it',async t=>{
+ const f=await pointerPollFixture(t);let disposing;try{
+  f.state.readGate=f.gate();f.start();await f.poll();await f.poll();await f.poll();assert.equal(f.state.reads,1);assert.equal(f.state.active,1);assert.equal(f.state.maximumActive,1);
+  let settled=false;disposing=f.editor.dispose().then(()=>{settled=true;});await f.turn();assert.equal(settled,false);assert.equal(f.state.closed,0);assert.equal(f.state.active,1);
+  f.state.readGate.resolve();await disposing;assert.equal(f.state.refreshes,0);assert.equal(f.state.errors.length,0);assert.equal(f.state.closed,1);assert.equal(f.timers.size,0);
+ }finally{for(const end of f.ends)end.resolve();f.state.readGate?.resolve();await disposing;await f.close();}
+});
+
+for(const retirement of ['abort','lifecycle','owner','session-identity','cache','consumer','sync'])test(`late pointer result cannot refresh after ${retirement} changes`,async t=>{
+ const f=await pointerPollFixture(t);try{
+  f.state.readGate=f.gate();f.start();await f.poll();assert.equal(f.state.active,1);
+  if(retirement==='abort')f.editor.stream.abort();
+  else if(retirement==='lifecycle')f.editor.lifecycle++;
+  else if(retirement==='owner')f.editor.owner='replacement-owner';
+  else if(retirement==='session-identity')f.state.identity='replacement-session';
+  else if(retirement==='cache')f.editor.cache={close(){}};
+  else if(retirement==='consumer')f.editor.consumer={cancel(){},async release(){}};
+  else f.editor.syncTask=Promise.resolve();
+  f.state.readGate.resolve();await f.turn();assert.equal(f.state.active,0);assert.equal(f.state.refreshes,0);assert.equal(f.state.errors.length,0);
+ }finally{await f.close();}
+});
+
+test('naturally completed stream drains a pending pointer without a late refresh',async t=>{
+ const f=await pointerPollFixture(t);try{
+  f.state.readGate=f.gate();f.start();await f.poll();let ended=false;const stream=f.editor.streamTask.then(()=>{ended=true;});
+  f.ends[0].resolve();await f.turn();assert.equal(ended,false);assert.equal(f.timers.size,0);f.state.readGate.resolve();await stream;assert.equal(f.state.refreshes,0);assert.equal(f.state.errors.length,0);
+ }finally{await f.close();}
+});
+
+test('pointer read failure is reported once and explicit stream restart can observe again',async t=>{
+ const f=await pointerPollFixture(t),failure=Error('Pointer read unavailable');try{
+  f.state.readError=failure;f.start();await f.poll();assert.deepEqual(f.state.errors,[failure]);assert.equal(f.state.refreshes,0);assert.match(f.editor.view.error,/Pointer read unavailable/);
+  await f.poll();await f.poll();assert.equal(f.state.reads,1);assert.equal(f.state.errors.length,1);
+  f.editor.stream.abort();await f.editor.streamTask;f.state.readError=null;f.start();await f.poll();assert.equal(f.state.reads,2);assert.equal(f.state.refreshes,1);assert.equal(f.state.errors.length,1);
+ }finally{await f.close();}
+});
+
+test('late rejected pointer read is drained without reporting into a disconnected view',async t=>{
+ const f=await pointerPollFixture(t);try{
+  f.state.readGate=f.gate();f.start();await f.poll();f.editor.disconnect();const disconnected=f.editor.view;
+  f.state.readError=Error('Old pointer unavailable');f.state.readGate.resolve();await f.editor.streamTask;await f.turn();assert.equal(f.editor.view,disconnected);assert.equal(f.state.errors.length,0);assert.equal(f.state.refreshes,0);
+ }finally{await f.close();}
+});
+
+test('a stable refresh refusal does not spin and a later publication remains observable',async t=>{
+ const f=await pointerPollFixture(t),failure=Error('Fixture model refusal');try{
+  f.state.refreshError=failure;f.start();await f.poll();assert.equal(f.state.refreshes,1);assert.deepEqual(f.state.errors,[failure]);
+  await f.poll();await f.poll();assert.equal(f.state.refreshes,1);assert.equal(f.state.errors.length,1);
+  f.state.refreshError=null;f.state.pointer={...f.state.pointer,generation:'later'};await f.poll();assert.equal(f.state.refreshes,2);assert.equal(f.state.errors.length,1);
+ }finally{await f.close();}
+});
+
+test('late refresh refusal cannot overwrite a disconnected view',async t=>{
+ const f=await pointerPollFixture(t);try{
+  f.state.refreshGate=f.gate();f.start();await f.poll();assert.equal(f.state.refreshes,1);f.editor.disconnect();const disconnected=f.editor.view;
+  f.state.refreshError=Error('Retired model refusal');f.state.refreshGate.resolve();await f.turn();assert.equal(f.editor.view,disconnected);assert.equal(f.state.errors.length,0);
+ }finally{await f.close();}
+});
