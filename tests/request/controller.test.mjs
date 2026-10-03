@@ -828,3 +828,45 @@ test('retired queue command cannot restart polling or disturb a successor action
  try{receipt.resolve([{type:'QueueStateChanged',payload:{}}]);await command;await flush();assert.strictEqual(f.instance.queueAction,replacement);assert.equal(f.instance.queueBusy,true);assert.equal(f.instance.pollTimer,null);await f.advance(300);assert.equal(f.reads.length,reads);assert.deepEqual(f.focus,[]);}
  finally{receipt.resolve([]);await command;await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
 });
+
+
+// Exercise the actual rendered request-region callbacks with the public composed
+// path shape observed by the E3 Firefox reveal diagnostic. This fixture does not
+// simulate browser composition dispatch or the actual comparison rendering.
+const e3CompositionEvent=(rootClass='candidate-comparison')=>({composedPath:()=>[
+ {id:'control'}, {id:'candidate-comparison-fixture-lettering-alone-off-reveal'},
+ {classList:{contains:name=>name===rootClass}},
+ {classList:{contains:name=>name==='typed-request'}},
+]});
+const e3CompositionCallbacks=f=>find(f.template(),'<section aria-label="Typed request draft"').values.filter(value=>typeof value==='function').slice(0,2);
+
+test('comparison composition preserves the saved request and its existing review ownership',async()=>{
+ const f=fixture();await f.initial();f.prompt()(f.promptEvent('Retained exact request'));await flush();f.button()(event());await tick();await flush();
+ assert.equal(f.reviews.length,1);const review=f.instance.review,entry=f.instance.entry(),generation=entry.generation,saved=f.saved.length,owns=f.instance.owns();assert(review);assert(owns());
+ const [start,end]=e3CompositionCallbacks(f),comparison=e3CompositionEvent();
+ start(comparison);await flush();assert.equal(f.instance.composing,false);assert(owns(),'View-control composition must not invalidate a saved request owner');
+ end(comparison);await flush();assert.equal(f.instance.composing,false);assert(owns());assert.equal(f.instance.entry(),entry);assert.equal(f.instance.entry().generation,generation);assert.equal(f.saved.length,saved);assert.equal(f.instance.review,review);assert.equal(f.reviews.length,1);
+});
+
+test('genuine request composition still invalidates its prior owner and saves the settled composing state',async()=>{
+ const f=fixture();await f.initial();f.prompt()(f.promptEvent('Original request'));await flush();const owns=f.instance.owns(),saved=f.saved.length,[start,end]=e3CompositionCallbacks(f),prompt={composedPath:()=>[{id:'prompt'},{classList:{contains:name=>name==='typed-request'}}]};
+ start(prompt);await flush();assert.equal(f.instance.composing,true);assert.equal(owns(),false);assert(f.saved.length>saved);assert.equal(f.saved.at(-1).composing,true);
+ end(prompt);await flush();assert.equal(f.instance.composing,false);assert.equal(f.saved.at(-1).composing,false);
+});
+
+test('comparison composition end cannot release a genuine spend-cap composition command guard',async()=>{
+ const f=await capController(),host={value:'',isConnected:true},[start,end]=e3CompositionCallbacks(f),cap={composedPath:()=>[{id:'request-cap'},{classList:{contains:name=>name==='typed-request'}}]};
+ start(cap);await flush();const [input,change]=f.field();input(capEvent(host,'1',true));host.value='1';change(capEvent(host));input(capEvent(host,'1',false));await flush();
+ const saved=f.saved.length,owns=f.instance.owns();end(e3CompositionEvent());await flush();assert.equal(f.instance.composing,true);assert.equal(f.saved.length,saved);assert(owns());await submitCap(f);assert.deepEqual(f.commands,[]);
+ end(cap);await flush();assert.equal(f.instance.composing,false);await submitCap(f);assert.deepEqual(f.commands,[{document:null,body:{type:'SetSpendGuard',spendSessionId:'spend-session',expectedConfigVersion:'4',cap:1}}]);assert.equal(f.saved.at(-1).composing,false);
+});
+
+test('a similarly named class cannot suppress genuine request composition ownership',async()=>{
+ const f=fixture();await f.initial();const [start,end]=e3CompositionCallbacks(f),owns=f.instance.owns(),unrelated=e3CompositionEvent('candidate-comparison-pair');
+ start(unrelated);await flush();assert.equal(f.instance.composing,true);assert.equal(owns(),false);end(unrelated);await flush();assert.equal(f.instance.composing,false);assert.equal(f.saved.at(-1).composing,false);
+});
+
+test('retired rendered request composition callbacks cannot mutate a successor identity',async()=>{
+ const f=fixture();await f.initial();const [start,end]=e3CompositionCallbacks(f),saved=f.saved.length;f.identity('replacement-owner');
+ start({composedPath:()=>[{id:'prompt'}]});end({composedPath:()=>[{id:'prompt'}]});await flush();assert.equal(f.saved.length,saved);assert.equal(f.instance.composing,false);
+});
