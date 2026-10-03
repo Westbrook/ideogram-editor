@@ -42,6 +42,10 @@ on:
           - editor-document-creation
           - editor-command-search
           - e1
+          - request-v45-generation
+          - request-v45-edit
+          - e3
+          - e4
       browser:
         description: Pinned engine for the selected whole browser family
         required: false

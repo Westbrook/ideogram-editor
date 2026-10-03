@@ -953,7 +953,7 @@ const fastBrowserPlan = (family = 'editor-document-creation', engine = 'chromium
 });
 const browserDeadlineSource = path => readFileSync(path,'utf8');
 test('Fast browser selection preserves every reviewed whole family on exactly one pinned engine',()=>{
- assert.equal(fastBrowserFamilies.length,27);assert.equal(new Set(fastBrowserFamilies).size,27);
+ assert.equal(fastBrowserFamilies.length,31);assert.equal(new Set(fastBrowserFamilies).size,31);
  for(const engine of ['chromium','firefox','webkit'])for(const family of fastBrowserFamilies){
   const plan=fastBrowserPlan(family,engine),setup=selectedFastBrowserSetup(process.cwd(),family,engine);
   const original=createBrowserPlan({selection:engine,scope:'features',output:plan.browserPlan.output}).steps.find(step=>step.family===family);
@@ -973,6 +973,41 @@ test('Fast browser selection preserves every reviewed whole family on exactly on
   assert.equal(setup.totalBudgetMs,units.reduce((sum,row)=>sum+row.timeoutMs+row.graceMs+row.exitObservationMs,0)+40*60_000+15*60_000);
   assert.equal(setup.jobMinutes,180);assert(setup.totalBudgetMs<=180*60_000);
   assert.equal(setup.qualification,false);assert.equal(plan.selectedFiles.length,0);
+ }
+});
+test('Fast request and recovery dispatch preserves the exact existing full contracts without extra fixtures or authority',()=>{
+ const owners=[
+  ['request-v45-generation','tests/request/v45-generation.config.ts','tests/request/v45-generation.spec.ts',[]],
+  ['request-v45-edit','tests/request-edits/v45.config.ts','tests/request-edits/v45-public.spec.ts',[]],
+  ['e3','tests/request-edits/playwright.config.ts','tests/request-edits/public.spec.ts',['E3']],
+  ['e4','tests/recovery/p25.config.ts','tests/recovery/e4.spec.ts',['E4']],
+ ];
+ for(const [family,config,file,contracts] of owners)for(const engine of ['chromium','firefox','webkit']){
+  const plan=fastBrowserPlan(family,engine),setup=selectedFastDispatchSetup(process.cwd(),{
+   SELECTED_NODE_FILES:'',SELECTED_BROWSER_FAMILY:family,SELECTED_BROWSER:engine,
+  });
+  const destination=join(plan.browserPlan.output,`${family}-${engine}`);
+  assert.equal(plan.browserPlan.steps.length,1,'no historical, prompt, native or extra-engine fixture is injected');
+  const [step]=plan.browserPlan.steps;
+  assert.equal(step.id,`${family}-${engine}`);assert.equal(step.config,config);assert.deepEqual(step.files,[file]);
+  assert.deepEqual(step.contracts,contracts);assert.deepEqual(step.prerequisites,[]);
+  assert.deepEqual(step.args,['exec','--','playwright','test','--config',config,file,
+   '--forbid-only','--max-failures=1','--reporter','list,json,./tooling/qualification/developer-campaigns/browser-reporter.mjs']);
+  assert.deepEqual(step.env,{EDITOR_RECEIPT:destination,EDITOR_BROWSER:engine,
+   PLAYWRIGHT_JSON_OUTPUT_FILE:join(destination,'browser.json'),QUALIFICATION_CASE_REPORT:join(destination,'cases.ndjson')});
+  assert.deepEqual(plan.browserPlan.prerequisites,['build-app','build-server','raster-inputs']);
+  assert.deepEqual(setup.gates.map(gate=>gate.id),['typecheck','preflight','completion-source','storage-environment',
+   'vendor','text-inputs','imports','raster-inputs','build-server','build-app']);
+  assert.deepEqual(setup.selectedFiles,[file]);assert.deepEqual(plan.selectedFiles,[]);
+  assert.deepEqual(setup.requiredBrowsers,[engine]);assert.deepEqual(setup.history,[]);
+  assert.deepEqual(setup.browserSteps,[{id:`${family}-${engine}`,timeoutMs:1800000,graceMs:5000,exitObservationMs:100}]);
+  assert.equal(setup.totalBudgetMs,7456200);assert.equal(setup.qualification,false);
+  for(const mutate of [
+   changed=>{changed.browserPlan.steps[0].files=['tests/request/review.spec.ts'];},
+   changed=>{changed.browserPlan.steps[0].env.EDITOR_BROWSER=engine==='chromium'?'firefox':'chromium';},
+   changed=>{changed.browserPlan.steps[0].contracts=['unreviewed-contract'];},
+   changed=>{changed.browserPlan.steps[0].args.push('--grep','one case');},
+  ]){const changed=structuredClone(plan);mutate(changed);assert.throws(()=>fastBrowserSetupPlan(changed,{sourceFor:browserDeadlineSource}),/complete maintained family/);}
  }
 });
 test('Fast browser admission refuses mixed, partial, unknown or widened selections while preserving the Node branch',()=>{

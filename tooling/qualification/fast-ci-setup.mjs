@@ -38,6 +38,7 @@ export const fastBrowserFamilies = Object.freeze([
   'editor-portable', 'editor-recovery', 'editor-recovery-copy', 'editor-storage-library',
   'editor-tool-rail', 'editor-zoom-tool', 'editor-display-image',
   'editor-candidate-comparison', 'editor-document-creation', 'editor-command-search', 'e1',
+  'request-v45-generation', 'request-v45-edit', 'e3', 'e4',
 ]);
 const fastBrowserEngines = ['chromium', 'firefox', 'webkit'];
 
