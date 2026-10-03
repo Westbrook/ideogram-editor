@@ -1,5 +1,9 @@
 # Continue Ideogram Editor in another harness
 
+## Current work — Complete Pages validation export
+
+The scoped Pages validation artifact upload now explicitly includes hidden files. This one-line workflow correction addresses the retained45-byte Playwright bookkeeping omission found in37131850608. The upload path remains `artifacts/pages-validation`; public-artifact contents, credentials, action pins, tests and limits are unchanged. A new actual Pages CI/export must prove every retention-index member is present, including that run's `.last-run.json`. No export completion or core qualification credit is claimed before that verification. Preserve the prior archive and its disclosed omission.
+
 ## Latest publication checkpoint — Main and full editor verified
 
 All reviewed source work through `60d5a7aaf75c3430ee9e1adf11b047fc821bece6` is centralized in remote main. Its automatic Pages workflow37131850608 attempt1 succeeded: build job111228348479 and publish job111229044229. The additive gh-pages commit is `99fe8c6d6ef2dfce2032aa173085b3df43e06db8`, artifact tree `6a2136c0da038a9ead6ddc566e8d5941c4d857e9`, manifest SHA256 `c57c0ffbe50a1f386b8166e8a946409e354143672f27f883c6d17de9140126f1`. Deployment6829236917/status19217112583 succeeded and is bound to that publish job. The full disconnected editor remains live at https://westbrook.github.io/ideogram-editor/ with the same Spectrum-inspired theme as the local editor; the native text/PNG demo remains available.

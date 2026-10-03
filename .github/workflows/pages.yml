@@ -56,6 +56,7 @@ jobs:
         with:
           name: pages-validation-${{ github.run_id }}-${{ github.run_attempt }}
           path: artifacts/pages-validation
+          include-hidden-files: true
           if-no-files-found: warn
           retention-days: 90
       - name: Bind publication to the successful artifact manifest
