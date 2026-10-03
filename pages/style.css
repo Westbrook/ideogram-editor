@@ -1,6 +1,11 @@
 /* The real production Spectrum theme supplies every UI color and control token.
    The checkerboard is deliberately neutral: it denotes transparent image pixels. */
 .pages-preview { max-inline-size: 1600px; margin-inline: auto; min-block-size: 100dvh; }
+/* Theme changes must paint button labels and surfaces together. Keep the
+   independent press/scale, translation and focus motion tokens unchanged. */
+.pages-preview en-button[variant="secondary"]::part(control),
+.pages-preview en-number-field::part(decrement),
+.pages-preview en-number-field::part(increment) { --en-duration-fast: 0ms; }
 .preview-skip { position: fixed; inset: 8px auto auto 8px; transform: translateY(-160%); z-index: 10; padding: 12px 16px; border-radius: var(--en-radius-control); background: var(--en-color-surface); border: 1px solid var(--en-color-boundary); }
 .preview-skip:focus { transform: none; }
 .preview-header { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 18px 32px; border-block-end: 1px solid var(--en-color-line); background: var(--en-color-surface); }
