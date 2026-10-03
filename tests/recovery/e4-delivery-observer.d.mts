@@ -1,5 +1,5 @@
 export type DeliveryObserverOptions = {
-  profile?: 'v45-post';
+  profile?: 'v45-post' | 'queue-ui' | 'portable-review';
   limits?: Partial<Record<'bodyBytes' | 'totalBytes' | 'pending' | 'rows' | 'errors', number>>;
 };
 /** Serialized fixture installation; does not consume or replace native results. */

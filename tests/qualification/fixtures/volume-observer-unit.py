@@ -150,7 +150,7 @@ class Controls(unittest.TestCase):
         self.assertEqual([a['endMonotonicUs'] for a in value['attempts']], [30_000, 160_000])
         first, second = value['attempts']
         self.assertEqual((first['status'], first['counts'], first['drained']), ('unknown', None, True))
-        self.assertEqual(first['errors'], [{'code': 'EVIDENCE_MUTATION', 'path': '/capsule/payload', 'errno': None}])
+        self.assertEqual(first['errors'], [{'code': 'EVIDENCE_MUTATION', 'path': '/capsule/payload', 'errno': None, 'mutation': {'category': 'child-after-walk-stat', 'statChanges': [{'field': 'st_size', 'before': '1', 'after': '2'}]}}])
         self.assertEqual((value['status'], value['selectedAttempt'], second['counts']['allocatedBytes']), ('complete', 1, 4608))
         self.assertEqual((value['windowStartMonotonicUs'], value['windowEndMonotonicUs']), (0, 160_000))
         self.assertEqual((fs.opened, fs.closed), (2, 2))
@@ -263,6 +263,121 @@ class Controls(unittest.TestCase):
         with patch.object(observer.time, 'sleep') as sleep:
             observer.Clock().sleep_us(1234)
         sleep.assert_called_once_with(0.001234)
+
+
+    def test_stat_failure_categories_use_existing_reads_and_close_handles(self):
+        for category in ('directory-entry-stat','directory-final-stat','root-final-stat'):
+            with self.subTest(category=category):
+                clock=Clock()
+                class Changed(Filesystem):
+                    directory_reads=0
+                    root_reads=0
+                    def stat_directory(self, descriptor):
+                        self.directory_reads+=1
+                        value=stamp(11,directory=True)
+                        if (category=='directory-entry-stat' and self.directory_reads==1) or (category=='directory-final-stat' and self.directory_reads==2):value.st_ctime_ns=2
+                        return value
+                    def root_stat(self):
+                        self.root_reads+=1
+                        value=stamp(11,directory=True)
+                        if category=='root-final-stat' and self.root_reads%2==0:value.st_mtime_ns=-2
+                        return value
+                fs=Changed(clock);request=self.request()
+                scan=observer.Scan(request,fs,clock,observer.MAX_WINDOW_US)
+                with self.assertRaises(observer.ObservationError) as caught:scan.run()
+                error=caught.exception.record
+                field='st_mtime_ns' if category=='root-final-stat' else 'st_ctime_ns'
+                self.assertEqual(error['mutation'],{'category':category,'statChanges':[{'field':field,'before':'1','after':'-2' if category=='root-final-stat' else '2'}]})
+                self.assertEqual((fs.handles,fs.iterators,fs.opened,fs.closed),(0,0,1,1))
+                self.assertEqual(fs.directory_reads,1 if category=='directory-entry-stat' else 2)
+                self.assertEqual(fs.root_reads,2 if category=='root-final-stat' else 1)
+
+    def test_inode_revisit_difference_is_distinct_from_child_recheck(self):
+        clock=Clock()
+        class Alias(Filesystem):
+            def names(self, descriptor):
+                yield 'first'
+                yield 'second'
+            def child_stat(self, descriptor, name):return stamp(12,size=1 if name=='first' else 2)
+        fs=Alias(clock);value=self.observe(clock,fs)
+        self.assertEqual(value['status'],'unknown')
+        self.assertTrue(all(a['errors'][0]['mutation']=={'category':'inode-revisit-stat','statChanges':[{'field':'st_size','before':'1','after':'2'}]} for a in value['attempts']))
+        self.assertEqual((fs.opened,fs.closed),(3,3));self.chain(value)
+
+    def test_membership_and_digest_failures_do_not_invent_stat_differences_or_reread(self):
+        for category in ('duplicate-directory-name','directory-membership','directory-children-digest'):
+            with self.subTest(category=category):
+                clock=Clock()
+                class Changed(Filesystem):
+                    enumerations=0
+                    directory_reads=0
+                    def names(self, descriptor):
+                        self.enumerations+=1
+                        yield 'payload'
+                        if category=='duplicate-directory-name' or (category=='directory-membership' and self.enumerations==2):yield 'payload' if category=='duplicate-directory-name' else 'new'
+                    def child_stat(self, descriptor, name):
+                        self.child_reads+=1
+                        return stamp(12,size=2 if category=='directory-children-digest' and self.child_reads==3 else 1)
+                    def stat_directory(self, descriptor):
+                        self.directory_reads+=1
+                        return self.root
+                fs=Changed(clock);scan=observer.Scan(self.request(),fs,clock,observer.MAX_WINDOW_US)
+                with self.assertRaises(observer.ObservationError) as caught:scan.run()
+                self.assertEqual(caught.exception.record['mutation'],{'category':category,'statChanges':None})
+                self.assertEqual(fs.directory_reads,1)
+                self.assertEqual(fs.child_reads,{'duplicate-directory-name':0,'directory-membership':2,'directory-children-digest':3}[category])
+                self.assertEqual((fs.handles,fs.opened,fs.closed),(0,1,1))
+
+    def test_mutating_io_records_only_category_and_original_errno(self):
+        for enumeration in (False,True):
+            with self.subTest(enumeration=enumeration):
+                clock=Clock()
+                class Missing(Filesystem):
+                    def names(self, descriptor):
+                        if enumeration:raise OSError(errno.ESTALE,'secret-error-text')
+                        yield 'payload'
+                fs=Missing(clock,child_error=errno.ENOENT);value=self.observe(clock,fs)
+                error=value['attempts'][0]['errors'][0]
+                self.assertEqual(error['errno'],errno.ESTALE if enumeration else errno.ENOENT)
+                self.assertEqual(error['mutation'],{'category':'directory-enumeration' if enumeration else 'filesystem-operation','statChanges':None})
+                self.assertNotIn('secret-error-text',json.dumps(value));self.assertEqual((fs.handles,fs.opened,fs.closed),(0,3,3));self.chain(value)
+
+    def test_stat_detail_is_bounded_to_ten_actual_numeric_fields(self):
+        clock=Clock()
+        class AllFields(Filesystem):
+            def child_stat(self, descriptor, name):
+                self.child_reads+=1
+                value=stamp(12)
+                if self.child_reads%2==0:
+                    for field in observer.STAT_FIELDS:setattr(value,field,getattr(value,field)+1)
+                    value.st_mtime_ns=-(2**63);value.st_ctime_ns=2**63-1
+                return value
+        fs=AllFields(clock);value=self.observe(clock,fs)
+        self.assertEqual((len(value['attempts']),value['selectedAttempt'],value['status']),(3,None,'unknown'))
+        for attempt in value['attempts']:
+            detail=attempt['errors'][0]['mutation'];self.assertEqual(detail['category'],'child-after-walk-stat')
+            self.assertEqual([row['field'] for row in detail['statChanges']],list(observer.STAT_FIELDS))
+            self.assertTrue(all(type(row['before']) is str and type(row['after']) is str and len(row['after'])<=20 for row in detail['statChanges']))
+        self.assertLess(len(observer.canonical(value)),observer.MAX_OUTPUT_BYTES);self.chain(value)
+
+    def test_diagnostic_construction_failure_preserves_original_refusal_and_drain(self):
+        clock,fs=self.fixture(persistent=True)
+        original=observer.mutation_error
+        def unavailable(path,category,before=None,after=None,number=None):
+            with patch.object(observer,'STAT_FIELDS',None):return original(path,category,before,after,number)
+        with patch.object(observer,'mutation_error',side_effect=unavailable):value=self.observe(clock,fs)
+        self.assertTrue(all(a['errors']==[{'code':'EVIDENCE_MUTATION','path':'/capsule/payload','errno':None}] for a in value['attempts']))
+        self.assertEqual((value['status'],len(value['attempts']),fs.handles,fs.closed),('unknown',3,0,3));self.chain(value)
+
+    def test_diagnostic_cost_remains_inside_original_window(self):
+        clock,fs=self.fixture(persistent=True);original=observer.mutation_error
+        def slow(*args,**kwargs):
+            error=original(*args,**kwargs);clock.now+=1_000_000;return error
+        with patch.object(observer,'mutation_error',side_effect=slow):value=self.observe(clock,fs)
+        self.assertEqual((value['status'],value['selectedAttempt'],len(value['attempts']),clock.sleeps),('unknown',None,1,[]))
+        self.assertEqual(value['windowEndMonotonicUs'],1_030_000)
+        self.assertEqual((fs.handles,fs.closed),(0,1));self.chain(value)
+
 
 
 if __name__ == '__main__':

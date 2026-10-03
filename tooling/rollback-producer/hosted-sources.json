@@ -73,8 +73,8 @@
     },
     {
       "path": "tooling/rollback-producer/hosted-setup.py",
-      "bytes": 59647,
-      "sha256": "59f7b7049bcf38c0b45b3ca731a78982e4526eb2e90685d319ce6b4917f763fd"
+      "bytes": 61952,
+      "sha256": "897882c142bc3228e7908f8a1a5ddb0f398696d26fc270c8d04c5d2fb5be04fb"
     },
     {
       "path": "tooling/rollback-producer/hosted-worker.py",
@@ -373,8 +373,8 @@
     },
     {
       "path": "tooling/rollback-producer/volume_observer.py",
-      "bytes": 18175,
-      "sha256": "d97a2f83f108a3d3e96248791e8ce1d36f78915475d2b5178b47360d0ef6834a"
+      "bytes": 19485,
+      "sha256": "3ff116125843812861e2987be4e1baedfe7271cc720bb0a41fbd09637342b817"
     },
     {
       "path": "tooling/toolchain.json",

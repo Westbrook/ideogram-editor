@@ -412,6 +412,30 @@ def diagnostic_summary(value):
         result['scopes'].append({key:row[key] for key in sorted(fields)})
     return result
 
+def diagnostic_mutation(value):
+    # A fixed numeric grammar; never copy arbitrary exception text, paths,
+    # names, environment or credential material into this optional detail.
+    stat_categories = {'inode-revisit-stat','directory-entry-stat','child-after-walk-stat','directory-final-stat','root-final-stat'}
+    unavailable_categories = {'filesystem-operation','directory-enumeration','duplicate-directory-name','directory-membership','directory-children-digest'}
+    fields = ('st_dev','st_ino','st_mode','st_uid','st_gid','st_nlink','st_size','st_blocks','st_mtime_ns','st_ctime_ns')
+    require(isinstance(value,dict) and set(value)=={'category','statChanges'} and isinstance(value['category'],str) and value['category'] in stat_categories|unavailable_categories, 'Mutation diagnostic category differs')
+    changes=value['statChanges']
+    if value['category'] in unavailable_categories:
+        require(changes is None, 'Mutation diagnostic unavailable differences required')
+    else:
+        require(isinstance(changes,list) and 1<=len(changes)<=len(fields), 'Mutation diagnostic differences bound')
+        previous=-1
+        for row in changes:
+            require(isinstance(row,dict) and set(row)=={'field','before','after'} and isinstance(row['field'],str) and row['field'] in fields, 'Mutation diagnostic field differs')
+            index=fields.index(row['field']);require(index>previous, 'Mutation diagnostic fields unordered');previous=index
+            for key in ('before','after'):
+                text=row[key]
+                require(isinstance(text,str) and len(text)<=20 and re.fullmatch('0|-?[1-9][0-9]*',text), 'Mutation diagnostic integer differs')
+                number=int(text)
+                require(-(2**63)<=number<2**63 if index>=8 else (1 if index in (1,5) else 0)<=number<=9007199254740991, 'Mutation diagnostic integer range')
+            require(row['before']!=row['after'], 'Mutation diagnostic unchanged field')
+    return {'category':value['category'],'statChanges':changes}
+
 def diagnostic_worker(raw, config, grant):
     # Only parsed scanner scalar errors are exported, never arbitrary stdout.
     if not raw: return {'detailStatus':'empty-stdout'}
@@ -436,9 +460,13 @@ def diagnostic_worker(raw, config, grant):
         errors=row['errors'];require(isinstance(errors,list) and len(errors)<=64, 'Worker error count exceeds diagnostic bound')
         projected=[]
         for error in errors:
-            require(isinstance(error,dict) and set(error)=={'code','path','errno'} and isinstance(error['code'],str) and re.fullmatch('[A-Z_]{1,64}',error['code']) and (error['errno'] is None or type(error['errno']) is int and 0<=error['errno']<=65535), 'Worker error grammar differs')
+            require(isinstance(error,dict) and set(error) in ({'code','path','errno'},{'code','path','errno','mutation'}) and isinstance(error['code'],str) and re.fullmatch('[A-Z_]{1,64}',error['code']) and (error['errno'] is None or type(error['errno']) is int and 0<=error['errno']<=65535), 'Worker error grammar differs')
             member=error['path']; require(isinstance(member,str) and len(member)<=64 and member.startswith('/capsule') and (member=='/capsule' or member.startswith('/capsule/')) and all(32<=ord(ch)<127 for ch in member), 'Logical scanner error member differs')
-            projected.append({'code':error['code'],'errno':error['errno'],'member':diagnostic_text(member,grant,64)})
+            detail={'code':error['code'],'errno':error['errno'],'member':diagnostic_text(member,grant,64)}
+            if 'mutation' in error:
+                require(error['code']=='EVIDENCE_MUTATION', 'Mutation diagnostic on nonmutation error')
+                detail['mutation']=diagnostic_mutation(error['mutation'])
+            projected.append(detail)
         result['attempts'].append({key:row[key] for key in ('sequence','status','drained','startMonotonicUs','endMonotonicUs')}|{'errors':projected})
     return result
 

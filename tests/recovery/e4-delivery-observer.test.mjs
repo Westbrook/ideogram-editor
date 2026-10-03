@@ -533,3 +533,49 @@ test('V45 full receipt capture preserves body and cumulative evidence ceilings w
     assert.equal(f.observer.snapshot().retainedBytes, 0); assert.throws(() => matchV45Deliveries([v45Post(path, 'ui-1')], epochRows(f), true), /V45_DELIVERY_MISSING_RESPONSE/);
   });
 });
+
+
+for (const profile of ['queue-ui', 'portable-review']) test(profile+' original consumer keeps full immutable identity after exact original EOF and parse', async t => {
+  const f = fixture(t, {profile}), path = profile === 'queue-ui' ? '/api/v1/ui/ui_1' : '/api/v1/bundle-reviews/review-1';
+  const value = profile === 'queue-ui' ? {protocolVersion:1,requestId:'request-1',status:'accepted',uiSeq:'2',review:{id:'review-1',draft:{draftId:'draft-1',generation:'7'}}} : {protocolVersion:1,reviewId:'review-1',reviewHash:'sha256:'+'a'.repeat(64),targetClientId:'client-1',documentId:'mapped-1',editable:true,counts:{assets:1}};
+  const text = JSON.stringify(value), r = f.response(text, {path}), init = profile === 'queue-ui' ? postInit(f) : undefined;
+  await f.consume(r, [...encode(text)].map(byte=>Uint8Array.of(byte)), init);
+  assert.equal(f.rows().length,0,'EOF alone is insufficient');const parsed=f.parse(text);assert.deepEqual(plain(parsed),value);
+  assert.equal(f.rows().length,1);assert.equal(f.rows()[0].source,'original-reader-json-parse');assert.equal(f.rows()[0].url,origin+path);assert.equal(f.rows()[0].method,profile==='queue-ui'?'POST':'GET');assert.deepEqual(plain(f.rows()[0].value),value);
+  if(profile==='queue-ui'){const post=v45Post(path,'request-1',3);assert.equal(matchV45Deliveries([post],epochRows(f,3),true)[0].post,post);assert.throws(()=>matchV45Deliveries([post],epochRows(f,4),true),/UNMATCHED_RESPONSE/);parsed.review.draft.generation='changed';assert.equal(f.rows()[0].value.review.draft.generation,'7');}
+  else{parsed.counts.assets=9;assert.equal(f.rows()[0].value.counts.assets,1);assert.equal(f.rows()[0].value.documentId,'mapped-1');}
+  assert(Object.isFrozen(f.rows()[0].value));assert.deepEqual(r.calls.forbidden,[]);assert.equal(r.calls.read.length,encode(text).length+1);assert.equal(f.errors().length,0);assert.equal(f.observer.snapshot().pending,0);
+});
+
+for (const profile of ['queue-ui','portable-review']) test(profile+' selection excludes other methods, endpoints, origins and ambiguous URL forms', async t => {
+  const f=fixture(t,{profile}),path=profile==='queue-ui'?'/api/v1/ui/ui_1':'/api/v1/bundle-reviews/review-1',method=profile==='queue-ui'?'POST':'GET',text='{"protocolVersion":1,"requestId":"request-1"}';
+  for(const [route,verb] of [[path,method==='POST'?'GET':'POST'],[path+'/extra',method],[path+'?extra=1',method],[path+'#extra',method],[path.replace(/[^/]+$/,'x'.repeat(129)),method],['https://other.invalid'+path,method],['http://user:password@127.0.0.1:4381'+path,method],['/api/v1/queue','GET'],['/api/v1/commands','POST'],[profile==='queue-ui'?'/api/v1/bundle-reviews/review-1':'/api/v1/ui/ui_1',profile==='queue-ui'?'GET':'POST']]){
+    const r=f.response(text,{path:route});await f.fetchResponse(r,r.response.url,runInContext('({method:'+JSON.stringify(verb)+'})',f.context));assert.equal(r.response.json,r.originals.json);r.controller.enqueue(encode(text));r.controller.close();await r.response.json();
+  }
+  assert.equal(f.rows().length,0);assert.equal(f.errors().length,0);assert.equal(f.observer.snapshot().operations,0);
+});
+
+for (const profile of ['queue-ui','portable-review']) test(profile+' missing or failed original parser never becomes a retained body', async t => {
+  for(const mode of ['unconsumed','eof-only','cancel','read-error','parse-error'])await t.test(mode,async t=>{
+    const f=fixture(t,{profile}),path=profile==='queue-ui'?'/api/v1/ui/ui_1':'/api/v1/bundle-reviews/review-1',text=mode==='parse-error'?'{':'{"protocolVersion":1,"requestId":"request-1","reviewId":"review-1"}',r=f.response(text,{path}),init=profile==='queue-ui'?postInit(f):undefined;
+    if(mode==='eof-only'||mode==='parse-error'){await f.consume(r,undefined,init);if(mode==='parse-error')assert.throws(()=>f.parse(text));}
+    else{await f.fetchResponse(r,r.response.url,init);if(mode!=='unconsumed'){const reader=r.response.body.getReader(),reason=Error(mode);if(mode==='cancel'){const pending=reader.cancel(reason);assert.equal(pending,r.calls.cancel.at(-1).promise);await pending;}else{const pending=reader.read();assert.equal(pending,r.calls.read.at(-1).promise);r.controller.error(reason);await assert.rejects(pending,error=>error===reason);}}}
+    assert.equal(f.rows().length,0);assert.deepEqual(r.calls.forbidden,[]);
+    if(profile==='queue-ui')assert.throws(()=>matchV45Deliveries([v45Post(path,'request-1')],epochRows(f),true),/MISSING_RESPONSE/);
+  });
+});
+
+for (const profile of ['queue-ui','portable-review']) test(profile+' obeys unchanged body and cumulative row-evidence ceilings', async t => {
+  const path=profile==='queue-ui'?'/api/v1/ui/ui_1':'/api/v1/bundle-reviews/review-1',text='{"protocolVersion":1,"requestId":"request-1","reviewId":"review-1","detail":{"nested":"retained"}}';
+  for(const [limits,code] of [[{bodyBytes:encode(text).length-1},'E4_OBSERVER_BODY_LIMIT'],[{totalBytes:encode(text).length*3},'E4_OBSERVER_ROW_LIMIT']])await t.test(code,async t=>{
+    const f=fixture(t,{profile,limits}),r=f.response(text,{path}),init=profile==='queue-ui'?postInit(f):undefined;
+    if(limits.bodyBytes){await f.fetchResponse(r,r.response.url,init);assert.equal(r.response.bodyUsed,false);assert.equal(r.calls.read.length,0);}else{await f.consume(r,undefined,init);f.parse(text);}
+    assert.equal(f.rows().length,0);assert(f.errors().some(error=>error.code===code));assert.equal(f.observer.snapshot().disabled,true);
+  });
+});
+
+for (const profile of ['queue-ui','portable-review']) test(profile+' identical completed original bodies refuse ambiguous parse assignment', async t=>{
+  const f=fixture(t,{profile}),prefix=profile==='queue-ui'?'/api/v1/ui/':'/api/v1/bundle-reviews/',text='{"protocolVersion":1,"requestId":"request-1","reviewId":"review-1"}';
+  for(const suffix of ['one','two'])await f.consume(f.response(text,{path:prefix+suffix}),undefined,profile==='queue-ui'?postInit(f):undefined);
+  assert.equal(f.parse(text).protocolVersion,1);assert.equal(f.rows().length,0);assert(f.errors().some(error=>error.code==='E4_OBSERVER_AMBIGUOUS_BODY'));
+});

@@ -8,8 +8,8 @@ export function installE4DeliveryObserver(options) {
   const ceilings = { bodyBytes: 65536, totalBytes: 1048576, pending: 32, rows: 4096, errors: 64 };
   if (!options || typeof options !== 'object' || Array.isArray(options) || Object.prototype.toString.call(options) !== '[object Object]' || Object.keys(options).some(key => key !== 'limits' && key !== 'profile')) throw Error('E4_OBSERVER_LIMITS');
   if (options.limits !== undefined && (!options.limits || typeof options.limits !== 'object' || Array.isArray(options.limits) || Object.prototype.toString.call(options.limits) !== '[object Object]')) throw Error('E4_OBSERVER_LIMITS');
-  if (options.profile !== undefined && options.profile !== 'v45-post') throw Error('E4_OBSERVER_PROFILE');
-  const v45 = options.profile === 'v45-post';
+  if (options.profile !== undefined && !['v45-post', 'queue-ui', 'portable-review'].includes(options.profile)) throw Error('E4_OBSERVER_PROFILE');
+  const v45 = options.profile === 'v45-post', queueUI = options.profile === 'queue-ui', portableReview = options.profile === 'portable-review';
   const limits = { ...ceilings, ...(options.limits ?? {}) };
   if (Object.keys(limits).some(key => !Object.hasOwn(ceilings, key)) || Object.entries(limits).some(([key, value]) => !Number.isSafeInteger(value) || value < 1 || value > ceilings[key])) throw Error('E4_OBSERVER_LIMITS');
   if (realm.__p25DeliveryObserver) throw Error('E4_OBSERVER_ALREADY_INSTALLED');
@@ -50,7 +50,7 @@ export function installE4DeliveryObserver(options) {
     const url = new URL(raw, location.href);
     if (url.origin !== location.origin || url.username || url.password) return null;
     const reads = /^\/api\/v1\/(?:queue|(?:jobs|documents)\/[A-Za-z0-9_-]{1,128}\/candidates|commands\/[A-Za-z0-9_-]{1,128})$/.test(url.pathname);
-    if (v45 ? method !== 'POST' || url.search || url.hash || !/^\/api\/v1\/(?:commands|ui\/[A-Za-z0-9_-]{1,128})$/.test(url.pathname) : !(method === 'GET' && reads || method === 'POST' && url.pathname === '/api/v1/commands')) return null;
+    if (queueUI ? method !== 'POST' || url.search || url.hash || !/^\/api\/v1\/ui\/[A-Za-z0-9_-]{1,128}$/.test(url.pathname) : portableReview ? method !== 'GET' || url.search || url.hash || !/^\/api\/v1\/bundle-reviews\/[A-Za-z0-9_-]{1,128}$/.test(url.pathname) : v45 ? method !== 'POST' || url.search || url.hash || !/^\/api\/v1\/(?:commands|ui\/[A-Za-z0-9_-]{1,128})$/.test(url.pathname) : !(method === 'GET' && reads || method === 'POST' && url.pathname === '/api/v1/commands')) return null;
     if (url.href.length > 4096) { fail('E4_OBSERVER_URL_LIMIT'); return null; }
     return url;
   }
@@ -69,7 +69,7 @@ export function installE4DeliveryObserver(options) {
     throw Error('E4_OBSERVER_PROJECTION');
   }
   function project(value) {
-    if (v45) {
+    if (v45 || queueUI || portableReview) {
       // Only a completed original consumer reaches this point. Retain a bounded
       // independent JSON snapshot, never an application-owned result reference.
       const text = nativeStringify(value);

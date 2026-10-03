@@ -732,6 +732,62 @@ class Boundaries(unittest.TestCase):
                         with self.assertRaisesRegex(ValueError,'^Observation stream bounds differ$'):subject.diagnostic_observation(command,config,'c'*64)
                         parse.assert_not_called()
 
+
+    def test_mutation_diagnostic_flows_through_exact_failed_journal_without_raw_authority(self):
+        with tempfile.TemporaryDirectory() as raw, diagnostic_files_as_controller():
+            config,directory,receipt,final,rows,worker,commit,save=observation_fixture(Path(raw).resolve())
+            detail={'category':'child-after-walk-stat','statChanges':[{'field':'st_size','before':'1','after':'2'},{'field':'st_ctime_ns','before':'-9223372036854775808','after':'9223372036854775807'}]}
+            worker['attempts'][0]['errors'][0].update(code='EVIDENCE_MUTATION',errno=None,mutation=detail)
+            worker=observation_test_reseal_worker(worker);rows[0]['stdoutBase64']=base64.b64encode(observation_test_json(worker)+b'\n').decode();commit(rows)
+            budget={'bytes':0};value=subject.phase_diagnostic(config,'toolchain','c'*64,budget)
+            journal=value['accounting']['journal'];actual=journal['observations'][0]['observationCommand']['worker']['attempts'][0]['errors'][0]
+            self.assertEqual(actual,{'code':'EVIDENCE_MUTATION','errno':None,'member':'/capsule/toolchain','mutation':detail})
+            self.assertEqual((journal['retainedObservations'],journal['omittedObservations'],journal['refusals']),(1,0,0))
+            self.assertFalse(journal['rawStorageVerified']);self.assertFalse(value['timingLockReleased']);self.assertEqual(value['accounting']['summary']['declaredStatus'],'FAIL')
+            self.assertGreaterEqual(budget['bytes'],receipt['dataStorage']['journal']['bytes'])
+            for forbidden in ('c'*64,'--grant','"argv"','"environment"','/fixed-owned-data','stdoutBase64'):self.assertNotIn(forbidden,json.dumps(value))
+
+    def test_mutation_projection_distinguishes_absent_and_unavailable_differences(self):
+        with tempfile.TemporaryDirectory() as raw:
+            config,directory,receipt,final,rows,worker,commit,save=observation_fixture(Path(raw).resolve())
+            legacy=subject.diagnostic_worker(observation_test_json(worker),config,'c'*64)
+            self.assertNotIn('mutation',legacy['attempts'][0]['errors'][0])
+            for category in ('filesystem-operation','directory-enumeration','duplicate-directory-name','directory-membership','directory-children-digest'):
+                changed=copy.deepcopy(worker);changed['attempts'][0]['errors'][0].update(code='EVIDENCE_MUTATION',mutation={'category':category,'statChanges':None})
+                changed=observation_test_reseal_worker(changed);value=subject.diagnostic_worker(observation_test_json(changed),config,'c'*64)
+                self.assertEqual(value['attempts'][0]['errors'][0]['mutation'],{'category':category,'statChanges':None})
+                changed['attempts'][0]['errors'][0]['mutation']['statChanges']=[];changed=observation_test_reseal_worker(changed)
+                with self.assertRaisesRegex(ValueError,'^Mutation diagnostic unavailable differences required$'):subject.diagnostic_worker(observation_test_json(changed),config,'c'*64)
+
+    def test_mutation_projection_rejects_unknown_category_extra_fields_and_nonmutation(self):
+        with tempfile.TemporaryDirectory() as raw:
+            config,directory,receipt,final,rows,worker,commit,save=observation_fixture(Path(raw).resolve())
+            details=[{'category':'c'*64,'statChanges':None},{'category':'directory-membership','statChanges':None,'path':'/private/secret'},{'category':None,'statChanges':None}]
+            for detail in details:
+                changed=copy.deepcopy(worker);changed['attempts'][0]['errors'][0].update(code='EVIDENCE_MUTATION',mutation=detail);changed=observation_test_reseal_worker(changed)
+                with self.assertRaisesRegex(ValueError,'^Mutation diagnostic category differs$'):subject.diagnostic_worker(observation_test_json(changed),config,'c'*64)
+            changed=copy.deepcopy(worker);changed['attempts'][0]['errors'][0]['mutation']={'category':'directory-membership','statChanges':None};changed=observation_test_reseal_worker(changed)
+            with self.assertRaisesRegex(ValueError,'^Mutation diagnostic on nonmutation error$'):subject.diagnostic_worker(observation_test_json(changed),config,'c'*64)
+
+    def test_mutation_projection_numeric_bounds_and_no_opaque_stat_content(self):
+        with tempfile.TemporaryDirectory() as raw:
+            config,directory,receipt,final,rows,worker,commit,save=observation_fixture(Path(raw).resolve())
+            valid={'field':'st_size','before':'1','after':'2'}
+            rows_to_reject=[{**valid,'after':'c'*64},{**valid,'after':2},{**valid,'after':'02'},{**valid,'after':'-0'},{**valid,'after':'-1'},{**valid,'after':'9007199254740992'},{**valid,'after':'1'},{**valid,'field':'/private/secret'},{**valid,'path':'/private/secret'},{'field':'st_ctime_ns','before':'0','after':'9223372036854775808'},{'field':'st_mtime_ns','before':'0','after':'-9223372036854775809'}]
+            for bad in rows_to_reject:
+                with self.subTest(bad=bad):
+                    changed=copy.deepcopy(worker);changed['attempts'][0]['errors'][0].update(code='EVIDENCE_MUTATION',mutation={'category':'child-after-walk-stat','statChanges':[bad]});changed=observation_test_reseal_worker(changed)
+                    with self.assertRaisesRegex(ValueError,'^Mutation diagnostic (integer differs|integer range|unchanged field|field differs)$'):subject.diagnostic_worker(observation_test_json(changed),config,'c'*64)
+
+    def test_mutation_projection_rejects_empty_duplicate_out_of_order_and_oversized_fields(self):
+        with tempfile.TemporaryDirectory() as raw:
+            config,directory,receipt,final,rows,worker,commit,save=observation_fixture(Path(raw).resolve())
+            row={'field':'st_size','before':'1','after':'2'};later={'field':'st_blocks','before':'1','after':'2'}
+            for changes in (None,[],[row,row],[later,row],[row]*11):
+                changed=copy.deepcopy(worker);changed['attempts'][0]['errors'][0].update(code='EVIDENCE_MUTATION',mutation={'category':'child-after-walk-stat','statChanges':changes});changed=observation_test_reseal_worker(changed)
+                with self.assertRaisesRegex(ValueError,'^Mutation diagnostic (differences bound|fields unordered)$'):subject.diagnostic_worker(observation_test_json(changed),config,'c'*64)
+
+
 suite=unittest.defaultTestLoader.loadTestsFromTestCase(Boundaries)
 result=unittest.TextTestRunner(verbosity=2).run(suite)
 print(json.dumps({'tests':result.testsRun,'failures':len(result.failures),'errors':len(result.errors)}))

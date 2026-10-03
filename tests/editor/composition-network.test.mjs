@@ -539,3 +539,22 @@ test('invalid profile diagnostic opt-ins fail before installing any hooks',async
   const context={on(){assert.fail('No hook before admission');}};await assert.rejects(observeDisplayAborts(context,()=>1,path),/DISPLAY_PROFILE_PATH/);assert.throws(()=>displayInstall(()=>Promise.resolve({body:null}),path),/DISPLAY_PROFILE_PATH/);
  }
 });
+
+
+import {installE4DeliveryObserver as installQueueUIDelivery} from '../recovery/e4-delivery-observer.mjs';
+for(const order of ['display-first','delivery-first'])test('queue UI original parser witness composes with actual display observer '+order,async()=>{
+ const value={protocolVersion:1,requestId:'request-1',status:'accepted',uiSeq:'3',review:{id:'review-1'}},text=JSON.stringify(value),chunk=new TextEncoder().encode(text),url=origin+'/api/v1/ui/ui_1',events=[],calls=[];let controller,clock=100;
+ const stream=new ReadableStream({start(c){controller=c;}},{highWaterMark:0}),response=new Response(stream,{headers:{'content-type':'application/json; charset=utf-8','content-length':String(chunk.length)}});Object.defineProperty(response,'url',{value:url});
+ const getReader=stream.getReader;stream.getReader=function(...args){const reader=Reflect.apply(getReader,this,args),read=reader.read;reader.read=function(...args){const promise=Reflect.apply(read,this,args);calls.push(promise);return promise;};return reader;};
+ for(const [target,key]of [[response,'clone'],[stream,'tee']])target[key]=()=>assert.fail('observer attempted '+key);
+ const promise=Promise.resolve(response),nativeFetch=function(...args){assert.equal(args[0],url);return promise;};
+ const realm=displayRealm({URL,Request,Response,Headers,ReadableStream,TextEncoder,TextDecoder,Uint8Array,ArrayBuffer,Promise,Date,crypto:displayCrypto,performance:{timeOrigin:1000,now:()=>++clock},location:{protocol:'http:',origin,href:origin+'/'},__text:text});realm.window=realm;realm.fetch=nativeFetch;realm.__validationDisplayAbort=e=>{events.push({...e,frameId:1});return Promise.resolve();};
+ const installDisplay=()=>runDisplayRealm('('+installDisplayReadObserver.toString()+')()',realm),installDelivery=()=>runDisplayRealm('('+installQueueUIDelivery.toString()+')({profile:"queue-ui"})',realm);
+ if(order==='display-first'){installDisplay();installDelivery();}else{installDelivery();installDisplay();}
+ const init=runDisplayRealm('({method:"POST"})',realm);assert.equal(realm.fetch(url,init),promise);assert.equal(await promise,response);
+ const reader=response.body.getReader();controller.enqueue(chunk);const first=reader.read();assert.equal(first,calls[0]);assert.equal((await first).value,chunk);controller.close();const last=reader.read();assert.equal(last,calls[1]);assert.equal((await last).done,true);reader.releaseLock();
+ assert.equal(realm.__p25Deliveries.length,0,'EOF is not a parse delivery');const parsed=runDisplayRealm('JSON.parse(__text)',realm);assert.deepEqual(JSON.parse(JSON.stringify(parsed)),value);await realm.__validationDisplayObserver.flush();
+ const rows=realm.__p25Deliveries;assert.equal(rows.length,1);assert.equal(rows[0].source,'original-reader-json-parse');assert.equal(rows[0].method,'POST');assert.equal(rows[0].path,'/api/v1/ui/ui_1');assert.equal(rows[0].value.requestId,'request-1');parsed.review.id='mutated';assert.equal(rows[0].value.review.id,'review-1');
+ const start=events.find(e=>e.kind==='start'),q={requestId:1,frameId:1,url,method:'POST',resourceType:'fetch',startTime:start.start,redirected:false,response:{url,status:200,fromServiceWorker:false}},proof=displayReadProofs(events,[q]);assert.equal(proof.length,1);assert.equal(proof[0].requestId,1);assert.equal(proof[0].bodyComplete,true);assert.equal(proof[0].bytes,chunk.length);assert.equal(proof[0].signalAborted,false);assert.equal(proof[0].bodyCanceled,false);
+ assert.equal(realm.__p25DeliveryErrors.length,0);assert.equal(realm.__p25DeliveryObserver.snapshot().pending,0);realm.__p25DeliveryObserver.dispose();for(const key of ['pending','ownedMethods','retainedBytes','errors','droppedErrors'])assert.equal(realm.__p25DeliveryObserver.snapshot()[key],0);
+});

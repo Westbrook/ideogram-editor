@@ -36,6 +36,22 @@ class ObservationError(Exception):
         self.record = {'code': code, 'path': error_path(path), 'errno': number}
 
 
+
+def mutation_error(path, category, before=None, after=None, number=None):
+    # Failure-only detail from already-read, validated tuples. No filesystem
+    # re-read, payload/name retention, extra inventory or deadline exclusion.
+    error = ObservationError('EVIDENCE_MUTATION', path, number)
+    try:
+        changes = None if before is None or after is None else [
+            {'field': field, 'before': str(left), 'after': str(right)}
+            for field, left, right in zip(STAT_FIELDS, before, after) if left != right]
+        error.record['mutation'] = {'category': category, 'statChanges': changes}
+    except Exception:
+        # Diagnostic construction must not replace the original refusal.
+        pass
+    return error
+
+
 def canonical(value):
     return json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=True, allow_nan=False).encode('ascii')
 
@@ -158,9 +174,9 @@ def root_record(stamp):
                     stamp[:8] + (str(stamp[8]), str(stamp[9]))))
 
 
-def io_error(error, path):
+def io_error(error, path, category='filesystem-operation'):
     mutation = error.errno in (errno.ENOENT, errno.ESTALE, errno.ENOTDIR, errno.ELOOP)
-    return ObservationError('EVIDENCE_MUTATION' if mutation else 'FILESYSTEM_ERROR', path, error.errno)
+    return mutation_error(path, category, number=error.errno) if mutation else ObservationError('FILESYSTEM_ERROR', path, error.errno)
 
 
 class Scan:
@@ -223,7 +239,7 @@ class Scan:
         previous = self.inodes.get(key)
         if previous is not None:
             if previous != stamp:
-                raise ObservationError('EVIDENCE_MUTATION', path)
+                raise mutation_error(path, 'inode-revisit-stat', previous, stamp)
             if stat.S_ISDIR(stamp[2]):
                 raise ObservationError('DIRECTORY_CYCLE', path)
             return
@@ -259,20 +275,22 @@ class Scan:
                 if len(result) > MAX_ENTRIES:
                     raise ObservationError('ENTRY_BUDGET', path)
         except OSError as error:
-            raise io_error(error, path) from error
+            raise io_error(error, path, 'directory-enumeration') from error
         finally:
             iterator.close()
         result.sort()
         if len(result) != len(set(result)):
-            raise ObservationError('EVIDENCE_MUTATION', path)
+            raise mutation_error(path, 'duplicate-directory-name')
         return result
 
     def walk(self, descriptor, stamp, relative, depth):
         path = ROOT + ('/' + relative if relative else '')
         if depth > MAX_DEPTH:
             raise ObservationError('DEPTH_BUDGET', path)
-        if self.read_stat(self.fs.stat_directory, path, descriptor) != stamp:
-            raise ObservationError('EVIDENCE_MUTATION', path)
+        entered = self.read_stat(self.fs.stat_directory, path, descriptor)
+        if entered != stamp:
+            raise mutation_error(path, 'directory-entry-stat', stamp, entered)
+        del entered
         before = self.names(descriptor, path)
         if self.request['mode'] == 'initial-empty' and before:
             raise ObservationError('INITIAL_NOT_EMPTY', path)
@@ -296,20 +314,27 @@ class Scan:
                     self.walk(fd, child, child_relative, depth + 1)
                 finally:
                     self.close(fd, child_path)
-            if self.read_stat(self.fs.child_stat, child_path, descriptor, name) != child:
-                raise ObservationError('EVIDENCE_MUTATION', child_path)
+            revisited = self.read_stat(self.fs.child_stat, child_path, descriptor, name)
+            if revisited != child:
+                raise mutation_error(child_path, 'child-after-walk-stat', child, revisited)
+            del revisited
             membership.update(canonical([name, list(child)]))
         # The second full directory enumeration checks membership and all direct
         # identities again; no file content or link target is read at either pass.
         after = self.names(descriptor, path)
         if before != after:
-            raise ObservationError('EVIDENCE_MUTATION', path)
+            raise mutation_error(path, 'directory-membership')
         repeated = hashlib.sha256()
         for name in after:
             child_path = path + '/' + name
             repeated.update(canonical([name, list(self.read_stat(self.fs.child_stat, child_path, descriptor, name))]))
-        if repeated.digest() != membership.digest() or self.read_stat(self.fs.stat_directory, path, descriptor) != stamp:
-            raise ObservationError('EVIDENCE_MUTATION', path)
+        if repeated.digest() != membership.digest():
+            # Preserve the original short circuit: there is no final fstat here.
+            # Aggregate identities cannot supply a particular changed field.
+            raise mutation_error(path, 'directory-children-digest')
+        final_directory = self.read_stat(self.fs.stat_directory, path, descriptor)
+        if final_directory != stamp:
+            raise mutation_error(path, 'directory-final-stat', stamp, final_directory)
 
     def run(self):
         initial = self.read_stat(self.fs.root_stat, ROOT)
@@ -324,7 +349,7 @@ class Scan:
             self.root_after = root_record(final)
             self.root_policy(final)
             if final != initial:
-                raise ObservationError('EVIDENCE_MUTATION')
+                raise mutation_error(ROOT, 'root-final-stat', initial, final)
         finally:
             self.close(fd, ROOT)
         self.check()
