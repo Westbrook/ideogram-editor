@@ -1,0 +1,224 @@
+{
+  "schema": 1,
+  "kind": "ideogram-pages-public-artifact-1",
+  "identity": {
+    "schema": 1,
+    "product": "Ideogram Editor preview",
+    "scope": "Temporary text preview; no local server or provider",
+    "commit": "679851334777726774bb20ae907bfcb7ca5f1ea8",
+    "builtAt": "2026-10-03T06:01:20.514Z",
+    "base": "/ideogram-editor/"
+  },
+  "files": [
+    {
+      "path": "assets/canvaskit-B2Vb3rWN.wasm",
+      "bytes": 4979358,
+      "sha256": "26389aa33388a205d355b04b48d3c00965db73d6781ae297f6e2f27e8631bb19"
+    },
+    {
+      "path": "assets/index-6kMt-7nz.css",
+      "bytes": 308371,
+      "sha256": "8477048629d97ecb0a2d874a71ca82331aea7ba6efb1ffbf9f7105efecbd19d9"
+    },
+    {
+      "path": "assets/index-B1yyHnAO.js",
+      "bytes": 237074,
+      "sha256": "1fe8df44d6328c99a9b0c8f1402a56b933a8035db025835f329567b1b92f2bcd"
+    },
+    {
+      "path": "assets/NotoSans-Regular-Dpf_lrdO.ttf",
+      "bytes": 569208,
+      "sha256": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5"
+    },
+    {
+      "path": "assets/NotoSansArabic-Regular-CEibNoL-.ttf",
+      "bytes": 240456,
+      "sha256": "ceea25b464a656dc3b26849bab9356740401af62aedf1bfa8b7f0d9b75925b1b"
+    },
+    {
+      "path": "assets/NotoSansCJKsc-Regular-DxgKpThH.otf",
+      "bytes": 16437364,
+      "sha256": "2c76254f6fc379fddfce0a7e84fb5385bb135d3e399294f6eeb6680d0365b74b"
+    },
+    {
+      "path": "assets/NotoSansSymbols2-Regular-Dcz4cXYm.ttf",
+      "bytes": 656852,
+      "sha256": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6"
+    },
+    {
+      "path": "assets/worker-Cw-siXqC.js",
+      "bytes": 294821,
+      "sha256": "76fea03df99ced0f589bfa5e61df611336d900f1a4a1d1f77a5a0756eb49bff2"
+    },
+    {
+      "path": "build-identity.json",
+      "bytes": 252,
+      "sha256": "0902258d2362d3ca7d36a0a5e45c09daaed90ae9940aff90024324e6f4ecec0c"
+    },
+    {
+      "path": "index.html",
+      "bytes": 1441,
+      "sha256": "877198f2ce60d5fabf999b572c925b244c9cfe2ebacf8af8272744a3c0838de1"
+    },
+    {
+      "path": "notices/en-reve-LICENSE.txt",
+      "bytes": 1077,
+      "sha256": "9ce50a3e644d4791a40095f2ccf98a5ba251a7683c721c01e2536f2fd3a9eae7"
+    },
+    {
+      "path": "notices/index.txt",
+      "bytes": 4779,
+      "sha256": "d9439f678ab5323001ebba95fe08d7d3cba7a57775a6eab2e59f223763c76d05"
+    },
+    {
+      "path": "notices/lit-context-LICENSE.txt",
+      "bytes": 1518,
+      "sha256": "2503b5766520d283dd6cc9c9852bdfc59ffe16b0538d554db4e5b9b725269604"
+    },
+    {
+      "path": "notices/lit-element-LICENSE.txt",
+      "bytes": 1517,
+      "sha256": "45d31799d0db956cc3eb5469346abbd9b7025babc5ff29fab10d7095da992ef1"
+    },
+    {
+      "path": "notices/lit-html-LICENSE.txt",
+      "bytes": 1518,
+      "sha256": "2b66f9390afde29edfe4314daff93f01fb182e1178053e228120178987e5db75"
+    },
+    {
+      "path": "notices/lit-LICENSE.txt",
+      "bytes": 1517,
+      "sha256": "45d31799d0db956cc3eb5469346abbd9b7025babc5ff29fab10d7095da992ef1"
+    },
+    {
+      "path": "notices/lit-reactive-element-LICENSE.txt",
+      "bytes": 1517,
+      "sha256": "45d31799d0db956cc3eb5469346abbd9b7025babc5ff29fab10d7095da992ef1"
+    },
+    {
+      "path": "notices/signal-polyfill-LICENSE.txt",
+      "bytes": 11356,
+      "sha256": "43070e2d4e532684de521b885f385d0841030efa2b1a20bafb76133a5e1379c1"
+    },
+    {
+      "path": "notices/signal-utils-LICENSE.txt",
+      "bytes": 1070,
+      "sha256": "bce9e986e7415f0921feeaa80cf579bf1c4368a03f20f4d8182a2bb993fb801d"
+    },
+    {
+      "path": "notices/text-Brotli-LICENSE.txt",
+      "bytes": 1084,
+      "sha256": "3d180008e36922a4e8daec11c34c7af264fed5962d07924aea928c38e8663c94"
+    },
+    {
+      "path": "notices/text-CanvasKit-LICENSE.txt",
+      "bytes": 1635,
+      "sha256": "d27678cba0d529e77201e2d2a053628143e986aad8f1e77f7039ad4366c8f978"
+    },
+    {
+      "path": "notices/text-custom-emscripten-LICENSE.txt",
+      "bytes": 5093,
+      "sha256": "620a78084fc7ca97c0b5dea9abf891f3ffcadfdbf305276f099c9c4e12fc1d86"
+    },
+    {
+      "path": "notices/text-custom-freetype-LICENSE.txt",
+      "bytes": 6743,
+      "sha256": "08c135755dd589039470f1fdbb400daaabaaa50d0b366d19cebff4d22986baa1"
+    },
+    {
+      "path": "notices/text-custom-harfbuzz-LICENSE.txt",
+      "bytes": 1971,
+      "sha256": "ba8f810f2455c2f08e2d56bb49b72f37fcf68f1f4fade38977cfd7372050ad64"
+    },
+    {
+      "path": "notices/text-custom-icu-LICENSE.txt",
+      "bytes": 25185,
+      "sha256": "17510cf7a58b4879b887ec05a45d72cf1b73544dd9ec7e72f20110ed104229ee"
+    },
+    {
+      "path": "notices/text-custom-libpng-LICENSE.txt",
+      "bytes": 5345,
+      "sha256": "7317e078e2d3b5d7ba5a6159e650945153262b44b76f6700f8e9edb261c5143e"
+    },
+    {
+      "path": "notices/text-custom-skia-LICENSE.txt",
+      "bytes": 1507,
+      "sha256": "5f787c1dee3c56547f09ccc2906ab5f5293c4d8dd6c8654e573216c38e908dbd"
+    },
+    {
+      "path": "notices/text-custom-wuffs-LICENSE.txt",
+      "bytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "path": "notices/text-custom-zlib-LICENSE.txt",
+      "bytes": 910,
+      "sha256": "e1cfcc55c325b3f78cf55df9664abaa066e2271dffe8213347d9fccdfbac8f2c"
+    },
+    {
+      "path": "notices/text-Emscripten-LICENSE.txt",
+      "bytes": 5093,
+      "sha256": "620a78084fc7ca97c0b5dea9abf891f3ffcadfdbf305276f099c9c4e12fc1d86"
+    },
+    {
+      "path": "notices/text-Expat-COPYING.txt",
+      "bytes": 1144,
+      "sha256": "122f2c27000472a201d337b9b31f7eb2b52d091b02857061a8880371612d9534"
+    },
+    {
+      "path": "notices/text-FreeType-FTL.TXT.txt",
+      "bytes": 6743,
+      "sha256": "08c135755dd589039470f1fdbb400daaabaaa50d0b366d19cebff4d22986baa1"
+    },
+    {
+      "path": "notices/text-HarfBuzz-COPYING.txt",
+      "bytes": 1971,
+      "sha256": "ba8f810f2455c2f08e2d56bb49b72f37fcf68f1f4fade38977cfd7372050ad64"
+    },
+    {
+      "path": "notices/text-icu-LICENSE.txt",
+      "bytes": 25185,
+      "sha256": "17510cf7a58b4879b887ec05a45d72cf1b73544dd9ec7e72f20110ed104229ee"
+    },
+    {
+      "path": "notices/text-libjpeg-turbo-LICENSE.txt",
+      "bytes": 5213,
+      "sha256": "60c756742db3ad1913304e8b13f0e86e22e51adb50cc0b3333c163f7e45ceec1"
+    },
+    {
+      "path": "notices/text-libpng-LICENSE.txt",
+      "bytes": 5345,
+      "sha256": "7317e078e2d3b5d7ba5a6159e650945153262b44b76f6700f8e9edb261c5143e"
+    },
+    {
+      "path": "notices/text-libwebp-COPYING.txt",
+      "bytes": 1496,
+      "sha256": "5aec868f669e384a22372a4e8a1a6cd7d44c64cd451f960ca69cc170d1e13acf"
+    },
+    {
+      "path": "notices/text-Noto-CJK-OFL.txt",
+      "bytes": 4301,
+      "sha256": "6a73f9541c2de74158c0e7cf6b0a58ef774f5a780bf191f2d7ec9cc53efe2bf2"
+    },
+    {
+      "path": "notices/text-Noto-OFL.txt",
+      "bytes": 4377,
+      "sha256": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb"
+    },
+    {
+      "path": "notices/text-Unicode-LICENSE.txt",
+      "bytes": 1995,
+      "sha256": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96"
+    },
+    {
+      "path": "notices/text-Wuffs-LICENSE.txt",
+      "bytes": 10174,
+      "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
+    },
+    {
+      "path": "notices/text-zlib-LICENSE.txt",
+      "bytes": 1002,
+      "sha256": "845efc77857d485d91fb3e0b884aaa929368c717ae8186b66fe1ed2495753243"
+    }
+  ]
+}
