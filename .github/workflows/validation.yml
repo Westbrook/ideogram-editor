@@ -136,6 +136,7 @@ jobs:
         with:
           name: fast-validation-${{ github.run_id }}-${{ github.run_attempt }}
           path: artifacts/validation
+          include-hidden-files: true
           if-no-files-found: warn
           retention-days: 90
 # Manual macos-15 uses the standard arm64 runner for unchanged Darwin fixtures;

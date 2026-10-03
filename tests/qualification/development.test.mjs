@@ -1045,5 +1045,9 @@ test('Fast workflow offers the reviewed single-family choices and preserves quot
  assert(workflow.includes('npm run validate -- run --groups tooling --browsers none --workers 1 --fresh --output "$IE_VALIDATION_OUTPUT"'));
  assert(workflow.includes("SELECTED_BROWSER_FAMILY: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_family || 'none' }}"));
  assert(workflow.includes('retention-days: 90'));assert(workflow.includes('contents: read'));
+ const uploads=workflow.split('      - name: Retain failure and success receipts\n');assert.equal(uploads.length,2);
+ const uploadWith=uploads[1].split('        with:\n')[1].split('\n#')[0];
+ assert.deepEqual([...uploadWith.matchAll(/^          (path|include-hidden-files): (.+)$/gm)].map(match=>[match[1],match[2]]),[['path','artifacts/validation'],['include-hidden-files','true']]);
+ assert.equal((workflow.match(/^          include-hidden-files:/gm)||[]).length,1);
  assert.equal((workflow.match(/--browser-grep|--batch-browser/g)||[]).length,0);
 });
