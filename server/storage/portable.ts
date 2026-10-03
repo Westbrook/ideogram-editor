@@ -267,6 +267,7 @@ export class Portables {
     else path=this.objects.path(ref);
     let s;try{s=await fileSource('objects/'+ref.hash.slice(7),path,check);}catch(e){if((e as NodeJS.ErrnoException)?.code==='ENOENT')throw new AssetRejection('MISSING_ASSET','PORTABLE_REQUIRED_OBJECT_MISSING',null,'objects/'+ref.hash.slice(7));throw e;}if(s.bytes!==BigInt(ref.byteLength)||s.sha256!==ref.hash.slice(7))throw new StoreError('CORRUPT_OBJECT');return s;
    };
+   await this.inspectExportFonts(db,check);
    await writeZip(join(attempt,'archive.partial'),db,(async function*(){yield await fileSource('manifest.json',join(attempt,'manifest.json'),check);for(const r of db.prepare('SELECT path FROM segments ORDER BY path').iterate())yield await fileSource(String(r.path),join(attempt,String(r.path).replace('/','-')),check);for(const r of db.prepare('SELECT * FROM refs ORDER BY hash').iterate())yield await objectSource(r);})(),check,()=>this.barrier('portable-archive-before-write'));
    const archive=await fileSource('archive',join(attempt,'archive.partial'),check),ref={hash:'sha256:'+archive.sha256,byteLength:String(archive.bytes),mediaType:'application/x-ideogram-project'};
    const proof=await this.objects.adoptFile(join(attempt,'archive.partial'),ref,check);try{
@@ -274,6 +275,23 @@ export class Portables {
      this.db.prepare('DELETE FROM deletion_work WHERE path=?').run(sourceDir);this.register('bundle:'+operationId,ref,proof);this.db.prepare('INSERT INTO portable_bundles VALUES (?,?,?,?)').run(operationId,c.clientId,frozen.document.id,canonical(bundle));return {fact:{type:'BundlePrepared',payload:{bundle}},documentRevision:frozen.document.revision};},slot);
    }finally{this.objects.releaseProof(proof);}
   }finally{if(db.isTransaction)db.exec('COMMIT');capture.close();db.close();}
+ }
+ // Full-copy font eligibility follows the captured closure, including old and
+ // hidden text. Keep one inspected byte identity, not an in-memory font cache.
+ private async inspectExportFonts(db:DatabaseSync,check:()=>void){
+  let previous:{hash:string;byteLength:string;inspected:Awaited<ReturnType<Texts['inspect']>>}|undefined;
+  for(const row of db.prepare("SELECT json FROM entities WHERE kind='asset' AND json_extract(json,'$.qualification')='font' ORDER BY json_extract(json,'$.blob.hash'),id").iterate()){
+   check();const a=JSON.parse(String(row.json));bundledFont(a.font);
+   if(!previous||previous.hash!==a.blob.hash||previous.byteLength!==a.blob.byteLength){
+    // Preserve missing/corrupt/private-path refusals before the worker reads.
+    try{this.objects.verify(a.blob);}catch(error){if(error instanceof StoreError&&error.code==='MISSING_OBJECT')throw new AssetRejection('MISSING_ASSET','PORTABLE_REQUIRED_OBJECT_MISSING',null,'objects/'+a.blob.hash.slice(7));throw error;}check();
+    const inspected=await this.texts.inspect(a.blob);check();
+    previous={hash:a.blob.hash,byteLength:a.blob.byteLength,inspected};
+   }
+   const inspected=previous.inspected;
+   if(inspected.format!==a.font.format||inspected.parserProfile!==a.font.parserProfile||inspected.fsType!==a.font.fsType)invalid();
+   await tick();check();
+  }
  }
  private async verifyAncestorTransactions(db:DatabaseSync,zip:ZipIndex|null,directory:string,slot:string,check:()=>void,allowOriginalJournal:boolean){
   // Original imported archives are immutable history dependencies. A new local

@@ -7,7 +7,15 @@ import {randomUUID,createHash} from 'node:crypto';
 import {setup,copy,preview,workspace,terminal,edit,doc,upload} from './helpers.mjs';
 import {importRaster} from '../raster/helpers.mjs';
 import {openWriter} from '../../dist/local/server/storage/writer.js';
-import {command,encode,childFor} from '../store/helpers.mjs';
+import {command,encode,childFor,rootFor} from '../store/helpers.mjs';
+import {Objects} from '../../dist/local/server/storage/objects.js';
+import {Texts} from '../../dist/local/server/storage/text.js';
+import {Portables} from '../../dist/local/server/storage/portable.js';
+import {StoreDatabase} from '../../dist/local/server/storage/database.js';
+import {acquireRoot} from '../../dist/local/server/storage/ownership.js';
+import {canonical,hashBytes} from '../../dist/local/server/storage/canonical.js';
+import {entity} from '../../dist/local/src/protocol/validate.js';
+import {unpack} from './archive-fixture.mjs';
 import {EMPTY_EXPECTED_VERSIONS} from '../../dist/local/src/protocol/store.js';
 const pause=()=>new Promise(r=>setTimeout(r,5));
 async function wait(w,c,a){let receipt=await w.portableCommand(encode(c),a);for(let n=0;!receipt&&n<1000;n++){receipt=(await w.commandState(c.command.commandId)).record?.receipt;await pause();}return receipt;}
@@ -70,4 +78,121 @@ for(const recovery of ['same-authority-retry','restart-expired-review'])test('ac
  }
  const end=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});assert.equal(end.prepare('SELECT count(*) n FROM portable_namespaces').get().n,1);assert.equal(end.prepare('SELECT count(*) n FROM events_v2 WHERE command_id=?').get(acceptedCommand.command.commandId).n,1);assert.equal(end.prepare('SELECT count(*) n FROM portable_preparations WHERE id=?').get(accepted.command.commandId).n,0);assert.equal(end.prepare('SELECT count(*) n FROM portable_pins WHERE operation_id=?').get(pendingBefore.operation_id).n,0);end.close();
  t.diagnostic(JSON.stringify({recovery,sqlitePageLimit:limit,restoredFreePages,fillerRows,nativeSQLiteCode:nativeCode,actualNamespaceRowsAfterFailure:0,observedFailure:waiting.items.find(x=>x.commandId===accepted.command.commandId).reason,sourceTablesPreserved:sourceTables,originalSourcePreserved:true,originalCommandId:accepted.command.commandId,originalCommandHash:pendingBefore.hash,originalOperationId:pendingBefore.operation_id,originalReviewId:review.reviewId,acceptedCommandId:acceptedCommand.command.commandId,acceptedReviewId:freshReview.reviewId,sameOriginalIdentityPreserved:true,singleNamespace:true,singleAcceptedEvent:true,restartRequiresFreshReview:recovery==='restart-expired-review'}));
+});
+
+
+// These private index fixtures are adversarial integrity inputs, not accepted
+// restricted-font history or qualified WC specimens. Every byte inspection is
+// performed by the unchanged production Texts worker and Objects verifier.
+async function fontBytes(fsType=0){
+ const profile=JSON.parse(await readFile('src/text/profile.json','utf8')),font=profile.fonts.find(f=>f.id==='NotoSans');
+ const bytes=Buffer.from(await readFile('vendor/text/'+font.file)),view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);
+ let found=false;
+ for(let i=0;i<view.getUint16(4);i++){
+  const at=12+i*16;if(bytes.toString('ascii',at,at+4)!=='OS/2')continue;
+  const start=view.getUint32(at+8),length=view.getUint32(at+12);view.setUint16(start+8,fsType);let sum=0;
+  for(let j=0;j<length;j+=4){let word=0;for(let k=0;k<4;k++)word=word*256+(j+k<length?bytes[start+j+k]:0);sum=(sum+word)>>>0;}
+  view.setUint32(at+4,sum);found=true;
+ }
+ assert(found,'Real SFNT has the OS/2 table');return {bytes,font};
+}
+async function fontIndex(t){
+ const root=await rootFor(t),index=new DatabaseSync(join(root,'font-index.sqlite'));
+ index.exec('CREATE TABLE entities(kind TEXT,id TEXT,json TEXT,PRIMARY KEY(kind,id));CREATE TABLE text_admissions(id TEXT PRIMARY KEY,client_id TEXT,session_hash TEXT,epoch TEXT)');
+ const objects=new Objects(root,()=>{},()=>{}),texts=new Texts(index,objects,{},'font-export-test'),calls=[],snapshots=[];
+ let active=0,peak=0;
+ const inspect=texts.inspect.bind(texts);
+ texts.inspect=async(...args)=>{calls.push(args[0]);active++;peak=Math.max(peak,active);try{const pending=inspect(...args);assert.equal(texts.reservedCPU,67108864);return await pending;}finally{active--;assert.equal(texts.reservedCPU,0);}};
+ t.after(()=>{assert.equal(active,0);assert.equal(texts.reservedCPU,0);texts.closeObservations();objects.close();index.close();});
+ const put=(bytes,mediaType)=>{const id=objects.begin(String(bytes.length),mediaType);try{for(let at=0;at<bytes.length;at+=1048576)objects.chunk(id,bytes.subarray(at,at+1048576));return objects.finish(id);}finally{objects.abort(id);}};
+ const license=put(Buffer.from('Test fixture uses the retained font license'),'text/plain');
+ const add=(id,bytes,fsType=0)=>{
+  const blob=put(bytes,'application/octet-stream'),value={schemaVersion:1,bytes:blob,faceIndex:0,format:'static-ttf',parserProfile:'sfnt-static-1-freetype-canvaskit040',fsType,licenseRecord:license,origin:'local-file',embedding:'permitted'},font={...value,id:hashBytes(canonical(value))},asset={id,version:'1',purpose:'font',blob,dependencies:[license],safety:'safe',availability:'available',qualification:'font',measuredMediaType:'application/octet-stream',font};
+  entity('asset',asset);index.prepare('INSERT INTO entities VALUES (?,?,?)').run('asset',id,canonical(asset));snapshots.push({blob,bytes:Buffer.from(bytes)});return asset;
+ };
+ const replace=asset=>{entity('asset',asset);index.prepare("UPDATE entities SET json=? WHERE kind='asset' AND id=?").run(canonical(asset),asset.id);};
+ const run=(check=()=>{})=>Portables.prototype.inspectExportFonts.call({objects,texts},index,check);
+ const unchanged=async()=>{for(const {blob,bytes}of snapshots)assert.deepEqual(await readFile(objects.path(blob)),bytes);assert.equal(texts.reservedCPU,0);assert.deepEqual(objects.reservationInventory(),{reservedBytes:'0',activeTransfers:0});};
+ return {root,index,objects,texts,calls,add,replace,run,unchanged,get peak(){return peak;}};
+}
+test('export font scan inspects exact shared bytes once, serially, and validates every captured alias',async t=>{
+ const f=await fontIndex(t),regular=(await fontBytes()).bytes,editable=(await fontBytes(8)).bytes;
+ f.add('z_first',regular);f.add('a_alias',regular);f.add('m_editable',editable,8);
+ await f.run();assert.equal(f.calls.length,2);assert.equal(new Set(f.calls.map(ref=>ref.hash)).size,2);assert.equal(f.peak,1);await f.unchanged();
+});
+test('export font scan with no captured fonts starts no inspector',async t=>{const f=await fontIndex(t);await f.run();assert.deepEqual(f.calls,[]);assert.equal(f.peak,0);await f.unchanged();});
+for(const [fault,expected]of [['restricted','FONT_EMBEDDING_RESTRICTED'],['checksum','FONT_TABLE_CHECKSUM']])test('export font scan observes actual '+fault+' SFNT refusal with coherent object hashes',async t=>{
+ const f=await fontIndex(t),bytes=(await fontBytes(fault==='restricted'?2:0)).bytes;
+ if(fault==='checksum')bytes[bytes.length-12]^=1;
+ const a=f.add('adversarial_font',bytes);assert.equal(a.blob.hash,hashBytes(bytes));
+ await assert.rejects(f.run(),error=>error.code==='INCOMPATIBLE'&&error.reason===expected);assert.equal(f.calls.length,1);await f.unchanged();
+});
+test('export font scan rejects a false fsType on a shared-byte alias after the real inspection',async t=>{
+ const f=await fontIndex(t),bytes=(await fontBytes()).bytes;f.add('a_truthful',bytes);f.add('z_false_alias',bytes,8);
+ await assert.rejects(f.run(),{code:'MALFORMED_REQUEST'});assert.equal(f.calls.length,1);await f.unchanged();
+});
+test('export font scan checks bundled identity on a shared-byte alias',async t=>{
+ const f=await fontIndex(t),bytes=(await fontBytes()).bytes;f.add('a_local',bytes);const a=f.add('z_false_bundled',bytes);
+ a.font={...a.font,origin:'bundled'};const {id,...value}=a.font;a.font.id=hashBytes(canonical(value));f.replace(a);
+ await assert.rejects(f.run(),{message:'Invalid recovery data'});assert.equal(f.calls.length,1);await f.unchanged();
+});
+test('export font scan does not reuse inspection for a conflicting length alias',async t=>{
+ const f=await fontIndex(t),bytes=(await fontBytes()).bytes;f.add('a_truthful',bytes);const a=f.add('z_wrong_length',bytes);
+ a.blob={...a.blob,byteLength:String(bytes.length+1)};a.font={...a.font,bytes:a.blob};const {id,...value}=a.font;a.font.id=hashBytes(canonical(value));f.replace(a);
+ await assert.rejects(f.run(),{code:'CORRUPT_OBJECT'});assert.equal(f.calls.length,1);await f.unchanged();
+});
+for(const fault of ['missing','corrupt'])test('export font scan preserves '+fault+' object refusal before launching a worker',async t=>{
+ const f=await fontIndex(t),bytes=(await fontBytes()).bytes,a=f.add('damaged_font',bytes),path=f.objects.path(a.blob);
+ if(fault==='missing')await unlink(path);else{const changed=Buffer.from(bytes);changed[0]^=1;await writeFile(path,changed,{mode:0o600});}
+ try{await assert.rejects(f.run(),fault==='missing'?{code:'MISSING_ASSET',reason:'PORTABLE_REQUIRED_OBJECT_MISSING',field:'objects/'+a.blob.hash.slice(7)}:{code:'CORRUPT_OBJECT'});assert.deepEqual(f.calls,[]);}
+ finally{await writeFile(path,bytes,{mode:0o600});}await f.unchanged();
+});
+test('export font scan fences cancellation before work and after the actual inspector drains',async t=>{
+ const f=await fontIndex(t),bytes=(await fontBytes()).bytes;f.add('a_font',bytes);f.add('z_alias',bytes);
+ const cancelled=Error('caller cancelled');await assert.rejects(f.run(()=>{throw cancelled;}),error=>error===cancelled);assert.deepEqual(f.calls,[]);
+ const inspect=f.texts.inspect.bind(f.texts);let finished=false;
+ f.texts.inspect=async(...args)=>{try{return await inspect(...args);}finally{finished=true;}};
+ await assert.rejects(f.run(()=>{if(finished)throw cancelled;}),error=>error===cancelled);assert.equal(f.calls.length,1);await f.unchanged();
+});
+
+async function ownedFontStore(t,f){
+ await f.server.close();const owner=await acquireRoot(f.root);let db;
+ try{db=new StoreDatabase(f.root,()=>{});}catch(error){owner.close();throw error;}
+ t.after(async()=>{try{await db.storageRepairs.close();db.storageLibrary.close();db.storageMemory.close();await db.displays.close();await db.candidates.close();await db.queue.close();await db.portables.close();await db.histories.close();await db.rasters.close();await db.assets.close();await db.recovery.settle();db.close();}finally{owner.close();}});
+ return db;
+}
+test('real SaveCopy inspects retained font drafts and preserves cancellation, missing and corrupt refusals',async t=>{
+ const f=await setup(t);await terminal(f,f.command({}, {width:1,height:1}));
+ const original=await fontBytes(),fontStage=await upload(f,original.bytes,'font','application/octet-stream'),licenseStage=await upload(f,await readFile('vendor/text/'+original.font.licenseFile),'caption','text/plain');
+ const fontInput=(await workspace(f,{type:'FinalizeStaging',stagingId:fontStage.stagingId,expectedSha256:fontStage.sha256})).event.payload.asset,license=(await workspace(f,{type:'FinalizeStaging',stagingId:licenseStage.stagingId,expectedSha256:licenseStage.sha256})).event.payload.asset;
+ const font=(await edit(f,{type:'ImportFont',source:fontInput.blob,license:license.blob,origin:'local-file',embeddingReviewed:true})).event.payload.asset.font;
+ const textStage=await upload(f,Buffer.from('Exact saved draft'),'caption','text/plain'),text=(await workspace(f,{type:'FinalizeStaging',stagingId:textStage.stagingId,expectedSha256:textStage.sha256})).event.payload.asset;
+ const draftBytes=Buffer.from(canonical({schemaVersion:1,kind:'text-draft-1',textUtf8:text.blob,style:{},frame:{},fonts:[font]})),draftStage=await upload(f,draftBytes,'caption','text/plain'),draft=(await workspace(f,{type:'FinalizeStaging',stagingId:draftStage.stagingId,expectedSha256:draftStage.sha256})).event.payload.asset;
+ const sessionId='font_copy',ui=(await f.read('/api/v1/ui/'+sessionId)).json;
+ const saved=await f.post('/api/v1/ui/'+sessionId,{protocolVersion:1,requestId:randomUUID(),sessionId,expectedUISeq:ui.uiSeq,body:{type:'SaveDraft',draft:{id:'text_draft',generation:'1',kind:'text',documentId:'document_1',targetLayerId:null,expectedDocumentRevision:'1',assetId:draft.id,composing:false}}});assert.equal(saved.json.status,'accepted',saved.text);
+ const before=await doc(f),db=await ownedFontStore(t,f),auth={clientId:f.paired.json.clientId,sessionHash:'c'.repeat(64),now:Date.now(),expires:Date.now()+1800000};db.rememberClient(auth.sessionHash,auth.clientId,auth.expires);
+ const originalInspect=db.texts.inspect.bind(db.texts);let calls=0,cancelTarget;
+ db.texts.inspect=async(...args)=>{calls++;const result=await originalInspect(...args);assert.equal(db.texts.reservedCPU,0);if(cancelTarget){const operationId=db.portables.pending(cancelTarget).operationId,c=f.command({documentId:null,expectedDocumentRevision:null,body:{type:'CancelPortable',operationId}});assert.equal(db.portables.command(encode(c),auth).status,'accepted');}return result;};
+ async function save(cancel=false){
+  const c=f.command({expectedDocumentRevision:before.revision,body:{type:'SaveCopy'}});cancelTarget=cancel?c.command.commandId:undefined;assert.equal(db.portables.command(encode(c),auth),null);let record;
+  for(let n=0;n<1000;n++){record=db.lookup(c.command.commandId);if(record)break;await pause();}
+  assert(record,'Actual SaveCopy reached its terminal receipt');return {c,record};
+ }
+ const first=await save();assert.equal(first.record.receipt.status,'accepted');assert.equal(calls,1,'SaveCopy actually called the real font inspector');
+ const event=db.events(String(BigInt(first.record.receipt.fromSeq)-1n),100).events.find(e=>e.commandId===first.c.command.commandId),bundle=event.payload.bundle;assert.equal(bundle.complete,true);
+ const archive=await unpack(f.root,await readFile(db.objects.path(bundle.blob)));assert.deepEqual(archive.get('objects/'+font.bytes.hash.slice(7)),original.bytes);assert.deepEqual(archive.get('objects/'+draft.blob.hash.slice(7)),draftBytes);
+ const second=await save(true);assert.equal(second.record.receipt.status,'rejected');assert.equal(calls,2);const details=JSON.parse(Buffer.from(db.objects.verify(second.record.receipt.details,true)).toString());assert(details.issues.some(issue=>issue.code==='PORTABLE_CANCELLED'));
+ const fontPath=db.objects.path(font.bytes);
+ for(const fault of ['missing','corrupt']){
+  if(fault==='missing')await unlink(fontPath);else{const bytes=Buffer.from(original.bytes);bytes[0]^=1;await writeFile(fontPath,bytes,{mode:0o600});}
+  try{
+   const failed=await save(),receipt=failed.record.receipt;assert.equal(receipt.status,'rejected');assert.equal(receipt.code,fault==='missing'?'MISSING_ASSET':'INVALID_INPUT');
+   const issues=JSON.parse(Buffer.from(db.objects.verify(receipt.details,true)).toString()).issues;
+   const expected=fault==='missing'?'PORTABLE_REQUIRED_OBJECT_MISSING':'PORTABLE_CORRUPT_OBJECT';assert(issues.some(issue=>issue.code===expected));
+   if(fault==='missing')assert(issues.some(issue=>issue.code===expected&&issue.path==='objects/'+font.bytes.hash.slice(7)));
+   assert.equal(calls,2,'Known missing/corrupt bytes never reach the worker');assert.deepEqual(db.document('document_1'),before);
+  }finally{await writeFile(fontPath,original.bytes,{mode:0o600});}
+ }
+ assert.deepEqual(db.document('document_1'),before);assert.equal(db.texts.reservedCPU,0);assert.deepEqual(await readFile(fontPath),original.bytes);
+ const state=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});try{assert.equal(state.prepare('SELECT count(*) n FROM portable_bundles').get().n,1);assert.equal(state.prepare('SELECT count(*) n FROM portable_pins').get().n,0);}finally{state.close();}
 });
