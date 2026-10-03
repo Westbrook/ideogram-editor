@@ -158,9 +158,9 @@ test('narrow viewport keeps controls reachable and the canvas within the page', 
   expect(bounds!.width).toBeLessThanOrEqual(360); expect(bounds!.x).toBeGreaterThanOrEqual(0);
   await expect(select(page, 'appearance')).toHaveValue('auto');
   await select(page, 'appearance').focus(); await expect(select(page, 'appearance')).toBeFocused();
-  // Firefox changes a closed native select with ArrowDown; the customizable
-  // picker in Chromium/WebKit uses its open, navigate and commit sequence.
-  if (browserName === 'firefox') await page.keyboard.press('ArrowDown');
+  // Use the demonstrated native typeahead route in Firefox; customizable
+  // pickers in Chromium/WebKit use their open, navigate and commit sequence.
+  if (browserName === 'firefox') { await page.keyboard.press('l'); await page.keyboard.press('Enter'); }
   else { await page.keyboard.press('Space'); await page.keyboard.press('ArrowDown'); await page.keyboard.press('Enter'); }
   await expect(select(page, 'appearance')).toHaveValue('light');
   await expect(select(page, 'appearance').getByRole('option', { selected: true, includeHidden: true })).toHaveText('Light');
