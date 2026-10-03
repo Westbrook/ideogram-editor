@@ -6,6 +6,8 @@ import {EventEmitter,getEventListeners} from 'node:events';
 import {exchange} from '../session/helpers.mjs';
 import {readFile,writeFile,rename,cp} from 'node:fs/promises';
 import {terminalWithDiagnostics} from './native-failure-diagnostics.mjs';
+import {assertCandidatePrepared} from './queue-failure-diagnostics.mjs';
+import {installCandidatePreparationObservation} from './candidate-preparation-observation.mjs';
 import {createNativeMemoryRecorder,nativeMemoryPhases as memoryPhase} from './native-memory-diagnostics.mjs';
 import {join} from 'node:path';
 import {Worker} from 'node:worker_threads';
@@ -102,7 +104,7 @@ async function fixture(t,{encoded=false,failure=false,now,bounds=false,actualSiz
  }else server=await providerChild(root,owned=>{close=owned;},new URL('./text-treatment-process-fixture.mjs',import.meta.url));
  mainMemory.sample(memoryFixture,memoryPhase.serverReady);
  const paired=await pair(server);assert.equal(paired.status,200,paired.text);
- const f={root,server,paired,memoryFixture,...(acceptanceWait?{acceptanceWait}:{}),...(now?{syncClock:()=>syncNativeClock(root,now())}:{}),read:path=>call(server.origin,path,{headers:readHeaders(cookieFrom(paired))}),post:(path,body)=>call(server.origin,path,{method:'POST',body,headers:mutationHeaders(server,paired)}),command:(patch={},body={})=>command(EMPTY_EXPECTED_VERSIONS,{clientId:paired.json.clientId,...patch},body),effects:async()=>{const value=JSON.parse(await readFile(join(root,'request-edits-fixture.json'),'utf8'));assert.deepEqual(value.errors,[]);return value.effects;}};
+ const f={root,server,paired,memoryFixture,diagnostic:packet=>t.diagnostic(JSON.stringify(packet)),...(acceptanceWait?{acceptanceWait}:{}),...(now?{syncClock:()=>syncNativeClock(root,now())}:{}),read:path=>call(server.origin,path,{headers:readHeaders(cookieFrom(paired))}),post:(path,body)=>call(server.origin,path,{method:'POST',body,headers:mutationHeaders(server,paired)}),command:(patch={},body={})=>command(EMPTY_EXPECTED_VERSIONS,{clientId:paired.json.clientId,...patch},body),effects:async()=>{const value=JSON.parse(await readFile(join(root,'request-edits-fixture.json'),'utf8'));assert.deepEqual(value.errors,[]);return value.effects;}};
  f.reopen=async()=>{assert(!encoded&&!now&&!bounds);await close();const reopened=await providerChild(root,owned=>{close=owned;},new URL('./text-treatment-process-fixture.mjs',import.meta.url)),newPair=await pair(reopened);assert.equal(newPair.status,200,newPair.text);return clientFor({...f,server:reopened},newPair);};
  assert.equal((await terminal(f,f.command({},{width:512,height:512}))).json.receipt.status,'accepted');
  const background=(await importRaster(f,'black.png')).asset;
@@ -236,8 +238,8 @@ async function candidate(f,{kind='native-overlay',placement='current-document',m
  assert.deepEqual(plan.inventory.imageState,before.image.state);assert.deepEqual(plan.beforeSource.source,baseline.source);assert.deepEqual(plan.afterSource.source,source);
  const accepted=await ui(f,{type:'AcceptRequestReview',reviewId:review.id,token:review.token}),queued=await operate(f,{type:'QueueInference',reviewId:review.id,token:review.token,acceptanceId:accepted.request.requestId}),jobId=queued.event.payload.id;
  let value;const deadline=Date.now()+20000;
- do{const response=await f.read('/api/v1/jobs/'+jobId+'/candidates');if(response.status===200)value=response.json.items[0];if(value?.state==='prepared')break;await new Promise(resolve=>setTimeout(resolve,25));}while(Date.now()<deadline);
- assert.equal(value?.state,'prepared',JSON.stringify(value));assert.deepEqual(await document(f),before);
+ do{const response=await f.read('/api/v1/jobs/'+jobId+'/candidates');if(response.status===200)value=response.json.items[0];if(value?.state==='prepared'||value?.state==='preparation-failed')break;await new Promise(resolve=>setTimeout(resolve,25));}while(Date.now()<deadline);
+ await assertCandidatePrepared(f,{items:value?[value]:[]},{sourceDocumentId:documentId,queueCommandId:queued.command.command.commandId,jobId,kind,placement,memoryFixture:f.memoryFixture},{retain:false,report:f.diagnostic});assert.deepEqual(await document(f),before);
  return {value,draft,review,plan,baseline,selected,before,beforeState,saved,nativeIds};
 }
 
@@ -867,4 +869,60 @@ test('native acceptance HTTP handles already-closed request and incoming-message
   }
   for(const row of transport.requests){assert.equal(row.request.listenerCount('close'),0);assert.equal(row.request.listenerCount('response'),0);assert.deepEqual(row.destroyed,[]);}if(incoming)assert.equal(incoming.listenerCount('close'),0);acceptanceContractCleanup(h);
  }
+});
+
+test('candidate preparation observation preserves success and records the exact failing invocation and exception',async t=>{
+ const root=await rootFor(t),success={owned:'unchanged'},failure=Object.assign(new Error('contract rejection'),{code:'CAPACITY',reason:'contract-reason'}),calls=[],captures=[];
+ let reject=false;
+ const original=async function(...args){calls.push({receiver:this,args});if(reject)throw failure;return success;},store={root,rasters:{prepareDocument:original}};
+ const stop=installCandidatePreparationObservation(store,(owner,outputAssetId)=>{captures.push({owner,outputAssetId});return JSON.stringify({kind:'diagnostic-contract-sentinel',outputAssetId});});
+ const body={type:'PrepareCandidate',assetId:'encoded-contract-asset'},check=()=>{},args=[body,randomUUID(),'candidate-prepare:contract-candidate',check,undefined,documentId],receiver={contract:'receiver'};
+ try{
+  assert.strictEqual(await store.rasters.prepareDocument.apply(receiver,args),success);assert.equal(captures.length,0);await assert.rejects(readFile(join(root,'candidate-copy-raster-failure.json')),{code:'ENOENT'});
+  reject=true;await assert.rejects(store.rasters.prepareDocument.apply(receiver,args),error=>error===failure);
+  assert.equal(calls.length,2);for(const call of calls){assert.strictEqual(call.receiver,receiver);assert.equal(call.args.length,args.length);for(let i=0;i<args.length;i++)assert.strictEqual(call.args[i],args[i]);}
+  assert.equal(captures.length,1);assert.strictEqual(captures[0].owner,store);assert.equal(captures[0].outputAssetId,args[1]);
+  const bytes=await readFile(join(root,'candidate-copy-raster-failure.json'));assert(bytes.length<=270336);const packet=JSON.parse(bytes);
+  assert.deepEqual(packet,{kind:'candidate-copy-raster-failure-1',commandId:args[1],outputAssetId:args[1],slot:args[2],inputAssetId:body.assetId,documentId,error:{name:'Error',code:'CAPACITY',reason:'contract-reason'},snapshot:{kind:'diagnostic-contract-sentinel',outputAssetId:args[1]}});
+ }finally{stop();}
+ assert.strictEqual(store.rasters.prepareDocument,original);
+});
+
+test('candidate preparation observation never replaces rejection when capture fails or exceeds its bound',async t=>{
+ for(const mode of ['other-operation','capture-throws','capture-oversize']){
+  const root=await rootFor(t),failure=new Error('original rejection'),original=async()=>{throw failure;},store={root,rasters:{prepareDocument:original}};let captures=0;
+  const stop=installCandidatePreparationObservation(store,()=>{captures++;if(mode==='capture-throws')throw new Error('capture failure');return JSON.stringify({kind:'oversize-contract-sentinel',value:'x'.repeat(270336)});});
+  try{await assert.rejects(store.rasters.prepareDocument({type:mode==='other-operation'?'ComposeRaster':'PrepareCandidate',assetId:'encoded'},randomUUID(),'candidate-prepare:c',()=>{},undefined,documentId),error=>error===failure);assert.equal(captures,mode==='other-operation'?0:1);await assert.rejects(readFile(join(root,'candidate-copy-raster-failure.json')),{code:'ENOENT'});}
+  finally{stop();}assert.strictEqual(store.rasters.prepareDocument,original);
+ }
+});
+
+test('candidate preparation observation restores stacked owners without replacing a later owner or recording after stop',async t=>{
+ const root=await rootFor(t),failure=new Error('pending rejection');let reject,captures=0;
+ const original=()=>new Promise((resolve,no)=>{reject=no;}),store={root,rasters:{prepareDocument:original}},capture=()=>{captures++;return '{}';};
+ const innerStop=installCandidatePreparationObservation(store,capture),inner=store.rasters.prepareDocument,outerStop=installCandidatePreparationObservation(store,capture);
+ const pending=store.rasters.prepareDocument({type:'PrepareCandidate',assetId:'encoded'},randomUUID(),'candidate-prepare:c',()=>{},undefined,documentId),rejection=assert.rejects(pending,error=>error===failure);
+ outerStop();assert.strictEqual(store.rasters.prepareDocument,inner);innerStop();assert.strictEqual(store.rasters.prepareDocument,original);reject(failure);await rejection;assert.equal(captures,0);
+ const stop=installCandidatePreparationObservation(store,capture),later=async()=>{};store.rasters.prepareDocument=later;stop();assert.strictEqual(store.rasters.prepareDocument,later);
+ await assert.rejects(readFile(join(root,'candidate-copy-raster-failure.json')),{code:'ENOENT'});
+});
+
+test('candidate preparation failure diagnostics bind the slot, encoded asset and document before reporting a cause',async t=>{
+ for(const mismatch of [null,'slot','inputAssetId','documentId','outputAssetId']){
+  const root=await rootFor(t),candidate={id:'contract-candidate',documentId,jobId:'contract-job',attemptId:'contract-attempt',state:'preparation-failed',encodedAssetId:'encoded-contract-asset',preparedAssetId:null,warning:'Unchanged public warning'},outputAssetId=randomUUID(),rasterFailure={kind:'candidate-copy-raster-failure-1',commandId:outputAssetId,outputAssetId,slot:'candidate-prepare:'+candidate.id,inputAssetId:candidate.encodedAssetId,documentId,error:{name:'Error',code:'CAPACITY',reason:'contract-reason'},snapshot:{kind:'diagnostic-contract-sentinel'}};
+  if(mismatch)rasterFailure[mismatch]='mismatched-identity';
+  await writeFile(join(root,'candidate-copy-raster-failure.json'),JSON.stringify(rasterFailure),{mode:0o600});
+  const reports=[],context={queueCommandId:randomUUID()},pending=assertCandidatePrepared({root},{items:[candidate]},context,{retain:false,report:packet=>reports.push(packet)}),rejection=assert.rejects(pending,error=>error.code==='ERR_ASSERTION'&&error.actual==='preparation-failed'&&error.expected==='prepared');
+  try{
+   let request;for(let n=0;n<20;n++){try{request=JSON.parse(await readFile(join(root,'j19-diagnostic-request.json')));break;}catch(error){if(error.code!=='ENOENT'&&!(error instanceof SyntaxError))throw error;}await pause(5);}
+   assert(request,'Failure capture must request the existing owned diagnostic snapshot');
+   const result=join(root,'j19-diagnostic-'+request.commandId+'.json');await writeFile(result+'.tmp',JSON.stringify({kind:'diagnostic-contract-sentinel',commandId:request.commandId}),{mode:0o600});await rename(result+'.tmp',result);
+  }finally{await rejection;}
+  assert.equal(reports.length,1);const packet=reports[0];assert(Buffer.byteLength(JSON.stringify(packet))<=544768);assert.deepEqual(packet.context,context);assert.deepEqual(packet.candidate,candidate);assert.equal(packet.snapshot.kind,'diagnostic-contract-sentinel');assert.equal(packet.snapshot.commandId,packet.diagnosticId);
+  assert.equal(packet.rasterFailureObservation,mismatch?'identity-mismatch':'matched');assert.deepEqual(packet.rasterFailure,mismatch?null:rasterFailure);
+ }
+});
+
+test('prepared candidate assertion performs no failure capture or report',async()=>{
+ let reports=0;await assertCandidatePrepared({get root(){throw new Error('Prepared candidate must not access diagnostic files');}},{items:[{state:'prepared'}]},{},{retain:false,report:()=>{reports++;}});assert.equal(reports,0);
 });

@@ -29,7 +29,7 @@ export async function queueWithDiagnostics(f,body,context){
 
 // Same state assertion as the fixture, with observation only after it fails.
 // No new request, candidate retry, deadline extension or state reinterpretation.
-export async function assertCandidatePrepared(f,view,context){
+export async function assertCandidatePrepared(f,view,context,{retain=true,report}={}){
  try{assert.equal(view.items[0]?.state,'prepared',JSON.stringify(view));}catch(error){
   try{
    const commandId=randomUUID(),candidate=view.items[0]??null;
@@ -41,15 +41,19 @@ export async function assertCandidatePrepared(f,view,context){
     await new Promise(resolve=>setTimeout(resolve,25));
    }
    snapshot??={kind:'j19-diagnostic-unavailable-1',reason:'capture-deadline'};
-   let rasterFailure=null;
+   let rasterFailure=null,rasterFailureObservation='unavailable';
    try{
     const bytes=await readFile(join(f.root,'candidate-copy-raster-failure.json'));assert(bytes.length<=270336);
     const value=JSON.parse(bytes);
-    if(candidate&&value.slot==='candidate-prepare:'+candidate.id)rasterFailure=value;
+    // A retained failure from another candidate, encoded asset or document
+    // cannot explain this assertion. Never report that record as its cause.
+    if(candidate&&typeof candidate.id==='string'&&typeof candidate.encodedAssetId==='string'&&typeof candidate.documentId==='string'&&value.kind==='candidate-copy-raster-failure-1'&&value.slot==='candidate-prepare:'+candidate.id&&value.inputAssetId===candidate.encodedAssetId&&value.documentId===candidate.documentId&&typeof value.outputAssetId==='string'&&value.outputAssetId.length>0&&value.commandId===value.outputAssetId){rasterFailure=value;rasterFailureObservation='matched';}
+    else rasterFailureObservation='identity-mismatch';
    }catch(readError){if(readError.code!=='ENOENT')throw readError;}
-   const packet={kind:'candidate-copy-preparation-diagnostic-1',diagnosticId:commandId,context,candidate:candidate?{id:candidate.id,jobId:candidate.jobId,attemptId:candidate.attemptId,state:candidate.state,encodedAssetId:candidate.encodedAssetId,preparedAssetId:candidate.preparedAssetId,warning:candidate.warning}:null,assertionProcess:{pid:process.pid,after:process.memoryUsage()},snapshot,rasterFailure};
+   const packet={kind:'candidate-copy-preparation-diagnostic-1',diagnosticId:commandId,context,candidate:candidate?{id:candidate.id,documentId:candidate.documentId,jobId:candidate.jobId,attemptId:candidate.attemptId,state:candidate.state,encodedAssetId:candidate.encodedAssetId,preparedAssetId:candidate.preparedAssetId,warning:candidate.warning}:null,assertionProcess:{pid:process.pid,after:process.memoryUsage()},snapshot,rasterFailureObservation,rasterFailure};
    const bytes=Buffer.from(JSON.stringify(packet));assert(bytes.length<=544768);
-   const output=resolve(process.env.IE_CHAIN_DIAGNOSTIC_OUTPUT??'artifacts/agent-integration/chain-diagnostics');await mkdir(output,{recursive:true});const destination=join(output,commandId+'.json');await writeFile(destination,bytes,{mode:0o600,flag:'wx'});error.message+='\nChained candidate preparation diagnostic: '+destination;
+   if(report)await report(packet);
+   if(retain){const output=resolve(process.env.IE_CHAIN_DIAGNOSTIC_OUTPUT??'artifacts/agent-integration/chain-diagnostics');await mkdir(output,{recursive:true});const destination=join(output,commandId+'.json');await writeFile(destination,bytes,{mode:0o600,flag:'wx'});error.message+='\nChained candidate preparation diagnostic: '+destination;}
   }catch(captureError){error.message+='\nChained candidate preparation diagnostic unavailable: '+String(captureError.code??captureError.name).slice(0,80);}
   throw error;
  }
