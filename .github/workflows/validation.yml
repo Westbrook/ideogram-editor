@@ -42,8 +42,11 @@ on:
           - editor-document-creation
           - editor-command-search
           - e1
+          - request-review
           - request-v45-generation
           - request-v45-edit
+          - queue
+          - e2
           - e3
           - e4
           - adapters

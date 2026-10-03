@@ -953,7 +953,7 @@ const fastBrowserPlan = (family = 'editor-document-creation', engine = 'chromium
 });
 const browserDeadlineSource = path => readFileSync(path,'utf8');
 test('Fast browser selection preserves every reviewed whole family on exactly one pinned engine',()=>{
- assert.equal(fastBrowserFamilies.length,32);assert.equal(new Set(fastBrowserFamilies).size,32);
+ assert.equal(fastBrowserFamilies.length,35);assert.equal(new Set(fastBrowserFamilies).size,35);
  for(const engine of ['chromium','firefox','webkit'])for(const family of fastBrowserFamilies){
   if(family==='adapters'&&engine!=='chromium'){assert.throws(()=>selectedFastBrowserSetup(process.cwd(),family,engine),/requires Chromium/);continue;}
   const plan=fastBrowserPlan(family,engine),setup=selectedFastBrowserSetup(process.cwd(),family,engine);
@@ -978,6 +978,9 @@ test('Fast browser selection preserves every reviewed whole family on exactly on
 });
 test('Fast request and recovery dispatch preserves the exact existing full contracts without extra fixtures or authority',()=>{
  const owners=[
+  ['request-review','tests/request/playwright.config.ts','tests/request/review.spec.ts',[]],
+  ['queue','tests/queue/playwright.config.ts','tests/queue/public.spec.ts',[]],
+  ['e2','tests/candidates/playwright.config.ts','tests/candidates/public.spec.ts',['E2']],
   ['request-v45-generation','tests/request/v45-generation.config.ts','tests/request/v45-generation.spec.ts',[]],
   ['request-v45-edit','tests/request-edits/v45.config.ts','tests/request-edits/v45-public.spec.ts',[]],
   ['e3','tests/request-edits/playwright.config.ts','tests/request-edits/public.spec.ts',['E3']],
@@ -1004,7 +1007,7 @@ test('Fast request and recovery dispatch preserves the exact existing full contr
   assert.deepEqual(setup.browserSteps,[{id:`${family}-${engine}`,timeoutMs:1800000,graceMs:5000,exitObservationMs:100}]);
   assert.equal(setup.totalBudgetMs,7456200);assert.equal(setup.qualification,false);
   for(const mutate of [
-   changed=>{changed.browserPlan.steps[0].files=['tests/request/review.spec.ts'];},
+   changed=>{changed.browserPlan.steps[0].files=['tests/editor/authoring.spec.ts'];},
    changed=>{changed.browserPlan.steps[0].env.EDITOR_BROWSER=engine==='chromium'?'firefox':'chromium';},
    changed=>{changed.browserPlan.steps[0].contracts=['unreviewed-contract'];},
    changed=>{changed.browserPlan.steps[0].args.push('--grep','one case');},
@@ -1260,4 +1263,24 @@ test('Fast adapters browser setup retains fixture and browser failures without f
   assert.equal(calls,phase==='fixture'?1:2);assert.equal(records.at(-1).status,'FAIL');assert.equal(records.at(-1).browser,null);assert.equal(records.at(-1).adapterFixture!==null,phase==='browser');
  }
  const missing=[];let calls=0;assert.throws(()=>provisionFastBrowserSetup(root,plan,{execute:()=>{calls++;return Buffer.alloc(0);},record:row=>missing.push(structuredClone(row))}),SyntaxError);assert.equal(calls,1);assert.equal(missing.at(-1).status,'FAIL');
+});
+
+
+test('Fast request review, queue and candidate provisioning keep one pinned engine and refuse unrelated fixture authority',()=>{
+ for(const family of ['request-review','queue','e2'])for(const engine of ['chromium','firefox','webkit']){
+  const plan=selectedFastBrowserSetup(process.cwd(),family,engine),commands=[],records=[];
+  assert.deepEqual(plan.history,[]);assert.equal(plan.adapterFixture,null);
+  const result=provisionFastBrowserSetup(process.cwd(),plan,{execute:(command,args,options)=>{
+   commands.push([command,...args]);assert.equal(command,process.execPath);assert.equal(options.cwd,process.cwd());
+   assert.deepEqual(args,[join(process.cwd(),'node_modules/playwright/cli.js'),'install','--with-deps',engine]);
+   assert.equal(options.timeout,7*60_000);return Buffer.alloc(0);
+  },record:row=>records.push(structuredClone(row))});
+  assert.equal(commands.length,1);assert.equal(result.status,'PASS');assert.equal(result.adapterFixture,null);
+  assert.deepEqual(records.map(row=>row.status),['PENDING','PASS']);assert.equal(result.qualification,false);
+  const changed=structuredClone(plan);changed.adapterFixture=selectedFastBrowserSetup(process.cwd(),'adapters','chromium').adapterFixture;
+  let calls=0;assert.throws(()=>provisionFastBrowserSetup(process.cwd(),changed,{execute:()=>{calls++;throw Error('must not execute');}}),/prerequisite differs/);assert.equal(calls,0);
+  const failures=[];let failedCalls=0;const unavailable=Error('Pinned '+engine+' unavailable for '+family);
+  assert.throws(()=>provisionFastBrowserSetup(process.cwd(),plan,{execute:()=>{failedCalls++;throw unavailable;},record:row=>failures.push(structuredClone(row))}),error=>error===unavailable);
+  assert.equal(failedCalls,1);assert.deepEqual(failures.map(row=>row.status),['PENDING','FAIL']);assert.equal(failures.at(-1).browser,null);assert.equal(failures.at(-1).adapterFixture,null);
+ }
 });
