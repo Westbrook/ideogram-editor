@@ -7,7 +7,7 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 export const publicBase = '/ideogram-editor/';
 export function buildIdentity(commit, builtAt) {
   if (!/^[0-9a-f]{40}$/.test(commit ?? '') || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(builtAt ?? '') || new Date(builtAt).toISOString() !== builtAt) throw Error('Exact commit and canonical UTC build date required');
-  return { schema: 1, product: 'Ideogram Editor preview', scope: 'Temporary text preview; no local server or provider', commit, builtAt, base: publicBase };
+  return { schema: 1, product: 'Ideogram Editor preview', scope: 'Disconnected editor UI and temporary native text demo; no local server or provider', commit, builtAt, base: publicBase };
 }
 export async function noticeInputs(root, { verifySources = true } = {}) {
   const manifest = JSON.parse(await readFile(join(root, 'tooling/pages/notices.json'), 'utf8'));
@@ -42,14 +42,18 @@ async function inventory(root, directory, notices) {
       }
       if (!stat.isFile() || stat.isSymbolicLink() || await realpath(absolute) !== absolute) throw Error(`Non-regular public artifact: ${path}`);
       if (!['index.html', 'build-identity.json', 'artifact-manifest.json'].includes(path) && !allowedNotices.has(path) &&
-          !/^assets\/[A-Za-z0-9_.-]+\.(?:js|css|wasm|ttf|otf|woff2?|svg)$/.test(path)) throw Error(`Unapproved public artifact: ${path}`);
+          !/^assets\/[A-Za-z0-9_.-]+\.(?:js|css|wasm|ttf|otf|woff2?|svg)$/.test(path) && !/^assets\/profile-[A-Za-z0-9_-]{8}\.json$/.test(path)) throw Error(`Unapproved public artifact: ${path}`);
       if (stat.size > 24 * 1024 * 1024 || ++fileCount > 160 || (total += stat.size) > 64 * 1024 * 1024) throw Error('Public artifact bound exceeded');
       const bytes = await readFile(absolute);
       const notice = allowedNotices.get(path);
       if (notice && (bytes.length !== notice.bytes || hash(bytes) !== notice.sha256)) throw Error(`Distributed notice differs: ${path}`);
       if (/\.(?:html|js|css|json|svg)$/.test(path)) {
         const text = bytes.toString('utf8');
-        if (/sourceMappingURL|\/Users\/|\/private\/tmp\/|\.progress-report|127\.0\.0\.1|localhost|\/api\/v1|fal\.run|queue\.fal\.run|sk-proj-[A-Za-z0-9]|-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/.test(text)) throw Error(`Private, backend, credential or map marker in public artifact: ${path}`);
+        // The reviewed offline graph includes public API declarations in JS.
+        // HTML, data and styles still may not introduce API addresses; browser
+        // tests independently reject attempted backend transport.
+        if (/\/api\/v1/.test(text) && !/^assets\/[A-Za-z0-9_.-]+\.js$/.test(path)) throw Error(`Backend path outside a public JS declaration: ${path}`);
+        if (/sourceMappingURL|\/Users\/|\/private\/tmp\/|\.progress-report|127\.0\.0\.1|localhost|fal\.run|queue\.fal\.run|sk-proj-[A-Za-z0-9]|-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/.test(text)) throw Error(`Private, backend, credential or map marker in public artifact: ${path}`);
       }
       if (path !== 'artifact-manifest.json') rows.push({ path, bytes: bytes.length, sha256: hash(bytes) });
     }
@@ -59,7 +63,10 @@ async function inventory(root, directory, notices) {
   const html = await readFile(join(directory, 'index.html'), 'utf8');
   if (!html.includes('Content-Security-Policy') || !html.includes(`${publicBase}assets/`)) throw Error('Pages base or explicit preview policy missing');
   if (/\b(?:src|href)=["']\/(?!ideogram-editor\/)/.test(html)) throw Error('Root-relative asset bypasses the project base');
-  const profile = JSON.parse(await readFile(join(root, 'src/text/profile.json'), 'utf8'));
+  const profileBytes = await readFile(join(root, 'src/text/profile.json'));
+  const profile = JSON.parse(profileBytes.toString('utf8'));
+  const profiles = rows.filter(row => /^assets\/profile-[A-Za-z0-9_-]{8}\.json$/.test(row.path));
+  if (profiles.length !== 1 || profiles[0].bytes !== profileBytes.length || profiles[0].sha256 !== hash(profileBytes)) throw Error('Public native profile differs from the sealed renderer');
   const wasm = rows.filter(row => row.path.endsWith('.wasm'));
   if (wasm.length !== 1 || wasm[0].bytes !== profile.engine.wasm.bytes || wasm[0].sha256 !== profile.engine.wasm.sha256) throw Error('Public native WASM differs from the sealed renderer');
   const fonts = rows.filter(row => /\.(?:ttf|otf|woff2?)$/.test(row.path));

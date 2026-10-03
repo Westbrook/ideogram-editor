@@ -14,7 +14,7 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const ordered = rows => [...rows].sort((a, b) => a.path.localeCompare(b.path));
 const limits = Object.freeze({ files: 160, memberBytes: 24 * 1024 * 1024, totalBytes: 64 * 1024 * 1024, manifestBytes: 1024 * 1024, responseBytes: 2 * 1024 * 1024 });
 const publicPath = path => typeof path === 'string' && (['index.html', 'build-identity.json'].includes(path) ||
-  /^assets\/[A-Za-z0-9_.-]+\.(?:js|css|wasm|ttf|otf|woff2?|svg)$/.test(path) || /^notices\/[A-Za-z0-9_.-]+\.txt$/.test(path));
+  /^assets\/[A-Za-z0-9_.-]+\.(?:js|css|wasm|ttf|otf|woff2?|svg)$/.test(path) || /^assets\/profile-[A-Za-z0-9_-]{8}\.json$/.test(path) || /^notices\/[A-Za-z0-9_.-]+\.txt$/.test(path));
 
 export function publicationArguments(args) {
   const options = {};
@@ -75,9 +75,11 @@ export function githubRequest(token, transport = fetch, signal = AbortSignal.tim
   };
 }
 
-function manifestRows(manifest, manifestBytes) {
+export function manifestRows(manifest, manifestBytes, { historical = false } = {}) {
+  const identity = buildIdentity(manifest?.identity?.commit, manifest?.identity?.builtAt);
+  const recognizedIdentity = same(manifest?.identity, identity) || historical && same(manifest?.identity, { ...identity, scope: 'Temporary text preview; no local server or provider' });
   if (manifest?.schema !== 1 || manifest.kind !== 'ideogram-pages-public-artifact-1' ||
-      !same(manifest.identity, buildIdentity(manifest.identity?.commit, manifest.identity?.builtAt)) ||
+      !recognizedIdentity ||
       !Array.isArray(manifest.files) || !manifest.files.length || manifest.files.length + 1 > limits.files ||
       manifestBytes.length > limits.manifestBytes) throw Error('Unrecognized gh-pages artifact manifest');
   let total = manifestBytes.length;
@@ -132,7 +134,7 @@ export async function existingArtifact(request, head) {
   if (bytes.length !== row.bytes || blobHash(bytes) !== row.gitSHA) throw Error('Existing artifact manifest blob identity differs');
   let manifest;
   try { manifest = JSON.parse(bytes.toString('utf8')); } catch { throw Error('Existing gh-pages manifest is invalid JSON'); }
-  const described = manifestRows(manifest, bytes);
+  const described = manifestRows(manifest, bytes, { historical: true });
   // Recognize the entire prior distribution, refusing extra files. Old payload
   // SHA-256 values are declarations here; the new payloads are locally rehashed.
   if (!same(files.map(({ path, bytes }) => ({ path, bytes })), described.map(({ path, bytes }) => ({ path, bytes })))) throw Error('Existing gh-pages contains files outside its recognized manifest');

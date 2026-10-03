@@ -55,7 +55,7 @@ export const TEXT_RESOURCE_OWNERSHIP_CONTRACT = frozen({contract:'font-shaping-r
  * No function accepts a caller-supplied review or replaces this registry. */
 export const REVIEWED_RENDERER_OWNERSHIP = frozen([
   {
-    "id": "ideogram-editor-app-8f94442c-r18-r35-20261003",
+    "id": "ideogram-editor-app-8f94442c-r18-r35-app335-20261003",
     "sourceFiles": [
       {
         "path": ".progress-report/project.json",
@@ -113,8 +113,8 @@ export const REVIEWED_RENDERER_OWNERSHIP = frozen([
       },
       {
         "path": "src/composition/memory.ts",
-        "bytes": 9923,
-        "sha256": "sha256:e35b894076a80239d2111cc36ad0235c13c447844dc56a0e9c9307defc2b0a7f",
+        "bytes": 10016,
+        "sha256": "sha256:f528c9ef6bd1ff53dab071d4ebcfc4cb726404f494011de27bccd31476c1e391",
         "encoding": "utf8"
       },
       {
@@ -167,8 +167,8 @@ export const REVIEWED_RENDERER_OWNERSHIP = frozen([
       },
       {
         "path": "src/observability/composition-observations.ts",
-        "bytes": 11819,
-        "sha256": "sha256:e732150702ee4508467330c50e11f074d2916d82297d0315c145926ee29807a4",
+        "bytes": 16019,
+        "sha256": "sha256:966cf50aea8c77470a0dad9ffc08accf03ae974f99bb05292b1cefe23de93cfc",
         "encoding": "utf8"
       },
       {
@@ -251,8 +251,8 @@ export const REVIEWED_RENDERER_OWNERSHIP = frozen([
       },
       {
         "path": "src/protocol/candidate-placement-review.ts",
-        "bytes": 6014,
-        "sha256": "sha256:e2d386a589deb9e19c6b4792b974549442681822ecbee6ea053bef3402a07aa7",
+        "bytes": 6833,
+        "sha256": "sha256:dcca33d598d7de3dc6732cfbab57c9104e5f783c9f7c7fb60542bcc2dac5dbfc",
         "encoding": "utf8"
       },
       {
@@ -299,8 +299,8 @@ export const REVIEWED_RENDERER_OWNERSHIP = frozen([
       },
       {
         "path": "src/protocol/history.ts",
-        "bytes": 8715,
-        "sha256": "sha256:44951fa8f8d4b77e6a9c595e9eac290cd8a7e7c0b1da8aa28621c9e0713521ba",
+        "bytes": 8792,
+        "sha256": "sha256:c31f9c89237f6f1d40b1068b3fc447a3853a0d6fd478b8f0b652538b4dceaeb7",
         "encoding": "utf8"
       },
       {
@@ -455,8 +455,8 @@ export const REVIEWED_RENDERER_OWNERSHIP = frozen([
       },
       {
         "path": "src/request/raster-plan.ts",
-        "bytes": 25523,
-        "sha256": "sha256:b64d75acd19a55cf3cf562c97deba99753ea3f64ed9725fa4092431a5b2654be",
+        "bytes": 26419,
+        "sha256": "sha256:3b1b7cbbbae5b42907614d8b05d623653cc44454e92b679696310f0e471a50dc",
         "encoding": "utf8"
       },
       {
@@ -467,8 +467,8 @@ export const REVIEWED_RENDERER_OWNERSHIP = frozen([
       },
       {
         "path": "src/request/text-treatment.ts",
-        "bytes": 38701,
-        "sha256": "sha256:097b5788cabb231536a5ab38c65bf71231280d1ad57cd5f4731a49c884daf520",
+        "bytes": 45353,
+        "sha256": "sha256:2ab56b85fb685b72a0218b8d00110aab19d32c5a67e572bdb65914c85c52de9d",
         "encoding": "utf8"
       },
       {
@@ -941,8 +941,8 @@ export const REVIEWED_RENDERER_OWNERSHIP = frozen([
       },
       {
         "path": "src/ui/composition.ts",
-        "bytes": 71465,
-        "sha256": "sha256:67fcb2c5577a53f0a51c286dbe80194ced781eb922db6aad42bab128aec57fad",
+        "bytes": 72688,
+        "sha256": "sha256:78b3938609555f581fecca318b16f06f9a384c9ed62791996b6214badf877f80",
         "encoding": "utf8"
       },
       {
@@ -1139,14 +1139,14 @@ export const REVIEWED_RENDERER_OWNERSHIP = frozen([
       },
       {
         "path": "src/ui/request.ts",
-        "bytes": 139870,
-        "sha256": "sha256:e05321e71539e2732b88c706d1f87a0c2d63ed45d93c7889a6ba5be074d567fd",
+        "bytes": 141295,
+        "sha256": "sha256:c5bd629ecc132b216d6b77485b53a3f95c52c9c2a6ca320ae79ed6c9b47dae52",
         "encoding": "utf8"
       },
       {
         "path": "src/ui/returned-description.ts",
-        "bytes": 10819,
-        "sha256": "sha256:db3549347e0f9d719005a22dd89d020808f2a5d9659befe89e4be54f01961392",
+        "bytes": 11135,
+        "sha256": "sha256:661db3b3aa1ca2f21eeb8a857d66f3fbc99ba3b356503735cc22d28f35c62fc6",
         "encoding": "utf8"
       },
       {
@@ -1181,8 +1181,8 @@ export const REVIEWED_RENDERER_OWNERSHIP = frozen([
       },
       {
         "path": "tooling/build-evidence.ts",
-        "bytes": 16426,
-        "sha256": "sha256:7652412f0fea29ab93c8e3b69722ee81f0a0af98db0fa96e59aabb02c5a78c59",
+        "bytes": 20934,
+        "sha256": "sha256:483a863f126ff181d94897b3ca5defcbe00ff7104584bfbd8fa42478e54070c7",
         "encoding": "utf8"
       },
       {
@@ -1235,8 +1235,8 @@ export const REVIEWED_RENDERER_OWNERSHIP = frozen([
       },
       {
         "path": "vite.app.config.ts",
-        "bytes": 459,
-        "sha256": "sha256:1254165ea4fb9b0cc2a83552b3f87c9132d45225e38959f11ce99f6130e89c4a",
+        "bytes": 554,
+        "sha256": "sha256:ba4874b23f6f789ac56db7916bb0d0b1304bf3d2ff7c9a00bb0b4f298fe6c024",
         "encoding": "utf8"
       }
     ],
@@ -1283,7 +1283,7 @@ export const REVIEWED_RENDERER_OWNERSHIP = frozen([
         {
           "path": "dist/app/.vite/manifest.json",
           "bytes": 5530,
-          "sha256": "sha256:187bc17533c74e543813991738409a81c82e30c69eb4cbe75eab868b0254f039"
+          "sha256": "sha256:af6217537431cd591e7a094e850f2d5444cae3b1d8c1c2ad15f306f335f0811a"
         },
         {
           "path": "dist/app/assets/NotoSans-Regular-Dpf_lrdO.ttf",
@@ -1306,9 +1306,9 @@ export const REVIEWED_RENDERER_OWNERSHIP = frozen([
           "sha256": "sha256:630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6"
         },
         {
-          "path": "dist/app/assets/adapter-upload-fMOZO92D.js",
+          "path": "dist/app/assets/adapter-upload-ZJUl3sV6.js",
           "bytes": 7945,
-          "sha256": "sha256:212a8cfcf00ddef0ae4b86e82e1ccea76822c9fb902999dcc3925ea669740aa2"
+          "sha256": "sha256:d770fe65afcc4272804ae9f68fbb859b0dfc6676a81f7419e14d803856e622cb"
         },
         {
           "path": "dist/app/assets/adapter-upload-hook-CZQz_zNG.js",
@@ -1321,9 +1321,9 @@ export const REVIEWED_RENDERER_OWNERSHIP = frozen([
           "sha256": "sha256:6bfc66dea0b20c87dd428e790c5a438e1e38817ee7d1aa682b195418f763beb6"
         },
         {
-          "path": "dist/app/assets/browser-CT-LEuLh.js",
+          "path": "dist/app/assets/browser-BlAjsNLe.js",
           "bytes": 22209,
-          "sha256": "sha256:aba4fc5e2b71237e7883e57409039dc0b5fed25c21ea819c9c66c15663bdf302"
+          "sha256": "sha256:423aa3fd78b26420d404903f3620a9397ef49e7672ff5440c513cbcac5f96e9c"
         },
         {
           "path": "dist/app/assets/canvaskit-B2Vb3rWN.wasm",
@@ -1331,9 +1331,9 @@ export const REVIEWED_RENDERER_OWNERSHIP = frozen([
           "sha256": "sha256:26389aa33388a205d355b04b48d3c00965db73d6781ae297f6e2f27e8631bb19"
         },
         {
-          "path": "dist/app/assets/control-memory-DmI-CESj.js",
+          "path": "dist/app/assets/control-memory-Eee2cnCW.js",
           "bytes": 2239,
-          "sha256": "sha256:ff9345fe976a6cf39f94af481e931480586d66c74cf588130dd55001b2e9cc42"
+          "sha256": "sha256:8a58feb1339afe21b4d6018fbe5058f7db4e535a13a1208a9a119f312f6d3677"
         },
         {
           "path": "dist/app/assets/density-b6s3w18k.js",
@@ -1341,9 +1341,9 @@ export const REVIEWED_RENDERER_OWNERSHIP = frozen([
           "sha256": "sha256:9660db15fb7713a9dda7b12697cbe194054453f7c7256a8c1508a46fb7733046"
         },
         {
-          "path": "dist/app/assets/display-image-TMrMKUbK.js",
+          "path": "dist/app/assets/display-image-BXlXvtE1.js",
           "bytes": 111081,
-          "sha256": "sha256:70c99574d9d71bac1bcf2c346e9a90e082d9bc66e2a23044a6829cab138abfa4"
+          "sha256": "sha256:027a854cc755ec72c5e83533396e35da45b3ab1ffea7bdac94fe3499f6532d8e"
         },
         {
           "path": "dist/app/assets/editor-panels-Uvj1nNX6.js",
@@ -1351,9 +1351,9 @@ export const REVIEWED_RENDERER_OWNERSHIP = frozen([
           "sha256": "sha256:108c31fe7c71e64b407c398c82ffc7333afce7e8b9dd5e525091abe7aac22733"
         },
         {
-          "path": "dist/app/assets/export-NKvgBmKg.js",
+          "path": "dist/app/assets/export-B6GlwDVw.js",
           "bytes": 24691,
-          "sha256": "sha256:7a5dc04790285dfa21caf888cc99e4944cdf0c545f6f83191698db0574e2084f"
+          "sha256": "sha256:c0ae962eb24d2cec57abf704f09669333ba63f6bcd79eb9a2eb70c5b28f06d4b"
         },
         {
           "path": "dist/app/assets/icon-bM7BnQq1.js",
@@ -1361,9 +1361,14 @@ export const REVIEWED_RENDERER_OWNERSHIP = frozen([
           "sha256": "sha256:8c3b0c399c780b8bfd9336d3643669e3a11b3a01740fd70211e8d4519486a597"
         },
         {
-          "path": "dist/app/assets/image-import-SXQ5spJW.js",
+          "path": "dist/app/assets/image-import-CzkouyFB.js",
           "bytes": 28815,
-          "sha256": "sha256:06aeb97f9b7f2581706105039317027cfb27a314fba9ea2259fa58aeb23ec981"
+          "sha256": "sha256:d2a6913c7e56d48e25484baa36861f7896cea9f7e458884fb08b36ecaec0bf5d"
+        },
+        {
+          "path": "dist/app/assets/index-Dq5DRTU3.js",
+          "bytes": 1860,
+          "sha256": "sha256:7f8396c206063280aa943b560888770b2ab48b071784c68c8a295f8406ca376f"
         },
         {
           "path": "dist/app/assets/index-W-r-eRIr.css",
@@ -1371,24 +1376,19 @@ export const REVIEWED_RENDERER_OWNERSHIP = frozen([
           "sha256": "sha256:80803d3fb97275ebbbf6098e703144cd64ed0c35d7d1feef36aeddbd1ed8a6a8"
         },
         {
-          "path": "dist/app/assets/index-bmCltJRw.js",
-          "bytes": 1860,
-          "sha256": "sha256:bceaf44d9fcf644eeee4fa66d58bf679022d04a2d20509d1c478722251a19016"
-        },
-        {
           "path": "dist/app/assets/lit-tfDubpWu.js",
           "bytes": 15020,
           "sha256": "sha256:2aa46cc767b30e74b9f957c198780472518bb82cdb1d634b10ab5a575aff9e3d"
         },
         {
-          "path": "dist/app/assets/model-memory-B6nZw48Y.js",
-          "bytes": 38802,
-          "sha256": "sha256:cdf98f4b6261eecdb12ce4e0b5cc89d96dc34e839a9f7bb74fa8e6d088ced183"
+          "path": "dist/app/assets/model-memory-CTO-q7Az.js",
+          "bytes": 40902,
+          "sha256": "sha256:830aaec073215e4b9c739eaef66abed77805f7e177bdeeaebb1e8284daa8b555"
         },
         {
-          "path": "dist/app/assets/model-owner-AY9eFGp3.js",
+          "path": "dist/app/assets/model-owner-7fizWpfl.js",
           "bytes": 3438,
-          "sha256": "sha256:1834bd2628a28eb20cb266ae23cc76b5f4c90d3566f75840a2912c44f0161eb2"
+          "sha256": "sha256:4e1c3239a43214f0ae5b545ed74f4439a69794717235fae815eba400b6c6c4f3"
         },
         {
           "path": "dist/app/assets/preload-helper-BZ1Pz5am.js",
@@ -1406,19 +1406,19 @@ export const REVIEWED_RENDERER_OWNERSHIP = frozen([
           "sha256": "sha256:5bb1f7b8d2fdd5177d6f7ed6b25c7c59ec036088c36d98b9f571c8e51ba680e6"
         },
         {
+          "path": "dist/app/assets/shell-C-lJpzF4.js",
+          "bytes": 1226765,
+          "sha256": "sha256:074f84b6e52db07bfafceb1d9d3969cc21e470cd8b18fd66c7505ebbd8bf2655"
+        },
+        {
           "path": "dist/app/assets/shell-C8ihFI8n.css",
           "bytes": 2815,
           "sha256": "sha256:b66733d44b18f5f0c0dec80f5982f92ee084a7eed278c6b15e7864329578d368"
         },
         {
-          "path": "dist/app/assets/shell-CHsd6zyI.js",
-          "bytes": 1225386,
-          "sha256": "sha256:98cd25591119a37d1c24da2097e938be9940759eef0dc3ca345480b44c76fd79"
-        },
-        {
-          "path": "dist/app/assets/storage-library-DsG5pErf.js",
+          "path": "dist/app/assets/storage-library-D2zc068i.js",
           "bytes": 26847,
-          "sha256": "sha256:014cec867e3eb097bbce9dcc36ea93dcc482d0a6f8047c0f7d91374ac23e9fcd"
+          "sha256": "sha256:d2e8c6c38396b58ca990fade3ef1b2344a5018f136d71fb62ff85c512a67b867"
         },
         {
           "path": "dist/app/assets/worker-MSy9aYeE.js",
@@ -1427,13 +1427,13 @@ export const REVIEWED_RENDERER_OWNERSHIP = frozen([
         },
         {
           "path": "dist/app/build-evidence.json",
-          "bytes": 72125,
-          "sha256": "sha256:2878b6ac51a55de9c0c09229719159bf26b15fedb4a3cb39cc92112f23f1e322"
+          "bytes": 75877,
+          "sha256": "sha256:471ee50ec15d9c0507d55a689db6a46a7bcb542c1984762a803a838791a85f5f"
         },
         {
           "path": "dist/app/index.html",
           "bytes": 1083,
-          "sha256": "sha256:2dd0b941a4d82f1f35c4cd60030d02ff6a125299e63a635afe2c5ea4870d024f"
+          "sha256": "sha256:b71edc6eb352a3f3c7181ea8931492b0495f54f4f22daeae3e0eb0d4c53a93ff"
         }
       ],
       "runtimeInputs": [
@@ -1474,44 +1474,44 @@ export const REVIEWED_RENDERER_OWNERSHIP = frozen([
         },
         {
           "role": "correctness-receipt",
-          "path": "artifacts/evidence-browser-05/run-299/receipt.json",
-          "bytes": 866791,
-          "sha256": "sha256:e5eb44584e715af026d6ee951f57e3f835f317ab9b740b39ae35b3290a312f3b",
+          "path": "artifacts/evidence-browser-05/run-356/receipt.json",
+          "bytes": 867171,
+          "sha256": "sha256:9215fd8d4bf32163a12ba635f42f8fa20bace0ebae9fd1bdc27a0a0c43481cd2",
           "encoding": "utf8"
         },
         {
           "role": "correctness-receipt",
-          "path": "artifacts/evidence-browser-05/run-306/receipt.json",
-          "bytes": 859241,
-          "sha256": "sha256:56b7333fd4532ac2aa039529c4da880717ef879380c1d281c60827c3674a565f",
+          "path": "artifacts/evidence-browser-05/run-359/receipt.json",
+          "bytes": 859645,
+          "sha256": "sha256:f42cf094960c7677e1e8324682de27590a672619bbde25b800fe5eeea39537cf",
           "encoding": "utf8"
         },
         {
           "role": "correctness-receipt",
-          "path": "artifacts/evidence-browser-06/run-300/receipt.json",
-          "bytes": 866928,
-          "sha256": "sha256:3f735a4831728ffd28396630b0fc9118274875f8cdede98621887f0b3e53e811",
+          "path": "artifacts/evidence-browser-06/run-357/receipt.json",
+          "bytes": 867315,
+          "sha256": "sha256:893b28f95b525782406f36ee3817c20401fff5fac772dcdb70967d7ffe56c744",
           "encoding": "utf8"
         },
         {
           "role": "correctness-receipt",
-          "path": "artifacts/evidence-browser-06/run-304/receipt.json",
-          "bytes": 860062,
-          "sha256": "sha256:0d286f4033751b09ee068a8ffd741582cdd7e1bf7cd1f1d0711dad2f3da96dd5",
+          "path": "artifacts/evidence-browser-06/run-360/receipt.json",
+          "bytes": 859841,
+          "sha256": "sha256:a33f64a507402f3758eb1cc6686b16446a88756d86e11e726371f79ffa67905d",
           "encoding": "utf8"
         },
         {
           "role": "correctness-receipt",
-          "path": "artifacts/evidence-browser-07/run-301/receipt.json",
-          "bytes": 866872,
-          "sha256": "sha256:d0540a2800e642622e5c6d8aafb71feed22ac20f56065960dbcef9fc0c238971",
+          "path": "artifacts/evidence-browser-07/run-358/receipt.json",
+          "bytes": 867265,
+          "sha256": "sha256:9356856223c8610a37a0070e267839f08476c1bb3b6ef5e4fe0c025e21619f15",
           "encoding": "utf8"
         },
         {
           "role": "correctness-receipt",
-          "path": "artifacts/evidence-browser-07/run-305/receipt.json",
-          "bytes": 859392,
-          "sha256": "sha256:a4a6fbbd26d6a620175b7811aa359bf0cd551bb53a0311f87f1b46f101e78d1e",
+          "path": "artifacts/evidence-browser-07/run-361/receipt.json",
+          "bytes": 859817,
+          "sha256": "sha256:5149fbdd6f7c36ca60924143db4991455ae76b1c855dc68df55e95ba42728226",
           "encoding": "utf8"
         }
       ]

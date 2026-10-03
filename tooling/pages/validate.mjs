@@ -26,6 +26,32 @@ function argumentsFor(args) {
   if (!options.output || !isAbsolute(options.output) || !process.env.IE_EVIDENCE_ALLOCATION) throw Error('Explicit fresh output and IE_EVIDENCE_ALLOCATION are required');
   return options;
 }
+// This deployment requires both complete public views in every pinned engine.
+export function pagesBrowserOutcome(report) {
+  const files = { 'pages/tests/preview.spec.ts': 10, 'pages/tests/editor.spec.ts': 5 };
+  const engines = ['chromium', 'firefox', 'webkit'];
+  const result = browserReportOutcome(report, { files: Object.keys(files) });
+  const inventory = Object.fromEntries(engines.map(engine => [engine, Object.fromEntries(Object.keys(files).map(file => [file, 0]))]));
+  const problems = [...result.problems];
+  function visit(suite) {
+    for (const spec of suite.specs ?? []) for (const test of spec.tests ?? []) {
+      const actual = spec.file.replaceAll('\\', '/');
+      const file = Object.keys(files).find(file => actual === file || actual.endsWith('/' + file) || file.endsWith('/' + actual));
+      if (!file || !engines.includes(test.projectName)) { problems.push('Unexpected Pages file or engine'); continue; }
+      inventory[test.projectName][file]++;
+      if (test.expectedStatus !== 'passed' || test.status !== 'expected' || test.results.length !== 1 ||
+          test.results[0].status !== 'passed' || (test.results[0].retry ?? 0) !== 0) problems.push('Pages case did not pass once without retry');
+    }
+    for (const child of suite.suites ?? []) visit(child);
+  }
+  report.suites.forEach(visit);
+  for (const engine of engines) for (const [file, expected] of Object.entries(files))
+    if (inventory[engine][file] !== expected) problems.push(`Incomplete Pages case inventory: ${engine} ${file}`);
+  const expected = engines.length * Object.values(files).reduce((sum, count) => sum + count, 0);
+  if (result.discovered !== expected || result.counts.expected !== expected) problems.push('Pages discovered or passed count differs');
+  return { ...result, inventory, problems, outcome: result.outcome === 'FAIL' ? 'FAIL' : problems.length ? 'INCONCLUSIVE' : result.outcome };
+}
+
 async function smallJSON(path, maxBytes = 16 * 1024 * 1024) {
   const stat = await lstat(path);
   if (!stat.isFile() || stat.isSymbolicLink() || stat.size > maxBytes || await realpath(path) !== path) throw Error('Invalid bounded Pages evidence file');
@@ -85,6 +111,7 @@ export async function validatePages(options) {
     { id: 'npm-version', command: ['npm', '--version'], timeoutMs: 10_000 },
     { id: 'typecheck', command: ['npm', 'run', 'typecheck'], timeoutMs: 180_000 },
     { id: 'pages-publisher-tests', command: [process.execPath, '--import', './tests/store/no-network.mjs', '--test', '--test-reporter=tap', '--test-concurrency=1', 'pages/tests/publish-branch.test.mjs'], timeoutMs: 60_000 },
+    { id: 'pages-offline-boundary-tests', command: [process.execPath, '--import', './tests/store/no-network.mjs', '--test', '--test-reporter=tap', '--test-concurrency=1', 'pages/tests/offline-session.test.mjs', 'pages/tests/validation.test.mjs', 'pages/tests/artifact.test.mjs'], timeoutMs: 60_000 },
     { id: 'pages-unpack-tests', command: ['python3', '-B', 'pages/tests/test_unpack_artifact.py'], timeoutMs: 60_000 },
     { id: 'pages-build', command: [process.execPath, 'tooling/pages/build.mjs', '--commit', options.commit, '--built-at', options.builtAt, '--metadata', join(directory, 'build'), '--output', env.IE_PAGES_ARTIFACT], timeoutMs: 300_000 },
     { id: 'pages-browser', command: ['npm', 'exec', '--offline', '--', 'playwright', 'test', '--config', 'pages/tests/playwright.config.ts'], timeoutMs: 660_000 },
@@ -93,7 +120,7 @@ export async function validatePages(options) {
   const receipt = { kind: 'pages-preview-validation-1', id, identity: buildIdentity(options.commit, options.builtAt),
     startedAt: new Date().toISOString(), plan: gates, gates: [], qualification: false,
     limits: { workers: 1, retries: 0, gateLogBytes: 8 * 1024 * 1024, browserJSONBytes: 16 * 1024 * 1024, artifactBytes: 64 * 1024 * 1024, artifactFiles: 160 },
-    scope: 'Isolated public Pages text preview. No full-editor, native/manual, physical-resource or live-provider qualification.', finalizationErrors: [] };
+    scope: 'Actual editor shell in disconnected Pages mode plus isolated native text demo. No durable document, backend/provider connection, full-product, manual or physical-resource qualification.', finalizationErrors: [] };
   let hostLease, monitor, audit, verified, before, dependenciesBefore, physicalClosed = true, browserStarted = false, rawSaved = false;
   let auditRetained = false, finished = false, leaseReleased = false, checkoutReleased = false;
   const lifecycleErrors = [], failure = (stage, error) => lifecycleErrors.push({ stage, error: String(error) });
@@ -130,7 +157,14 @@ export async function validatePages(options) {
         entry.counts = counts;
         entry.outcome = gateOutcome({ exitCode: observation.code, signal: observation.signal, timedOut: observation.timedOut,
           interrupted: observation.interrupted, counts, logError: log.error }, true);
-        if (entry.outcome !== 'PASS' || counts.tests !== 25 || counts.pass !== 25) { entry.outcome = 'FAIL'; throw Error('All 25 Pages publisher Node cases must pass without skips'); }
+        if (entry.outcome !== 'PASS' || counts.tests !== 28 || counts.pass !== 28) { entry.outcome = 'FAIL'; throw Error('All 28 Pages publisher Node cases must pass without skips'); }
+      }
+      if (gate.id === 'pages-offline-boundary-tests') {
+        const counts = tapCounts(await readFile(path, 'utf8'));
+        entry.counts = counts;
+        entry.outcome = gateOutcome({ exitCode: observation.code, signal: observation.signal, timedOut: observation.timedOut,
+          interrupted: observation.interrupted, counts, logError: log.error }, true);
+        if (entry.outcome !== 'PASS' || counts.tests !== 19 || counts.pass !== 19) { entry.outcome = 'FAIL'; throw Error('All 19 Pages offline boundary Node cases must pass without skips'); }
       }
       if (gate.id === 'pages-unpack-tests') {
         const text = await readFile(path, 'utf8'), match = /Ran ([1-9][0-9]*) tests? in [^\n]+\n\nOK\s*$/.exec(text);
@@ -139,11 +173,11 @@ export async function validatePages(options) {
       }
       if (gate.id === 'pages-browser') {
         const report = await smallJSON(join(env.IE_PAGES_OUTPUT, 'results.json'));
-        receipt.browser = browserReportOutcome(report, { files: ['pages/tests/preview.spec.ts'] });
+        receipt.browser = pagesBrowserOutcome(report);
         receipt.browserReport = await fileIdentity(join(env.IE_PAGES_OUTPUT, 'results.json'));
         receipt.owners = await browserClosure(env.IE_PAGES_OUTPUT);
-        if (receipt.browser.outcome !== 'PASS' || receipt.browser.discovered !== 30 || receipt.browser.counts.expected !== 30 ||
-            JSON.stringify(receipt.owners.map(row => row.project).sort()) !== JSON.stringify(['chromium', 'firefox', 'webkit'])) { entry.outcome = 'FAIL'; throw Error('Pages requires all ten cases in all three pinned engines'); }
+        if (receipt.browser.outcome !== 'PASS' || receipt.browser.discovered !== 45 || receipt.browser.counts.expected !== 45 ||
+            JSON.stringify(receipt.owners.map(row => row.project).sort()) !== JSON.stringify(['chromium', 'firefox', 'webkit'])) { entry.outcome = 'FAIL'; throw Error('Pages requires all ten demo and five editor cases in all three pinned engines'); }
       }
       await save();
       console.log(`${gate.id}: ${outcome}`);

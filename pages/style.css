@@ -59,3 +59,15 @@
 @media (max-width: 760px) { .preview-header { padding: 18px 20px; flex-wrap: wrap; } .preview-introduction { grid-template-columns: 1fr; gap: 24px; padding: 28px 20px; } .preview-workspace { grid-template-columns: 1fr; padding: 0 20px 24px; } .preview-field-pair { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .preview-footer { padding-inline: 20px; } }
 @media (max-width: 380px) { .preview-header, .preview-introduction, .preview-footer { padding-inline: 14px; } .preview-workspace { padding-inline: 14px; } .preview-preferences { inline-size: 100%; gap: 12px; } .preview-preferences en-select { flex: 1; inline-size: 0; } .preview-controls { padding: 16px; } .preview-field-pair { grid-template-columns: 1fr; } .preview-empty { padding: 10px; } .preview-empty > span { font-size: 38px; margin-block-end: 8px; } .preview-empty h3 { font-size: 15px; } }
 @media (forced-colors: active) { .preview-stage, .preview-empty { background: Canvas; color: CanvasText; } .preview-empty > span { color: CanvasText; } .preview-monogram { border: 1px solid ButtonText; } }
+
+/* Full Pages view reuses the actual editor theme and shell; only its public
+   preview notice and available viewport are composed here. */
+.pages-editor { min-block-size: 100dvh; display: grid; grid-template-rows: auto minmax(650px, 1fr); }
+.pages-editor #app { min-inline-size: 0; }
+.pages-editor ie-shell { height: 100%; min-height: 650px; }
+.editor-preview-notice { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 24px; padding: 12px 20px; border-block-end: 1px solid var(--en-color-line); background: var(--en-color-surface-subtle); font-size: 12px; }
+.editor-preview-notice strong { font-size: 13px; }
+.editor-preview-notice p { color: var(--en-color-text-muted); }
+.editor-preview-notice nav { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; }
+.editor-preview-notice a { display: inline-flex; align-items: center; min-block-size: 32px; }
+@media (max-width: 760px) { .editor-preview-notice { padding-inline: 14px; } }

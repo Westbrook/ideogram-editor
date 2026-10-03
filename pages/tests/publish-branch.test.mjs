@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { buildIdentity } from '../../tooling/pages/artifact.mjs';
-import { existingArtifact, githubRequest, publicationArguments, publishBranch } from '../../tooling/pages/publish-branch.mjs';
+import { existingArtifact, githubRequest, manifestRows, publicationArguments, publishBranch } from '../../tooling/pages/publish-branch.mjs';
 
 // The publication transport is injected. This file runs beneath the repository's
 // no-network preload; no fixture replaces or bypasses its fetch/socket guards.
@@ -304,4 +304,72 @@ test('truncated existing remote tree is not accepted as a complete branch invent
   const api = remote(artifact()); previousTree(api).truncated = true;
   await assert.rejects(existingArtifact(api.request, api.state.head), /Incomplete gh-pages tree response/);
   assert.deepEqual(mutations(api), []);
+});
+
+// Keep the original publication fixtures and cases unchanged. Only this helper
+// makes a self-consistent historical identity fixture with new byte/blob pins.
+const historicalScope = 'Temporary text preview; no local server or provider';
+function artifactWithIdentity(label, fields, extraMembers = []) {
+  const plan = artifact(label);
+  plan.identity = { ...plan.identity, ...fields };
+  plan.members.set('build-identity.json', Buffer.from(JSON.stringify(plan.identity) + '\n'));
+  for (const [path, bytes] of extraMembers) plan.members.set(path, bytes);
+  const manifest = { schema: 1, kind: 'ideogram-pages-public-artifact-1', identity: plan.identity,
+    files: sort([...plan.members].filter(([path]) => path !== 'artifact-manifest.json')
+      .map(([path, bytes]) => ({ path, bytes: bytes.length, sha256: digest(bytes) }))) };
+  const bytes = Buffer.from(JSON.stringify(manifest, null, 2) + '\n');
+  plan.members.set('artifact-manifest.json', bytes);
+  plan.manifestSHA256 = digest(bytes);
+  plan.files = sort([...plan.members].map(([path, bytes]) => ({ path, bytes: bytes.length, sha256: digest(bytes), gitSHA: blobHash(bytes) })));
+  return plan;
+}
+
+test('an exact historical text-demo distribution can advance to the current editor artifact', async () => {
+  const profile = ['assets/profile-abcdefgh.json', Buffer.from('{"fixture":"sealed-profile"}\n')];
+  const prior = artifactWithIdentity('historical-text-demo', { scope: historicalScope }), current = artifactWithIdentity('current-editor', {}, [profile]);
+  const api = remote(prior), parent = api.state.head;
+  assert.notEqual(prior.identity.scope, current.identity.scope);
+  const result = await publish(current, api);
+  assert.equal(result.action, 'fast-forward'); assert.equal(result.previousArtifactCommit, parent);
+  assert.equal(result.sourceCommit, current.identity.commit);
+  assert.deepEqual(api.commits.get(result.artifactCommit).parents, [{ sha: parent }]);
+  assert.deepEqual(refMutations(api).map(({ method, path, body }) => ({ method, path, body })), [
+    { method: 'PATCH', path: '/git/refs/heads/gh-pages', body: { sha: result.artifactCommit, force: false } },
+  ]);
+  assert.deepEqual(previousTree(api).tree.filter(row => row.type === 'blob').map(row => row.path).sort(), current.files.map(row => row.path).sort());
+  assert.deepEqual(api.blobs.get(blobHash(profile[1])), profile[1]);
+});
+
+test('historical identity is recognized only by existing-branch admission and cannot admit a new artifact', async () => {
+  const prior = artifactWithIdentity('historical-text-demo', { scope: historicalScope });
+  const bytes = prior.members.get('artifact-manifest.json'), manifest = JSON.parse(bytes.toString('utf8'));
+  assert.throws(() => manifestRows(manifest, bytes), /Unrecognized gh-pages artifact manifest/);
+  assert.throws(() => manifestRows(manifest, bytes, { historical: false }), /Unrecognized gh-pages artifact manifest/);
+  const api = remote(prior), existing = await existingArtifact(api.request, api.state.head);
+  assert.equal(existing.sourceCommit, prior.identity.commit);
+  assert.deepEqual(mutations(api), []);
+  const profile = ['assets/profile-abcdefgh.json', Buffer.from('{"fixture":"sealed-profile"}\n')];
+  const current = artifactWithIdentity('current-editor', {}, [profile]), currentBytes = current.members.get('artifact-manifest.json');
+  assert.equal(manifestRows(JSON.parse(currentBytes.toString('utf8')), currentBytes).length, current.files.length);
+  for (const path of ['assets/settings.json', 'assets/profile-short.json', 'assets/profile-abcdefghi.json']) {
+    const invalid = artifactWithIdentity('unknown-json', {}, [[path, profile[1]]]);
+    const invalidBytes = invalid.members.get('artifact-manifest.json');
+    assert.throws(() => manifestRows(JSON.parse(invalidBytes.toString('utf8')), invalidBytes), /Invalid gh-pages public artifact member/);
+    const refused = remote(invalid), head = refused.state.head;
+    await assert.rejects(publish(current, refused), /foreign/);
+    assert.equal(refused.state.head, head); assert.deepEqual(mutations(refused), []);
+  }
+});
+
+test('historical compatibility refuses broad scopes or changed identity fields before any remote mutation', async () => {
+  for (const fields of [
+    { scope: historicalScope + '; remote editing enabled' }, { scope: 'Any editor preview' },
+    { scope: historicalScope, product: 'Other product' }, { scope: historicalScope, schema: 2 },
+    { scope: historicalScope, base: '/' }, { scope: historicalScope, extra: true },
+    { scope: historicalScope, commit: 'main' }, { scope: historicalScope, builtAt: '2026-10-03' },
+  ]) {
+    const prior = artifactWithIdentity('changed-historical-identity', fields), api = remote(prior), head = api.state.head;
+    await assert.rejects(publish(artifact('current-editor'), api));
+    assert.equal(api.state.head, head); assert.deepEqual(mutations(api), [], JSON.stringify(fields));
+  }
 });

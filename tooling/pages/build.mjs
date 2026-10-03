@@ -24,6 +24,17 @@ async function run(executable, args, env) {
   const child = spawn(executable, args, { cwd: process.cwd(), env, stdio: 'inherit' });
   await new Promise((accept, reject) => { child.once('error', reject); child.once('close', (code, signal) => code === 0 && !signal ? accept() : reject(Error(`Pages build gate failed: ${executable} ${args.join(' ')}`))); });
 }
+// This is a build-input attestation, not a replacement for the browser request
+// guards. API path declarations in the real UI do not grant a live transport.
+export function verifyOfflineGraph(rows) {
+  if (!Array.isArray(rows) || !rows.length || rows.length > 4096 || rows.some(row => !row || typeof row.path !== 'string' || !row.path || row.path.length > 1024 || row.path.startsWith('/') || row.path.includes('\\') || row.path.split('/').some(part => !part || part === '.' || part === '..'))) throw Error('Invalid Pages module inventory');
+  const modules = new Set(rows.map(row => row.path));
+  for (const path of ['pages/main.ts', 'pages/text-demo.ts', 'pages/offline-session-client.ts', 'src/ui/shell.ts', 'src/state/editor-client.ts', 'src/text/client.ts', 'src/text/worker.ts', 'src/theme/shell.css'])
+    if (!modules.has(path)) throw Error(`Required production browser slice absent from Pages graph: ${path}`);
+  if (modules.has('src/main.ts') || modules.has('src/state/session-client.ts') || [...modules].some(path => /^(?:server|tests|tooling)\/|^node:|(?:^|\/)\.\.(?:\/|$)/.test(path))) throw Error('Private or live session module entered the Pages graph');
+  return { schema: 1, kind: 'ideogram-pages-offline-graph-1', mode: 'disconnected', modules: [...modules].sort() };
+}
+
 export async function buildPages(options) {
   if (process.versions.node !== '26.10.0') throw Error('Pages build requires Node 26.10.0');
   const root = process.cwd(), identity = buildIdentity(options.commit, options.builtAt);
@@ -39,14 +50,16 @@ export async function buildPages(options) {
     ['run', 'verify:text'], ['run', 'verify:imports'] ]) await run('npm', command, env);
   await run(process.execPath, ['tooling/theme/density.mjs'], env);
   await run('npm', ['exec', '--offline', '--', 'vite', 'build', '--config', 'vite.pages.config.ts'], env);
+  const moduleBytes = await readFile(join(options.metadata, 'modules.jsonl'));
+  if (moduleBytes.length > 4 * 1024 * 1024) throw Error('Pages graph evidence bound exceeded');
+  const boundary = verifyOfflineGraph(moduleBytes.toString('utf8').trim().split('\n').map(line => JSON.parse(line)));
+  await writeFile(join(options.metadata, 'offline-boundary.json'), JSON.stringify(boundary, null, 2) + '\n', { flag: 'wx', mode: 0o600 });
   const notices = await noticeInputs(root), directory = options.output;
   await mkdir(join(directory, 'notices'));
   for (const row of notices) await copyFile(join(root, row.source), join(directory, row.path));
   await writeFile(join(directory, 'build-identity.json'), JSON.stringify(identity, null, 2) + '\n', { flag: 'wx' });
   const manifest = await sealArtifact(root, directory, identity);
-  const modules = (await readFile(join(options.metadata, 'modules.jsonl'), 'utf8')).trim().split('\n').map(line => JSON.parse(line).path);
-  if (!modules.some(path => path === 'src/text/client.ts') || !modules.some(path => path === 'src/text/worker.ts') || !modules.some(path => path === 'src/theme/shell.css')) throw Error('Required production browser slice absent from Pages graph');
   if ((await committedInputs(root, identity.commit)).digest !== source.digest) throw Error('Pages source changed during build');
-  console.log(JSON.stringify({ outcome: 'PASS', scope: 'Build and public artifact only; browser validation separate', identity, files: manifest.files.length, moduleCount: new Set(modules).size }));
+  console.log(JSON.stringify({ outcome: 'PASS', scope: 'Build and public artifact only; browser validation separate', identity, files: manifest.files.length, moduleCount: boundary.modules.length }));
 }
 if (import.meta.main) buildPages(argumentsFor(process.argv.slice(2))).catch(error => { console.error(error.message); process.exitCode = 1; });

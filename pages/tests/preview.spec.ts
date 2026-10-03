@@ -26,7 +26,7 @@ async function render(page: Page) {
 }
 
 test('project subpath loads and reloads without a backend or eager renderer fetch', async ({ page, guard }) => {
-  await page.goto('./');
+  await page.goto('./?view=text-demo');
   await expect(page.getByRole('heading', { name: 'Put your words in the picture.' })).toBeVisible();
   await expect(page.getByText(/edits stay in this tab/i)).toBeVisible();
   await expect(page.getByTestId('preview-canvas')).toBeHidden();
@@ -42,7 +42,7 @@ test('project subpath loads and reloads without a backend or eager renderer fetc
 });
 
 test('keyboard edits change real pixels and each completed worker closes', async ({ page, guard }) => {
-  await page.goto('./');
+  await page.goto('./?view=text-demo');
   await textInput(page).fill('First public preview');
   const first = await render(page);
   const compressed = guard.compressedAssets();
@@ -59,7 +59,7 @@ test('keyboard edits change real pixels and each completed worker closes', async
 });
 
 test('each bundled font renders its intended text and styles change pixels', async ({ page, guard }) => {
-  await page.goto('./');
+  await page.goto('./?view=text-demo');
   for (const [font, text, label] of [['NotoSans', 'A line of text', 'Noto Sans'], ['NotoSansArabic', 'مرحبا', 'Noto Sans Arabic'], ['NotoSansCJKsc', '你好', 'Noto Sans CJK SC'], ['NotoSansSymbols2', '★', 'Noto Sans Symbols 2']]) {
     await select(page, 'preview-font').selectOption(font); await textInput(page).fill(text);
     await expect(select(page, 'preview-font')).toHaveValue(font);
@@ -75,7 +75,7 @@ test('each bundled font renders its intended text and styles change pixels', asy
 });
 
 test('appearance and density persist and all nine control presentations pass axe', async ({ page, browserName }, info) => {
-  await page.goto('./'); await render(page); await page.evaluate(axe.source);
+  await page.goto('./?view=text-demo'); await render(page); await page.evaluate(axe.source);
   const incomplete: unknown[] = [];
   for (const appearance of ['auto', 'light', 'dark']) for (const density of ['comfortable', 'compact', 'spacious']) {
     await select(page, 'appearance').selectOption(appearance); await select(page, 'density').selectOption(density);
@@ -99,7 +99,7 @@ test('appearance and density persist and all nine control presentations pass axe
 });
 
 test('cancel during font loading prevents publication and reset clears the canvas', async ({ page, guard }) => {
-  await page.goto('./');
+  await page.goto('./?view=text-demo');
   let release!: () => void, observed!: () => void;
   const blocked = new Promise<void>(resolve => { observed = resolve; }), proceed = new Promise<void>(resolve => { release = resolve; });
   await page.route(/\.(?:ttf|otf)(?:\?|$)/, async route => { observed(); await proceed; await route.fallback().catch(() => {}); });
@@ -117,7 +117,7 @@ test('cancel during font loading prevents publication and reset clears the canva
 });
 
 test('missing glyph feedback preserves the draft and releases failed work', async ({ page, guard }) => {
-  await page.goto('./'); const unsupported = 'Keep this draft \u{10ffff}';
+  await page.goto('./?view=text-demo'); const unsupported = 'Keep this draft \u{10ffff}';
   await textInput(page).fill(unsupported); await button(page, 'render-text').click();
   await expect(page.getByTestId('preview-error')).toContainText('TEXT_MISSING_GLYPHS');
   await expect(page.getByTestId('preview-error')).toContainText('U+10FFFF'); await expect(textInput(page)).toHaveValue(unsupported);
@@ -126,7 +126,7 @@ test('missing glyph feedback preserves the draft and releases failed work', asyn
 });
 
 test('invalid style admission preserves the draft and previously rendered pixels', async ({ page, guard }) => {
-  await page.goto('./'); const first = await render(page), workersBefore = guard.createdWorkers();
+  await page.goto('./?view=text-demo'); const first = await render(page), workersBefore = guard.createdWorkers();
   const color = page.getByTestId('preview-color').getByRole('textbox'); await color.fill('nothex');
   await button(page, 'render-text').click(); await expect(page.getByTestId('preview-error')).toContainText('six hexadecimal digits');
   await expect(color).toHaveValue('nothex'); expect(await pixels(page)).toEqual(first);
@@ -139,7 +139,7 @@ test('invalid style admission preserves the draft and previously rendered pixels
 });
 
 test('cancelling an active native worker refuses stale publication and can recover', async ({ page, context, guard }) => {
-  await page.goto('./');
+  await page.goto('./?view=text-demo');
   let release!: () => void, observed!: () => void, timer: ReturnType<typeof setTimeout> | undefined;
   const blocked = new Promise<void>(resolve => { observed = resolve; }), proceed = new Promise<void>(resolve => { release = resolve; });
   const pattern = /\/ideogram-editor\/assets\/[^/]+\.wasm(?:\?|$)/;
@@ -156,7 +156,7 @@ test('cancelling an active native worker refuses stale publication and can recov
 });
 
 test('narrow viewport keeps controls reachable and the canvas within the page', async ({ page, browserName }) => {
-  await page.setViewportSize({ width: 360, height: 780 }); await page.goto('./');
+  await page.setViewportSize({ width: 360, height: 780 }); await page.goto('./?view=text-demo');
   await textInput(page).fill('Small screen'); await render(page);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
   const bounds = await page.getByTestId('preview-canvas').boundingBox(); expect(bounds).not.toBeNull();
@@ -174,7 +174,7 @@ test('narrow viewport keeps controls reachable and the canvas within the page', 
 });
 
 test('PNG download matches the current canvas native PNG encoding', async ({ page }, info) => {
-  await page.goto('./'); await textInput(page).fill('Actual canvas download'); const expected = await render(page);
+  await page.goto('./?view=text-demo'); await textInput(page).fill('Actual canvas download'); const expected = await render(page);
   // Canvas readback and native PNG encoding can round partially transparent
   // channels differently. Capture the same displayed canvas's public PNG
   // representation before clicking, then compare independently decoded bytes.

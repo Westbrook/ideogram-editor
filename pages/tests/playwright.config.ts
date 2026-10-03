@@ -4,7 +4,7 @@ import { isAbsolute, resolve } from 'node:path';
 const output = process.env.IE_PAGES_OUTPUT;
 if (!output || !isAbsolute(output)) throw Error('IE_PAGES_OUTPUT must be a fresh absolute directory inside the assigned evidence allocation');
 export default defineConfig({
-  testDir: '.', testMatch: 'preview.spec.ts', workers: 1, retries: 0, forbidOnly: true, maxFailures: 1,
+  testDir: '.', testMatch: ['preview.spec.ts', 'editor.spec.ts'], workers: 1, retries: 0, forbidOnly: true, maxFailures: 1,
   timeout: 90_000, globalTimeout: 600_000, expect: { timeout: 20_000 },
   outputDir: resolve(output, 'results'),
   reporter: [['list'], ['json', { outputFile: resolve(output, 'results.json') }]],
