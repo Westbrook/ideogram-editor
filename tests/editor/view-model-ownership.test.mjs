@@ -333,3 +333,64 @@ for(const first of ['replacement','retained-selection'])test(`same-revision docu
  }finally{for(const gate of gates)gate.release.resolve();await Promise.allSettled([older,replacement].filter(Boolean));await f.close();}
  assert.deepEqual(ownershipTotals(),before);
 });
+
+// Source-derived wakeup regression, independent of any recorded browser cause.
+// Actual EditorClient scheduling/refresh/read/ownership methods run unchanged.
+// Only the established cache/transport/consumer boundaries and interval delivery
+// are controlled; this does not qualify native IndexedDB or browser timing.
+for(const pollAt of ['during-held-read','after-stale-read'])test(`same-cursor generation replacement converges when polled ${pollAt}`,async t=>{
+ const before=ownershipTotals(),f=fixture(true),gates=[{entered:deferred(),release:deferred()},{entered:deferred(),release:deferred()}];
+ const timers=new Map(),nativeClearInterval=globalThis.clearInterval;let serial=0,heads=0,streams=0,recoveries=0,closed=0,first;
+ let published={generation:'baseline',cursor:'1',epoch:'1'},document=structuredClone(f.document);const seen=[];
+ t.mock.method(globalThis,'setInterval',(callback,delay)=>{assert.equal(delay,100);const timer={id:++serial};timers.set(timer,callback);return timer;});
+ t.mock.method(globalThis,'clearInterval',timer=>{if(!timers.delete(timer))nativeClearInterval(timer);});
+ const turn=()=>new Promise(resolve=>setImmediate(resolve));
+ const drainRefresh=async()=>{await turn();let count=0;while(f.client.refreshTask){assert(++count<=4,'The finite two-publication fixture must settle without a refresh loop');await f.client.refreshTask;await turn();}};
+ const poll=async()=>{assert.equal(timers.size,1);[...timers.values()][0]();await turn();};
+ const transport=f.client.session.transport;
+ f.client.session.identity=()=> 'same-cursor-owner';f.client.owner='same-cursor-owner';
+ f.client.session.transport=async(path,init)=>{
+  assert.notEqual(init?.method,'POST','No command or recovery request may repair this controlled wakeup');
+  if(init?.method==='HEAD'&&f.state.headVersion==='2'){
+   const gate=gates[heads++];assert(gate,'At most the stale read and its one successor may reach the version fence');gate.entered.resolve();await gate.release.promise;
+  }
+  return transport(path,init);
+ };
+ f.client.cache={
+  async published(){seen.push({...published});return {...published};},
+  async *rows(generation,type){assert.equal(generation,published.generation);assert.equal(type,'document');yield {value:structuredClone(document)};},
+  async read(type,id){return type==='document'&&id===document.id?structuredClone(document):null;},
+  close(){closed++;}
+ };
+ f.client.consumer={
+  cancel(){},async release(){},async recover(){recoveries++;assert.fail('An unrelated recovery must not supply this wakeup');},
+  consumeStream(signal){streams++;return new Promise(resolve=>{if(signal.aborted)resolve();else signal.addEventListener('abort',()=>resolve(),{once:true});});}
+ };
+ try{
+  await f.client.loadDocument(f.document);f.client.patch({cursor:'1'});const original=f.client.view.document,originalImage=f.client.view.image;
+  f.client.startStream(f.client.lifecycle);await poll();await drainRefresh();assert.equal(streams,1);assert.equal(f.client.view.document.revision,'1');
+  const changed={...image('a'),layers:[{id:'a',name:'a',opacity:0.5}]};
+  document={...document,revision:'2',image:{...document.image,state:{...document.image.state,hash:canonicalControlHash(changed)}}};
+  f.state.image=changed;f.state.headVersion='2';published={generation:'first-new',cursor:'2',epoch:'1'};
+  await poll();first=f.client.refreshTask;assert(first,'Changed cursor must start the actual refresh');await reached(gates[0].entered.promise,first,'the first real document version fence');
+  assert.equal(f.client.view.cursor,'2');assert.equal(f.client.view.document.revision,'1');assert.equal(f.client.view.image,originalImage);
+  // Both publications describe the same exact committed row and cursor. Only
+  // generation changes, as when another consumer replays that same boundary.
+  published={generation:'replacement',cursor:'2',epoch:'1'};
+  if(pollAt==='during-held-read')await poll();
+  gates[0].release.resolve();await first;
+  // The second HEAD remains gated, so a fresh read cannot mask stale admission.
+  assert.equal(f.client.view.document.revision,'1','The retired first-new generation must not publish');assert.equal(f.client.view.image,originalImage);
+  if(pollAt==='after-stale-read')await poll();
+  gates[1].release.resolve();await drainRefresh();
+  assert(seen.some(value=>value.generation==='replacement'&&value.cursor==='2'));
+  assert.equal(recoveries,0);assert.equal(streams,1);assert.equal(f.client.view.cursor,'2');
+  assert.equal(f.client.view.document.revision,'2','A same-cursor replacement must wake the real refresh without another transaction');
+  assert.equal(f.client.view.image.layers[0].opacity,0.5);assert.equal(heads,2);assert.equal(f.client.view.error,'');
+  assert.notEqual(f.client.view.document,original);const [owned]=f.client.renderViewModels(f.client.view.document);assert.equal(owned.value,f.client.view.documents);const unpin=owned.pin();unpin();
+  assert.equal(f.client.viewReads.ownership.activeReads,0);assert.equal(f.client.viewModels.ownership.retiredPinnedRoots,0);assert.equal(f.client.viewModels.ownership.activePins,0);
+ }finally{
+  for(const gate of gates)gate.release.resolve();await Promise.allSettled(first?[first]:[]);
+  try{await f.close();}finally{assert.equal(timers.size,0);assert.equal(closed,1);assert.equal(recoveries,0);assert.deepEqual(ownershipTotals(),before);}
+ }
+});
