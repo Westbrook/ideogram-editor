@@ -1,0 +1,1 @@
+var e;function t(t){if(e&&e!==t)throw Error(`ADAPTER_UPLOAD_OBSERVER_ALREADY_REGISTERED`);e=t}function n(){return e?.()??null}export{t as n,n as t};

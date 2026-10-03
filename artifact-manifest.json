@@ -4,26 +4,121 @@
   "identity": {
     "schema": 1,
     "product": "Ideogram Editor preview",
-    "scope": "Temporary text preview; no local server or provider",
-    "commit": "aaab115e43ab4fbc46ebd436b95b0af3e6349112",
-    "builtAt": "2026-10-03T11:47:18.097Z",
+    "scope": "Disconnected editor UI and temporary native text demo; no local server or provider",
+    "commit": "17cb1ec459d03f739057192fc3df9da2426a62b6",
+    "builtAt": "2026-10-03T14:24:03.518Z",
     "base": "/ideogram-editor/"
   },
   "files": [
+    {
+      "path": "assets/adapter-upload-D6OeTTY3.js",
+      "bytes": 7974,
+      "sha256": "599f8e067ce95f72b2e3ceb9e6a845937b434395f47bf5437f5bd7b70903cc5b"
+    },
+    {
+      "path": "assets/adapter-upload-hook-CZQz_zNG.js",
+      "bytes": 148,
+      "sha256": "9167561d48d065cd38224808ab8b4f74db38565eb546e2aed8a6081961fba99b"
+    },
+    {
+      "path": "assets/adapters-CoFyKvlB.js",
+      "bytes": 568,
+      "sha256": "6bfc66dea0b20c87dd428e790c5a438e1e38817ee7d1aa682b195418f763beb6"
+    },
+    {
+      "path": "assets/allocations-BPOIe_aM.js",
+      "bytes": 35521,
+      "sha256": "1a9783d4b4fb08d7d4e9e76521f9322d6593bb84eb251c28421ca8f4d26c1a18"
+    },
+    {
+      "path": "assets/browser-D2EBgGKA.js",
+      "bytes": 15648,
+      "sha256": "646efff0a1ebc733a2f3944b847810cba16cc76a880dc195422d4c921e223402"
+    },
+    {
+      "path": "assets/browser-worker-observations-Dpn3uVnF.js",
+      "bytes": 6774,
+      "sha256": "f0f58900075607ff17d5da61186d671f5f533fb52fddc34fdd1f48aebd50b27a"
+    },
     {
       "path": "assets/canvaskit-B2Vb3rWN.wasm",
       "bytes": 4979358,
       "sha256": "26389aa33388a205d355b04b48d3c00965db73d6781ae297f6e2f27e8631bb19"
     },
     {
-      "path": "assets/index-6kMt-7nz.css",
-      "bytes": 308371,
-      "sha256": "8477048629d97ecb0a2d874a71ca82331aea7ba6efb1ffbf9f7105efecbd19d9"
+      "path": "assets/control-memory-Bm9akM9p.js",
+      "bytes": 2238,
+      "sha256": "6ab01ebf3ab8af58c6cf471f9d41a35d324c9ca6930d73ce750eef2f3f3a863f"
     },
     {
-      "path": "assets/index-CEKiafko.js",
-      "bytes": 239541,
-      "sha256": "44c20bf3a0ca681e4f2fc45305c167809ff3ce6db96ed2bc0ced6ba8bddbb426"
+      "path": "assets/controls-DTIvEShr.js",
+      "bytes": 100963,
+      "sha256": "b3ff480a43c07bbf0effd6c78bc3d20ba05150fe40a3c51b2367f7f73aff74eb"
+    },
+    {
+      "path": "assets/density-b6s3w18k.js",
+      "bytes": 917,
+      "sha256": "9660db15fb7713a9dda7b12697cbe194054453f7c7256a8c1508a46fb7733046"
+    },
+    {
+      "path": "assets/directive-helpers-Bw48hldx.js",
+      "bytes": 949,
+      "sha256": "089111815eae25847a17c82cfe306f3f5316cb2014cbeb1e3b94a6c629fff872"
+    },
+    {
+      "path": "assets/display-image-g3MWbfli.js",
+      "bytes": 110249,
+      "sha256": "91f9f48d72809a79ff8210b5ce5acf223e0e22031b167307da34628c58340d1f"
+    },
+    {
+      "path": "assets/editor-panels-B6W89zq8.js",
+      "bytes": 9465,
+      "sha256": "e4f8b2318ec87ef5c84fa7d06416540116866aca5b8071ac5af4b357e0df1286"
+    },
+    {
+      "path": "assets/export-DCbkWgK-.js",
+      "bytes": 24696,
+      "sha256": "f0d4ae3b47f360f6f58b1575a8e9b29f2bda005303b263aabf9462cb255cb5dd"
+    },
+    {
+      "path": "assets/icon-BjBum5DH.js",
+      "bytes": 21794,
+      "sha256": "1ecf38107c58e2c20163358e7567e67b663531e608e37aca8189618ed4f59556"
+    },
+    {
+      "path": "assets/image-import-BGeilLxO.js",
+      "bytes": 28844,
+      "sha256": "fda6e4be5235b43398429f3334cbe6351458886596d743e41a529d089207e697"
+    },
+    {
+      "path": "assets/index-BpiY80wJ.css",
+      "bytes": 309180,
+      "sha256": "f94a0171df3e4154d9e33a40f3b152a52a006a125177f3d2463ab285da41574a"
+    },
+    {
+      "path": "assets/index-Dur1jmoG.js",
+      "bytes": 3616,
+      "sha256": "ae835ea233a4087071bd494e6a4154ff094da98ca3b2166e9a247714c1be4881"
+    },
+    {
+      "path": "assets/lit-tfDubpWu.js",
+      "bytes": 15020,
+      "sha256": "2aa46cc767b30e74b9f957c198780472518bb82cdb1d634b10ab5a575aff9e3d"
+    },
+    {
+      "path": "assets/model-memory-Bw04ww6T.js",
+      "bytes": 5427,
+      "sha256": "c23c10306703c632e796f95d98d6b129376d9246a4de8ec074163aa16189147b"
+    },
+    {
+      "path": "assets/model-owner-BKBu2b5R.js",
+      "bytes": 3438,
+      "sha256": "1906ca33563ca41e5de3687da36bccab63abbc240200b01d53575d8096f64e83"
+    },
+    {
+      "path": "assets/native-text-preview-Bo9Sxpnz.js",
+      "bytes": 69215,
+      "sha256": "48bc44681d721b5f6fb718b34068f32be1e6de6d8ed10fd523b9f263cd43975e"
     },
     {
       "path": "assets/NotoSans-Regular-Dpf_lrdO.ttf",
@@ -46,19 +141,54 @@
       "sha256": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6"
     },
     {
+      "path": "assets/preload-helper-bybOG-bC.js",
+      "bytes": 1234,
+      "sha256": "fa59b3d59edcce38bf2926d8b7a7b069da4972a36ef9c7a83c60d9590e197cf9"
+    },
+    {
+      "path": "assets/profile-DER1-N6t.json",
+      "bytes": 19566,
+      "sha256": "96a0b022708ab52c7865b1e784d7c5363627473ba2b87adf0a9cb6bf033bf36a"
+    },
+    {
+      "path": "assets/sha256-BfK23X-R.js",
+      "bytes": 2060,
+      "sha256": "5bb1f7b8d2fdd5177d6f7ed6b25c7c59ec036088c36d98b9f571c8e51ba680e6"
+    },
+    {
+      "path": "assets/shell-Bc1Rg0df.js",
+      "bytes": 1166885,
+      "sha256": "314267eef1055ff547a8b056610cca1ad9cb49e76da44d8c2e19623caa95ed17"
+    },
+    {
+      "path": "assets/shell-C8ihFI8n.css",
+      "bytes": 2815,
+      "sha256": "b66733d44b18f5f0c0dec80f5982f92ee084a7eed278c6b15e7864329578d368"
+    },
+    {
+      "path": "assets/storage-library-CfdTvQE8.js",
+      "bytes": 26847,
+      "sha256": "d348075025f15b7c56bd340d3c17f949beff94b02a47cf28a7df7eac9e425cfd"
+    },
+    {
+      "path": "assets/text-demo-DY61cb6F.js",
+      "bytes": 18183,
+      "sha256": "da112cca1f486097929458d3b4a2177ebd778ac9a18095e3c659903307c15252"
+    },
+    {
       "path": "assets/worker-VvD0iOfL.js",
       "bytes": 310348,
       "sha256": "c1fa1cc460a0888a53d1af2ad7405cb8cb63b57a4b36f0147a3f8bbddd2a7ad3"
     },
     {
       "path": "build-identity.json",
-      "bytes": 252,
-      "sha256": "66ceb2011e5e04005ba709d461e25a38f376c1b67dd8a89952e035479c173c92"
+      "bytes": 283,
+      "sha256": "ad16d6b58a5f72cbde0d6ffde43961984225735c65c7bfad4e5d67a850ba52c7"
     },
     {
       "path": "index.html",
-      "bytes": 1441,
-      "sha256": "a526c8fb23a59645fe66bcb333f82c35b4956498ac01f90dba25c3c37494813f"
+      "bytes": 1743,
+      "sha256": "3ae0aacd575159e88d2188e0de0d94f168f1cea5bd8c12ede2d018b0274df9a1"
     },
     {
       "path": "notices/en-reve-LICENSE.txt",
