@@ -1,3 +1,4 @@
+import {verifyRecoveryFontEvidence} from './browser-text-recovery-fonts.mjs';
 import {verifyLifecycleCompositionEvidence} from './browser-lifecycle-composition.mjs';
 export {verifyLifecycleCompositionEvidence} from './browser-lifecycle-composition.mjs';
 import {lifecycleAllocationObservations} from './browser-lifecycle-counters.mjs';
@@ -400,6 +401,8 @@ export async function verifySealedEvidence(receipt, output) {
       if (group.cell.operation !== 'text.native-ime') throw Error('Native IME environment belongs only to its manual cells');
       equal(input.nativeImeEnvironment, nativeImeEnvironment, 'Native IME source/build/host identity differs from campaign');
     }
+    const recoveryTextEnvironment = group.cell.operation === 'text.recovery' ? {sourceDigest: receipt.identity.before.digest, buildDigest: receipt.identity.buildsBefore.digest, toolsDigest: digest(receipt.identity.tools), controlDigest: receipt.identity.controlBefore.digest, host: Object.fromEntries(['platform', 'architecture', 'kernel', 'osVersion', 'osBuild', 'hostnameHash'].map(key => [key, receipt.host?.observed?.[key] ?? null]))} : null;
+    if (input.recoveryTextEnvironment != null) equal(input.recoveryTextEnvironment, recoveryTextEnvironment, 'Recovery text source/build/host identity differs from campaign');
     const ordinaryTextEnvironment = ORDINARY_TEXT_OPERATIONS.includes(group.cell.operation) ? {sourceDigest: receipt.identity.before.digest, buildDigest: receipt.identity.buildsBefore.digest, toolsDigest: digest(receipt.identity.tools), controlDigest: receipt.identity.controlBefore.digest, host: Object.fromEntries(['platform', 'architecture', 'kernel', 'osVersion', 'osBuild', 'hostnameHash'].map(key => [key, receipt.host?.observed?.[key] ?? null]))} : null;
     if (input.ordinaryTextEnvironment != null) {
       if (!ORDINARY_TEXT_OPERATIONS.includes(group.cell.operation)) throw Error('Ordinary text executable binding belongs only to its selected cells');
@@ -520,6 +523,15 @@ export async function verifySealedEvidence(receipt, output) {
         const members = [...records.values()].filter(file => file.path.startsWith(folder + '/')).map(file => ({...file, path: file.path.slice(folder.length + 1)}));
         await verifyOrdinaryTextEvidence({attempt: actual, cell: group.cell, serial: index + 1, fixture: input.fixture,
           environment: ordinaryTextEnvironment, workerProcessIdentity: group.processIdentity, groupOutput: group.output, retainedFiles: members,
+          readRetained: (path, {maximum} = {}) => bytes(`${folder}/${safeRelative(path)}`, {cacheResult: false, maximum}),
+          controlFiles: receipt.identity.controlBefore.files, sourceFiles: receipt.identity.before.files, sourceRoot: input.repo,
+          browserCache: input.browserCache, tools: receipt.identity.tools, developerState: consumedInputs.developerState,
+          developerStateIdentity: receipt.inputIdentities.developerState, journalEvents: journal.events});
+      }
+      if (!byteAudit && group.cell.operation === 'text.recovery') {
+        const members = [...records.values()].filter(file => file.path.startsWith(folder + '/')).map(file => ({...file, path: file.path.slice(folder.length + 1)}));
+        await verifyRecoveryFontEvidence({attempt: actual, cell: group.cell, serial: index + 1, fixture: input.fixture,
+          environment: recoveryTextEnvironment, workerProcessIdentity: group.processIdentity, groupOutput: group.output, retainedFiles: members,
           readRetained: (path, {maximum} = {}) => bytes(`${folder}/${safeRelative(path)}`, {cacheResult: false, maximum}),
           controlFiles: receipt.identity.controlBefore.files, sourceFiles: receipt.identity.before.files, sourceRoot: input.repo,
           browserCache: input.browserCache, tools: receipt.identity.tools, developerState: consumedInputs.developerState,

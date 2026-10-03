@@ -438,6 +438,7 @@ async function launchGroup(group, context) {
   const spec = { ...group, output, repo: context.repo, subjectRepo: context.subjectRepo ?? context.repo, browserCache: context.browserCache ?? null, timingLease: context.timingLease ?? null, fixture, fixtureIdentity, configuration: context.configuration,
     nativeImeEnvironment: group.cell.operation === 'text.native-ime' ? context.nativeImeEnvironment ?? null : null,
     navigationEnvironment: group.cell.operation === 'navigation.ready' ? context.nativeImeEnvironment ?? null : null,
+    recoveryTextEnvironment: group.cell.operation === 'text.recovery' ? context.nativeImeEnvironment ?? null : null,
     ordinaryTextEnvironment: ORDINARY_TEXT_OPERATIONS.includes(group.cell.operation) ? context.nativeImeEnvironment ?? null : null,
     ordinaryCompositionEnvironment: ORDINARY_COMPOSITION_OPERATIONS.includes(group.cell.operation) ? context.nativeImeEnvironment ?? null : null,
     rendererIdentity: group.cell.handler === 'browser' && (group.cell.kind === 'lifecycle' || TEXT_RESOURCE_OPERATIONS.includes(group.cell.operation)) ? context.rendererIdentity ?? null : null };

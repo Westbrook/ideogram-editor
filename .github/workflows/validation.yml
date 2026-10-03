@@ -2,6 +2,12 @@ name: Fast validation
 on:
   pull_request:
   workflow_dispatch:
+    inputs:
+      node_files:
+        description: Comma-separated registered tests/** whole Node files; blank runs tooling
+        required: false
+        type: string
+        default: ''
 permissions:
   contents: read
 concurrency:
@@ -37,10 +43,16 @@ jobs:
           writeFileSync(allocation,JSON.stringify({kind:'evidence-volume-allocation-1',allocationId:'fast-validation',purpose:'qualification-evidence-only',capacityBytes,root,issuedAt:new Date().toISOString(),owner:'Build'})+'\n',{flag:'wx',mode:0o600});
           writeFileSync(process.env.GITHUB_ENV,'IE_EVIDENCE_ALLOCATION='+allocation+'\nIE_VALIDATION_OUTPUT='+join(root,'run')+'\n',{flag:'a'});
           NODE
-      - name: Types, inventory, inputs, server and runner checks
+      - name: Types, inventory, inputs and selected Node checks
+        env:
+          SELECTED_NODE_FILES: ${{ github.event_name == 'workflow_dispatch' && inputs.node_files || '' }}
         run: |
           node tooling/qualification/evidence-lifecycle.mjs root --allocation "$IE_EVIDENCE_ALLOCATION"
-          npm run validate -- run --groups tooling --browsers none --workers 1 --fresh --output "$IE_VALIDATION_OUTPUT"
+          if [ -n "$SELECTED_NODE_FILES" ]; then
+            npm run validate -- run --groups all --node-files "$SELECTED_NODE_FILES" --browsers none --workers 1 --fresh --output "$IE_VALIDATION_OUTPUT"
+          else
+            npm run validate -- run --groups tooling --browsers none --workers 1 --fresh --output "$IE_VALIDATION_OUTPUT"
+          fi
       - name: Retain failure and success receipts
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

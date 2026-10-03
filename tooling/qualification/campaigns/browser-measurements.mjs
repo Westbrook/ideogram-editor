@@ -1,3 +1,4 @@
+import {recoveryFontMeasurement} from './browser-text-recovery-fonts.mjs';
 import {ORDINARY_COMPOSITION_NAMES, ordinaryCompositionMeasurement} from './browser-ordinary-composition.mjs';
 import {navigationWindowServerMeasurement} from './windowserver-navigation-verification.mjs';
 import {textResourceMeasurement} from './browser-text-resources.mjs';
@@ -82,7 +83,7 @@ function unavailableReason(rule) {
  * Raw phases, renderer traces and partial resource ledgers remain diagnostics.
  * Emit only requested rows with their actual narrow source; never fill gaps
  * with elapsed wall time, a fixture declaration or an invented zero. */
-export function extractBrowserMeasurements({ cell, sample = {}, visits, result, evidence, trace, resources, ordinaryTextProof, ordinaryCompositionProof, navigationProof, navigationObservation, textResourceProof } = {}) {
+export function extractBrowserMeasurements({ cell, sample = {}, visits, result, evidence, trace, resources, ordinaryTextProof, recoveryFontProof, ordinaryCompositionProof, navigationProof, navigationObservation, textResourceProof } = {}) {
   sample = object(sample) ? sample : {};
   const measurements = [], unavailable = [], rules = Array.isArray(cell?.requiredMeasurements) ? cell.requiredMeasurements : [];
   const counts = new Map();
@@ -106,7 +107,7 @@ export function extractBrowserMeasurements({ cell, sample = {}, visits, result, 
         ? rejectedDraftMeasurement({ cell, proof: result?.observations?.rejectedDraftProof })
         : { reason: 'Rejected draft registry identity or unit is invalid' };
     } else if (['R35CurrentFontFaces', 'R35SingleFontBytes', 'R35CurrentFontSetBytes', 'R35SilentFontSubstitutionCount'].includes(rule.name)) {
-      translated = ordinaryTextMeasurement({cell, sample, rule, proof: ordinaryTextProof});
+      translated = cell?.operation === 'text.recovery' ? recoveryFontMeasurement({cell, sample, rule, proof: recoveryFontProof}) : ordinaryTextMeasurement({cell, sample, rule, proof: ordinaryTextProof});
     } else if (ORDINARY_COMPOSITION_NAMES.includes(rule.name)) {
       translated = ordinaryCompositionMeasurement({cell, sample, rule, proof: ordinaryCompositionProof});
     } else if (['R35FontShapingCpuBytes', 'R35GlyphGpuBytes'].includes(rule.name)) {

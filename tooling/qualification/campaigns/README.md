@@ -309,3 +309,28 @@ preview readback is limited to 1,048,576 pixels. The new navigation state uses
 the existing diagnostic allocator with a fixed 32 KiB allowance. Synthetic
 protocol/replay and actual-controller unit tests validate refusal and ownership
 logic; they do not provide a physical or native-IME qualification receipt.
+
+
+### Rejected text recovery and accepted font identities
+
+The six existing `text.recovery` scenarios have a separate accepted-document
+font observer. It reads the full current document and all associated font bytes
+before the original recovery action and after its awaited fault-route cleanup.
+The same revision, image root, ordered sources, font records and exact file
+identities must survive. A single retained immutable source/layout/text/font
+cohort is replayed with production validators for that unchanged closure.
+
+Fresh expected rejection and unchanged native draft/session/preview identities
+are observed separately. The intentional 16,385-byte draft uses the real
+admission message and disabled Preview/Apply controls, then the existing
+deferred Cancel. It never clicks a disabled Preview or borrows successful
+preview authority. An incomplete action, failed worker, missing closure, stale
+error, changed accepted state or substituted replay binding supplies no zero.
+
+This issuer supplies only the three accepted-document R35 font union rows and
+the accepted-source declared-font invariant. Draft font validity, successful
+worker rendering, native IME, physical presentation and memory remain separate.
+Read-only observations are charged I/O and may warm caches; they are not font
+load timing or a cache-reset proof. Retained sidecars use the unchanged evidence
+allocation admission and final audit. Existing ordinary successful-preview and
+continuous resource issuers keep their own scopes.

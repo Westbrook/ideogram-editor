@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash, webcrypto} from 'node:crypto';
 import {createContext, runInContext} from 'node:vm';
-import {collectCurrentDocumentFonts, inspectCurrentDocumentFonts} from '../../tooling/qualification/campaigns/browser-text-fonts.mjs';
+import {collectAcceptedDocumentFonts, collectCurrentDocumentFonts, inspectAcceptedDocumentFonts, inspectCurrentDocumentFonts} from '../../tooling/qualification/campaigns/browser-text-fonts.mjs';
 
 // Synthetic protocol/DOM fixtures execute the real installed page evaluator.
 // They do not parse real fonts, launch a browser, or establish qualification.
@@ -16,6 +16,7 @@ const canonical = v => {
 const identified = value => ({...value, id: hash(canonical(value))});
 const ref = (bytes, mediaType = 'application/json') => ({hash: hash(bytes), byteLength: String(Buffer.byteLength(bytes)), mediaType});
 const binding = () => ({kind: 'ordinary-text-binding-1', nonce: 'test-attempt-1', cellId: 'I10H/text-apply-WXn', cache: 'cold', ordinal: 1});
+const recoveryBinding = () => ({kind: 'recovery-text-binding-1', nonce: 'test-recovery-attempt-1', cellId: 'I10H/text.recovery-WXs', cache: 'cold', ordinal: 1});
 const font = (bytes, license = 'synthetic permitted license') => identified({schemaVersion: 1, bytes: ref(bytes, 'application/octet-stream'), faceIndex: 0, format: 'static-ttf', parserProfile: 'sfnt-static-1-freetype-canvaskit040', fsType: 0, licenseRecord: ref(license, 'text/plain'), origin: 'local-file', embedding: 'permitted'});
 
 function fixture({fontCount = 2, layerCount = 3} = {}) {
@@ -38,12 +39,12 @@ function fixture({fontCount = 2, layerCount = 3} = {}) {
 }
 
 function harness(data = fixture(), changes = {}) {
-  const calls = [], stats = {documentReads: 0, editorReads: 0, active: 0, maximumActive: 0, byteReads: 0};
+  const calls = [], stats = {documentReads: 0, editorReads: 0, nativeTextReads: 0, active: 0, maximumActive: 0, byteReads: 0};
   let now = 10;
   const response = (body, headers = {}) => new Response(body, {status: 200, headers: {'content-length': String(Buffer.byteLength(body)), ...headers}});
   const json = value => response(Buffer.from(JSON.stringify(value)), {'content-type': 'application/json'});
   const context = createContext({TextEncoder, TextDecoder, Uint8Array, AbortController, setTimeout, clearTimeout, crypto: webcrypto, performance: {timeOrigin: 1700000000000, now: () => ++now},
-    document: {querySelector(selector) {if (selector === '#native-text-content') return {value: changes.nativeValue ?? 'private text must not leave collector'}; assert.equal(selector, '#native-text-editor'); stats.editorReads++; return changes.editor?.(stats) ?? {hidden: true, getAttribute(name) {assert.equal(name, 'data-session'); return '';}};}},
+    document: {querySelector(selector) {if (selector === '#native-text-content') {stats.nativeTextReads++; if (changes.rejectNativeRead) throw Error('Native draft contents are outside accepted document collection'); return {value: changes.nativeValue ?? 'private text must not leave collector'};} assert.equal(selector, '#native-text-editor'); stats.editorReads++; return changes.editor?.(stats) ?? {hidden: true, getAttribute(name) {assert.equal(name, 'data-session'); return '';}};}},
     fetch: async (path, options) => {
       calls.push(path); assert.equal(options.credentials, 'same-origin'); assert.equal(options.cache, 'no-store'); assert.equal(options.redirect, 'error'); assert.equal(options.headers['X-App-Client'], 'LP-1'); assert.equal(options.method, undefined);
       changes.onFetch?.(path, options, stats);
@@ -66,10 +67,12 @@ function harness(data = fixture(), changes = {}) {
     }});
   const page = {async evaluate(fn, args) {context.__args = args; const value = await runInContext('(' + fn.toString() + ')(__args)', context); return value === undefined ? undefined : JSON.parse(JSON.stringify(value));}};
   const collect = (args = {}) => collectCurrentDocumentFonts({page, documentId: data.doc.id, fontAssetIds: [...data.assets.keys()], binding: binding(), ...args});
-  return {data, page, collect, calls, stats, context};
+  const collectAccepted = (args = {}) => collectAcceptedDocumentFonts({page, documentId: data.doc.id, fontAssetIds: [...data.assets.keys()], binding: recoveryBinding(), ...args});
+  return {data, page, collect, collectAccepted, calls, stats, context};
 }
 const values = output => Object.fromEntries(output.measurements.map(r => [r.name, r.value]));
 const unavailable = (raw, expected = binding()) => {const result = inspectCurrentDocumentFonts(raw, expected); assert.deepEqual(result.measurements, []); assert(result.missing.length > 0); return result;};
+const acceptedUnavailable = (raw, expected = recoveryBinding()) => {const result = inspectAcceptedDocumentFonts(raw, expected); assert.deepEqual(result.measurements, []); assert(result.missing.length > 0); return result;};
 
 test('full current root includes hidden source fonts; repeated files are read and counted once', async () => {
   const h = harness(), raw = await h.collect(), output = inspectCurrentDocumentFonts(raw, binding());
@@ -265,4 +268,95 @@ test('argument bounds reject undefined IDs, duplicate locators and invalid deadl
   const h = harness();
   for (const patch of [{documentId: undefined}, {documentId: 17}, {fontAssetIds: ['font_0', 'font_0']}, {fontAssetIds: Array.from({length: 17}, (_, i) => 'f_' + i)}, {timeoutMs: 0}, {timeoutMs: 60001}, {binding: null}]) await assert.rejects(h.collect(patch), /arguments are invalid/);
   assert.deepEqual(h.calls, []);
+});
+
+test('accepted collection includes every hidden source while never inspecting an invalid or oversized open draft', async () => {
+  for (const nativeValue of ['\ud800', 'private invalid draft\n' + '😀'.repeat(16385)]) {
+    const h = harness(undefined, {nativeValue, rejectNativeRead: true, editor: () => ({hidden: false, getAttribute(name) {assert.equal(name, 'data-session'); return 'invalid_draft_1';}})});
+    const raw = await h.collectAccepted(), result = inspectAcceptedDocumentFonts(raw, recoveryBinding());
+    assert.equal(raw.kind, 'accepted-document-fonts-1'); assert.deepEqual(raw.missing, []); assert.deepEqual(result.missing, []);
+    assert.deepEqual(values(result), {R35CurrentFontFaces: 2, R35SingleFontBytes: 64, R35CurrentFontSetBytes: 96});
+    assert.deepEqual(raw.nativeEditorBefore, {present: true, hidden: false, session: 'invalid_draft_1'});
+    assert.deepEqual(raw.nativeEditorAfter, raw.nativeEditorBefore);
+    assert.equal(h.stats.nativeTextReads, 0); assert.equal(h.stats.editorReads, 2);
+    assert.equal(raw.layers.length, 3); assert.equal(raw.layers[0].fontIds.length, 1); assert.equal(raw.layers[1].fontIds.length, 2);
+    assert.equal(h.calls.filter(path => path.includes('/text?')).length, 3);
+    assert.equal(h.stats.byteReads, 2); assert.equal(h.stats.maximumActive, 1); assert.equal(h.stats.active, 0);
+    assert.equal(h.context.__IDEOGRAM_CURRENT_FONT_READS__, undefined);
+    assert(!JSON.stringify(raw).includes('private')); assert(!JSON.stringify(raw).includes('nativeTextHash'));
+    assert.deepEqual(result.measurements.map(row => row.unit), ['count', 'bytes', 'bytes']);
+    assert(!result.measurements.some(row => /Substitution|R07|Cpu|Gpu|peak/i.test(row.name)));
+  }
+});
+
+test('accepted and ordinary observations cannot cross their distinct inspection contracts', async () => {
+  const accepted = await harness(undefined, {rejectNativeRead: true, editor: () => ({hidden: false, getAttribute: () => 'invalid_draft_1'})}).collectAccepted({binding: binding()});
+  unavailable(accepted);
+  accepted.kind = 'current-document-fonts-1'; unavailable(accepted);
+  const ordinary = await harness().collect(); acceptedUnavailable(ordinary, binding());
+});
+
+test('accepted collection retains the full layer and face limits without reading an unused draft cohort', async () => {
+  const empty = harness(fixture({layerCount: 0})), emptyRaw = await empty.collectAccepted();
+  assert.deepEqual(values(inspectAcceptedDocumentFonts(emptyRaw, recoveryBinding())), {R35CurrentFontFaces: 0, R35SingleFontBytes: 0, R35CurrentFontSetBytes: 0});
+  assert.equal(empty.stats.byteReads, 0);
+  const full = harness(fixture({layerCount: 100, fontCount: 16})), fullRaw = await full.collectAccepted();
+  assert.deepEqual(fullRaw.missing, []); assert.deepEqual(inspectAcceptedDocumentFonts(fullRaw, recoveryBinding()).missing, []);
+  assert.equal(fullRaw.layers.length, 100); assert.equal(fullRaw.fonts.length, 16); assert.equal(full.stats.byteReads, 16); assert.equal(full.stats.maximumActive, 1);
+  const oversized = harness(fixture({layerCount: 101})); acceptedUnavailable(await oversized.collectAccepted());
+  assert.equal(oversized.stats.byteReads, 0); assert.equal(oversized.calls.length, 1);
+});
+
+test('accepted collection refuses source, byte and transfer-length corruption and missing owned locators', async () => {
+  const changedSource = fixture(); changedSource.sources.get('text_1').text.frame.width++;
+  const changedFile = fixture(); changedFile.bodies.set('/api/v1/assets/font_1/content', Buffer.alloc(64, 9));
+  for (const data of [changedSource, changedFile]) {const raw = await harness(data).collectAccepted(); acceptedUnavailable(raw); assert(raw.missing.length > 0);}
+  const excessive = harness(undefined, {response: path => path.endsWith('/content') ? new Response(Buffer.alloc(64), {headers: {'content-length': '16777217'}}) : null});
+  acceptedUnavailable(await excessive.collectAccepted()); assert.equal(excessive.context.__IDEOGRAM_CURRENT_FONT_READS__, undefined);
+  const missing = harness(), raw = await missing.collectAccepted({fontAssetIds: ['font_0']});
+  assert.deepEqual(raw.missing, ['FONT_CURRENT_ASSET_LOCATOR_MISSING']); acceptedUnavailable(raw); assert.equal(missing.stats.byteReads, 0);
+});
+
+test('accepted root and minimal native editor identity must remain stable during their observation', async () => {
+  for (const changes of [
+    {document: (doc, stats) => {if (stats.documentReads === 2) doc.revision = '8';}},
+    {editor: stats => ({hidden: stats.editorReads === 1, getAttribute: () => stats.editorReads === 1 ? '' : 'draft_new'}), rejectNativeRead: true},
+    {editor: stats => ({hidden: false, getAttribute: () => stats.editorReads === 1 ? 'draft_1' : 'draft_2'}), rejectNativeRead: true},
+  ]) {
+    const h = harness(undefined, changes), raw = await h.collectAccepted(); acceptedUnavailable(raw);
+    assert.equal(h.stats.nativeTextReads, 0); assert.equal(h.context.__IDEOGRAM_CURRENT_FONT_READS__, undefined);
+  }
+});
+
+test('accepted inspection retains exact source, font, file, attempt and native disclosure closure', async () => {
+  const raw = await harness().collectAccepted();
+  assert.deepEqual(inspectAcceptedDocumentFonts(raw, recoveryBinding()).missing, []);
+  for (const [label, mutate] of [...mutations,
+    ['retained draft content hash', r => {r.nativeEditorBefore.nativeTextHash = hash('private draft');}],
+    ['unavailable native editor', r => {r.nativeEditorBefore.present = r.nativeEditorAfter.present = false;}],
+    ['unknown native visibility', r => {r.nativeEditorBefore.hidden = r.nativeEditorAfter.hidden = null;}],
+    ['invalid native session', r => {r.nativeEditorBefore.session = r.nativeEditorAfter.session = 'unsafe/session';}],
+    ['oversized native session', r => {r.nativeEditorBefore.session = r.nativeEditorAfter.session = 'x'.repeat(129);}],
+  ]) {
+    const changed = structuredClone(raw); mutate(changed);
+    const result = inspectAcceptedDocumentFonts(changed, recoveryBinding());
+    assert.deepEqual(result.measurements, [], label); assert(result.missing.length > 0, label);
+  }
+  for (const value of [null, [], {}, {kind: 'accepted-document-fonts-1', binding: {bad: 'x'.repeat(1048577)}}]) acceptedUnavailable(value);
+  const cycle = {}; cycle.self = cycle; acceptedUnavailable(cycle);
+});
+
+test('accepted timeout and caller cancellation release the actual shared in-page owner', async () => {
+  const timed = harness(undefined, {hang: true}), raw = await timed.collectAccepted({timeoutMs: 5});
+  assert.deepEqual(raw.missing, ['FONT_OBSERVATION_ABORTED']); acceptedUnavailable(raw); assert.equal(timed.context.__IDEOGRAM_CURRENT_FONT_READS__, undefined);
+  const aborter = new AbortController();
+  const cancelled = harness(undefined, {hang: true, onFetch: () => aborter.abort(Error('recovery caller cancelled'))});
+  await assert.rejects(cancelled.collectAccepted({signal: aborter.signal}), /recovery caller cancelled/);
+  assert.equal(cancelled.context.__IDEOGRAM_CURRENT_FONT_READS__, undefined);
+});
+
+test('accepted argument bounds reject invalid requests before any protocol read', async () => {
+  const h = harness();
+  for (const patch of [{documentId: undefined}, {documentId: 17}, {fontAssetIds: ['font_0', 'font_0']}, {fontAssetIds: Array.from({length: 17}, (_, i) => 'f_' + i)}, {timeoutMs: 0}, {timeoutMs: 60001}, {binding: null}]) await assert.rejects(h.collectAccepted(patch), /arguments are invalid/);
+  assert.deepEqual(h.calls, []); assert.equal(h.stats.nativeTextReads, 0);
 });

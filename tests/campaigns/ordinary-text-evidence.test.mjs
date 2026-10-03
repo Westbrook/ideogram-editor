@@ -8,6 +8,7 @@ import {fileURLToPath} from 'node:url';
 import {createOrdinaryTextObserver, inspectOrdinaryTextRaw, ordinaryTextMeasurement, readOrdinaryTextProof, verifyOrdinaryTextEvidence, readOrdinaryTextPublicState, ORDINARY_TEXT_LIMITS} from '../../tooling/qualification/campaigns/browser-ordinary-text.mjs';
 import {extractBrowserMeasurements} from '../../tooling/qualification/campaigns/browser-measurements.mjs';
 import {collectOrdinaryFontInvariant, replayOrdinaryFontInvariant, ordinaryFontInvariantMeasurement, ORDINARY_FONT_INVARIANT_SOURCE_FILES} from '../../tooling/qualification/campaigns/browser-text-invariant.mjs';
+import {createRecoveryFontObserver, inspectRecoveryFontRaw, verifyRecoveryFontEvidence, recoveryFontMeasurement, recoveryFontOutcome, TEXT_RECOVERY_FONT_SCENARIOS} from '../../tooling/qualification/campaigns/browser-text-recovery-fonts.mjs';
 
 const hash = value => 'sha256:' + createHash('sha256').update(typeof value === 'string' || Buffer.isBuffer(value) ? value : JSON.stringify(value)).digest('hex');
 const clone = value => structuredClone(value);
@@ -591,4 +592,259 @@ test('actual immutable proof leases drain on held-read failure, cancellation and
   await assert.rejects(f.collect(), /EEXIST/); assert.deepEqual(await readFile(join(f.output, complete.evidence.members[0].path)), before);
   await assert.rejects(f.replay(complete.evidence, {signal: abort.signal}));
   assert(await f.replay(complete.evidence));
+});
+
+
+// Recovery has its own accepted-document authority: rejected native drafts do
+// not borrow ordinary successful-preview lineage. These synthetic envelopes
+// retain genuine immutable sidecars through the same production validators.
+async function recoveryInvariantFixture(t, scenario = 'missing-font', options = {}) {
+  const f = await invariantFixture(t, options), p = f.p, nonce = p.raw.nonce;
+  p.args.cell.id = 'I10H/recovery-' + scenario; p.args.cell.operation = 'text.recovery'; p.args.cell.parameters = {scenario};
+  p.args.attempt.id = p.args.cell.id + '/cold/scored/1';
+  const specimen = {scenario, ...(scenario === 'missing-glyph' ? {textHash: hash('Unsupported')} : {}),
+    ...(scenario === 'restricted-font' ? {sha256: hash('rejected restricted font')} : {})};
+  p.args.fixture.text.recoveryCases = {[scenario]: specimen};
+  const draftHash = scenario === 'missing-glyph' ? specimen.textHash : scenario === 'cancelled-over-limit-composition' ? hash('x'.repeat(16385)) : p.args.fixture.text.corpus.sha256;
+  const attempt = {cellId: p.args.cell.id, id: p.args.attempt.id, cache: 'cold', ordinal: 1, prime: false, serial: 1};
+  const binding = {kind: 'recovery-font-binding-1', nonce, operation: 'text.recovery', attempt,
+    fixtureSeal: clone(p.args.fixture.seal), recovery: {documentId: 'doc', layerId: 'layer', scenario, draftHash,
+      specimenSha256: hash(JSON.stringify(specimen)), rejectedFontHash: specimen.sha256 ?? null},
+    environment: clone(p.args.environment), processIdentity: clone(p.args.workerProcessIdentity), runtime: clone(p.binding.runtime)};
+  const before = {...clone(p.raw.fonts), kind: 'accepted-document-fonts-1', binding: clone(attempt), startMs: 50, endMs: 70,
+    nativeEditorBefore: {present: true, hidden: true, session: ''}, nativeEditorAfter: {present: true, hidden: true, session: ''}};
+  const cancelled = scenario === 'cancelled-over-limit-composition';
+  const nativeAfter = {present: true, hidden: cancelled, session: cancelled ? '' : 'draft'};
+  const after = {...clone(before), startMs: 230, endMs: 250, nativeEditorBefore: clone(nativeAfter), nativeEditorAfter: clone(nativeAfter)};
+  const state = {timeOrigin: before.timeOrigin, atMs: 100, documentId: 'doc', revision: '3', layerId: 'layer', layerVersion: '2',
+    sessionId: 'session', draftId: 'draft', generation: '7', previewId: '', draftHash,
+    draftBytes: cancelled ? 16385 : scenario === 'missing-glyph' ? Buffer.byteLength('Unsupported') : 4,
+    overLimitAdmission: cancelled, errorVisible: false, previewDisabled: cancelled, applyDisabled: true};
+  const recovery = {scenario, draftHash, retained: true, rejectedFontHash: specimen.sha256 ?? null, cancelDeferredUntilNativeEnd: cancelled};
+  const raw = {kind: 'recovery-font-raw-1', nonce, binding: clone(attempt), clock: 'runner-monotonic', startedMs: 20, endedMs: 400,
+    actionStartedMs: 100, actionEndedMs: 300, before, after,
+    refusal: {startedMs: 120, endedMs: 200, before: state, after: {...clone(state), atMs: 200, errorVisible: !cancelled}, completed: true},
+    outcome: recoveryFontOutcome(recovery), failed: false, fontInvariant: null, missing: []};
+  const invariant = await f.collect({fonts: after, nonce}); await f.retain(invariant.evidence); raw.fontInvariant = invariant.evidence;
+  p.args.controlFiles.push({path: 'tooling/qualification/campaigns/browser-text-recovery-fonts.mjs', sha256: hash('browser-text-recovery-fonts.mjs').slice(7)});
+  p.args.cell.requiredMeasurements = [
+    {name: 'R35CurrentFontFaces', unit: 'count', budgetId: 'R35'}, {name: 'R35SingleFontBytes', unit: 'bytes', budgetId: 'R35'},
+    {name: 'R35CurrentFontSetBytes', unit: 'bytes', budgetId: 'R35'}, invariantRule,
+  ];
+  p.args.attempt.result.observations = {recovery, actions: [{id: 'text-recovery', kind: 'recovery', outcome: 'completed', inputMs: 110, readyMs: 210}]};
+  p.args.attempt.result.phases = [];
+  for (const path of p.files.keys()) if (path.startsWith('ordinary-text-') && (path.endsWith('-raw.json') || path.endsWith('-binding.json'))) p.files.delete(path);
+  const seal = ({fontInvariantProof = invariant.proof} = {}) => {
+    const put = (name, value) => {const path = 'recovery-font-' + nonce + '-' + name + '.json', bytes = Buffer.from(JSON.stringify(value));
+      p.files.set(path, bytes); return {path, bytes: bytes.length, sha256: hash(bytes)};};
+    const bindingArtifact = put('binding', binding), artifact = put('raw', raw), analysis = inspectRecoveryFontRaw(raw, binding, {fontInvariantProof});
+    p.args.attempt.result.observations.recoveryFonts = {kind: 'recovery-font-observation-1', nonce, binding: bindingArtifact, raw: artifact, analysis,
+      qualification: false, acceptedDocumentOnly: true};
+    p.args.attempt.result.measurements = analysis.measurements.map(row => ({...row,
+      evidence: [{kind: 'recovery-font-retained-observation-1', artifact: {...artifact, path: join(f.output, artifact.path)}}]}));
+    p.args.retainedFiles = [...p.files].map(([path, bytes]) => ({path, bytes: bytes.length, sha256: hash(bytes)}));
+    p.args.journalEvents = [{event: 'recovery-font-observed', cellId: p.args.cell.id, nonce, binding: bindingArtifact, raw: artifact, monotonicMs: 410}];
+    return analysis;
+  };
+  seal(); return {...f, raw, binding, invariant, seal};
+}
+const copyReplayArguments = args => Object.fromEntries(Object.entries(args).map(([key, value]) => [key, typeof value === 'function' ? value : clone(value)]));
+
+for (const scenario of TEXT_RECOVERY_FONT_SCENARIOS) test('recovery retained accepted-font replay supplies four scoped rows for ' + scenario, async t => {
+  const f = await recoveryInvariantFixture(t, scenario), {p} = f;
+  p.args.attempt.status = p.args.attempt.result.status = 'PASS';
+  const proof = await verifyRecoveryFontEvidence(p.args), observation = p.args.attempt.result.observations.recoveryFonts;
+  assert.equal(f.image.layers[1].visible, false); assert.equal(f.invariant.evidence.members.length, 7);
+  assert.equal(f.invariant.evidence.members.filter(member => member.ref.hash === f.font.bytes.hash).length, 1);
+  assert.deepEqual(observation.analysis.missing, []); assert.deepEqual(observation.analysis.failures, []);
+  assert.equal(observation.analysis.acceptedDocumentOnly, true); assert.equal(observation.analysis.draftRendering, false);
+  assert.equal(observation.analysis.physicalPresentation, false); assert.equal(observation.analysis.qualification, false);
+  const rows = p.args.cell.requiredMeasurements.map(rule => recoveryFontMeasurement({cell: p.args.cell, sample: p.args.attempt, rule, proof}).measurement);
+  assert.deepEqual(Object.fromEntries(rows.map(row => [row.name, row.value])), {
+    R35CurrentFontFaces: 1, R35SingleFontBytes: 32, R35CurrentFontSetBytes: 32, R35SilentFontSubstitutionCount: 0,
+  });
+  assert.deepEqual(rows, p.args.attempt.result.measurements);
+  assert(rows.every(row => row.evidence[0].kind === 'recovery-font-retained-observation-1' && row.evidence[0].artifact.path.endsWith('-raw.json')));
+  const extracted = extractBrowserMeasurements({cell: p.args.cell, sample: p.args.attempt, recoveryFontProof: proof});
+  assert.deepEqual(extracted.measurements, rows); assert.deepEqual(extracted.unavailable, []);
+  assert.match(rows.find(row => row.name === invariantRule.name).method, /Invalid draft.*excluded/);
+  const forged = extractBrowserMeasurements({cell: p.args.cell, sample: p.args.attempt, recoveryFontProof: clone(proof)});
+  assert.deepEqual(forged.measurements, []); assert.equal(forged.unavailable.length, 4);
+  const wrongAttempt = clone(p.args.attempt); wrongAttempt.ordinal++;
+  assert.match(recoveryFontMeasurement({cell: p.args.cell, sample: wrongAttempt, rule: invariantRule, proof}).reason, /unavailable/);
+  const wrongScenario = clone(p.args.cell); wrongScenario.parameters.scenario = 'foreign';
+  assert.match(recoveryFontMeasurement({cell: wrongScenario, sample: p.args.attempt, rule: invariantRule, proof}).reason, /unavailable/);
+});
+
+test('recovery reports a genuine accepted hidden-layer layout mutation as failure even with a valid final immutable closure', async t => {
+  const original = await recoveryInvariantFixture(t), changed = await recoveryInvariantFixture(t, 'missing-font', {
+    mutateLayout: (layout, index) => {if (index) layout.paragraphs[0].runs[0].glyphs[0] = 2;},
+  });
+  assert.notEqual(original.raw.before.before.imageState.hash, changed.raw.after.before.imageState.hash);
+  assert.notEqual(original.raw.before.layers[1].source.hash, changed.raw.after.layers[1].source.hash);
+  assert.equal(ordinaryFontInvariantMeasurement({fonts: changed.raw.after, ...changed.invariant}).value, 0);
+  changed.raw.before = clone(original.raw.before);
+  const analysis = changed.seal(); assert.deepEqual(analysis.measurements, []);
+  assert(analysis.failures.some(message => /accepted document\/source\/font closure changed/.test(message)));
+  changed.p.args.attempt.status = changed.p.args.attempt.result.status = 'PASS';
+  await assert.rejects(verifyRecoveryFontEvidence(changed.p.args), /contradiction was not reported as failure/);
+  changed.p.args.attempt.status = changed.p.args.attempt.result.status = 'FAIL';
+  const proof = await verifyRecoveryFontEvidence(changed.p.args);
+  for (const rule of changed.p.args.cell.requiredMeasurements) assert.match(recoveryFontMeasurement({cell: changed.p.args.cell, sample: changed.p.args.attempt, rule, proof}).reason, /unavailable/);
+});
+
+test('recovery rejects stale alerts, changed drafts, new previews and invalid deferred cancellation without claiming font rows', async t => {
+  const f = await recoveryInvariantFixture(t);
+  for (const change of [
+    raw => {raw.refusal.before.errorVisible = true;}, raw => {raw.refusal.after.errorVisible = false;},
+    raw => {raw.refusal.after.draftHash = hash('changed rejected draft');}, raw => {raw.refusal.after.draftId = 'replacement-draft';},
+    raw => {raw.refusal.after.previewId = 'new-preview';}, raw => {raw.refusal.after.generation = '8';},
+    raw => {raw.refusal.after.timeOrigin++;}, raw => {raw.refusal.after.atMs = raw.after.startMs + 1;},
+    raw => {raw.outcome.retained = false;}, raw => {raw.outcome.rejectedFontHash = hash('unrelated rejected font');},
+    raw => {raw.after.nativeEditorBefore.session = raw.after.nativeEditorAfter.session = 'unrelated-draft';},
+  ]) {
+    const raw = clone(f.raw); change(raw);
+    const analysis = inspectRecoveryFontRaw(raw, f.binding, {fontInvariantProof: f.invariant.proof});
+    assert.deepEqual(analysis.measurements, []); assert(analysis.failures.length > 0);
+  }
+  const incomplete = clone(f.raw); incomplete.after.files[0].observedHash = hash('different accepted font bytes');
+  const unavailable = inspectRecoveryFontRaw(incomplete, f.binding, {fontInvariantProof: f.invariant.proof});
+  assert.deepEqual(unavailable.measurements, []); assert.deepEqual(unavailable.failures, []);
+  assert(unavailable.missing.some(message => /complete accepted font closures/.test(message)));
+  const cancelled = await recoveryInvariantFixture(t, 'cancelled-over-limit-composition');
+  for (const change of [raw => {raw.refusal.before.draftBytes = raw.refusal.after.draftBytes = 16384;},
+    raw => {raw.refusal.after.previewDisabled = false;}, raw => {raw.refusal.after.applyDisabled = false;},
+    raw => {raw.refusal.after.overLimitAdmission = false;}, raw => {raw.outcome.cancelDeferredUntilNativeEnd = false;},
+    raw => {raw.after.nativeEditorBefore = raw.after.nativeEditorAfter = {present: true, hidden: false, session: 'draft'};}]) {
+    const raw = clone(cancelled.raw); change(raw);
+    const analysis = inspectRecoveryFontRaw(raw, cancelled.binding, {fontInvariantProof: cancelled.invariant.proof});
+    assert.deepEqual(analysis.measurements, []); assert(analysis.failures.length > 0);
+  }
+});
+
+test('recovery replay binds the exact attempt, specimen, runtime, journal, source and original action', async t => {
+  const f = await recoveryInvariantFixture(t);
+  for (const change of [args => {args.attempt.ordinal++;}, args => {args.serial++;}, args => {args.attempt.prime = true;},
+    args => {args.cell.parameters.scenario = 'corrupt-font';}, args => {args.fixture.text.recoveryCases['missing-font'].differentSpecimen = true;},
+    args => {args.fixture.seal.sha256 = hash('foreign fixture');}, args => {args.environment.sourceDigest = hash('foreign source').slice(7);},
+    args => {args.environment.buildDigest = hash('foreign build');}, args => {args.workerProcessIdentity.pid++;},
+    args => {args.browserCache = '/foreign-cache';}, args => {args.tools.browserPins.browsers[0].revision = 'foreign';},
+    args => {args.developerState.state.h.browserIdentity.engines[0].sha256 = hash('foreign executable');},
+    args => {args.controlFiles = args.controlFiles.filter(file => !file.path.endsWith('/browser-text-recovery-fonts.mjs'));},
+    args => {args.controlFiles = args.controlFiles.filter(file => !file.path.endsWith('/evidence-volume.mjs'));},
+    args => {args.sourceFiles.pop();}, args => {args.journalEvents[0].nonce = '2'.repeat(32);},
+    args => {args.journalEvents[0].monotonicMs = args.attempt.endMs + 1;}, args => {args.journalEvents.push(clone(args.journalEvents[0]));},
+    args => {args.journalEvents[0].raw.sha256 = hash('foreign raw');},
+    args => {args.attempt.result.observations.recovery.draftHash = hash('foreign draft');},
+    args => {args.attempt.result.observations.actions = [];}, args => {args.attempt.result.observations.actions[0].outcome = 'failed';},
+    args => {args.attempt.result.observations.actions[0].inputMs = 121;}, args => {args.attempt.result.observations.actions[0].readyMs = 199;},
+    args => {args.attempt.result.observations.actions.push(clone(args.attempt.result.observations.actions[0]));},
+  ]) {const args = copyReplayArguments(f.p.args); change(args); await assert.rejects(verifyRecoveryFontEvidence(args));}
+  const original = f.p.files.get('browser-runtime.json'), runtime = JSON.parse(original);
+  runtime.executable = '/cache/foreign/browser'; f.p.files.set('browser-runtime.json', Buffer.from(JSON.stringify(runtime)));
+  await assert.rejects(verifyRecoveryFontEvidence(f.p.args), /actual browser differs/);
+  f.p.files.set('browser-runtime.json', original); assert(await verifyRecoveryFontEvidence(f.p.args));
+});
+
+test('recovery replay independently rejects missing, mutated or falsely published retained evidence', async t => {
+  const f = await recoveryInvariantFixture(t);
+  for (const change of [args => {args.attempt.result.observations.recoveryFonts.analysis.physicalPresentation = true;},
+    args => {args.attempt.result.observations.recoveryFonts.acceptedDocumentOnly = false;},
+    args => {args.attempt.result.observations.recoveryFonts.raw.path = '../foreign.json';},
+    args => {args.attempt.result.observations.recoveryFonts.raw.bytes = 4 * 1048576 + 1;},
+    args => {args.attempt.result.measurements[0].value++;}, args => {args.attempt.result.measurements.push(clone(args.attempt.result.measurements[0]));},
+    args => {args.retainedFiles = args.retainedFiles.filter(file => file.path !== f.invariant.evidence.members[0].path);},
+  ]) {const args = copyReplayArguments(f.p.args); change(args); await assert.rejects(verifyRecoveryFontEvidence(args));}
+  for (const path of [f.p.args.attempt.result.observations.recoveryFonts.raw.path, f.invariant.evidence.members[0].path]) {
+    const original = f.p.files.get(path), bytes = Buffer.from(original); bytes[0] ^= 1; f.p.files.set(path, bytes);
+    await assert.rejects(verifyRecoveryFontEvidence(f.p.args)); f.p.files.set(path, original);
+  }
+  const evidence = clone(f.raw.fontInvariant); f.raw.fontInvariant.members.pop(); f.seal();
+  await assert.rejects(verifyRecoveryFontEvidence(f.p.args));
+  f.raw.fontInvariant = evidence; f.seal(); assert(await verifyRecoveryFontEvidence(f.p.args));
+});
+
+test('missing immutable recovery proof never supplies a substitution zero or permits a complete result', async t => {
+  const f = await recoveryInvariantFixture(t), missing = inspectRecoveryFontRaw(f.raw, f.binding), serialized = inspectRecoveryFontRaw(f.raw, f.binding, {fontInvariantProof: clone(f.invariant.proof)});
+  for (const analysis of [missing, serialized]) {
+    assert.equal(analysis.measurements.length, 3); assert(!analysis.measurements.some(row => row.name === invariantRule.name));
+    assert(analysis.missing.some(message => /immutable source\/layout\/text\/font replay/.test(message)));
+  }
+  f.raw.fontInvariant = null; f.seal();
+  const proof = await verifyRecoveryFontEvidence(f.p.args);
+  assert.match(recoveryFontMeasurement({cell: f.p.args.cell, sample: f.p.args.attempt, rule: invariantRule, proof}).reason, /unavailable/);
+  f.p.args.attempt.status = f.p.args.attempt.result.status = 'PASS';
+  await assert.rejects(verifyRecoveryFontEvidence(f.p.args), /missing recovery evidence was reported complete/);
+  f.p.args.attempt.status = f.p.args.attempt.result.status = 'INCONCLUSIVE';
+  delete f.p.args.attempt.result.observations.recoveryFonts; f.p.args.attempt.result.measurements = [];
+  assert.equal(await verifyRecoveryFontEvidence(f.p.args), null);
+  f.p.args.attempt.result.measurements = [{...invariantRule, value: 0}];
+  await assert.rejects(verifyRecoveryFontEvidence(f.p.args), /lack retained observation/);
+  f.p.args.attempt.result.measurements = []; f.p.args.attempt.status = 'PASS';
+  await assert.rejects(verifyRecoveryFontEvidence(f.p.args), /lack retained observation/);
+});
+
+test('interrupted recovery and incomplete original refusal withhold all accepted font rows', async t => {
+  const f = await recoveryInvariantFixture(t), original = clone(f.raw);
+  for (const change of [raw => {raw.failed = true;}, raw => {raw.refusal.completed = false;},
+    raw => {raw.outcome.missing = 1;}, raw => {raw.before = null;}, raw => {raw.after = null; raw.fontInvariant = null;},
+    raw => {raw.missing.push('recovery-accepted-baseline-unavailable');}]) {
+    Object.assign(f.raw, clone(original)); change(f.raw); const analysis = f.seal();
+    assert.deepEqual(analysis.measurements, []); assert(analysis.missing.length > 0);
+    const proof = await verifyRecoveryFontEvidence(f.p.args);
+    for (const rule of f.p.args.cell.requiredMeasurements) assert.match(recoveryFontMeasurement({cell: f.p.args.cell, sample: f.p.args.attempt, rule, proof}).reason, /unavailable/);
+  }
+  Object.assign(f.raw, clone(original)); f.seal();
+  // A separately failed budget does not erase independently complete rows.
+  f.p.args.attempt.status = f.p.args.attempt.result.status = 'FAIL';
+  const proof = await verifyRecoveryFontEvidence(f.p.args);
+  assert.equal(recoveryFontMeasurement({cell: f.p.args.cell, sample: f.p.args.attempt, rule: invariantRule, proof}).measurement.value, 0);
+});
+
+
+test('recovery observer preserves one original action through unavailable reads and retains failed lifecycle evidence', async t => {
+  const output = await mkdtemp(join(tmpdir(), 'recovery-font-observation-'));
+  t.after(() => rm(output, {recursive: true, force: true}));
+  const p = packet({output}), scenario = 'missing-font', events = [];
+  p.args.cell.operation = 'text.recovery'; p.args.cell.parameters = {scenario};
+  p.args.fixture.text.recoveryCases = {[scenario]: {scenario}};
+  let actions = 0, refusals = 0, reads = 0;
+  const observer = createRecoveryFontObserver({
+    page: {evaluate: async () => {reads++; throw Error('diagnostic protocol unavailable');}},
+    repo: p.args.sourceRoot, root: join(output, 'unavailable-private-root'), cell: p.args.cell, sample: p.args.attempt, serial: p.args.serial,
+    fixture: p.args.fixture, runtime: p.binding.runtime, environment: p.args.environment,
+    processIdentity: p.args.workerProcessIdentity, output, journal: async event => events.push(event),
+  });
+  await assert.rejects(observer.refusal(async () => {refusals++;}), /one original recovery refusal/);
+  await assert.rejects(observer.observe(async () => {
+    actions++;
+    await assert.rejects(observer.observe(async () => {actions++;}), /one recovery observation/);
+    await assert.rejects(observer.finish(), /observer must settle/);
+    assert.equal(await observer.refusal(async () => {refusals++; return 7;}), 7);
+    await assert.rejects(observer.refusal(async () => {refusals++;}), /one original recovery refusal/);
+    throw Error('original recovery interrupted after refusal');
+  }), /original recovery interrupted after refusal/);
+  assert.equal(actions, 1); assert.equal(refusals, 1); assert(reads > 0);
+  const {proof, observation} = await observer.finish();
+  assert.deepEqual(observation.analysis.measurements, []); assert.deepEqual(observation.analysis.failures, []);
+  assert(observation.analysis.missing.some(message => /Original recovery action did not complete/.test(message)));
+  assert.equal(observation.analysis.acceptedDocumentOnly, true); assert.equal(observation.analysis.draftRendering, false);
+  assert.equal(observation.analysis.physicalPresentation, false); assert.equal(observation.analysis.qualification, false);
+  assert.match(recoveryFontMeasurement({cell: p.args.cell, sample: p.args.attempt, rule: invariantRule, proof}).reason, /unavailable/);
+  const rawBytes = await readFile(join(output, observation.raw.path)), raw = JSON.parse(rawBytes);
+  assert.equal(rawBytes.length, observation.raw.bytes); assert.equal(hash(rawBytes), observation.raw.sha256);
+  assert.equal(raw.failed, true); assert.equal(raw.before, null); assert.equal(raw.after, null);
+  assert.equal(raw.fontInvariant, null); assert.equal(raw.outcome, null);
+  assert.equal(raw.refusal.completed, true); assert.equal(raw.refusal.before, null); assert.equal(raw.refusal.after, null);
+  for (const code of ['recovery-accepted-baseline-unavailable', 'recovery-accepted-closure-unavailable',
+    'recovery-refusal-baseline-unavailable', 'recovery-refusal-endpoint-unavailable']) assert(raw.missing.includes(code));
+  assert(raw.startedMs <= raw.actionStartedMs && raw.actionStartedMs <= raw.refusal.startedMs && raw.refusal.startedMs <= raw.refusal.endedMs &&
+    raw.refusal.endedMs <= raw.actionEndedMs && raw.actionEndedMs <= raw.endedMs);
+  assert.deepEqual((await readdir(output)).sort(), [observation.binding.path, observation.raw.path].sort());
+  assert.equal(events.length, 1); assert.equal(events[0].event, 'recovery-font-observed');
+  assert.deepEqual(events[0].raw, observation.raw); assert.deepEqual(events[0].binding, observation.binding);
+  await assert.rejects(observer.observe(async () => {actions++;}), /one recovery observation/);
+  await assert.rejects(observer.refusal(async () => {refusals++;}), /one original recovery refusal/);
+  await assert.rejects(observer.finish(), /observer must settle/);
+  assert.equal(actions, 1); assert.equal(refusals, 1); assert.equal(events.length, 1);
 });

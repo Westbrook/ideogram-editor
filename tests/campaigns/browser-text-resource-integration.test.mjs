@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createHash} from 'node:crypto';
+import {createHash, webcrypto} from 'node:crypto';
+import {createContext, runInContext} from 'node:vm';
+import {readRecoveryFontState} from '../../tooling/qualification/campaigns/browser-text-recovery-fonts.mjs';
 import {join} from 'node:path';
 import {extractBrowserMeasurements} from '../../tooling/qualification/campaigns/browser-measurements.mjs';
 import {verifyOrdinaryTextResourceEvidence, verifyLifecycleTextResourceEvidence} from '../../tooling/qualification/campaigns/verification.mjs';
@@ -255,4 +257,80 @@ test('nested upper-bound fallback still needs a bounded exact endpoint interval'
     const counter = p.writeCounter(); p.args.result.cycles[0].action.lifecycleCounterEvidence = counter; p.args.result.cycles[0].action.measurements = counter.measurements;
     await assert.rejects(verifyLifecycleTextResourceEvidence(p.args), /interval/);
   }
+});
+
+// Execute the actual read-only page evaluator against a synthetic DOM. These
+// cases validate coherent capture and disclosure, never browser qualification.
+function recoveryNativePage({text = 'Text', scenario = 'missing-font', error = null, duringHash} = {}) {
+  const attributes = {'data-text-document-id': 'doc', 'data-text-document-revision': '3', 'data-text-layer-id': 'layer', 'data-text-layer-version': '2',
+    'data-text-session-id': 'session', 'data-session': 'draft', 'data-text-generation': '7', 'data-preview-id': ''};
+  const over = scenario === 'cancelled-over-limit-composition';
+  const preview = {isConnected: true, textContent: 'Preview text', disabled: over, hasAttribute(name) {assert.equal(name, 'disabled'); return this.disabled;}};
+  const apply = {isConnected: true, textContent: 'Apply text', disabled: over, hasAttribute(name) {assert.equal(name, 'disabled'); return this.disabled;}};
+  const node = {isConnected: true, hidden: false, getAttribute: name => attributes[name], querySelectorAll: selector => {assert.equal(selector, 'en-button'); return [preview, apply];}};
+  const control = {isConnected: true, value: text};
+  const errorNode = error === null ? null : {isConnected: true, textContent: error, getClientRects: () => [{}]};
+  const admission = {textContent: over ? 'UTF-8 text uses 16385 bytes; one layer permits 16384 bytes. Review a split, shorten manually, or cancel.' : ''};
+  const elements = new Map([['#native-text-editor', node], ['#native-text-content', control], ['#native-text-error', errorNode], ['#native-text-admission', admission]]);
+  const state = {attributes, elements, node, control, preview, apply, errorNode};
+  const realm = createContext({document: {querySelector: selector => elements.get(selector) ?? null}, TextEncoder,
+    performance: {timeOrigin: 1000, now: () => 10}, getComputedStyle: () => ({visibility: 'visible'}),
+    crypto: {subtle: {digest: async (...args) => {duringHash?.(state); return webcrypto.subtle.digest(...args);}}}});
+  return {state, page: {evaluate: async (fn, args) => {realm.__args = structuredClone(args); return structuredClone(await runInContext('(' + fn.toString() + ')(__args)', realm));}}};
+}
+
+test('recovery native snapshot hashes the full oversized draft and retains actual disabled admission without draft text', async () => {
+  const text = 'x'.repeat(16385), f = recoveryNativePage({text, scenario: 'cancelled-over-limit-composition'});
+  const value = await readRecoveryFontState(f.page, 'cancelled-over-limit-composition');
+  assert.equal(value.draftHash, hash(text)); assert.equal(value.draftBytes, 16385);
+  assert.equal(value.overLimitAdmission, true); assert.equal(value.previewDisabled, true); assert.equal(value.applyDisabled, true);
+  assert(!JSON.stringify(value).includes('xxxxx')); assert.equal(value.errorVisible, false);
+});
+
+test('recovery refusal observes the actual action-error endpoint and excludes unrelated font status', async () => {
+  const f = recoveryNativePage();
+  f.state.elements.set('#font-status', {textContent: 'Missing exact font bytes'});
+  assert.equal((await readRecoveryFontState(f.page, 'missing-font')).errorVisible, false);
+  const rejected = recoveryNativePage({error: 'Missing exact font registration'});
+  assert.equal((await readRecoveryFontState(rejected.page, 'missing-font')).errorVisible, true);
+  assert.equal((await readRecoveryFontState(rejected.page, 'corrupt-font')).errorVisible, false);
+});
+
+test('native capture rejects changed draft, session, preview, admission controls or error while hashing', async () => {
+  for (const change of [
+    s => {s.control.value = 'Changed';}, s => {s.attributes['data-text-session-id'] = 'replacement';},
+    s => {s.attributes['data-preview-id'] = 'new-preview';}, s => {s.preview.disabled = true;},
+    s => {s.errorNode.textContent = 'Other error';},
+  ]) {
+    const f = recoveryNativePage({error: 'FONT_HASH', duringHash: change});
+    await assert.rejects(readRecoveryFontState(f.page, 'corrupt-font'), /CHANGED_DURING_READ/);
+  }
+});
+
+test('native capture refuses disconnected or replaced nodes even with unchanged token values', async () => {
+  for (const change of [
+    s => {s.control.isConnected = false;}, s => {s.node.isConnected = false;},
+    s => {s.elements.set('#native-text-content', {...s.control});},
+    s => {s.elements.set('#native-text-error', {...s.errorNode});},
+  ]) {
+    const f = recoveryNativePage({error: 'FONT_HASH', duringHash: change});
+    await assert.rejects(readRecoveryFontState(f.page, 'corrupt-font'), /NATIVE_BOUNDARY/);
+  }
+});
+
+test('recovery native capture refuses unknown scenarios before reading the page and bounds native input', async () => {
+  await assert.rejects(readRecoveryFontState({evaluate() {assert.fail('unknown scenario must not read');}}, 'invented'), /known refusal scenario/);
+  const f = recoveryNativePage({text: 'x'.repeat(65537)});
+  await assert.rejects(readRecoveryFontState(f.page, 'missing-font'), /NATIVE_BOUNDARY/);
+});
+
+
+test('recovery native hashes never collapse distinct invalid UTF16 drafts into replacement-byte equality', async () => {
+  for (const text of ['\ud800', '\udc00', 'prefix\ud800suffix']) {
+    const f = recoveryNativePage({text});
+    await assert.rejects(readRecoveryFontState(f.page, 'missing-font'), /NATIVE_UNICODE/);
+  }
+  const f = recoveryNativePage({text: '\ud83d\ude00'});
+  const value = await readRecoveryFontState(f.page, 'missing-glyph');
+  assert.equal(value.draftHash, hash('\ud83d\ude00')); assert.equal(value.draftBytes, 4);
 });

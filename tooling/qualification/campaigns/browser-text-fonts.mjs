@@ -71,11 +71,14 @@ function unchangedPreview(raw, proof, fonts) {
 /** Pure inspection of bounded, untrusted raw data. This is not a runtime proof
  * issuer. The outer live collector/replayer must admit its own attempt token.
  * Only current associated font state is measured; no CPU/GPU/peak/R07 claim. */
-export function inspectCurrentDocumentFonts(raw, expectedBinding, {draftProof} = {}) {
+export function inspectCurrentDocumentFonts(raw, expectedBinding, options = {}) { return inspectFonts(raw, expectedBinding, options, false); }
+/** Recovery authority observes accepted state only; invalid drafts are separate. */
+export function inspectAcceptedDocumentFonts(raw, expectedBinding) { return inspectFonts(raw, expectedBinding, {}, true); }
+function inspectFonts(raw, expectedBinding, {draftProof}, acceptedOnly) {
   const fail = message => ({measurements: [], missing: ['Current document fonts: ' + message]});
   try {
     if (!object(expectedBinding) || Object.keys(expectedBinding).length === 0 || boundedJSON(raw, MiB).length === 0 || boundedJSON(expectedBinding, 16384) !== boundedJSON(raw?.binding, 16384)) return fail('attempt binding differs');
-    if (!exact(raw, 'kind,binding,clock,timeOrigin,startMs,endMs,before,after,layers,fonts,files,nativeEditorBefore,nativeEditorAfter,missing') || raw.kind !== 'current-document-fonts-1' || raw.clock !== 'browser-performance' || !Number.isFinite(raw.timeOrigin) || raw.timeOrigin <= 0 || !Number.isFinite(raw.startMs) || raw.startMs < 0 || !Number.isFinite(raw.endMs) || raw.endMs < raw.startMs || raw.endMs - raw.startMs > 60000 || !Array.isArray(raw.missing) || raw.missing.length !== 0) return fail('complete bounded observation and browser clocks required');
+    if (!exact(raw, 'kind,binding,clock,timeOrigin,startMs,endMs,before,after,layers,fonts,files,nativeEditorBefore,nativeEditorAfter,missing') || raw.kind !== (acceptedOnly ? 'accepted-document-fonts-1' : 'current-document-fonts-1') || raw.clock !== 'browser-performance' || !Number.isFinite(raw.timeOrigin) || raw.timeOrigin <= 0 || !Number.isFinite(raw.startMs) || raw.startMs < 0 || !Number.isFinite(raw.endMs) || raw.endMs < raw.startMs || raw.endMs - raw.startMs > 60000 || !Array.isArray(raw.missing) || raw.missing.length !== 0) return fail('complete bounded observation and browser clocks required');
     if (!rootValid(raw.before) || !rootValid(raw.after) || canonical(raw.before) !== canonical(raw.after)) return fail('current document revision or image identity changed');
     if (!Array.isArray(raw.layers) || raw.layers.length !== raw.before.orderedLayerIds.length || raw.layers.length > 100 || !Array.isArray(raw.fonts) || raw.fonts.length > 1600 || !Array.isArray(raw.files) || raw.files.length > 16) return fail('full current layer/font/file inventory is unavailable');
     const fonts = new Map(), faces = new Map(), files = new Map(), used = new Set();
@@ -96,7 +99,10 @@ export function inspectCurrentDocumentFonts(raw, expectedBinding, {draftProof} =
     }
     if (used.size !== fonts.size) return fail('font inventory contains an unassociated or missing version');
     const closed = closedEditor(raw.nativeEditorBefore) && closedEditor(raw.nativeEditorAfter);
-    if (!closed && !unchangedPreview(raw, draftProof, fonts)) return fail('open native draft lacks stable actual preview lineage matching the accepted source and independently admitted phase evidence');
+    if (acceptedOnly) {
+      const native = v => exact(v, 'present,hidden,session') && v.present === true && typeof v.hidden === 'boolean' && (v.session === '' || id(v.session));
+      if (!native(raw.nativeEditorBefore) || !native(raw.nativeEditorAfter) || canonical(raw.nativeEditorBefore) !== canonical(raw.nativeEditorAfter)) return fail('accepted-only observation changed its native editor boundary');
+    } else if (!closed && !unchangedPreview(raw, draftProof, fonts)) return fail('open native draft lacks stable actual preview lineage matching the accepted source and independently admitted phase evidence');
     const assetIds = new Set();
     for (const f of raw.files) {
       if (!exact(f, 'assetId,assetVersion,hash,bytes,observedHash,observedBytes,fontIds') || !id(f.assetId) || assetIds.has(f.assetId) || !seq(f.assetVersion) || !SHA.test(f.hash) || !int(f.bytes, 16 * MiB) || f.bytes < 12 || f.observedHash !== f.hash || f.observedBytes !== f.bytes || files.has(f.hash) || !Array.isArray(f.fontIds) || f.fontIds.length < 1 || f.fontIds.length > 1600 || new Set(f.fontIds).size !== f.fontIds.length) return fail('actual owned file hash/length evidence is incomplete or duplicated');
@@ -107,7 +113,7 @@ export function inspectCurrentDocumentFonts(raw, expectedBinding, {draftProof} =
     if ([...fonts.values()].some(f => !files.has(f.bytes.hash))) return fail('current font bytes were not all fetched and hashed');
     const total = [...files.values()].reduce((n, f) => n + f.bytes, 0), maximum = Math.max(0, ...[...files.values()].map(f => f.bytes));
     if (total > 64 * MiB) return fail('current font files exceed the finite 64 MiB collector boundary');
-    const method = 'Complete stable current-document associated font union (including hidden layers); typed face/parser/profile/license references; sequential public owned-file SHA256 and length verification, unique files counted once. ' + (closed ? 'Native editor closed.' : 'Actual native text and preview tokens remain identical to independently admitted phase evidence and the current accepted render dependency; active draft adds no different font cohort.') + ' No allocation or physical-presentation claim.';
+    const method = 'Complete stable current-document associated font union (including hidden layers); typed face/parser/profile/license references; sequential public owned-file SHA256 and length verification, unique files counted once. ' + (acceptedOnly ? 'Accepted document only; draft text, draft font validity, preview success and native display are excluded.' : closed ? 'Native editor closed.' : 'Actual native text and preview tokens remain identical to independently admitted phase evidence and the current accepted render dependency; active draft adds no different font cohort.') + ' No allocation or physical-presentation claim.';
     return {measurements: [{name: 'R35CurrentFontFaces', value: faces.size, unit: 'count', method}, {name: 'R35SingleFontBytes', value: maximum, unit: 'bytes', method}, {name: 'R35CurrentFontSetBytes', value: total, unit: 'bytes', method}], missing: []};
   } catch {return fail('malformed or oversized raw observation');}
 }
@@ -115,7 +121,9 @@ export function inspectCurrentDocumentFonts(raw, expectedBinding, {draftProof} =
 /** Read-only public protocol collector. Locator hints never establish font
  * membership: every accepted source contributes its actual typed identities.
  * No filesystem font reads, private editor access, input or draft mutations. */
-export async function collectCurrentDocumentFonts({page, documentId, fontAssetIds, binding, signal, timeoutMs = 30000}) {
+export function collectCurrentDocumentFonts(args) { return collectFonts(args, false); }
+export function collectAcceptedDocumentFonts(args) { return collectFonts(args, true); }
+async function collectFonts({page, documentId, fontAssetIds, binding, signal, timeoutMs = 30000}, acceptedOnly) {
   if (!id(documentId) || !Array.isArray(fontAssetIds) || fontAssetIds.length > 16 || fontAssetIds.some(x => !id(x)) || new Set(fontAssetIds).size !== fontAssetIds.length || !Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 60000 || !object(binding) || Object.keys(binding).length === 0) throw Error('Current font collector arguments are invalid');
   boundedJSON(binding, 16384); signal?.throwIfAborted();
   const nonce = randomUUID();
@@ -130,11 +138,11 @@ export async function collectCurrentDocumentFonts({page, documentId, fontAssetId
       owners.set(n, new AbortController());
     }, nonce);
     signal?.throwIfAborted();
-    const raw = await page.evaluate(async ({documentId, fontAssetIds, binding, nonce, timeoutMs}) => {
+    const raw = await page.evaluate(async ({documentId, fontAssetIds, binding, nonce, timeoutMs, acceptedOnly}) => {
       const owners = globalThis.__IDEOGRAM_CURRENT_FONT_READS__, aborter = owners?.get(nonce);
       if (!aborter || owners.size !== 1) throw Error('Current font observation owner unavailable');
       const timer = setTimeout(() => aborter.abort(), timeoutMs), startMs = performance.now();
-      const raw = {kind: 'current-document-fonts-1', binding, clock: 'browser-performance', timeOrigin: performance.timeOrigin, startMs, endMs: null, before: null, after: null, layers: [], fonts: [], files: [], nativeEditorBefore: null, nativeEditorAfter: null, missing: []};
+      const raw = {kind: acceptedOnly ? 'accepted-document-fonts-1' : 'current-document-fonts-1', binding, clock: 'browser-performance', timeOrigin: performance.timeOrigin, startMs, endMs: null, before: null, after: null, layers: [], fonts: [], files: [], nativeEditorBefore: null, nativeEditorAfter: null, missing: []};
       const check = (yes, code) => {if (!yes) throw Error(code);};
       const canonical = v => {
         if (v === null || typeof v === 'boolean') return String(v);
@@ -148,7 +156,8 @@ export async function collectCurrentDocumentFonts({page, documentId, fontAssetId
       const hash = async b => 'sha256:' + [...new Uint8Array(await crypto.subtle.digest('SHA-256', b))].map(v => v.toString(16).padStart(2, '0')).join('');
       const editor = async () => {
         const node = document.querySelector('#native-text-editor'), state = {present: !!node, hidden: node?.hidden ?? null, session: node?.getAttribute('data-session') ?? null};
-        if (!node || node.hidden) return state;
+        check(state.session === null || typeof state.session === 'string' && state.session.length <= 128, 'FONT_NATIVE_ATTRIBUTE_BOUND');
+        if (acceptedOnly || !node || node.hidden) return state;
         const attr = name => {const v = node.getAttribute(name); check(v === null || typeof v === 'string' && v.length <= 128, 'FONT_NATIVE_ATTRIBUTE_BOUND'); return v;}, number = name => {const v = attr(name); return /^(0|[1-9][0-9]*)$/.test(v ?? '') && Number.isSafeInteger(Number(v)) ? Number(v) : null;};
         const value = document.querySelector('#native-text-content')?.value;
         check(typeof value === 'string' && value.length <= 16384, 'FONT_NATIVE_TEXT_BOUND');
@@ -230,7 +239,7 @@ export async function collectCurrentDocumentFonts({page, documentId, fontAssetId
       } catch (error) {raw.missing.push(aborter.signal.aborted ? 'FONT_OBSERVATION_ABORTED' : /^[A-Z0-9_]{1,100}$/.test(error?.message ?? '') ? error.message : 'FONT_OBSERVATION_UNAVAILABLE');}
       finally {raw.endMs = performance.now(); clearTimeout(timer); aborter.abort(); owners.delete(nonce); if (owners.size === 0) delete globalThis.__IDEOGRAM_CURRENT_FONT_READS__;}
       return raw;
-    }, {documentId, fontAssetIds, binding, nonce, timeoutMs});
+    }, {documentId, fontAssetIds, binding, nonce, timeoutMs, acceptedOnly});
     signal?.throwIfAborted(); boundedJSON(raw, MiB); return raw;
   } finally {
     signal?.removeEventListener('abort', cancel);

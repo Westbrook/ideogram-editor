@@ -121,7 +121,7 @@ async function validators(repo) {
 /** Both capture and retained replay call the actual production validators.
  * The reader supplies immutable bytes, never a caller-approved validation bit. */
 async function evaluate(fonts, read, production) {
-  demand(fonts?.kind === 'current-document-fonts-1' && Array.isArray(fonts.layers) && fonts.layers.length <= 100 &&
+  demand(['current-document-fonts-1', 'accepted-document-fonts-1'].includes(fonts?.kind) && Array.isArray(fonts.layers) && fonts.layers.length <= 100 &&
     Array.isArray(fonts.fonts) && fonts.fonts.length <= 1600 && Array.isArray(fonts.files) && fonts.files.length <= 16 &&
     Array.isArray(fonts.missing) && fonts.missing.length === 0, 'complete current font snapshot required');
   demand(fonts.files.every(file => Number.isSafeInteger(file.bytes) && file.bytes >= 12 && file.bytes <= ORDINARY_FONT_INVARIANT_LIMITS.font) &&

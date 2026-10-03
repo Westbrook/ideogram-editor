@@ -1,3 +1,4 @@
+import {recoveryFontOutcome} from './browser-text-recovery-fonts.mjs';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
@@ -356,7 +357,8 @@ export function selectedRecovery(text, cell) {
   const recovery = text?.recoveryCases?.[scenario] ?? text?.recovery;
   return recovery?.scenario === scenario ? { missing: [], recovery } : { missing: ['sealed recovery fixture matching the exact selected scenario'], recovery: null };
 }
-async function runRecovery(page, text, cell, signal, record, observations, missing) {
+async function runRecovery(page, text, cell, signal, record, observations, missing, observer) {
+  const refusal = action => observer ? observer.refusal(action) : action();
   const selected = selectedRecovery(text, cell);
   if (selected.missing.length) { missing.push(...selected.missing); return; }
   const recovery = selected.recovery;
@@ -383,7 +385,7 @@ async function runRecovery(page, text, cell, signal, record, observations, missi
       await page.locator('en-file-upload[label="Font license record"] input').setInputFiles({ name: 'license.txt', mimeType: 'text/plain', buffer: license });
       await page.getByRole('switch', { name: 'I have permission to embed this font', exact: true }).check();
       const retainedHash = hash(await input(page).inputValue());
-      await record('text-recovery', 'recovery', async () => { await click(page, 'Import as substitution draft'); await region(page).locator('en-alert').filter({ hasText: 'FONT_EMBEDDING_RESTRICTED' }).last().waitFor({ state: 'visible' }); });
+      await record('text-recovery', 'recovery', () => refusal(async () => { await click(page, 'Import as substitution draft'); await page.locator('#native-text-error').filter({ hasText: 'FONT_EMBEDDING_RESTRICTED' }).last().waitFor({ state: 'visible' }); }));
       check(hash(await input(page).inputValue()) === retainedHash, 'RECOVERY_DRAFT_CHANGED');
       observations.recovery = { scenario: recovery.scenario, draftHash: retainedHash, retained: true, rejectedFontHash: recovery.sha256 }; return;
     }
@@ -400,7 +402,17 @@ async function runRecovery(page, text, cell, signal, record, observations, missi
     }
     const expected = recovery.scenario === 'missing-font' ? /Missing exact font bytes|Missing exact font registration/ : ['corrupt-font', 'mismatched-font-hash'].includes(recovery.scenario) ? /FONT_HASH/ : recovery.scenario === 'missing-glyph' ? /Missing glyphs/ : /TEXT_BYTES/;
     const retainedHash = hash(await input(page).inputValue());
-    await record('text-recovery', 'recovery', async () => { abort(signal); await click(page, 'Preview text'); await region(page).locator('en-alert').filter({ hasText: expected }).last().waitFor({ state: 'visible' }); });
+    await record('text-recovery', 'recovery', () => refusal(async () => {
+      abort(signal);
+      if (recovery.scenario === 'cancelled-over-limit-composition') {
+        // The real admission UI disables Preview/Apply; do not force an action
+        // which the product correctly refuses before worker submission.
+        await page.locator('#native-text-admission').filter({hasText: 'UTF-8 text uses 16385 bytes; one layer permits 16384 bytes.'}).waitFor({state: 'visible'});
+        check(await page.getByRole('button', {name: 'Preview text', exact: true}).isDisabled() && await page.getByRole('button', {name: 'Apply text', exact: true}).isDisabled(), 'RECOVERY_ADMISSION_NOT_DISABLED');
+      } else {
+        await click(page, 'Preview text'); await page.locator('#native-text-error').filter({ hasText: expected }).last().waitFor({ state: 'visible' });
+      }
+    }));
     check(hash(await input(page).inputValue()) === retainedHash, 'RECOVERY_DRAFT_CHANGED'); observations.recovery = { scenario: recovery.scenario, draftHash: retainedHash, retained: true };
     if (recovery.scenario === 'cancelled-over-limit-composition') {
       await input(page).dispatchEvent('compositionstart'); await click(page, 'Cancel text edit');
@@ -457,7 +469,10 @@ export async function runTextBrowserCell({ page, cell, fixture, signal, context,
       missing.push(...native.missing);
       if (native.status === 'FAIL') return {...result(), status: 'FAIL', failures: native.failures};
     } else if (operation === 'text.interaction') await runInteraction(page, text, signal, record, observations, missing, services);
-    else if (operation === 'text.recovery') await runRecovery(page, text, cell, signal, record, observations, missing);
+    else if (operation === 'text.recovery') {
+      const action = async () => {await runRecovery(page, text, cell, signal, record, observations, missing, services.recoveryFonts); return recoveryFontOutcome(observations.recovery, missing.length);};
+      if (services.recoveryFonts) await services.recoveryFonts.observe(action); else await action();
+    }
     else if (operation === 'text.mixed-ready') {
       await record('mixed-navigation-ready', 'mixed-ready', () => observed('navigation', async () => { await page.reload(); await waitText(page, 'Local recovery complete. Accepted edits are saved locally.'); await page.locator('canvas[aria-label="Document raster preview"]').waitFor({ state: 'visible' }); }));
       observations.nativeLayerCount = await page.locator('#layer-tree').getByRole('treeitem').count();
