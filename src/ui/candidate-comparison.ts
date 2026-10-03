@@ -16,6 +16,7 @@ export type CandidateComparisonInput={
  additionalPairs?:readonly ComparisonPair[];
 };
 type State={signature:string;clipId:string;pairs:Record<string,ComparisonPairView>};
+type Workspace=OwnedModel<ComparisonPair[]>&{owns:()=>boolean};
 let comparisonIdentity=0;
 const initial=():ComparisonPairView=>({mode:'side-by-side',value:'50',percentage:50,error:'',zoomValue:'100',xValue:'0',yValue:'0',view:{zoom:100,x:0,y:0}});
 
@@ -23,14 +24,14 @@ const initial=():ComparisonPairView=>({mode:'side-by-side',value:'50',percentage
  * original-coordinate viewBox, never the retained pixels or decode dimensions. */
 export class CandidateComparison {
  private adapter=new ControlAdapter();private states=new Map<string,State>();
- private owners=new WeakMap<State,OwnedModel<State>>();private renderOwners=new Map<string,OwnedModel<ComparisonPair[]>>();
+ private owners=new WeakMap<State,OwnedModel<State>>();private renderOwners=new Map<string,Workspace>();
  private pending=new Set<Promise<unknown>>();private pendingKeys=new Map<Promise<unknown>,string>();private retired=new Set<OwnedModel<unknown>>();private retiredKeys=new Map<OwnedModel<unknown>,string>();private releasing?:Promise<void>;
  constructor(private host:LitElement){}
  get lifecycle(){return {states:this.states.size,pending:this.pending.size,retired:this.retired.size,renderOwners:this.renderOwners.size};}
  private track<T>(work:Promise<T>,key:string){this.pending.add(work);this.pendingKeys.set(work,key);const done=()=>{this.pending.delete(work);this.pendingKeys.delete(work);};void work.then(done,done);return work;}
  private releaseRetired(model:OwnedModel<unknown>){if(!this.retired.has(model))return;model.release();this.retired.delete(model);this.retiredKeys.delete(model);}
  private retire(model:OwnedModel<unknown>|undefined,key:string,requestUpdate=true){if(!model)return;this.retired.add(model);this.retiredKeys.set(model,key);this.track(Promise.resolve().then(()=>{if(requestUpdate)this.host.requestUpdate();return this.host.updateComplete;}).then(()=>this.releaseRetired(model)),key);}
- private hold(key:string,state:State,workspace:OwnedModel<ComparisonPair[]>){const first=this.owners.get(state)!.pin();let second:()=>void;try{second=workspace.pin();}catch(error){first();throw error;}let done!:()=>void,live=true;this.track(new Promise<void>(resolve=>{done=resolve;}),key);return ()=>{if(live){live=false;first();second();done();}};}
+ private hold(key:string,state:State,workspace:Workspace){const first=this.owners.get(state)!.pin();let second:()=>void;try{second=workspace.pin();}catch(error){first();throw error;}let done!:()=>void,live=true;this.track(new Promise<void>(resolve=>{done=resolve;}),key);return ()=>{if(live){live=false;first();second();done();}};}
  private create(key:string,signature:string,pairs:readonly ComparisonPair[]){
   if(key.length>128||signature.length>8192||!this.states.has(key)&&this.states.size>=64)throw Error('CANDIDATE_COMPARISON_LIMIT');
   // Charge signature, map key and every bounded editing/error field before
@@ -57,9 +58,9 @@ export class CandidateComparison {
   ];
   for(const pair of input.additionalPairs??[]){if(!/^[a-z][a-z0-9-]{0,63}$/.test(pair.id)||pairs.some(value=>value.id===pair.id)||pair.heading.length>256||pair.label.length>128||pair.a.name.length>256||pair.b.name.length>256)throw Error('CANDIDATE_COMPARISON_PAIR');pairs.push({id:pair.id,heading:pair.heading,label:pair.label,allowOverlay:pair.allowOverlay,a:{...pair.a},b:{...pair.b}});}return pairs;
  }
- private perform(key:string,event:Event,state:State,workspace:OwnedModel<ComparisonPair[]>,owns:()=>boolean,change:()=>void){if(!owns())return;const release=this.hold(key,state,workspace);this.adapter.action(event,()=>{if(owns()){change();this.host.requestUpdate();}});setTimeout(release,0);}
- private settle(key:string,event:Event,state:State,workspace:OwnedModel<ComparisonPair[]>,owns:()=>boolean,change:(value:string,control:HTMLElement&{value:string})=>void){if(!owns())return;const control=event.currentTarget as HTMLElement&{value:string},release=this.hold(key,state,workspace);this.adapter.settled(event,()=>control.value,value=>{if(owns()){change(value,control);this.host.requestUpdate();}});queueMicrotask(release);}
- private pair(key:string,state:State,pair:ComparisonPair,workspace:OwnedModel<ComparisonPair[]>,owns:()=>boolean){
+ private perform(key:string,event:Event,state:State,workspace:Workspace,owns:()=>boolean,change:()=>void){if(!owns())return;const release=this.hold(key,state,workspace);this.adapter.action(event,()=>{if(owns()){change();this.host.requestUpdate();}});setTimeout(release,0);}
+ private settle(key:string,event:Event,state:State,workspace:Workspace,owns:()=>boolean,change:(value:string,control:HTMLElement&{value:string})=>void){if(!owns())return;const control=event.currentTarget as HTMLElement&{value:string},release=this.hold(key,state,workspace);this.adapter.settled(event,()=>control.value,value=>{if(this.states.get(key)===state&&workspace.owns()&&this.renderOwners.get(key)?.owns()){change(value,control);this.host.requestUpdate();}});queueMicrotask(release);}
+ private pair(key:string,state:State,pair:ComparisonPair,workspace:Workspace,owns:()=>boolean){
   const current=state.pairs[pair.id]!,perform=(event:Event,change:()=>void)=>this.perform(key,event,state,workspace,owns,change),settle=(event:Event,change:(value:string,control:HTMLElement&{value:string})=>void)=>this.settle(key,event,state,workspace,owns,change);
   const mode=(value:string)=>{if(['a','b','side-by-side','reveal'].includes(value)&&(value!=='reveal'||pairCanReveal(pair))){current.mode=value as ComparisonMode;current.error='';}};
   const reveal=(value:string,control?:HTMLElement&{value:string})=>{if(!pairCanReveal(pair))return;if(value.length>32){if(control)this.adapter.write(control,'value',current.value);current.error='Enter a reveal percentage from 0 to 100.';return;}current.value=value;const percentage=Number(value);if(!value.trim()||!Number.isFinite(percentage)||percentage<0||percentage>100)current.error='Enter a reveal percentage from 0 to 100.';else{current.percentage=percentage;current.mode='reveal';current.error='';}};
@@ -82,7 +83,7 @@ export class CandidateComparison {
  private renderInput(key:string,input:unknown,build:()=>ComparisonPair[],owns:()=>boolean){
   if(this.releasing)return nothing;const inputBytes=modelPayloadBytes(input);if(inputBytes>8192)throw Error('CANDIDATE_COMPARISON_LIMIT');
   const lease=reserveModelBytes('candidate-comparison-render',inputBytes*3+4096);let adopted=false;
-  try{const pairs=build(),workspace:OwnedModel<ComparisonPair[]>={value:pairs,release:()=>lease.release(),pin:()=>lease.pin()},signature=JSON.stringify(pairs);let state=this.states.get(key);if(!state||state.signature!==signature)state=this.create(key,signature,pairs);
+  try{const pairs=build(),workspace:Workspace={value:pairs,owns,release:()=>lease.release(),pin:()=>lease.pin()},signature=JSON.stringify(pairs);let state=this.states.get(key);if(!state||state.signature!==signature)state=this.create(key,signature,pairs);
    const current=state,stillCurrent=()=>this.states.get(key)===current&&current.signature===signature&&this.renderOwners.get(key)===workspace&&owns();
    const prior=this.renderOwners.get(key);this.renderOwners.set(key,workspace);try{const template=html`<section class="candidate-comparison" aria-label="Compare retained candidate and placement">${pairs.map(pair=>this.pair(key,current,pair,workspace,stillCurrent))}</section>`;adopted=true;this.retire(prior,key,false);return template;}catch(error){if(prior)this.renderOwners.set(key,prior);else this.renderOwners.delete(key);throw error;}
   }finally{if(!adopted)lease.release();}

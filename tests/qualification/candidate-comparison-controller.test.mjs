@@ -78,3 +78,69 @@ test('explicit retirement also retries older rendered owners after their publica
   assert.equal(f.controller.lifecycle.retired,0);assert.equal(f.controller.lifecycle.states,0);assert.equal(f.controller.lifecycle.renderOwners,0);assert.equal(allocationLedger.snapshot().cpuBytes,before.cpuBytes);
  }finally{barrier.resolve();f.host.requestUpdate=update;f.host.updateComplete=Promise.resolve(true);await f.controller.dispose();}assert.equal(allocationLedger.snapshot().cpuBytes,before.cpuBytes);
 });
+
+
+test('an admitted reveal settles across identical rendering while both original and current ownership remain valid',async()=>{
+ const f=fixture(),before=allocationLedger.snapshot(),pairs=letteringPairs(),barrier=pending();
+ try{
+  const rendered=controls(f.controller.renderPairs('candidate',pairs,()=>true)),state=f.state();
+  rendered.fields.find(field=>field.label==='Returned candidate and native-off comparison reveal percentage').input(event('25'));
+  f.host.updateComplete=barrier.promise;f.controller.renderPairs('candidate',structuredClone(pairs),()=>true);
+  await Promise.resolve();assert.equal(f.state(),state);assert.equal(state.pairs['lettering-alone-off'].value,'25');assert.equal(state.pairs['lettering-alone-off'].percentage,25);assert.equal(state.pairs['lettering-alone-off'].mode,'reveal');
+  assert(f.controller.lifecycle.retired>0);assert(allocationLedger.snapshot().cpuBytes>before.cpuBytes,'The old rendered payload stays charged until publication');
+  barrier.resolve(true);await turn();assert.equal(f.controller.lifecycle.retired,0);
+ }finally{barrier.resolve(true);f.host.updateComplete=Promise.resolve(true);await f.controller.dispose();}assert.equal(allocationLedger.snapshot().cpuBytes,before.cpuBytes);
+});
+
+test('pending reveal refuses changed pair content, original grid, overlay permission and provenance labels',async()=>{
+ for(const change of [pairs=>pairs[0].b.url='new-native-off',pairs=>pairs[0].a.width=2000,pairs=>pairs[0].allowOverlay=false,pairs=>pairs[0].heading='New reviewed provenance']){
+  const f=fixture(),before=allocationLedger.snapshot(),pairs=letteringPairs();
+  try{
+   const rendered=controls(f.controller.renderPairs('candidate',pairs,()=>true)),old=f.state();rendered.fields.find(field=>field.label==='Returned candidate and native-off comparison reveal percentage').input(event('25'));
+   const next=structuredClone(pairs);change(next);f.controller.renderPairs('candidate',next,()=>true);const current=f.state();assert.notEqual(current,old);await Promise.resolve();
+   assert.equal(current.pairs['lettering-alone-off'].mode,'side-by-side');assert.equal(current.pairs['lettering-alone-off'].value,'50');assert.equal(old.pairs['lettering-alone-off'].mode,'side-by-side');
+  }finally{await f.controller.dispose();}assert.equal(allocationLedger.snapshot().cpuBytes,before.cpuBytes);
+ }
+});
+
+test('identical pending reveal requires the original owner and the latest render owner independently',async()=>{
+ for(const retiredOwner of ['original','latest']){
+  const f=fixture(),before=allocationLedger.snapshot(),pairs=letteringPairs();let original=true;
+  try{
+   const rendered=controls(f.controller.renderPairs('candidate',pairs,()=>original)),state=f.state();rendered.fields.find(field=>field.label==='Returned candidate and native-off comparison reveal percentage').input(event('25'));
+   if(retiredOwner==='original')original=false;
+   f.controller.renderPairs('candidate',structuredClone(pairs),()=>retiredOwner!=='latest');await Promise.resolve();assert.equal(f.state(),state);
+   assert.equal(state.pairs['lettering-alone-off'].mode,'side-by-side');assert.equal(state.pairs['lettering-alone-off'].value,'50');
+  }finally{await f.controller.dispose();}assert.equal(allocationLedger.snapshot().cpuBytes,before.cpuBytes);
+ }
+});
+
+test('a callback from a superseded identical render cannot start a new field transaction',async()=>{
+ const f=fixture(),before=allocationLedger.snapshot(),pairs=letteringPairs();
+ try{
+  const old=controls(f.controller.renderPairs('candidate',pairs,()=>true));f.controller.renderPairs('candidate',structuredClone(pairs),()=>true);const pending=f.controller.lifecycle.pending;
+  old.fields.find(field=>field.label==='Returned candidate and native-off comparison reveal percentage').input(event('25'));assert.equal(f.controller.lifecycle.pending,pending);await Promise.resolve();
+  assert.equal(f.state().pairs['lettering-alone-off'].mode,'side-by-side');assert.equal(f.state().pairs['lettering-alone-off'].value,'50');
+ }finally{await f.controller.dispose();}assert.equal(allocationLedger.snapshot().cpuBytes,before.cpuBytes);
+});
+
+test('identical rendering never bypasses a late veto, disconnected control or explicit retirement',async()=>{
+ for(const invalidation of ['veto','disconnect','retire']){
+  const f=fixture(),before=allocationLedger.snapshot(),pairs=letteringPairs();let close;
+  try{
+   const rendered=controls(f.controller.renderPairs('candidate',pairs,()=>true)),state=f.state(),proposal=event('25');rendered.fields.find(field=>field.label==='Returned candidate and native-off comparison reveal percentage').input(proposal);
+   f.controller.renderPairs('candidate',structuredClone(pairs),()=>true);
+   if(invalidation==='veto')proposal.defaultPrevented=true;else if(invalidation==='disconnect')proposal.currentTarget.isConnected=false;else close=f.controller.retirePairs('candidate');
+   await Promise.resolve();assert.equal(state.pairs['lettering-alone-off'].mode,'side-by-side');assert.equal(state.pairs['lettering-alone-off'].value,'50');if(close){await close();assert.equal(f.state(),undefined);}
+  }finally{await f.controller.dispose();}assert.equal(allocationLedger.snapshot().cpuBytes,before.cpuBytes);
+ }
+});
+
+test('a newer accepted proposal on the same control supersedes the pending pre-render proposal',async()=>{
+ const f=fixture(),before=allocationLedger.snapshot(),pairs=letteringPairs();
+ try{
+  const first=controls(f.controller.renderPairs('candidate',pairs,()=>true)),proposal=event('25');first.fields.find(field=>field.label==='Returned candidate and native-off comparison reveal percentage').input(proposal);
+  const next=controls(f.controller.renderPairs('candidate',structuredClone(pairs),()=>true));proposal.currentTarget.value='75';next.fields.find(field=>field.label==='Returned candidate and native-off comparison reveal percentage').input({...proposal});await Promise.resolve();
+  assert.equal(f.state().pairs['lettering-alone-off'].mode,'reveal');assert.equal(f.state().pairs['lettering-alone-off'].value,'75');assert.equal(f.state().pairs['lettering-alone-off'].percentage,75);
+ }finally{await f.controller.dispose();}assert.equal(allocationLedger.snapshot().cpuBytes,before.cpuBytes);
+});
