@@ -9,7 +9,7 @@ import {executeDevelopment,argumentsFor} from '../../tooling/qualification/devel
 import {gateInputKey,treeIdentity,treeIdentityAsync,outputIdentity,outputIdentityAsync,reusable,reusableAsync} from '../../tooling/qualification/development-cache.mjs';
 import {sha256,digestJSON,sourceIdentity,sourceIdentityAsync} from '../../tooling/qualification/core.mjs';
 import {developmentPlan} from '../../tooling/qualification/development-plan.mjs';
-import {selectedFastSetup, fastSetupPlan, provisionFastSetup} from '../../tooling/qualification/fast-ci-setup.mjs';
+import {selectedFastSetup, fastSetupPlan, provisionFastSetup, fastBrowserFamilies, selectedFastBrowserSetup, fastBrowserSetupPlan, selectedFastDispatchSetup, provisionFastBrowserSetup} from '../../tooling/qualification/fast-ci-setup.mjs';
 import {functionalGates} from '../../tooling/qualification/manifest.mjs';
 import {createBrowserPlan} from '../../tooling/qualification/container/browser-plan.mjs';
 
@@ -946,4 +946,104 @@ test('Fast historical AST parsing ignores commented declarations and refuses mal
  const direct='tests/history/returned-description.test.mjs';
  const directPlan=developmentPlan(process.cwd(),{groups:'all',nodeFiles:direct,browsers:'none'});
  assert.throws(()=>fastSetupPlan(directPlan,{sourceFor:path=>sourceFor(path).replace("compileLegacy(directory,'8901d923f309125c5bc19605efe76a871a7ee1df'","compileLegacy(directory,`8901d923f309125c5bc19605efe76a871a7ee1df`")}),/declaration changed/);
+});
+
+const fastBrowserPlan = (family = 'editor-document-creation', engine = 'chromium') => developmentPlan(process.cwd(), {
+ groups:'preflight',browsers:engine,browserGroups:family,workers:1,batchEditor:false,output:join(process.cwd(),'artifacts/validation/run/browser'),
+});
+const browserDeadlineSource = path => readFileSync(path,'utf8');
+test('Fast browser selection preserves every reviewed whole family on exactly one pinned engine',()=>{
+ assert.equal(fastBrowserFamilies.length,27);assert.equal(new Set(fastBrowserFamilies).size,27);
+ for(const engine of ['chromium','firefox','webkit'])for(const family of fastBrowserFamilies){
+  const plan=fastBrowserPlan(family,engine),setup=selectedFastBrowserSetup(process.cwd(),family,engine);
+  const original=createBrowserPlan({selection:engine,scope:'features',output:plan.browserPlan.output}).steps.find(step=>step.family===family);
+  assert(original);assert.deepEqual(setup.selectedFiles,original.files);
+  assert.deepEqual(setup.requiredBrowsers,[engine]);assert.deepEqual(setup.history,[]);
+  assert.deepEqual(plan.browserPlan.steps.filter(step=>step.config),[original]);
+  assert.equal(setup.browserSteps.filter(step=>step.id===original.id).length,1);
+  const ids=setup.gates.map(gate=>gate.id);assert.deepEqual(ids.slice(0,2),['typecheck','preflight']);
+  assert(ids.indexOf('vendor')<ids.indexOf('text-inputs'));assert(ids.indexOf('text-inputs')<ids.indexOf('imports'));
+  if(family==='editor-display-image'){
+   assert.equal(ids.includes('build-app'),false);assert.equal(ids.includes('build-server'),false);assert.deepEqual(setup.issuers,[]);
+  }else{
+   assert(ids.includes('build-app'));assert(ids.includes('build-server'));assert(ids.includes('storage-environment'));
+   assert.deepEqual(setup.issuers,[{id:'browser-completion-issuers',timeoutMs:300000,graceMs:5000,exitObservationMs:100}]);
+  }
+  const units=[...setup.gates,...setup.browserSteps,...setup.issuers];
+  assert.equal(setup.totalBudgetMs,units.reduce((sum,row)=>sum+row.timeoutMs+row.graceMs+row.exitObservationMs,0)+40*60_000+15*60_000);
+  assert.equal(setup.jobMinutes,180);assert(setup.totalBudgetMs<=180*60_000);
+  assert.equal(setup.qualification,false);assert.equal(plan.selectedFiles.length,0);
+ }
+});
+test('Fast browser admission refuses mixed, partial, unknown or widened selections while preserving the Node branch',()=>{
+ for(const family of ['','none','all','editor-batch','shell','editor-image-import,editor-zoom-tool','editor-image-import;echo x'])assert.throws(()=>selectedFastBrowserSetup(process.cwd(),family,'chromium'),/one reviewed whole editor family/);
+ for(const engine of ['','none','all','chromium,webkit','webkit;echo x'])assert.throws(()=>selectedFastBrowserSetup(process.cwd(),'e1',engine),/one reviewed whole editor family/);
+ assert.throws(()=>selectedFastDispatchSetup(process.cwd(),{SELECTED_NODE_FILES:'tests/portable/failure.test.mjs',SELECTED_BROWSER_FAMILY:'e1',SELECTED_BROWSER:'chromium'}),/either whole Node files/);
+ for(const family of [undefined,'','none'])assert.deepEqual(selectedFastDispatchSetup(process.cwd(),{SELECTED_NODE_FILES:'tests/portable/failure.test.mjs',SELECTED_BROWSER_FAMILY:family}),selectedFastSetup(process.cwd(),'tests/portable/failure.test.mjs'));
+ assert.deepEqual(selectedFastDispatchSetup(process.cwd(),{SELECTED_BROWSER_FAMILY:'e1',SELECTED_BROWSER:'webkit'}),selectedFastBrowserSetup(process.cwd(),'e1','webkit'));
+ const original=fastBrowserPlan();
+ for(const mutate of [
+  plan=>{plan.browserGrep='only one case';},plan=>{plan.batchEditor=true;},plan=>{plan.workers=2;},
+  plan=>{plan.selectedFiles=['tests/portable/failure.test.mjs'];},
+  plan=>{plan.browserPlan.steps.at(-1).files=[];},
+  plan=>{plan.browserPlan.steps.at(-1).args.push('--grep','one case');},
+  plan=>{plan.browserPlan.steps.at(-1).config='tests/editor/integration.config.ts';},
+  plan=>{plan.browserPlan.steps.push(structuredClone(plan.browserPlan.steps.at(-1)));},
+  plan=>{plan.requiredBrowsers.push('firefox');},
+  plan=>{plan.gates[0].freshFixtureFiles=['tests/portable/legacy.test.mjs'];},
+  plan=>{plan.gates=plan.gates.filter(gate=>gate.id!=='completion-source');},
+ ]){const plan=structuredClone(original);mutate(plan);assert.throws(()=>fastBrowserSetupPlan(plan,{sourceFor:browserDeadlineSource}));}
+});
+test('Fast browser budget includes actual gates, browser deadline, issuer and drain intervals without increasing the job cap',()=>{
+ const plan=fastBrowserPlan(),setup=fastBrowserSetupPlan(plan,{sourceFor:browserDeadlineSource});
+ assert.equal(setup.browserBudgetMs,1_800_000+5000+100);assert.equal(setup.issuerBudgetMs,300000+5000+100);
+ const limit=180*60_000,boundary=structuredClone(plan);boundary.gates[0].timeoutMs+=limit-setup.totalBudgetMs;
+ assert.equal(fastBrowserSetupPlan(boundary,{sourceFor:browserDeadlineSource}).totalBudgetMs,limit);
+ boundary.gates[0].timeoutMs++;
+ assert.throws(()=>fastBrowserSetupPlan(boundary,{sourceFor:browserDeadlineSource}),/exceeds the 180-minute/);
+ const unbounded=structuredClone(plan);delete unbounded.gates[0].timeoutMs;
+ assert.throws(()=>fastBrowserSetupPlan(unbounded,{sourceFor:browserDeadlineSource}),/bounded deadline/);
+ const changed=fastBrowserSetupPlan(plan,{sourceFor:path=>{
+  const text=browserDeadlineSource(path);if(path!=='tooling/qualification/run.mjs')return text;
+  assert(text.includes('graceMs: gate.graceMs ?? 5_000'));return text.replace('graceMs: gate.graceMs ?? 5_000','graceMs: gate.graceMs ?? 10_000');
+ }});
+ assert.equal(changed.totalBudgetMs-setup.totalBudgetMs,setup.gates.length*5000);
+ assert.deepEqual(changed.browserSteps,setup.browserSteps);assert.deepEqual(changed.issuers,setup.issuers);
+ assert.notDeepEqual(changed.sources,setup.sources);
+});
+test('Fast browser deadline source parsing rejects changed implicit authority and nonliteral limits before provisioning',()=>{
+ for(const [target,from,to] of [
+  ['tooling/qualification/development.mjs','timeoutMs:300000','timeoutMs:unknownTimeout'],
+  ['tooling/qualification/container/bounded-child.mjs','graceMs = 5_000','graceMs = unknownGrace'],
+  ['tooling/qualification/container/bounded-child.mjs','pause(100)','pause(unknownInterval)'],
+  ['tooling/qualification/run.mjs','graceMs: gate.graceMs ?? 5_000','graceMs: other.graceMs ?? 5_000'],
+  ['tooling/qualification/completion-issuers/prepare-child.mjs','timeoutMs:remaining','...unknownOptions,timeoutMs:remaining'],
+ ])assert.throws(()=>fastBrowserSetupPlan(fastBrowserPlan(),{sourceFor:path=>{
+  const text=browserDeadlineSource(path);if(path!==target)return text;assert(text.includes(from));return text.replace(from,to);
+ }}));
+});
+test('Fast browser provisioning installs only the selected locked CLI engine and retains failure without fallback',()=>{
+ for(const engine of ['chromium','firefox','webkit']){
+  const plan=selectedFastBrowserSetup(process.cwd(),'editor-display-image',engine),commands=[],records=[];
+  const result=provisionFastBrowserSetup(process.cwd(),plan,{execute:(command,args,options)=>{
+   commands.push([command,...args]);assert.equal(command,process.execPath);
+   assert.deepEqual(args,[join(process.cwd(),'node_modules/playwright/cli.js'),'install','--with-deps',engine]);
+   assert.equal(options.timeout,7*60_000);return Buffer.alloc(0);
+  },record:row=>records.push(structuredClone(row))});
+  assert.equal(commands.length,1);assert.equal(result.status,'PASS');assert.deepEqual(records.map(row=>row.status),['PENDING','PASS']);
+  const failures=[],failedCommands=[];
+  assert.throws(()=>provisionFastBrowserSetup(process.cwd(),plan,{execute:(...args)=>{failedCommands.push(args);throw Error('Pinned browser unavailable');},record:row=>failures.push(structuredClone(row))}),/Pinned browser unavailable/);
+  assert.equal(failedCommands.length,1);assert.deepEqual(failures.map(row=>row.status),['PENDING','FAIL']);assert.equal(failures.at(-1).browser,null);
+ }
+});
+test('Fast workflow offers the reviewed single-family choices and preserves quoted serial runner and existing default commands',()=>{
+ const workflow=readFileSync('.github/workflows/validation.yml','utf8');
+ const block=workflow.split('      browser_family:\n')[1].split('      browser:\n')[0];
+ assert.deepEqual([...block.matchAll(/^          - (.+)$/gm)].map(match=>match[1]),['none',...fastBrowserFamilies]);
+ assert(workflow.includes('npm run validate -- run --groups preflight --browsers "$SELECTED_BROWSER" --browser-groups "$SELECTED_BROWSER_FAMILY" --workers 1 --fresh --serial-browser --output "$IE_VALIDATION_OUTPUT"'));
+ assert(workflow.includes('npm run validate -- run --groups all --node-files "$SELECTED_NODE_FILES" --browsers none --workers 1 --fresh --output "$IE_VALIDATION_OUTPUT"'));
+ assert(workflow.includes('npm run validate -- run --groups tooling --browsers none --workers 1 --fresh --output "$IE_VALIDATION_OUTPUT"'));
+ assert(workflow.includes("SELECTED_BROWSER_FAMILY: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_family || 'none' }}"));
+ assert(workflow.includes('retention-days: 90'));assert(workflow.includes('contents: read'));
+ assert.equal((workflow.match(/--browser-grep|--batch-browser/g)||[]).length,0);
 });

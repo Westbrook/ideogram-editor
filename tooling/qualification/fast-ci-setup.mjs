@@ -6,6 +6,7 @@ import {join, posix, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {parseSync} from 'rolldown/utils';
 import {developmentPlan} from './development-plan.mjs';
+import {createBrowserPlan} from './container/browser-plan.mjs';
 import {historyRequirements} from './container/inputs.mjs';
 
 const hostedFiles = new Set([
@@ -23,6 +24,20 @@ const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 export const fastSelectedJobMinutes = 180;
 const setupReserveMs = 40 * 60_000, finalizationReserveMs = 15 * 60_000;
+
+// Manual dispatch admits only these reviewed current-root editor families.
+// Exact files, configurations and commands still come from the maintained plan.
+export const fastBrowserFamilies = Object.freeze([
+  'editor-authoring', 'editor-composition-save', 'editor-composition',
+  'editor-destination', 'editor-destination-cancellation', 'editor-destination-success',
+  'editor-error-monitor', 'editor-export', 'editor-export-destination-commit',
+  'editor-failures', 'editor-image-import', 'editor-integration-reads',
+  'editor-interactions', 'editor-journey', 'editor-native-text', 'editor-owned-opfs',
+  'editor-portable', 'editor-recovery', 'editor-recovery-copy', 'editor-storage-library',
+  'editor-tool-rail', 'editor-zoom-tool', 'editor-display-image',
+  'editor-candidate-comparison', 'editor-document-creation', 'editor-command-search', 'e1',
+]);
+const fastBrowserEngines = ['chromium', 'firefox', 'webkit'];
 
 function parsed(path, text) {
   // The pinned TypeScript 7 root export contains version metadata, not the
@@ -129,6 +144,111 @@ export function selectedFastSetup(root, nodeFiles) {
   return fastSetupPlan(plan, {sourceFor: path => readFileSync(join(root, path), 'utf8')});
 }
 
+function objectProperty(node, name, required = true) {
+  if (!['ObjectExpression', 'ObjectPattern'].includes(node?.type) || node.properties.some(item => item.type !== 'Property' || item.computed || item.method || item.kind !== 'init')) throw Error('Browser deadline options must remain explicit');
+  const matches = node.properties.filter(item => identifier(item.key, name) || stringLiteral(item.key) && item.key.value === name);
+  if (matches.length > 1 || required && matches.length !== 1) throw Error('Browser deadline property differs: ' + name);
+  return matches[0]?.value;
+}
+function positiveLiteral(node, label) {
+  if (node?.type !== 'Literal' || !Number.isSafeInteger(node.value) || node.value <= 0) throw Error('Browser deadline must be a positive literal: ' + label);
+  return node.value;
+}
+function browserDeadlineLimits(sourceFor) {
+  const sources = [];
+  const read = path => {
+    const text = sourceFor(path), bytes = Buffer.from(text);
+    sources.push({path, bytes: bytes.length, sha256: sha256(bytes)});
+    return parsed(path, text);
+  };
+  const child = read('tooling/qualification/container/bounded-child.mjs');
+  const declarationsOfChild = declarations(child).filter(node => node.type === 'FunctionDeclaration' && identifier(node.id, 'boundedChild'));
+  if (declarationsOfChild.length !== 1 || declarationsOfChild[0].params.length !== 3) throw Error('Bounded child deadline signature changed');
+  const grace = objectProperty(declarationsOfChild[0].params[2], 'graceMs');
+  if (grace?.type !== 'AssignmentPattern' || !identifier(grace.left, 'graceMs')) throw Error('Bounded child grace declaration changed');
+  const defaultGraceMs = positiveLiteral(grace.right, 'default grace');
+  const settling = calls(child, 'pause').filter(call => call.arguments[0]?.type === 'Literal');
+  if (settling.length !== 1 || settling[0].arguments.length !== 1) throw Error('Bounded child exit observation changed');
+  const exitObservationMs = positiveLiteral(settling[0].arguments[0], 'exit observation');
+  const gateRunner = read('tooling/qualification/run.mjs');
+  const gateCalls = calls(gateRunner, 'boundedChild').filter(call => identifier(call.arguments[0], 'command'));
+  if (gateCalls.length !== 1 || gateCalls[0].arguments.length !== 3) throw Error('Gate child deadline call changed');
+  const gateGrace = objectProperty(gateCalls[0].arguments[2], 'graceMs');
+  if (gateGrace?.type !== 'LogicalExpression' || gateGrace.operator !== '??' || gateGrace.left?.type !== 'MemberExpression' || gateGrace.left.computed || !identifier(gateGrace.left.object, 'gate') || !identifier(gateGrace.left.property, 'graceMs')) throw Error('Gate grace declaration changed');
+  const gateGraceMs = positiveLiteral(gateGrace.right, 'gate grace');
+  const runner = read('tooling/qualification/development.mjs');
+  const issuers = calls(runner, 'prepareCompletionIssuersChild'), browsers = calls(runner, 'boundedChild');
+  if (issuers.length !== 1 || issuers[0].arguments.length !== 3 || browsers.length !== 1 || browsers[0].arguments.length !== 3) throw Error('Browser child deadline calls changed');
+  const issuerTimeoutMs = positiveLiteral(objectProperty(issuers[0].arguments[2], 'timeoutMs'), 'issuer timeout');
+  const browserGrace = objectProperty(browsers[0].arguments[2], 'graceMs', false);
+  const preparation = read('tooling/qualification/completion-issuers/prepare-child.mjs');
+  const children = calls(preparation, 'runChild');
+  if (children.length !== 1 || children[0].arguments.length !== 3) throw Error('Issuer child deadline call changed');
+  const issuerGrace = objectProperty(children[0].arguments[2], 'graceMs', false);
+  // Preparation caps its own work at the requested timeout. The full requested
+  // interval is conservative; the ordinary finalization reserve covers sealing.
+  return {sources, gateGraceMs, exitObservationMs, browserGraceMs: browserGrace ? positiveLiteral(browserGrace, 'browser grace') : defaultGraceMs,
+    issuerTimeoutMs, issuerGraceMs: issuerGrace ? positiveLiteral(issuerGrace, 'issuer grace') : defaultGraceMs};
+}
+
+export function fastBrowserSetupPlan(plan, {sourceFor} = {}) {
+  if (plan.groups !== 'preflight' || plan.nodeFiles !== null || plan.selectedFiles.length || plan.workers !== 1 || plan.batchEditor || plan.browserGrep !== null || !fastBrowserFamilies.includes(plan.browserGroups) || !fastBrowserEngines.includes(plan.browsers)) throw Error('Choose one reviewed whole editor family and one engine, without Node selection, batching or grep');
+  if (plan.gates.some(gate => gate.files?.length || gate.freshFixtureFiles?.length || gate.browserPrerequisites || gate.completionPrerequisites)) throw Error('Browser dispatch does not provision Node or legacy packet fixtures');
+  const full = createBrowserPlan({selection: plan.browsers, scope: 'features', output: plan.browserPlan?.output});
+  const tests = full.steps.filter(step => step.config && step.family === plan.browserGroups);
+  if (tests.length !== 1 || tests[0].browser !== plan.browsers) throw Error('Reviewed browser family no longer selects one engine');
+  const fixtures = new Set(tests.flatMap(step => step.prerequisites));
+  const steps = full.steps.filter(step => fixtures.has(step.id) || step.id === tests[0].id);
+  if (!same(plan.browserPlan.steps, steps) || !same(plan.requiredBrowsers, [plan.browsers])) throw Error('Browser dispatch must preserve the complete maintained family and fixture plan');
+  const limits = browserDeadlineLimits(sourceFor);
+  const budget = (items, graceMs, override = false) => items.map(item => {
+    if (!Number.isSafeInteger(item.timeoutMs) || item.timeoutMs <= 0) throw Error('Selected browser plan has no bounded deadline');
+    const grace = override ? item.graceMs ?? graceMs : graceMs;
+    if (!Number.isSafeInteger(grace) || grace <= 0) throw Error('Selected browser plan has invalid drain allowance');
+    return {id: item.id, timeoutMs: item.timeoutMs, graceMs: grace, exitObservationMs: limits.exitObservationMs};
+  });
+  const gates = budget(plan.gates, limits.gateGraceMs, true), browserSteps = budget(steps, limits.browserGraceMs);
+  const needsIssuers = steps.some(step => step.config && !['consumer', 'editor-display-image', 'text', 'projection', 'history', 'raster'].includes(step.family));
+  if (plan.gates.some(gate => gate.id === 'completion-source') !== needsIssuers) throw Error('Browser issuer prerequisite changed');
+  const issuers = needsIssuers ? [{id: 'browser-completion-issuers', timeoutMs: limits.issuerTimeoutMs, graceMs: limits.issuerGraceMs, exitObservationMs: limits.exitObservationMs}] : [];
+  const total = rows => rows.reduce((sum, row) => sum + row.timeoutMs + row.graceMs + row.exitObservationMs, 0);
+  const gateBudgetMs = total(gates), browserBudgetMs = total(browserSteps), issuerBudgetMs = total(issuers);
+  const totalBudgetMs = gateBudgetMs + browserBudgetMs + issuerBudgetMs + setupReserveMs + finalizationReserveMs;
+  if (!Number.isSafeInteger(totalBudgetMs) || totalBudgetMs > fastSelectedJobMinutes * 60_000) throw Error('Selected browser plan exceeds the 180-minute Fast CI budget');
+  return {kind: 'fast-ci-browser-setup-1', qualification: false, family: plan.browserGroups, engine: plan.browsers,
+    selectedFiles: tests.flatMap(step => step.files), requiredBrowsers: [...plan.requiredBrowsers], gates, browserSteps, issuers,
+    gateBudgetMs, browserBudgetMs, issuerBudgetMs, setupReserveMs, finalizationReserveMs, totalBudgetMs, jobMinutes: fastSelectedJobMinutes,
+    sources: limits.sources, history: []};
+}
+export function selectedFastBrowserSetup(root, family, engine) {
+  if (!fastBrowserFamilies.includes(family) || !fastBrowserEngines.includes(engine)) throw Error('Choose one reviewed whole editor family and one engine');
+  const plan = developmentPlan(root, {groups: 'preflight', browsers: engine, browserGroups: family, workers: 1, batchEditor: false, output: join(root, 'artifacts/validation/run/browser')});
+  return fastBrowserSetupPlan(plan, {sourceFor: path => readFileSync(join(root, path), 'utf8')});
+}
+export function selectedFastDispatchSetup(root, environment) {
+  const nodeFiles = environment.SELECTED_NODE_FILES ?? '', family = environment.SELECTED_BROWSER_FAMILY ?? 'none';
+  if (family !== '' && family !== 'none') {
+    if (nodeFiles !== '') throw Error('Choose either whole Node files or one whole browser family');
+    return selectedFastBrowserSetup(root, family, environment.SELECTED_BROWSER);
+  }
+  return selectedFastSetup(root, nodeFiles);
+}
+
+export function provisionFastBrowserSetup(root, plan, {execute = execFileSync, record = () => {}} = {}) {
+  if (plan.kind !== 'fast-ci-browser-setup-1' || !fastBrowserFamilies.includes(plan.family) || !fastBrowserEngines.includes(plan.engine) || !same(plan.requiredBrowsers, [plan.engine]) || plan.history.length) throw Error('Reviewed browser provisioning selection required');
+  const receipt = {kind: 'fast-ci-browser-provisioning-1', qualification: false, plan, status: 'PENDING', browser: null};
+  record(receipt);
+  try {
+    const args = [join(root, 'node_modules/playwright/cli.js'), 'install', '--with-deps', plan.engine];
+    execute(process.execPath, args, {cwd: root, timeout: 7 * 60_000, stdio: 'inherit'});
+    receipt.browser = {command: [process.execPath, ...args], status: 'PASS'};
+    receipt.status = 'PASS';
+  } catch (error) {
+    receipt.status = 'FAIL'; receipt.error = String(error); throw error;
+  } finally { record(receipt); }
+  return receipt;
+}
+
 export function provisionFastSetup(root, plan, {execute = execFileSync, record = () => {}} = {}) {
   const receipt = {kind: 'fast-ci-selected-provisioning-1', qualification: false, plan, status: 'PENDING', history: [], browser: null};
   const env = {...process.env, GIT_NO_REPLACE_OBJECTS: '1', GIT_TERMINAL_PROMPT: '0'};
@@ -168,6 +288,7 @@ export function provisionFastSetup(root, plan, {execute = execFileSync, record =
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const output = process.argv[2] && resolve(process.argv[2]);
   if (!output || process.argv.length !== 3) throw Error('Usage: fast-ci-setup.mjs <provisioning-receipt.json>');
-  const root = resolve('.'), plan = selectedFastSetup(root, process.env.SELECTED_NODE_FILES);
-  provisionFastSetup(root, plan, {record: receipt => writeFileSync(output, JSON.stringify(receipt, null, 2) + '\n')});
+  const root = resolve('.'), plan = selectedFastDispatchSetup(root, process.env);
+  const provision = plan.kind === 'fast-ci-browser-setup-1' ? provisionFastBrowserSetup : provisionFastSetup;
+  provision(root, plan, {record: receipt => writeFileSync(output, JSON.stringify(receipt, null, 2) + '\n')});
 }

@@ -4,10 +4,53 @@ on:
   workflow_dispatch:
     inputs:
       node_files:
-        description: Comma-separated registered tests/** whole Node files; blank runs tooling
+        description: Comma-separated registered tests/** whole Node files; leave blank for browser selection
         required: false
         type: string
         default: ''
+      browser_family:
+        description: One complete current-root editor family; none preserves Node/default behavior
+        required: false
+        type: choice
+        default: none
+        options:
+          - none
+          - editor-authoring
+          - editor-composition-save
+          - editor-composition
+          - editor-destination
+          - editor-destination-cancellation
+          - editor-destination-success
+          - editor-error-monitor
+          - editor-export
+          - editor-export-destination-commit
+          - editor-failures
+          - editor-image-import
+          - editor-integration-reads
+          - editor-interactions
+          - editor-journey
+          - editor-native-text
+          - editor-owned-opfs
+          - editor-portable
+          - editor-recovery
+          - editor-recovery-copy
+          - editor-storage-library
+          - editor-tool-rail
+          - editor-zoom-tool
+          - editor-display-image
+          - editor-candidate-comparison
+          - editor-document-creation
+          - editor-command-search
+          - e1
+      browser:
+        description: Pinned engine for the selected whole browser family
+        required: false
+        type: choice
+        default: chromium
+        options:
+          - chromium
+          - firefox
+          - webkit
       host:
         description: Supplemental correctness host; neither option supplies physical qualification
         required: false
@@ -24,14 +67,14 @@ concurrency:
 jobs:
   preflight-and-tooling:
     runs-on: ${{ github.event_name == 'workflow_dispatch' && inputs.host == 'macos-15' && 'macos-15' || 'ubuntu-24.04' }}
-    timeout-minutes: ${{ github.event_name == 'workflow_dispatch' && inputs.node_files != '' && 180 || 20 }}
+    timeout-minutes: ${{ github.event_name == 'workflow_dispatch' && (inputs.node_files != '' || inputs.browser_family != '' && inputs.browser_family != 'none') && 180 || 20 }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           persist-credentials: false
-        timeout-minutes: ${{ github.event_name == 'workflow_dispatch' && inputs.node_files != '' && 5 || 20 }}
+        timeout-minutes: ${{ github.event_name == 'workflow_dispatch' && (inputs.node_files != '' || inputs.browser_family != '' && inputs.browser_family != 'none') && 5 || 20 }}
       - name: Select pinned toolchain and verify inputs before install
-        timeout-minutes: ${{ github.event_name == 'workflow_dispatch' && inputs.node_files != '' && 5 || 20 }}
+        timeout-minutes: ${{ github.event_name == 'workflow_dispatch' && (inputs.node_files != '' || inputs.browser_family != '' && inputs.browser_family != 'none') && 5 || 20 }}
         env:
           EXPECTED_HOST: ${{ github.event_name == 'workflow_dispatch' && inputs.host == 'macos-15' && 'darwin-arm64' || 'linux-x64' }}
         run: |
@@ -47,7 +90,7 @@ jobs:
           python3 tooling/verify-vendor.py
           echo "$GITHUB_WORKSPACE/.toolchain/bin" >> "$GITHUB_PATH"
       - name: Install exact dependencies
-        timeout-minutes: ${{ github.event_name == 'workflow_dispatch' && inputs.node_files != '' && 10 || 20 }}
+        timeout-minutes: ${{ github.event_name == 'workflow_dispatch' && (inputs.node_files != '' || inputs.browser_family != '' && inputs.browser_family != 'none') && 10 || 20 }}
         run: npm ci
       - name: Allocate private evidence for supplemental correctness
         env:
@@ -64,24 +107,30 @@ jobs:
           writeFileSync(allocation,JSON.stringify({kind:'evidence-volume-allocation-1',allocationId:'fast-validation',purpose:'qualification-evidence-only',capacityBytes,root,issuedAt:new Date().toISOString(),owner:'Build'})+'\n',{flag:'wx',mode:0o600});
           writeFileSync(process.env.GITHUB_ENV,'IE_EVIDENCE_ALLOCATION='+allocation+'\nIE_VALIDATION_OUTPUT='+join(root,'run')+'\n',{flag:'a'});
           NODE
-      - name: Provision reviewed selected Node prerequisites
-        if: github.event_name == 'workflow_dispatch' && inputs.node_files != ''
+      - name: Provision reviewed selected prerequisites
+        if: github.event_name == 'workflow_dispatch' && (inputs.node_files != '' || inputs.browser_family != '' && inputs.browser_family != 'none')
         timeout-minutes: 20
         env:
           SELECTED_NODE_FILES: ${{ inputs.node_files }}
+          SELECTED_BROWSER_FAMILY: ${{ inputs.browser_family || 'none' }}
+          SELECTED_BROWSER: ${{ inputs.browser || 'chromium' }}
         run: node tooling/qualification/fast-ci-setup.mjs "$IE_VALIDATION_OUTPUT/../selected-setup.json"
-      - name: Types, inventory, inputs and selected Node checks
+      - name: Types, inventory, inputs and selected checks
         env:
           SELECTED_NODE_FILES: ${{ github.event_name == 'workflow_dispatch' && inputs.node_files || '' }}
+          SELECTED_BROWSER_FAMILY: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_family || 'none' }}
+          SELECTED_BROWSER: ${{ github.event_name == 'workflow_dispatch' && inputs.browser || 'chromium' }}
         run: |
           node tooling/qualification/evidence-lifecycle.mjs root --allocation "$IE_EVIDENCE_ALLOCATION"
-          if [ -n "$SELECTED_NODE_FILES" ]; then
+          if [ "$SELECTED_BROWSER_FAMILY" != 'none' ]; then
+            npm run validate -- run --groups preflight --browsers "$SELECTED_BROWSER" --browser-groups "$SELECTED_BROWSER_FAMILY" --workers 1 --fresh --serial-browser --output "$IE_VALIDATION_OUTPUT"
+          elif [ -n "$SELECTED_NODE_FILES" ]; then
             npm run validate -- run --groups all --node-files "$SELECTED_NODE_FILES" --browsers none --workers 1 --fresh --output "$IE_VALIDATION_OUTPUT"
           else
             npm run validate -- run --groups tooling --browsers none --workers 1 --fresh --output "$IE_VALIDATION_OUTPUT"
           fi
       - name: Retain failure and success receipts
-        timeout-minutes: ${{ github.event_name == 'workflow_dispatch' && inputs.node_files != '' && 10 || 20 }}
+        timeout-minutes: ${{ github.event_name == 'workflow_dispatch' && (inputs.node_files != '' || inputs.browser_family != '' && inputs.browser_family != 'none') && 10 || 20 }}
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
