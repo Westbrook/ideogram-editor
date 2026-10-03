@@ -100,7 +100,12 @@ test('full editor uses the shared light dark and density themes without saved do
       await expect(page.locator('html')).toHaveAttribute('data-en-theme', value === 'compact' ? 'spectrum-inspired' : `spectrum-inspired-${value}`);
       await expect(page.locator('html')).toHaveCSS('background-color', color(mode === 'auto' ? 'dark' : mode, 'color.canvas'));
       await expect(page.locator('.document-bar')).toHaveCSS('background-color', color(mode === 'auto' ? 'dark' : mode, 'color.surface'));
-      const box = await density(page).boundingBox(); expect(box).not.toBeNull(); heights[mode + '-' + value] = box!.height;
+      // The native select's accessible picker target can clamp smaller densities.
+      const selectBox = await density(page).boundingBox(); expect(selectBox).not.toBeNull();
+      expect(selectBox!.width).toBeGreaterThanOrEqual(24); expect(selectBox!.height).toBeGreaterThanOrEqual(24);
+      // An ordinary themed action still proves that density changes real geometry.
+      const actionBox = await button(page, 'Command search').boundingBox(); expect(actionBox).not.toBeNull();
+      heights[mode + '-' + value] = actionBox!.height;
       if (value === 'comfortable' && mode !== 'auto') {
         await scan(page, info, mode);
         if (browserName === 'chromium') await screenshot(page, info, `full-editor-desktop-${mode}`);
