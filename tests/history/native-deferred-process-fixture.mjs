@@ -1,8 +1,9 @@
 // Test-only backend entry. The driver owns the renderer; this process owns the
 // unchanged HTTP/writer/raster/text backend and inherits the loopback preload.
-import {openSync,fstatSync,readFileSync,closeSync} from 'node:fs';
+import {openSync,fstatSync,readFileSync,closeSync,writeFileSync,renameSync} from 'node:fs';
 import {join} from 'node:path';
 import {startLocalServer} from '../../dist/local/server/http.js';
+import {observeNativeRequestMain} from './native-request-memory-observation.mjs';
 
 const root=process.argv[2];
 function readControl(name,limit){
@@ -44,10 +45,37 @@ function boundsSetupModule(encoded){
  return 'data:text/javascript;base64,'+Buffer.from(source).toString('base64');
 }
 
-const server=await startLocalServer({root,...(config.clock?{now}:{})},{writer:{setupModule:config.bounds?boundsSetupModule(config.encoded):new URL(config.encoded?'./encoded-rebuild-guard-fixture.mjs':'./text-treatment-diagnostic-fixture.mjs',import.meta.url).href}});
+function observeFailureRequestMemory(memory){
+ // The driver writes context first, then the existing unchanged failure-only
+ // trigger. This observer creates no output during successful normal actions.
+ let last='';
+ const timer=setInterval(()=>{
+  let uuid;
+  try{
+   const trigger=readControl('j19-diagnostic-request.json',128);
+   if(!trigger||Array.isArray(trigger)||Object.keys(trigger).join(',')!=='commandId'||typeof trigger.commandId!=='string'||!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(trigger.commandId)||trigger.commandId===last)return;
+   uuid=trigger.commandId;last=uuid;
+   const context=readControl('native-request-memory-context-'+uuid+'.json',1024);
+   if(!context||Array.isArray(context)||Object.keys(context).sort().join(',')!=='documentId,jobId,queueCommandId'||Object.values(context).some(value=>typeof value!=='string'||!/^[A-Za-z0-9_-]{1,128}$/.test(value)))return;
+   const bytes=Buffer.from(JSON.stringify(memory.snapshotForFailure(uuid,context)));if(bytes.length>6144)return;
+   const path=join(root,'native-request-memory-main-'+uuid+'.json');writeFileSync(path+'.tmp',bytes,{mode:0o600,flag:'wx'});renameSync(path+'.tmp',path);
+  }catch{/* Missing/invalid observation evidence never changes the fixture. */}
+ },25);
+ return ()=>clearInterval(timer);
+}
+
+// Install before startLocalServer creates the actual writer, only for this
+// existing native bounds fixture. The encoded and ordinary fixtures are unchanged.
+const requestMemory=config.bounds&&!config.encoded?observeNativeRequestMain():undefined;
+let server,stopRequestMemory=()=>{};
+try{
+ server=await startLocalServer({root,...(config.clock?{now}:{})},{writer:{setupModule:config.bounds?boundsSetupModule(config.encoded):new URL(config.encoded?'./encoded-rebuild-guard-fixture.mjs':'./text-treatment-diagnostic-fixture.mjs',import.meta.url).href}});
+ if(requestMemory)stopRequestMemory=observeFailureRequestMemory(requestMemory);
+}catch(error){stopRequestMemory();requestMemory?.close();throw error;}
 let closing,lastPairing=0;
 function close(){
  return closing??=(async()=>{
+  stopRequestMemory();
   try{
    await server.close();
    if(process.connected)process.send({type:'closed'},()=>process.disconnect());
@@ -55,7 +83,7 @@ function close(){
    process.exitCode=1;
    if(process.connected)process.send({type:'failure',message:String(error).slice(0,4096)},()=>process.disconnect());
    else console.error(error);
-  }
+  }finally{requestMemory?.close();}
  })();
 }
 process.on('message',message=>{

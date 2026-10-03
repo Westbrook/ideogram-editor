@@ -6,7 +6,8 @@ import {EventEmitter,getEventListeners} from 'node:events';
 import {exchange} from '../session/helpers.mjs';
 import {readFile,writeFile,rename,cp} from 'node:fs/promises';
 import {terminalWithDiagnostics} from './native-failure-diagnostics.mjs';
-import {assertCandidatePrepared} from './queue-failure-diagnostics.mjs';
+import {assertCandidatePrepared,joinNativeRequestMemory} from './queue-failure-diagnostics.mjs';
+import {observeNativeRequestMain,observeNativeRequestWriter} from './native-request-memory-observation.mjs';
 import {installCandidatePreparationObservation} from './candidate-preparation-observation.mjs';
 import {createNativeMemoryRecorder,nativeMemoryPhases as memoryPhase} from './native-memory-diagnostics.mjs';
 import {join} from 'node:path';
@@ -104,7 +105,7 @@ async function fixture(t,{encoded=false,failure=false,now,bounds=false,actualSiz
  }else server=await providerChild(root,owned=>{close=owned;},new URL('./text-treatment-process-fixture.mjs',import.meta.url));
  mainMemory.sample(memoryFixture,memoryPhase.serverReady);
  const paired=await pair(server);assert.equal(paired.status,200,paired.text);
- const f={root,server,paired,memoryFixture,diagnostic:packet=>t.diagnostic(JSON.stringify(packet)),...(acceptanceWait?{acceptanceWait}:{}),...(now?{syncClock:()=>syncNativeClock(root,now())}:{}),read:path=>call(server.origin,path,{headers:readHeaders(cookieFrom(paired))}),post:(path,body)=>call(server.origin,path,{method:'POST',body,headers:mutationHeaders(server,paired)}),command:(patch={},body={})=>command(EMPTY_EXPECTED_VERSIONS,{clientId:paired.json.clientId,...patch},body),effects:async()=>{const value=JSON.parse(await readFile(join(root,'request-edits-fixture.json'),'utf8'));assert.deepEqual(value.errors,[]);return value.effects;}};
+ const f={root,server,paired,memoryFixture,nativeRequestMemory:bounds&&!encoded,diagnostic:packet=>t.diagnostic(JSON.stringify(packet)),...(acceptanceWait?{acceptanceWait}:{}),...(now?{syncClock:()=>syncNativeClock(root,now())}:{}),read:path=>call(server.origin,path,{headers:readHeaders(cookieFrom(paired))}),post:(path,body)=>call(server.origin,path,{method:'POST',body,headers:mutationHeaders(server,paired)}),command:(patch={},body={})=>command(EMPTY_EXPECTED_VERSIONS,{clientId:paired.json.clientId,...patch},body),effects:async()=>{const value=JSON.parse(await readFile(join(root,'request-edits-fixture.json'),'utf8'));assert.deepEqual(value.errors,[]);return value.effects;}};
  f.reopen=async()=>{assert(!encoded&&!now&&!bounds);await close();const reopened=await providerChild(root,owned=>{close=owned;},new URL('./text-treatment-process-fixture.mjs',import.meta.url)),newPair=await pair(reopened);assert.equal(newPair.status,200,newPair.text);return clientFor({...f,server:reopened},newPair);};
  assert.equal((await terminal(f,f.command({},{width:512,height:512}))).json.receipt.status,'accepted');
  const background=(await importRaster(f,'black.png')).asset;
@@ -239,7 +240,7 @@ async function candidate(f,{kind='native-overlay',placement='current-document',m
  const accepted=await ui(f,{type:'AcceptRequestReview',reviewId:review.id,token:review.token}),queued=await operate(f,{type:'QueueInference',reviewId:review.id,token:review.token,acceptanceId:accepted.request.requestId}),jobId=queued.event.payload.id;
  let value;const deadline=Date.now()+20000;
  do{const response=await f.read('/api/v1/jobs/'+jobId+'/candidates');if(response.status===200)value=response.json.items[0];if(value?.state==='prepared'||value?.state==='preparation-failed')break;await new Promise(resolve=>setTimeout(resolve,25));}while(Date.now()<deadline);
- await assertCandidatePrepared(f,{items:value?[value]:[]},{sourceDocumentId:documentId,queueCommandId:queued.command.command.commandId,jobId,kind,placement,memoryFixture:f.memoryFixture},{retain:false,report:f.diagnostic});assert.deepEqual(await document(f),before);
+ await assertCandidatePrepared(f,{items:value?[value]:[]},{sourceDocumentId:documentId,queueCommandId:queued.command.command.commandId,jobId,kind,placement,memoryFixture:f.memoryFixture},{retain:false,report:f.diagnostic,nativeRequestMemory:f.nativeRequestMemory});assert.deepEqual(await document(f),before);
  return {value,draft,review,plan,baseline,selected,before,beforeState,saved,nativeIds};
 }
 
@@ -925,4 +926,110 @@ test('candidate preparation failure diagnostics bind the slot, encoded asset and
 
 test('prepared candidate assertion performs no failure capture or report',async()=>{
  let reports=0;await assertCandidatePrepared({get root(){throw new Error('Prepared candidate must not access diagnostic files');}},{items:[{state:'prepared'}]},{},{retain:false,report:()=>{reports++;}});assert.equal(reports,0);
+});
+
+// Structural controls for the test-only observer; they grant no memory or
+// qualification authority and never start a real worker or raster operation.
+function requestMemoryContract(prefix='request_memory'){
+ const binding={documentId,queueCommandId:prefix+'_queue',reviewId:prefix+'_review',prepareRequestId:prefix+'_prepare',acceptRequestId:prefix+'_accept',acceptanceId:prefix+'_accept'},context={documentId,queueCommandId:binding.queueCommandId,jobId:prefix+'_job'};
+ const controls=[
+  {method:'uiPersist',bytes:Buffer.from(JSON.stringify({protocolVersion:1,requestId:binding.prepareRequestId,body:{type:'PrepareRequestReview',draftId:'request',generation:'1',unused:'PAYLOAD_MUST_NOT_BE_RETAINED'}})),result:{status:'accepted',requestId:binding.prepareRequestId,review:{id:binding.reviewId,documentId}}},
+  {method:'uiPersist',bytes:Buffer.from(JSON.stringify({protocolVersion:1,requestId:binding.acceptRequestId,body:{type:'AcceptRequestReview',reviewId:binding.reviewId}})),result:{status:'accepted',requestId:binding.acceptRequestId,acceptedReview:binding.reviewId,review:{id:binding.reviewId,documentId}}},
+  {method:'queueCommand',bytes:Buffer.from(JSON.stringify({protocolVersion:1,command:{commandId:binding.queueCommandId,body:{type:'QueueInference',reviewId:binding.reviewId,acceptanceId:binding.acceptanceId}}})),result:{status:'accepted',commandId:binding.queueCommandId}},
+ ];
+ return {binding,context,controls};
+}
+function requestMemoryContractShape(value,contract){
+ assert.equal(value.kind,'native-request-memory-transitions-1');assert.deepEqual(value.binding,contract.binding);assert.equal(value.records.length,6);assert.equal(value.descriptors.length,3);
+ assert.equal(value.rssScope,'whole-process');assert.equal(value.heapScope,'record-threadId');assert.equal(value.lifetimeMaxRSSScope,'process-lifetime-high-water');assert.equal(value.nativeAllocationOwner,'unobserved');
+ assert(Buffer.byteLength(JSON.stringify(value))<=6144);assert(!JSON.stringify(value).includes('PAYLOAD_MUST_NOT_BE_RETAINED'));
+ const index=name=>value.fields.indexOf(name);assert.equal(value.records[0][index('documentResolvedAtSample')],0);assert.equal(value.records[1][index('documentResolvedAtSample')],1);
+ for(const row of value.records){assert(row.every(Number.isFinite));assert.equal(row[index('pid')],process.pid);assert.equal(row[index('clockOriginUnixMs')],performance.timeOrigin);assert(row[index('rss')]>0);}
+}
+
+test('native request memory writer preserves exact values, promises, receivers and exception identities',async()=>{
+ const contract=requestMemoryContract(),calls=[];let response,thrown;
+ const original=function(...args){calls.push({receiver:this,args});if(thrown)throw thrown;return response;},store={ui:{persist:original},queue:{command:original}},observer=observeNativeRequestWriter(store),receiver={sentinel:'receiver'},auth={sentinel:'auth'};
+ try{
+  for(const [i,control]of contract.controls.entries()){
+   response=i===1?control.result:Promise.resolve(control.result);const method=control.method==='uiPersist'?store.ui.persist:store.queue.command,actual=method.call(receiver,control.bytes,auth);
+   assert.strictEqual(actual,response);assert.strictEqual(await actual,control.result);const call=calls.at(-1);assert.strictEqual(call.receiver,receiver);assert.strictEqual(call.args[0],control.bytes);assert.strictEqual(call.args[1],auth);
+  }
+  const snapshot=observer.snapshotForFailure(randomUUID(),contract.context);requestMemoryContractShape(snapshot,contract);assert.equal(snapshot.incomplete,false);
+  thrown=new Error('original synchronous failure');assert.throws(()=>store.ui.persist(contract.controls[0].bytes,auth),error=>error===thrown);thrown=null;
+  const failure=new Error('original rejected promise');response=Promise.reject(failure);const actual=store.ui.persist(contract.controls[0].bytes,auth);assert.strictEqual(actual,response);await assert.rejects(actual,error=>error===failure);
+ }finally{observer.close();}
+ assert.strictEqual(store.ui.persist,original);assert.strictEqual(store.queue.command,original);
+ const foreign=()=>{};const second=observeNativeRequestWriter(store);store.ui.persist=foreign;second.close();assert.strictEqual(store.ui.persist,foreign);assert.strictEqual(store.queue.command,original);
+});
+
+test('native request memory main binds exact RPC replies and removes its listeners without changing postMessage',()=>{
+ const contract=requestMemoryContract();class ContractWorker extends EventEmitter{threadId=17;calls=[];failure=null;postMessage(...args){this.calls.push(args);if(this.failure)throw this.failure;return this;}}
+ const original=ContractWorker.prototype.postMessage,worker=new ContractWorker(),observer=observeNativeRequestMain({workerPrototype:ContractWorker.prototype}),transfer=[];
+ try{
+  for(const [i,control]of contract.controls.entries()){
+   const message={id:i+1,method:control.method,args:{bytes:control.bytes}};assert.strictEqual(worker.postMessage(message,transfer),worker);assert.strictEqual(worker.calls.at(-1)[0],message);assert.strictEqual(worker.calls.at(-1)[1],transfer);
+   worker.emit('message',{type:'result',id:1000+i,result:control.result});worker.emit('message',{type:'unrelated',id:i+1,result:control.result});worker.emit('message',{type:'result',id:i+1,result:control.result});
+  }
+  const snapshot=observer.snapshotForFailure(randomUUID(),contract.context);requestMemoryContractShape(snapshot,contract);assert.equal(snapshot.incomplete,false);assert(snapshot.descriptors.every(d=>d.workerThreadId===17));assert.equal(worker.listenerCount('message'),1);assert.equal(worker.listenerCount('exit'),1);assert.equal(worker.listenerCount('error'),0);
+  worker.failure=new Error('postMessage original failure');assert.throws(()=>worker.postMessage({id:4,method:'uiPersist',args:{bytes:contract.controls[0].bytes}}),error=>error===worker.failure);
+ }finally{observer.close();}
+ assert.strictEqual(ContractWorker.prototype.postMessage,original);assert.equal(worker.listenerCount('message'),0);assert.equal(worker.listenerCount('exit'),0);
+ const second=observeNativeRequestMain({workerPrototype:ContractWorker.prototype}),foreign=function(){};ContractWorker.prototype.postMessage=foreign;second.close();assert.strictEqual(ContractWorker.prototype.postMessage,foreign);
+});
+
+test('native request memory refuses wrong acceptance, document and unobserved cohorts and remains bounded',async()=>{
+ const contract=requestMemoryContract(),store={ui:{persist:bytes=>Promise.resolve(contract.controls.find(c=>c.bytes.equals(bytes))?.result)},queue:{command:()=>Promise.resolve({status:'accepted'})}},observer=observeNativeRequestWriter(store);
+ try{
+  await store.ui.persist(contract.controls[0].bytes);await store.ui.persist(contract.controls[1].bytes);
+  const wrong=JSON.parse(contract.controls[2].bytes);wrong.command.body.acceptanceId='not_the_observed_acceptance';await store.queue.command(Buffer.from(JSON.stringify(wrong)));
+  assert.equal(observer.snapshotForFailure(randomUUID(),contract.context).kind,'native-request-memory-unavailable-1');
+  await store.queue.command(contract.controls[2].bytes);assert.equal(observer.snapshotForFailure(randomUUID(),{...contract.context,documentId:'other_document'}).kind,'native-request-memory-unavailable-1');
+  assert.equal(observer.snapshotForFailure(randomUUID(),{...contract.context,queueCommandId:'other_queue'}).kind,'native-request-memory-unavailable-1');
+  for(let i=0;i<20;i++)await store.queue.command(contract.controls[2].bytes);
+  const bounded=observer.snapshotForFailure(randomUUID(),contract.context);assert(Buffer.byteLength(JSON.stringify(bounded))<=6144);assert.equal(bounded.incomplete,true);assert(bounded.dropped.records>0||bounded.dropped.descriptors>0);
+ }finally{observer.close();}
+});
+
+test('native request memory distinguishes actual worker exit from observer retirement',()=>{
+ for(const actualExit of [false,true]){
+  const contract=requestMemoryContract();class ContractWorker extends EventEmitter{threadId=19;postMessage(){return 73;}}
+  const worker=new ContractWorker(),observer=observeNativeRequestMain({workerPrototype:ContractWorker.prototype});
+  for(const [i,c]of contract.controls.entries()){assert.equal(worker.postMessage({id:i+1,method:c.method,args:{bytes:c.bytes}}),73);if(i<2)worker.emit('message',{type:'result',id:i+1,result:c.result});}
+  if(actualExit)worker.emit('exit',1);else observer.close();
+  const value=observer.snapshotForFailure(randomUUID(),contract.context),outcome=value.fields.indexOf('outcome');if(!actualExit)assert.equal(value.incomplete,true);
+  assert.equal(value.records.some(row=>row[outcome]===4),actualExit,'Only the actual exit event can be reported as workerExit');observer.close();assert.equal(worker.listenerCount('message'),0);assert.equal(worker.listenerCount('exit'),0);
+ }
+});
+
+function requestMemoryJoinContract(){
+ // Explicitly synthetic structural join inputs; these numeric sentinels are
+ // never emitted by a product observer or offered as measurements.
+ const contract=requestMemoryContract(),diagnosticId=randomUUID(),outputAssetId=randomUUID(),candidate={documentId,jobId:contract.context.jobId};
+ const fields=['sequence','descriptorId','phase','outcome','pid','threadId','workerThreadId','workerInstance','rpcId','clockOriginUnixMs','atMs','rss','heapTotal','heapUsed','external','arrayBuffers','lifetimeMaxRSSBytes','documentResolvedAtSample'];
+ const build=role=>{const thread=role==='writer'?17:0;return {kind:'native-request-memory-transitions-1',role,diagnosticId:role==='writer'?outputAssetId:diagnosticId,processIdentity:{pid:41,threadId:thread,clockOriginUnixMs:1000},context:contract.context,binding:contract.binding,fields,records:contract.controls.flatMap((_,i)=>[[i*2+1,i+1,1,0,41,thread,17,1,i+1,1000,i*2+1,10,2,1,1,1,10,i===0?0:1],[i*2+2,i+1,2,1,41,thread,17,1,i+1,1000,i*2+2,10,2,1,1,1,10,1]]),descriptors:contract.controls.map((c,i)=>({id:i+1,operation:i===0?'PrepareRequestReview':i===1?'AcceptRequestReview':'QueueInference',requestId:i<2?[contract.binding.prepareRequestId,contract.binding.acceptRequestId][i]:null,commandId:i===2?contract.binding.queueCommandId:null,documentId,reviewId:contract.binding.reviewId,acceptanceId:i===2?contract.binding.acceptanceId:null,workerThreadId:17,workerInstance:1,rpcId:i+1})),rssScope:'whole-process',heapScope:'record-threadId',lifetimeMaxRSSScope:'process-lifetime-high-water',nativeAllocationOwner:'unobserved',incomplete:false};};
+ return {main:build('http-main'),writer:build('writer'),diagnosticId,outputAssetId,candidate,context:contract.context};
+}
+
+test('native request memory joins only the exact candidate, queue, review cohort and process isolates',()=>{
+ const initial=requestMemoryJoinContract(),matched=joinNativeRequestMemory(initial);assert.equal(matched.status,'matched');assert.equal(matched.qualification,false);assert.strictEqual(matched.main,initial.main);
+ for(const mutate of [
+  v=>{v.context.jobId='other_job';},v=>{v.main.diagnosticId=randomUUID();},v=>{v.writer.diagnosticId=randomUUID();},v=>{v.writer.binding.queueCommandId='other_queue';},v=>{v.writer.binding.reviewId='other_review';},v=>{v.writer.processIdentity.pid++;},v=>{v.writer.processIdentity.threadId=0;},v=>{v.main.descriptors[0].workerThreadId++;},v=>{v.main.records[0][4]++;},v=>{v.main.records[0][1]=999;},v=>{v.main.records[0][2]=9;},v=>{v.writer.descriptors[2].acceptanceId='other_acceptance';},v=>{v.main.lifetimeMaxRSSScope='operation-peak';},v=>{v.writer.nativeAllocationOwner='invented';},v=>{v.main.extra='x'.repeat(6145);},v=>{v.main=null;}
+ ]){const value=structuredClone(initial);mutate(value);assert.equal(joinNativeRequestMemory(value).status,'unavailable');}
+ const partial=structuredClone(initial);partial.writer.incomplete=true;assert.equal(joinNativeRequestMemory(partial).incomplete,true);
+});
+
+test('native request memory failures preserve the original candidate assertion and owned diagnostic evidence',async t=>{
+ const root=await rootFor(t),candidate={id:'memory-contract-candidate',documentId,jobId:'memory-contract-job',attemptId:'memory-contract-attempt',state:'preparation-failed',encodedAssetId:'memory-contract-encoded',preparedAssetId:null,warning:'Unchanged public warning'},context={queueCommandId:randomUUID(),jobId:candidate.jobId},outputAssetId=randomUUID(),failure=new Error('original raster rejection'),store={root,rasters:{prepareDocument:async()=>{throw failure;}}};
+ const stop=installCandidatePreparationObservation(store,()=>JSON.stringify({kind:'owned-contract-sentinel'}),{requestMemory:()=>{throw new Error('optional observer failure');}});
+ try{await assert.rejects(store.rasters.prepareDocument({type:'PrepareCandidate',assetId:candidate.encodedAssetId},outputAssetId,'candidate-prepare:'+candidate.id,()=>{},undefined,documentId),error=>error===failure);}finally{stop();}
+ const raster=JSON.parse(await readFile(join(root,'candidate-copy-raster-failure.json')));assert.equal(raster.snapshot.kind,'owned-contract-sentinel');assert.equal(raster.requestMemory,undefined);
+ const reports=[],pending=assertCandidatePrepared({root},{items:[candidate]},context,{retain:false,nativeRequestMemory:true,report:value=>reports.push(value)}),rejection=assert.rejects(pending,error=>error.code==='ERR_ASSERTION'&&error.actual==='preparation-failed'&&error.expected==='prepared');
+ try{
+  let trigger;for(let n=0;n<20;n++){try{trigger=JSON.parse(await readFile(join(root,'j19-diagnostic-request.json')));break;}catch(error){if(error.code!=='ENOENT'&&!(error instanceof SyntaxError))throw error;}await pause(5);}assert(trigger);
+  const failureContext=JSON.parse(await readFile(join(root,'native-request-memory-context-'+trigger.commandId+'.json')));assert.deepEqual(failureContext,{documentId,queueCommandId:context.queueCommandId,jobId:candidate.jobId});
+  const mainPath=join(root,'native-request-memory-main-'+trigger.commandId+'.json');await writeFile(mainPath+'.tmp','{malformed optional observation',{mode:0o600});await rename(mainPath+'.tmp',mainPath);
+  const ownedPath=join(root,'j19-diagnostic-'+trigger.commandId+'.json');await writeFile(ownedPath+'.tmp',JSON.stringify({kind:'owned-contract-sentinel',commandId:trigger.commandId}),{mode:0o600});await rename(ownedPath+'.tmp',ownedPath);
+ }finally{await rejection;}
+ assert.equal(reports.length,1);const packet=reports[0];assert.equal(packet.snapshot.kind,'owned-contract-sentinel');assert.equal(packet.rasterFailureObservation,'matched');assert.deepEqual(packet.rasterFailure,raster);assert.equal(packet.requestMemory.status,'unavailable');assert.equal(packet.requestMemory.reason,'main-capture-invalid');assert(Buffer.byteLength(JSON.stringify(packet))<=544768);
 });
