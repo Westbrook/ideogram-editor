@@ -150,15 +150,21 @@ test('cancelling an active native worker refuses stale publication and can recov
   await render(page); await expect.poll(() => guard.workers.size).toBe(0); expect(guard.createdWorkers()).toBe(2);
 });
 
-test('narrow viewport keeps controls reachable and the canvas within the page', async ({ page }) => {
+test('narrow viewport keeps controls reachable and the canvas within the page', async ({ page, browserName }) => {
   await page.setViewportSize({ width: 360, height: 780 }); await page.goto('./');
   await textInput(page).fill('Small screen'); await render(page);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
   const bounds = await page.getByTestId('preview-canvas').boundingBox(); expect(bounds).not.toBeNull();
   expect(bounds!.width).toBeLessThanOrEqual(360); expect(bounds!.x).toBeGreaterThanOrEqual(0);
-  await select(page, 'appearance').focus(); await page.keyboard.press('Space'); await page.keyboard.press('ArrowDown'); await page.keyboard.press('Enter');
+  await expect(select(page, 'appearance')).toHaveValue('auto');
+  await select(page, 'appearance').focus(); await expect(select(page, 'appearance')).toBeFocused();
+  // Firefox changes a closed native select with ArrowDown; the customizable
+  // picker in Chromium/WebKit uses its open, navigate and commit sequence.
+  if (browserName === 'firefox') await page.keyboard.press('ArrowDown');
+  else { await page.keyboard.press('Space'); await page.keyboard.press('ArrowDown'); await page.keyboard.press('Enter'); }
   await expect(select(page, 'appearance')).toHaveValue('light');
   await expect(select(page, 'appearance').getByRole('option', { selected: true, includeHidden: true })).toHaveText('Light');
+  await expect(page.locator('html')).toHaveAttribute('data-en-appearance', 'light');
   await button(page, 'reset-preview').focus(); await page.keyboard.press('Enter'); await expect(page.getByTestId('preview-canvas')).toBeHidden();
 });
 
