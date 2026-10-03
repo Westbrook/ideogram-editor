@@ -28,15 +28,19 @@ function fixture(t){
 // Synthetic observer uses real retained JSON and receipt-byte binding. It never
 // samples the host volume; production defaults remain the existing strict helpers.
 function evidenceFixture(cwd){
- const evidence={events:[],runs:new Map(),status:'PASS'};
+ const evidence={events:[],runs:new Map(),status:'PASS',initialAlarm:{status:'PASS',level:'normal',percent:1}};
  const identity=bytes=>({bytes:bytes.length,sha256:sha256(bytes)});
  const monitorFactory=async options=>{
   evidence.events.push('start');assert.equal(options.allowUnavailable,false);
   evidence.lastOptions=options;
+  // Initial admission and final audit are independent synthetic observations:
+  // a later audit failure must not turn this fixture's initial sample into one.
+  const initialAlarm=evidence.initialAlarm?{allocationId:'synthetic',campaignId:options.campaignId,...evidence.initialAlarm}:null;
+  if(initialAlarm)options.onAlarm(initialAlarm);
   const reference={kind:'evidence-volume-reference-1',root:cwd,auditPath:'synthetic/audit.json',retainedPath:'evidence-storage/audit.json',auditId:options.campaignId,campaignId:options.campaignId,status:'PENDING'};
   return {reference,async finish({receiptPath,outcome}){
    evidence.events.push('finish');const bytes=receiptPath?readFileSync(receiptPath):null;
-   const audit={status:evidence.status,auditId:reference.auditId,receipt:bytes?identity(bytes):null,outcome};
+   const audit={status:evidence.status,auditId:reference.auditId,receipt:bytes?identity(bytes):null,outcome,initialAlarm};
    evidence.runs.set(options.output,{audit,bytes,receiptPath});return audit;
   }};
  };
@@ -188,6 +192,34 @@ test('strict production monitor rejects missing allocation before any source or 
  assert.equal(result.effectiveOutcome,'FAIL');assert.match(result.error,/IE_EVIDENCE_ALLOCATION/);assert.deepEqual(calls,[]);
  assert.equal(reads,0,'allocation refusal precedes all source hashing');
  assert.equal(existsSync(join(f.cwd,'artifacts/validation/cache.json')),false);assert.equal(existsSync(join(f.cwd,'artifacts/qualification/active.lock')),false);
+});
+
+for(const initial of [{status:'INCONCLUSIVE',level:'unknown',percent:null},{status:'FAIL',level:'ceiling',percent:90},null])test(`initial evidence ${initial?.status??'UNAVAILABLE'} refuses work but retains the original admission and releases ownership`,async t=>{
+ const f=fixture(t),calls=[],options={groups:'preflight',browsers:'chromium',browserGroups:'consumer',workers:1,fresh:true};let sourceReads=0,dependencyReads=0;
+ f.evidence.initialAlarm=initial;f.evidence.status=initial?.status??'INCONCLUSIVE';
+ const original=f.monitorFactory;
+ const result=await executeDevelopment({...f,options,
+  monitorFactory:async args=>{const monitor=await original(args);if(initial)args.onAlarm({allocationId:'synthetic',campaignId:args.campaignId,status:'PASS',level:'normal',percent:1});return monitor;},
+  sourceProvider:()=>{sourceReads++;return f.sourceProvider();},dependencyProvider:()=>{dependencyReads++;return f.dependencyProvider();},gateExecutor:executor(calls)});
+ assert.equal(result.rawOutcome,initial?.status??'INCONCLUSIVE');assert.equal(result.effectiveOutcome,initial?.status??'INCONCLUSIVE');assert.match(result.error,/Initial evidence storage .*validation was not started/);
+ assert.equal(sourceReads,0);assert.equal(dependencyReads,0);assert.deepEqual(calls,[]);assert.deepEqual(result.gates,[]);assert.deepEqual(result.browsers,[]);
+ assert.deepEqual(result.pending,result.plan.gates.map(gate=>gate.id));assert.deepEqual(result.pendingBrowsers,['build-consumer','consumer-chromium']);
+ assert.deepEqual(f.evidence.events,['start','finish','retain','verify']);assert.deepEqual(readFileSync(result.receiptPath),f.evidence.runs.get(result.directory).bytes);
+ const retained=JSON.parse(readFileSync(join(result.directory,'evidence-storage/audit.json')));assert.equal(retained.outcome,result.rawOutcome);
+ assert.deepEqual(retained.initialAlarm,initial?{allocationId:'synthetic',campaignId:result.id,...initial}:null);
+ assert.equal(result.sourceStable,false);assert.equal(result.dependenciesUnchanged,false);assert.deepEqual(result.finalizationErrors,[]);assert.deepEqual(result.lifecycleErrors,[]);
+ assert.equal(existsSync(join(f.cwd,'artifacts/validation/cache.json')),false);assert.equal(existsSync(join(f.cwd,'artifacts/qualification/active.lock')),false);assert.equal(existsSync(result.hostExclusion.path),false);
+});
+
+for(const [level,percent]of [['normal',1],['target',80]])test(`initial evidence PASS at ${level} admits the full selected gate flow and retained audit`,async t=>{
+ const f=fixture(t),calls=[];let sourceReads=0,dependencyReads=0;f.evidence.initialAlarm={status:'PASS',level,percent};
+ const result=await executeDevelopment({...f,options:{groups:'preflight',browsers:'none',workers:1,fresh:true},
+  sourceProvider:()=>{sourceReads++;return f.sourceProvider();},dependencyProvider:()=>{dependencyReads++;return f.dependencyProvider();},gateExecutor:executor(calls)});
+ assert.equal(result.rawOutcome,'PASS');assert.equal(result.effectiveOutcome,'PASS');assert.deepEqual(calls,['typecheck','preflight']);assert.deepEqual(result.pending,[]);assert.deepEqual(result.pendingBrowsers,[]);
+ assert.equal(sourceReads,2);assert.equal(dependencyReads,2);assert.equal(result.sourceStable,true);assert.equal(result.dependenciesUnchanged,true);
+ assert.equal(f.evidence.events.filter(value=>value==='finish').length,1);assert.equal(f.evidence.events.filter(value=>value==='retain').length,1);assert.deepEqual(f.evidence.events.slice(0,4),['start','finish','retain','verify']);
+ assert.deepEqual(readFileSync(result.receiptPath),f.evidence.runs.get(result.directory).bytes);assert.equal(existsSync(join(f.cwd,'artifacts/validation/cache.json')),true);
+ assert.equal(existsSync(join(f.cwd,'artifacts/qualification/active.lock')),false);assert.equal(existsSync(result.hostExclusion.path),false);
 });
 
 for(const auditStatus of ['FAIL','INCONCLUSIVE'])test(`audit ${auditStatus} prevents effective PASS and cache publication`,async t=>{

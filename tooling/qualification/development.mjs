@@ -90,8 +90,14 @@ export async function executeDevelopment({cwd=root,options,gateExecutor=executeG
     writeFileSync(lock,JSON.stringify({pid:process.pid,id,directory,kind:'development-validation'}));
     hostLease=await hostLeaseProvider(id);receipt.hostExclusion={path:hostLease.path,identity:hostLease.identity};
     // Null prevents the helper's process.env default from overriding an explicit environment.
-    monitor=await monitorFactory({allocationPath:environment.IE_EVIDENCE_ALLOCATION??null,output:directory,campaignId:id,allowUnavailable:false,onAlarm:alarm=>console.error(JSON.stringify({evidenceStorageAlarm:alarm}))});
+    // The monitor commits its initial observation before this callback. Keep
+    // that first alarm even if a later sample improves; the audit cannot recover
+    // an unknown window or a witnessed ceiling failure. Receive the monitor
+    // before refusing so the ordinary finalizer still seals and retains it.
+    let initialEvidenceAlarm;
+    monitor=await monitorFactory({allocationPath:environment.IE_EVIDENCE_ALLOCATION??null,output:directory,campaignId:id,allowUnavailable:false,onAlarm:alarm=>{initialEvidenceAlarm??={...alarm};console.error(JSON.stringify({evidenceStorageAlarm:alarm}));}});
     receipt.evidenceStorage=monitor.reference;
+    if(initialEvidenceAlarm?.status!=='PASS'||!['normal','target'].includes(initialEvidenceAlarm.level))throw Object.assign(Error(`Initial evidence storage ${initialEvidenceAlarm?.status??'UNAVAILABLE'}; validation was not started`),{outcome:initialEvidenceAlarm?.status==='FAIL'?'FAIL':'INCONCLUSIVE'});
     sourceStarted=true;before=await sourceProvider(cwd);receipt.before=before;
     const hashStart=performance.now();dependencyStarted=true;const dependencies=await dependencyProvider();
     dependenciesBefore=dependencies;
