@@ -44,7 +44,12 @@ export const test = base.extend<{ guard: Guard }, { pagesOwner: Owner }>({
     });
     await context.route('**/*', async route => {
       const request = route.request(), url = new URL(request.url()); requests.push(request.url());
-      if (url.origin !== pagesOwner.origin || !url.pathname.startsWith('/ideogram-editor/') || !['GET', 'HEAD'].includes(request.method())) {
+      // Local blob URLs embed their origin in the pathname, not the project path.
+      const blobPrefix = `blob:${pagesOwner.origin}/`;
+      const localBlob = url.protocol === 'blob:' && url.href.startsWith(blobPrefix) &&
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(url.href.slice(blobPrefix.length));
+      const projectRequest = url.protocol === 'http:' && url.pathname.startsWith('/ideogram-editor/');
+      if (url.origin !== pagesOwner.origin || !['GET', 'HEAD'].includes(request.method()) || !(localBlob || projectRequest)) {
         errors.push(`Disallowed preview request: ${request.method()} ${url.href}`); await route.abort('blockedbyclient'); return;
       }
       await route.continue();
