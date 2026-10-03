@@ -1,0 +1,92 @@
+name: Hosted native prerequisites
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: hosted-native-prerequisites
+  cancel-in-progress: false
+jobs:
+  native-prerequisites:
+    name: native-prerequisites
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      - name: Record first executable step before checkout or setup
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n /usr/bin/python3 -I -S -B - "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" "$GITHUB_SHA" "$(id -u)" <<'PY'
+          import json, os, re, sys, time
+          from pathlib import Path
+          run, attempt, head, uid = sys.argv[1:]
+          assert run.isdecimal() and attempt.isdecimal() and re.fullmatch('[0-9a-f]{40}', head)
+          assert os.getuid() == os.geteuid() == 0 and int(uid) > 0
+          value = {'kind':'hosted-native-first-step-1','run':int(run),'attempt':int(attempt),'head':head,'runnerUid':int(uid),'firstStepEpochMs':time.time_ns()//1000000,'meaning':'First executable workflow step; not the GitHub job.started_at deadline origin.'}
+          path = Path('/opt') / ('ideogram-native-job-'+run+'-'+attempt+'.json')
+          fd = os.open(path, os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW, 0o444)
+          with os.fdopen(fd,'w') as stream: json.dump(value,stream); stream.write('\n'); stream.flush(); os.fsync(stream.fileno())
+          PY
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+        timeout-minutes: 5
+      - name: Provision and authenticate unmeasured control host
+        id: setup
+        timeout-minutes: 60
+        shell: bash
+        env:
+          IE_SETUP_TOKEN: ${{ github.token }}
+          IE_SOURCE_SELECTION_SHA256: 5792852a598e86d3d902ba8cce5a4e484d4c50aadbfd49ca08bd3fee6f44acaa
+        run: |
+          set -euo pipefail
+          printf '%s' "$IE_SETUP_TOKEN" | sudo -n /usr/bin/python3 -I -S -B tooling/rollback-producer/hosted-setup.py setup \
+            --checkout "$GITHUB_WORKSPACE" --run "$GITHUB_RUN_ID" --attempt "$GITHUB_RUN_ATTEMPT" \
+            --head "$GITHUB_SHA" --source-sha256 "$IE_SOURCE_SELECTION_SHA256" >> "$GITHUB_OUTPUT"
+      - name: Run fixed measured phases serially and stop on first failure
+        id: phases
+        shell: bash
+        env:
+          IE_CONTROL: ${{ steps.setup.outputs.control }}
+          IE_CONTROL_NODE: ${{ steps.setup.outputs.node }}
+          IE_CONFIG: ${{ steps.setup.outputs.config }}
+          IE_GRANT: ${{ steps.setup.outputs.grant }}
+        run: |
+          set -euo pipefail
+          for phase in inputs toolchain build16 build17 build18 verify16 verify17 verify18; do
+            echo "attempted=$phase" >> "$GITHUB_OUTPUT"
+            sudo -n "$IE_CONTROL_NODE" --import "$IE_CONTROL/tests/store/no-network.mjs" \
+              "$IE_CONTROL/tooling/rollback-producer/hosted-control.mjs" \
+              --config "$IE_CONFIG" --grant "$IE_GRANT" --phase "$phase" || exit "$?"
+          done
+      - name: Export only actually closed phases without changing originals
+        id: export
+        if: ${{ always() && steps.setup.outcome == 'success' && steps.phases.outputs.attempted != '' }}
+        timeout-minutes: 21
+        shell: bash
+        env:
+          IE_CONTROL: ${{ steps.setup.outputs.control }}
+          IE_CONTROL_NODE: ${{ steps.setup.outputs.node }}
+          IE_CONFIG: ${{ steps.setup.outputs.config }}
+          IE_GRANT: ${{ steps.setup.outputs.grant }}
+          IE_ATTEMPTED: ${{ steps.phases.outputs.attempted }}
+        run: |
+          set -euo pipefail
+          through="$(sudo -n "$IE_CONTROL/bin/python" -I -S -B "$IE_CONTROL/tooling/rollback-producer/hosted-setup.py" export-phase \
+            --config "$IE_CONFIG" --grant "$IE_GRANT" --attempted "$IE_ATTEMPTED")"
+          sudo -n "$IE_CONTROL_NODE" --import "$IE_CONTROL/tests/store/no-network.mjs" \
+            "$IE_CONTROL/tooling/rollback-producer/hosted-control.mjs" \
+            --config "$IE_CONFIG" --grant "$IE_GRANT" --export "$through"
+      - name: Retain bounded completed export or partial export diagnostics
+        if: ${{ always() && steps.setup.outputs.safe_export_parent != '' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: hosted-native-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ steps.setup.outputs.safe_export_parent }}
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
