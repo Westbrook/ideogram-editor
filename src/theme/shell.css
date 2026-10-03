@@ -255,6 +255,8 @@ en-dialog en-number-field,en-dialog en-file-upload,en-dialog en-select {margin-b
 @media(max-width:480px){.document-bar{padding:10px;}.document-bar en-toolbar{flex-basis:100%;}.canvas-toolbar en-number-field{max-width:165px;}.pan-fields{display:block;}.pan-fields::part(base){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:end;}.pan-fields en-button{grid-column:1/-1;}.property-grid{grid-template-columns:1fr;}.request-fields{padding-inline:16px;}.report-return{bottom:12px;}}
 /* Keep the native picker with a token-styled closed control and a CSP-safe caret. */
 en-select {--en-select-appearance:auto;}
+/* The enhancement button is only for base-select, not the native picker. */
+en-select::part(selected-button) {display:none;}
 en-select::part(control) {
   appearance:none;
   padding-inline-end:calc(var(--en-input-inline-padding,var(--en-control-inline-padding,var(--en-space-control-inline))) + var(--en-size-icon) + var(--en-space-icon-label));

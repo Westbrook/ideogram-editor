@@ -14,6 +14,19 @@ async function requestFeedback(page:Page,text:string,announcement=text){
 }
 // The toolbar role is inside the shadow root; its public buttons are slotted.
 async function canvasTools(page:Page){const host=page.locator('en-toolbar[label="Canvas tools"]');await expect(host.getByRole('toolbar',{name:'Canvas tools',exact:true})).toBeVisible();return host;}
+// The app intentionally uses the native select, including in engines which
+// support base-select. Its enhancement button must not become a second target.
+async function nativeSelect(page:Page,name:string){
+  const control=page.getByRole('combobox',{name,exact:true});
+  await expect(control).toHaveCount(1);await expect(control).toBeEnabled();
+  await expect(control).toHaveJSProperty('tagName','SELECT');
+  await expect(control).toHaveAccessibleName(name);
+  const button=control.locator(':scope > button[part="selected-button"]');
+  await expect(button).toHaveCount(1);await expect(button).toBeHidden();
+  const bounds=await control.boundingBox();expect(bounds).not.toBeNull();
+  expect(bounds!.width).toBeGreaterThanOrEqual(24);expect(bounds!.height).toBeGreaterThanOrEqual(24);
+  return control;
+}
 async function openSearch(page:Page){const trigger=page.getByRole('button',{name:'Command search',exact:true});await trigger.focus();await page.keyboard.press('Enter');const dialog=search(page);await expect(dialog).toBeVisible();await expect(searchContent(page).getByRole('textbox',{name:'Search commands',exact:true})).toBeFocused();return dialog;}
 
 // Passive, fixed-target evidence for axe's non-text-glyph incompletes. This does
@@ -102,6 +115,7 @@ test('Command search exposes actual availability and keyboard routes to New and 
     }
     if(scanFailed)throw scanFailure;
   };
+  for(const name of ['Appearance','Density','Operation'])await nativeSelect(page,name);
   // Capture the same four controls before any modal opens; unknown stays unknown.
   await captureGlyphs('rest-before-search');
   const dialog=await openSearch(page),query=searchContent(page).getByRole('textbox',{name:'Search commands',exact:true});
@@ -113,7 +127,10 @@ test('Command search exposes actual availability and keyboard routes to New and 
   await page.keyboard.press('Enter');await expect(dialog).toBeVisible();expect(commands).toEqual([]);await page.keyboard.press('ArrowUp');await expect(query).toBeFocused();
   await query.fill('not-a-real-editor-command');await expect(searchContent(page).getByText('No matching commands. Change the search text.',{exact:true})).toBeVisible();await page.keyboard.press('Enter');expect(commands).toEqual([]);
   await query.fill('new document');await page.keyboard.press('Enter');await expect(dialog).toBeHidden();const creation=page.getByRole('dialog',{name:'New document',exact:true});await expect(creation).toBeVisible();await expect(editorContent(page).getByRole('textbox',{name:'Document name',exact:true})).toBeFocused();expect(commands).toEqual([]);
-  await editorContent(page).getByRole('combobox',{name:'Background',exact:true}).selectOption('solid');await expect(editorContent(page).getByRole('textbox',{name:'Background color (opaque sRGB hex)',exact:true})).toBeVisible();await scan('new-document-solid-fields');await editorContent(page).getByRole('textbox',{name:'Document name',exact:true}).fill('');await editorContent(page).getByRole('button',{name:'Create',exact:true}).click();await expect(editorContent(page).getByRole('textbox',{name:'Document name',exact:true})).toBeFocused();await scan('new-document-name-validation');
+  const background=await nativeSelect(page,'Background');await expect(background).toHaveValue('transparent');
+  await background.focus();await expect(background).toBeFocused();await background.press('ArrowDown');await background.press('Enter');
+  await expect(background).toHaveValue('solid');await expect(background.locator('option:checked')).toHaveText('Solid color');
+  await expect(editorContent(page).getByRole('textbox',{name:'Background color (opaque sRGB hex)',exact:true})).toBeVisible();await scan('new-document-solid-fields');await editorContent(page).getByRole('textbox',{name:'Document name',exact:true}).fill('');await editorContent(page).getByRole('button',{name:'Create',exact:true}).click();await expect(editorContent(page).getByRole('textbox',{name:'Document name',exact:true})).toBeFocused();await scan('new-document-name-validation');
   await editorContent(page).getByRole('button',{name:'Cancel',exact:true}).click();await expect(creation).toBeHidden();
   await openSearch(page);await query.fill('editor help');await page.keyboard.press('ArrowDown');await expect(searchContent(page).getByRole('button',{name:'Editor help',exact:true})).toBeFocused();await page.keyboard.press('Enter');await expect(dialog).toBeHidden();await expect(page.getByRole('dialog',{name:'Editor help',exact:true})).toBeVisible();await page.keyboard.press('Escape');await expect(page.getByRole('button',{name:'Command search',exact:true})).toBeFocused();expect(commands).toEqual([]);
   await evidence.finish();await record('command-search-keyboard',{unavailable:'Export image: no open document',emptyResults:true,newDialogOpened:true,helpOpened:true,focusRestored:true,commands});
