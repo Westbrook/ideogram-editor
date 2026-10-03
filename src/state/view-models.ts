@@ -94,6 +94,7 @@ export class ViewModelReads {
  }
  private capture(error:unknown){if(error instanceof PromptReaderCleanupError)this.failed.add(error);else if(error instanceof AggregateError)for(const cause of error.errors)this.capture(cause);}
  release(){if(this.drain)return this.drain;this.releasing=true;this.drain=(async()=>{for(const abort of this.reads.keys())abort.abort();await Promise.allSettled([...this.reads.values()]);const errors:unknown[]=[];for(const failure of this.failed)try{await failure.retry();this.failed.delete(failure);}catch(error){errors.push(error);}if(errors.length)throw new AggregateError(errors,'VIEW_MODEL_READ_CLEANUP_FAILED');})().finally(()=>{this.releasing=false;this.drain=undefined;});return this.drain;}
+ async settle(){await Promise.allSettled([...this.reads.values()]);if(this.failed.size)throw Error('VIEW_MODEL_READ_CLEANUP_FAILED');}
  get ownership(){return {activeReads:this.reads.size,cleanupFailures:this.failed.size};}
 }
 /** Canonical serialization may escape controls more than JSON.stringify. The

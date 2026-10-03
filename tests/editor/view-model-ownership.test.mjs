@@ -49,6 +49,7 @@ test('canonical hash workspace refuses before serialization when admission is un
 });
 
 const resources=await moduleURL('src/state/document-lifecycle.ts');
+const storeURL=await moduleURL('src/protocol/store.ts');
 const historyAvailability=await moduleURL('src/state/history-availability.ts',{'../observability/model-memory.js':memory});
 const {commandsURL,draftURL}=await draftStateDependencies(allocations,{memoryURL:memory,promptURL:prompt,controlURL:control});
 const documentsURL=await moduleURL(root+'/src/state/document-list.ts',{'../observability/model-memory.js':memory});
@@ -56,11 +57,11 @@ const {DraftPersistence}=await import(draftURL);
 const sessionURL=await moduleURL('src/state/session-client.ts',{'@en-reve/primitives/state/value.js':import.meta.resolve('@en-reve/primitives/state/value.js'),'../observability/model-memory.js':memory,'./control-memory.js':control,'./command-results.js':commandsURL});
 const {createSessionClient}=await import(sessionURL),{readCommandEvents}=await import(commandsURL);
 const clientCode=(await transformWithOxc(await readFile(root+'/src/state/editor-client.ts','utf8'),'editor-client.ts')).code.replace(/^import\s+[\s\S]*?\sfrom\s+["'][^"']+["'];?\n/gm,'');
-const {EditorClient,navigation,clientBoundaries}=await import(data(`import {NavigationObservations} from ${JSON.stringify(navigationObservationsURL)};export const navigation=new NavigationObservations(()=>performance.now(),performance.timeOrigin);import {allocationLedger} from ${JSON.stringify(allocations)};import {readOwnedJSON,createOwnedModel,cloneOwnedModel,modelPayloadBytes,ModelPayload} from ${JSON.stringify(memory)};import {reserveCommandWire,measureControl} from ${JSON.stringify(control)};import {DraftPersistence} from ${JSON.stringify(draftURL)};import {collectOwnedDocuments} from ${JSON.stringify(documentsURL)};import {ViewModelOwners,ViewModelReads,VIEW_MODEL_LIMITS,canonicalControlHash,ownDownload} from ${JSON.stringify(owners)};import {CommandControlReads} from ${JSON.stringify(commandsURL)};import {readUndoAvailability} from ${JSON.stringify(historyAvailability)};import {DocumentResources} from ${JSON.stringify(resources)};const createValueModel=initial=>{let value=initial;return {value:{get:()=>value},set:next=>{value=next;}};};export const clientBoundaries={cacheOpen(){throw Error('Unexpected cache open');},journalOpen(){throw Error('Unexpected journal open');},consumer(){throw Error('Unexpected recovery consumer');},storage:new Map()};const sessionStorage={getItem:key=>clientBoundaries.storage.get(key)??null,setItem:(key,value)=>clientBoundaries.storage.set(key,value)};class RecoveryCache{static open(...args){return clientBoundaries.cacheOpen(...args);}}class BrowserJournal{static open(...args){return clientBoundaries.journalOpen(...args);}}class RecoveryConsumer{constructor(...args){return clientBoundaries.consumer(...args);}}class RecoveryPublicationConflict extends Error{};const browserPhases={reset(){navigation.reset();},resetNavigation(){navigation.reset();},recordNavigationModelReady:value=>navigation.modelReady(value),recordNavigationRenderSubmitted:value=>navigation.renderSubmitted(value),recordNavigationControlsRendered:(...args)=>navigation.controlsRendered(...args),recordNavigationControlsCommitted:(...args)=>navigation.controlsCommitted(...args),recordNavigationViewportUnavailable:()=>navigation.viewportUnavailable()};\n`+clientCode));
+const {EditorClient,navigation,clientBoundaries}=await import(data(`import {NavigationObservations} from ${JSON.stringify(navigationObservationsURL)};export const navigation=new NavigationObservations(()=>performance.now(),performance.timeOrigin);import {allocationLedger} from ${JSON.stringify(allocations)};import {readOwnedJSON,createOwnedModel,cloneOwnedModel,modelPayloadBytes,ModelPayload} from ${JSON.stringify(memory)};import {reserveCommandWire,measureControl} from ${JSON.stringify(control)};import {DraftPersistence} from ${JSON.stringify(draftURL)};import {collectOwnedDocuments} from ${JSON.stringify(documentsURL)};import {ViewModelOwners,ViewModelReads,VIEW_MODEL_LIMITS,canonicalControlHash,ownDownload} from ${JSON.stringify(owners)};import {CommandControlReads,COMMAND_RESULT_LIMITS,readCommandEvents} from ${JSON.stringify(commandsURL)};import {EMPTY_EXPECTED_VERSIONS} from ${JSON.stringify(storeURL)};import {readUndoAvailability} from ${JSON.stringify(historyAvailability)};import {DocumentResources} from ${JSON.stringify(resources)};const createValueModel=initial=>{let value=initial;return {value:{get:()=>value},set:next=>{value=next;}};};export const clientBoundaries={cacheOpen(){throw Error('Unexpected cache open');},journalOpen(){throw Error('Unexpected journal open');},consumer(){throw Error('Unexpected recovery consumer');},storage:new Map()};const sessionStorage={getItem:key=>clientBoundaries.storage.get(key)??null,setItem:(key,value)=>clientBoundaries.storage.set(key,value)};class RecoveryCache{static open(...args){return clientBoundaries.cacheOpen(...args);}}class BrowserJournal{static open(...args){return clientBoundaries.journalOpen(...args);}}class RecoveryConsumer{constructor(...args){return clientBoundaries.consumer(...args);}}class RecoveryPublicationConflict extends Error{};const browserPhases={recorder:{start(){return {end(){}};}},reset(){navigation.reset();},resetNavigation(){navigation.reset();},recordNavigationModelReady:value=>navigation.modelReady(value),recordNavigationRenderSubmitted:value=>navigation.renderSubmitted(value),recordNavigationControlsRendered:(...args)=>navigation.controlsRendered(...args),recordNavigationControlsCommitted:(...args)=>navigation.controlsCommitted(...args),recordNavigationViewportUnavailable:()=>navigation.viewportUnavailable()};\n`+clientCode));
 function fixture(withImage=false){
  const document={id:'d',revision:'1',orderedLayerIds:['a']},calls=[],state={image:image('a'),history:{items:[{id:'h'}],next:null},checkpoints:{items:[{id:'c',documentId:'d',historyHead:'h'}],next:null},save:{pendingCommandCount:0,draftDirty:false,documentChangedSinceCheckpoint:false,bundleOutdated:false},head:null,headVersion:'1',publishedGeneration:'g',badHistory:false};
  if(withImage)document.image={state:{hash:canonicalControlHash(state.image),byteLength:'1',mediaType:'application/json'},compositeAssetId:'canonical-asset'};
- const client=new EditorClient({transport:async(path,init)=>{calls.push(path);if(init?.method==='HEAD'){if(state.head)await state.head.promise;return new Response(null,{headers:{'X-App-Entity-Version':state.headVersion}});}if(path.endsWith('/history'))return state.badHistory?new Response('{}',{headers:{'content-length':'65537'}}):response(state.history);if(path.endsWith('/checkpoints'))return response(state.checkpoints);if(path.includes('/save-status'))return response(state.save);if(path.endsWith('/image'))return response(state.image);throw Error('Unexpected '+path);}}),documents=cloneOwnedModel('view-test-documents',[document]);
+ const client=new EditorClient({identity:()=> 'view-model-fixture',transport:async(path,init)=>{calls.push(path);if(init?.method==='HEAD'){if(state.head)await state.head.promise;return new Response(null,{headers:{'X-App-Entity-Version':state.headVersion}});}if(path.endsWith('/history'))return state.badHistory?new Response('{}',{headers:{'content-length':'65537'}}):response(state.history);if(path.endsWith('/checkpoints'))return response(state.checkpoints);if(path.includes('/save-status'))return response(state.save);if(path.endsWith('/image'))return response(state.image);throw Error('Unexpected '+path);}}),documents=cloneOwnedModel('view-test-documents',[document]);
  client.documentsMetadata={documents:documents.value,pin:()=>documents.pin(),release:()=>documents.release()};client.cache={published:async()=>({generation:state.publishedGeneration,cursor:'1'}),read:async()=>documents.value[0],close(){}};client.patch({document:documents.value[0],documents:documents.value,ready:true});
  return {client,document:documents.value[0],state,calls,async close(){await client.dispose();}};
 }
@@ -393,4 +394,318 @@ for(const pollAt of ['during-held-read','after-stale-read'])test(`same-cursor ge
   for(const gate of gates)gate.release.resolve();await Promise.allSettled(first?[first]:[]);
   try{await f.close();}finally{assert.equal(timers.size,0);assert.equal(closed,1);assert.equal(recoveries,0);assert.deepEqual(ownershipTotals(),before);}
  }
+});
+
+
+// Real collect/refresh/load/publish behavior supplies the reusable observation.
+// Controlled cache rows, transport and interval delivery only; no browser or
+// IndexedDB qualification is supplied by this deterministic scheduling fixture.
+function refreshReuseFixture(t){
+ const f=fixture(true),timers=new Map(),nativeClearInterval=globalThis.clearInterval;
+ const state=Object.assign(f.state,{pointer:{generation:'reuse-generation',cursor:'1',epoch:'1'},identity:'reuse-owner',closed:0,streams:0}),document=structuredClone(f.document);
+ t.mock.method(globalThis,'setInterval',(work,delay)=>{assert.equal(delay,100);const id={};timers.set(id,work);return id;});
+ t.mock.method(globalThis,'clearInterval',id=>{if(!timers.delete(id))nativeClearInterval(id);});
+ f.client.owner=state.identity;f.client.session.identity=()=>state.identity;
+ f.client.cache={async published(){return {...state.pointer};},async *rows(generation,type){assert.equal(generation,state.pointer.generation);assert.equal(type,'document');yield {value:structuredClone(document)};},async read(type,id){return type==='document'&&id===document.id?structuredClone(document):null;},close(){state.closed++;}};
+ f.client.consumer={cancel(){},async release(){},async recover(){assert.fail('No recovery may manufacture a publication in this fixture');},consumeStream(signal){state.streams++;return new Promise(resolve=>{if(signal.aborted)resolve();else signal.addEventListener('abort',resolve,{once:true});});}};
+ const turn=()=>new Promise(resolve=>setImmediate(resolve));
+ const settle=async()=>{await turn();for(let count=0;f.client.refreshTask;count++){assert(count<4,'Finite publication changes must settle');await f.client.refreshTask;await turn();}};
+ return {...f,state,timers,turn,settle,start(){f.client.startStream(f.client.lifecycle);},async poll(){assert.equal(timers.size,1);[...timers.values()][0]();await settle();},async stop(){f.client.stream.abort();await f.client.streamTask;assert.equal(timers.size,0);},async close(){try{await f.close();}finally{assert.equal(timers.size,0);assert.equal(f.client.viewReads.ownership.activeReads,0);}}};
+}
+
+test('a completed owned refresh prevents duplicate save and version reads across stream restart',async t=>{
+ const before=ownershipTotals(),f=refreshReuseFixture(t);try{
+  await f.client.refresh();const accepted=f.client.view,requests=f.calls.length;assert.equal(requests,5);
+  f.client.patch({message:'Unrelated feedback remains visible.'});f.start();await f.poll();await f.poll();
+  assert.equal(f.calls.length,requests,'The first pointer tick must not reread an accepted unchanged publication');
+  assert.equal(f.client.view.document,accepted.document);assert.equal(f.client.view.image,accepted.image);
+  await f.stop();f.start();await f.poll();assert.equal(f.calls.length,requests,'Restart alone creates no new model authority');assert.equal(f.state.streams,2);
+ }finally{await f.close();}assert.deepEqual(ownershipTotals(),before);
+});
+
+for(const field of ['generation','cursor','epoch'])test(`accepted refresh reuse still wakes for a changed ${field}`,async t=>{
+ const before=ownershipTotals(),f=refreshReuseFixture(t);try{
+  await f.client.refresh();const requests=f.calls.length;f.start();await f.poll();assert.equal(f.calls.length,requests);
+  f.state.pointer={...f.state.pointer,[field]:field==='generation'?'new-generation':'2'};await f.poll();
+  assert.equal(f.calls.length,requests+2,'A changed publication reads current save status and document version');
+  assert.equal(f.client.view.document.revision,'1');const updated=f.calls.length;await f.poll();assert.equal(f.calls.length,updated);
+ }finally{await f.close();}assert.deepEqual(ownershipTotals(),before);
+});
+
+for(const refusal of ['version','response','cancelled'])test(`stream restart retries after an unsuccessful ${refusal} refresh`,async t=>{
+ const before=ownershipTotals(),f=refreshReuseFixture(t);let work,drain,gate;try{
+  await f.client.refresh();const accepted=f.client.view.document;
+  if(refusal==='version'){f.state.headVersion='2';await f.client.refresh();f.state.headVersion='1';}
+  else if(refusal==='response'){f.state.badHistory=true;f.client.lifecycle++;await assert.rejects(f.client.refresh(),/DOCUMENT_MODEL_READ_FAILED/);f.state.badHistory=false;}
+  else{
+   gate=deferred();const entered=deferred(),transport=f.client.session.transport;f.state.head=gate;
+   f.client.session.transport=async(path,init)=>{if(init?.method==='HEAD')entered.resolve();return transport(path,init);};
+   work=f.client.refresh();await reached(entered.promise,work,'the cancellable version read');drain=f.client.viewReads.release();gate.resolve();await Promise.all([work,drain]);f.state.head=null;
+  }
+  assert.equal(f.client.view.document,accepted,'The unsuccessful read retains the accepted document');
+  const requests=f.calls.length;f.start();await f.poll();assert(f.calls.length>=requests+2,'A failed or aborted attempt is never an acknowledged publication');
+  assert.equal(f.client.view.document.revision,'1');assert.equal(f.client.view.image.layers[0].id,'a');
+ }finally{gate?.resolve();await Promise.allSettled([work,drain].filter(Boolean));await f.close();}assert.deepEqual(ownershipTotals(),before);
+});
+
+for(const replacement of ['cache','lifecycle','documentLifetime','owner','session-identity','image','history','checkpoints','save','documents'])test(`stream restart cannot reuse refresh after ${replacement} replacement`,async t=>{
+ const before=ownershipTotals(),f=refreshReuseFixture(t);try{
+  await f.client.refresh();const requests=f.calls.length;
+  if(replacement==='cache')f.client.cache={...f.client.cache};
+  else if(replacement==='lifecycle')f.client.lifecycle++;
+  else if(replacement==='documentLifetime')f.client.documentLifetime++;
+  else if(replacement==='owner')f.client.owner='new-owner';
+  else if(replacement==='session-identity')f.state.identity='new-session-identity';
+  else if(replacement==='save')f.client.patchSave({draftDirty:true});
+  else if(replacement==='documents'){
+   const prior=f.client.documentsMetadata,model=cloneOwnedModel('refresh-replacement-documents',structuredClone(f.client.view.documents));
+   f.client.documentsMetadata={documents:model.value,pin:()=>model.pin(),release:()=>model.release()};f.client.patch({documents:model.value});prior.release();
+  }else{
+   const value=replacement==='image'?image('replacement'):{items:[],next:null},model=cloneOwnedModel('refresh-replacement-'+replacement,value),exposed=replacement==='image'?model.value:model.value.items;
+   f.client.publishViewModels([f.client.viewInput(replacement,model,'explicit-replacement',exposed)],{[replacement]:exposed});
+  }
+  f.start();await f.poll();assert(f.calls.length>=requests+2,'Changed authority requires a real read');
+  assert.equal(f.client.view.document.revision,'1');assert.equal(f.client.view.image.layers[0].id,'a');
+ }finally{await f.close();}assert.deepEqual(ownershipTotals(),before);
+});
+
+test('root replacement after accepted load settlement cannot acknowledge the older refresh',async t=>{
+ const before=ownershipTotals(),f=refreshReuseFixture(t);try{
+  const original=f.client.loadDocument.bind(f.client);let changed=false;
+  f.client.loadDocument=async document=>{const result=await original(document);if(!changed){changed=true;f.client.patchSave({draftDirty:true});}return result;};
+  await f.client.refresh();assert.equal(f.client.view.save.draftDirty,true);const requests=f.calls.length;
+  f.start();await f.poll();assert.equal(f.calls.length,requests+2,'The older accepted result cannot authorize a replacement view root');assert.equal(f.client.view.save.draftDirty,false);
+ }finally{await f.close();}assert.deepEqual(ownershipTotals(),before);
+});
+
+
+for(const secondDocument of ['added','deleted'])test(`mixed list and selected-document publications cannot hide a ${secondDocument} document after restart`,async t=>{
+ const before=ownershipTotals(),f=refreshReuseFixture(t),other={id:'other',revision:'1',orderedLayerIds:[]};let switched=false;
+ try{
+  const selected=structuredClone(f.document),initial=[selected,...(secondDocument==='deleted'?[other]:[])],replacement=[selected,...(secondDocument==='added'?[other]:[])];
+  const g1={generation:'list-g1',cursor:'7',epoch:'1'},g2={generation:'selected-g2',cursor:'7',epoch:'1'};f.state.pointer=g1;
+  f.client.cache.rows=async function*(generation,type){assert.equal(type,'document');const rows=generation===g1.generation?initial:generation===g2.generation?replacement:null;assert(rows,'No unrelated publication repairs the fixture');for(const row of rows)yield {value:structuredClone(row)};};
+  const load=f.client.loadDocument.bind(f.client);f.client.loadDocument=async document=>{
+   if(!switched){switched=true;assert.equal(f.client.documentsMetadata.publication.generation,g1.generation);f.state.pointer=g2;}
+   return load(document);
+  };
+  await f.client.refresh();assert.deepEqual(f.client.view.documents.map(row=>row.id),initial.map(row=>row.id));assert.equal(f.client.view.document.id,selected.id);assert.equal(f.client.view.document.revision,selected.revision);
+  const requests=f.calls.length;f.start();await f.poll();
+  assert.equal(f.calls.length,requests+2,'A completed selected-document load cannot acknowledge a list collected from another generation');
+  assert.deepEqual(f.client.view.documents.map(row=>row.id),replacement.map(row=>row.id));assert.deepEqual(f.client.documentsMetadata.publication,g2);
+  assert.equal(f.client.view.document.id,selected.id);assert.equal(f.client.view.document.revision,selected.revision);
+  const accepted=f.calls.length;await f.poll();assert.equal(f.calls.length,accepted,'The joined current publication may then be reused');
+ }finally{await f.close();}assert.deepEqual(ownershipTotals(),before);
+});
+
+// Actual editor read/command owners; transport and command settlement are held
+// only at their external boundaries. No timer guesses or browser-error filtering.
+function deletionReadFixture(){
+ const f=fixture(),state={identity:'client',commands:[],refreshes:0};
+ f.client.session.identity=()=>state.identity;f.client.owner='client';f.client.journal={close(){}};
+ f.client.refresh=async()=>{state.refreshes++;};
+ const body={type:'DeleteDocument',documentId:'d',planId:'plan',planHash:'sha256:'+'a'.repeat(64),expectedRevision:'1',rootGeneration:'sha256:'+'b'.repeat(64),acknowledgeRunningAndUncertain:true};
+ f.client.ownedCommand=async value=>{state.commands.push(value);f.client.patch({document:null,image:null,history:[],checkpoints:[],save:null});return cloneOwnedModel('delete-test-events',[{type:'DocumentDeleted',payload:{id:'d'}}]);};
+ return {...f,deletion:state,body,remove:()=>f.client.withCommandEvents(body,()=>undefined,null)};
+}
+test('deletion drains a held original save-status read and version probe before its command',async()=>{
+ const before=snapshot(),f=deletionReadFixture(),entered=deferred(),gate=deferred();let reading,deleting;
+ try{
+  await f.client.loadDocument(f.document);f.calls.length=0;const transport=f.client.session.transport;
+  f.client.session.transport=async(path,init)=>{if(path.includes('/save-status')){entered.resolve();await gate.promise;}if(init?.method==='HEAD')assert.equal(f.deletion.commands.length,0,'Version probe completes before deletion');return transport(path,init);};
+  reading=f.client.loadDocument(f.document);await entered.promise;deleting=f.remove();await flush();
+  assert.equal(f.deletion.commands.length,0);assert.equal(f.client.view.document,f.document);
+  const issued=f.calls.length;await f.client.loadDocument(f.document);await f.client.historyPage('history');assert.equal(f.calls.length,issued,'No new matching model or page reads while deletion drains');
+  gate.resolve();await reading;await deleting;
+  assert.equal(f.deletion.commands.length,1);assert.deepEqual(f.deletion.commands[0],f.body);assert.equal(f.calls.filter(path=>path==='/api/v1/documents/d').length,1,'The original version probe remains required before dispatch');
+  assert.equal(f.client.view.document,null);assert.equal(f.client.viewReads.ownership.activeReads,0);
+ }finally{gate.resolve();await Promise.allSettled([reading,deleting]);await f.close();}assert.equal(snapshot().cpuBytes,before.cpuBytes);
+});
+test('deletion waits for an already-issued version HEAD to settle before dispatch',async()=>{
+ const before=snapshot(),f=deletionReadFixture(),gate=deferred(),entered=deferred();let reading,deleting;
+ try{
+  await f.client.loadDocument(f.document);const transport=f.client.session.transport;
+  f.client.session.transport=async(path,init)=>{if(init?.method==='HEAD'){entered.resolve();await gate.promise;}return transport(path,init);};
+  reading=f.client.loadDocument(f.document);await entered.promise;deleting=f.remove();await flush();assert.equal(f.deletion.commands.length,0);assert.equal(f.client.viewReads.ownership.activeReads,1);
+  gate.resolve();await Promise.all([reading,deleting]);assert.equal(f.deletion.commands.length,1);assert.equal(f.client.viewReads.ownership.activeReads,0);
+ }finally{gate.resolve();await Promise.allSettled([reading,deleting]);await f.close();}assert.equal(snapshot().cpuBytes,before.cpuBytes);
+});
+test('deletion waits through undo authority and its required version HEAD before dispatch',async()=>{
+ const before=snapshot(),f=deletionReadFixture(),gate=deferred(),entered=deferred();let reading,deleting;
+ try{
+  await f.client.loadDocument(f.document);f.calls.length=0;const read=f.client.cache.read;
+  f.client.cache.read=async(...args)=>{if(args[0]==='history'){entered.resolve();await gate.promise;}return read(...args);};const transport=f.client.session.transport;f.client.session.transport=async(path,init)=>{if(init?.method==='HEAD')assert.equal(f.deletion.commands.length,0);return transport(path,init);};
+  reading=f.client.loadDocument(f.document);await entered.promise;deleting=f.remove();await flush();assert.equal(f.deletion.commands.length,0);
+  gate.resolve();await Promise.all([reading,deleting]);assert.equal(f.calls.filter(path=>path==='/api/v1/documents/d').length,1);assert.equal(f.deletion.commands.length,1);
+ }finally{gate.resolve();await Promise.allSettled([reading,deleting]);await f.close();}assert.equal(snapshot().cpuBytes,before.cpuBytes);
+});
+for(const kind of ['history','checkpoints'])test('deletion drains an older '+kind+' page and version probe before dispatch',async()=>{
+ const before=snapshot(),f=deletionReadFixture(),gate=deferred(),entered=deferred();let reading,deleting;
+ try{
+  await f.client.loadDocument(f.document);f.calls.length=0;const transport=f.client.session.transport;
+  f.client.session.transport=async(path,init)=>{if(path.includes('/'+kind)){entered.resolve();await gate.promise;}if(init?.method==='HEAD')assert.equal(f.deletion.commands.length,0);return transport(path,init);};
+  reading=f.client.historyPage(kind);await entered.promise;deleting=f.remove();await flush();assert.equal(f.deletion.commands.length,0);
+  gate.resolve();await Promise.all([reading,deleting]);assert.equal(f.calls.filter(path=>path==='/api/v1/documents/d').length,1);assert.equal(f.deletion.commands.length,1);
+ }finally{gate.resolve();await Promise.allSettled([reading,deleting]);await f.close();}assert.equal(snapshot().cpuBytes,before.cpuBytes);
+});
+test('deletion blocks checkpoint navigation and retains all current roots until acknowledgement',async()=>{
+ const before=snapshot(),f=deletionReadFixture();let pause;
+ try{await f.client.loadDocument(f.document);const view=f.client.view,roots=f.client.viewModels.ownership.currentRoots;pause=f.client.pauseDocumentReads('d','1');await pause.drain;
+  await assert.rejects(f.client.openCheckpoint(f.state.checkpoints.items[0]),/DOCUMENT_CHANGED/);assert.equal(f.deletion.commands.length,0);assert.equal(f.client.view,view);assert.equal(f.client.viewModels.ownership.currentRoots,roots);
+ }finally{pause?.release();await f.close();}assert.equal(snapshot().cpuBytes,before.cpuBytes);
+});
+test('predispatch deletion refusal resumes only its current document reads and retains the failure',async()=>{
+ const before=snapshot(),f=deletionReadFixture();
+ try{await f.client.loadDocument(f.document);const failure=Error('DELETE_REFUSED');f.client.ownedCommand=async()=>{throw failure;};
+  await assert.rejects(f.remove(),error=>error===failure);assert.equal(f.client.documentReadBlocked('d'),false);assert.equal(f.deletion.refreshes,1);const count=f.calls.length;await f.client.loadDocument(f.document);assert(f.calls.length>count);assert.equal(f.client.view.document,f.document);
+ }finally{await f.close();}assert.equal(snapshot().cpuBytes,before.cpuBytes);
+});
+test('accepted deletion remains fenced if exact acknowledgement precedes projection retirement',async()=>{
+ const before=snapshot(),f=deletionReadFixture();
+ try{await f.client.loadDocument(f.document);f.client.ownedCommand=async()=>cloneOwnedModel('delete-test-events',[{type:'DocumentDeleted',payload:{id:'d'}}]);await f.remove();
+  assert.equal(f.client.documentReadBlocked('d'),true);const calls=f.calls.length;await f.client.loadDocument(f.document);assert.equal(f.calls.length,calls);assert.equal(f.deletion.refreshes,0);
+  f.client.patch({document:null,image:null,history:[],checkpoints:[],save:null});assert.equal(f.client.documentReadBlocked('d'),false);
+ }finally{await f.close();}assert.equal(snapshot().cpuBytes,before.cpuBytes);
+});
+test('an unrelated deletion event cannot latch the active document read barrier',async()=>{
+ const before=snapshot(),f=deletionReadFixture();
+ try{f.client.ownedCommand=async()=>cloneOwnedModel('delete-test-events',[{type:'DocumentDeleted',payload:{id:'other'}}]);await f.remove();assert.equal(f.client.documentReadBlocked('d'),false);assert.equal(f.deletion.refreshes,1);
+ }finally{await f.close();}assert.equal(snapshot().cpuBytes,before.cpuBytes);
+});
+for(const change of ['disconnect','identity','document-generation','draft-owner'])test('deletion waiting on view reads refuses changed '+change+' without dispatch or successor refresh',async()=>{
+ const before=snapshot(),f=deletionReadFixture(),gate=deferred();let reading,deleting,oldOwner;
+ try{
+  reading=f.client.viewReads.run(async()=>{await gate.promise;});deleting=f.remove();const refused=assert.rejects(deleting,/AbortError|original command owner changed|DOCUMENT_OBSERVATION_OWNER_CHANGED/);await flush();assert.equal(f.deletion.commands.length,0);
+  if(change==='disconnect')f.client.disconnect();else if(change==='identity')f.deletion.identity='replacement';else if(change==='document-generation')f.client.documentLifetime++;else{oldOwner=f.client.draftOwner;f.client.draftOwner={};}
+  gate.resolve();await reading;await refused;assert.equal(f.deletion.commands.length,0);assert.equal(f.deletion.refreshes,0);assert.equal(f.client.documentReadBlocked('d'),false);
+ }finally{if(change==='draft-owner')f.client.draftOwner=oldOwner;gate.resolve();await Promise.allSettled([reading,deleting]);await f.close();}assert.equal(snapshot().cpuBytes,before.cpuBytes);
+});
+test('an old deletion lease cannot release a replacement owner barrier',async()=>{
+ const before=snapshot(),f=deletionReadFixture();let old,current;
+ try{old=f.client.pauseDocumentReads('d','1');await old.drain;f.client.documentLifetime++;current=f.client.pauseDocumentReads('d','1');await current.drain;old.release();assert.equal(f.client.documentReadBlocked('d'),true);assert.equal(f.deletion.refreshes,0);current.release();assert.equal(f.client.documentReadBlocked('d'),false);assert.equal(f.deletion.refreshes,1);
+ }finally{old?.release();current?.release();await f.close();}assert.equal(snapshot().cpuBytes,before.cpuBytes);
+});
+test('a concurrent second deletion cannot release the first document read barrier',async()=>{
+ const before=snapshot(),f=deletionReadFixture(),gate=deferred();let reading,deleting;
+ try{reading=f.client.viewReads.run(()=>gate.promise);deleting=f.remove();await flush();await assert.rejects(f.remove(),/DOCUMENT_OBSERVATION_OWNER_CHANGED/);assert.equal(f.client.documentReadBlocked('d'),true);assert.equal(f.deletion.commands.length,0);gate.resolve();await Promise.all([reading,deleting]);assert.equal(f.deletion.commands.length,1);
+ }finally{gate.resolve();await Promise.allSettled([reading,deleting]);await f.close();}assert.equal(snapshot().cpuBytes,before.cpuBytes);
+});
+test('retained reader cleanup failure prevents deletion without releasing its real lease',async()=>{
+ const before=snapshot(),f=deletionReadFixture(),lease=allocationLedger.reserve({owner:'delete-read-cleanup-test',kind:'control',cpuBytes:10});let fail=true;
+ const failure=new PromptReaderCleanupError([Error('unlock')],{response:{},reader:{releaseLock(){if(fail)throw Error('unlock');}},lease},false);
+ try{await assert.rejects(f.client.viewReads.run(async()=>{throw failure;}),error=>error===failure);await assert.rejects(f.remove(),/VIEW_MODEL_READ_CLEANUP_FAILED/);assert.equal(f.deletion.commands.length,0);assert.equal(f.client.viewReads.ownership.cleanupFailures,1);assert(snapshot().cpuBytes>=before.cpuBytes+10);
+ }finally{fail=false;await f.client.viewReads.release();await f.close();}assert.equal(snapshot().cpuBytes,before.cpuBytes);
+});
+test('ordinary commands keep their existing path while a document read is outstanding',async()=>{
+ const before=snapshot(),f=deletionReadFixture(),gate=deferred();let reading;
+ try{reading=f.client.viewReads.run(()=>gate.promise);let sent=false;f.client.ownedCommand=async()=>{sent=true;return cloneOwnedModel('delete-test-events',[]);};await f.client.withCommandEvents({type:'SaveCheckpoint',name:'Retained'},()=>undefined);assert(sent);assert.equal(f.client.viewReads.ownership.activeReads,1);assert.equal(f.client.documentReadBlocked('d'),false);
+ }finally{gate.resolve();await reading;await f.close();}assert.equal(snapshot().cpuBytes,before.cpuBytes);
+});
+
+function retainedDeletionCommandFixture(){
+ const f=deletionReadFixture(),records=new Map(),requests=[];
+ f.client.journal={async put(key,value){records.set(key,value);},async get(key){return records.get(key);},close(){}};
+ f.client.restorePending=async()=>{};f.client.ownedCommand=EditorClient.prototype.ownedCommand;
+ const original=f.client.session.transport,state={phase:'lost-response',committed:false,command:null};
+ f.client.session.transport=async(path,init)=>{
+  requests.push({path,method:init?.method??'GET'});
+  if(path==='/api/v1/commands'&&init?.method==='POST'){
+   const command=JSON.parse(init.body).command;state.command=command;
+   if(state.phase==='lost-response'){state.committed=true;throw state.failure;}
+   return response({protocolVersion:1,kind:'receipt',receipt:{commandId:command.commandId,status:'accepted',transactionId:command.transactionId,fromSeq:'1',toSeq:'1',documentRevision:null}});
+  }
+  if(path==='/api/v1/commands/'+state.command?.commandId&&state.phase==='rejected')return response({protocolVersion:1,kind:'receipt',receipt:{commandId:state.command.commandId,status:'rejected',code:'STALE_REVISION',currentRevision:'2',details:{hash:'sha256:'+'0'.repeat(64),byteLength:'0',mediaType:'application/json'}}});
+  if(path==='/api/v1/commands/'+state.command?.commandId+'/result')return response({protocolVersion:1,kind:'unknown'});
+  if(init?.method==='HEAD'&&state.committed)return new Response(null,{status:404});
+  return original(path,init);
+ };
+ return {...f,records,requests,delivery:state};
+}
+test('a committed deletion with a lost original response keeps detailed reads fenced and retains its original error',async()=>{
+ const before=snapshot(),f=retainedDeletionCommandFixture();
+ try{
+  await f.client.loadDocument(f.document);f.requests.length=0;const failure=new TypeError('Failed to fetch after commit');f.delivery.failure=failure;
+  await assert.rejects(f.remove(),error=>error===failure);
+  assert(f.delivery.committed);assert.equal(f.records.size,1);const [record]=f.records.values();assert.equal(record.request.command.commandId,f.delivery.command.commandId);assert.equal(record.result,undefined,'No invented receipt or rejection');
+  assert.equal(f.client.view.document,f.document,'The stale projection cannot prove deletion did not commit');assert.equal(f.client.documentReadBlocked('d'),true);assert.equal(f.deletion.refreshes,0);
+  const count=f.requests.length;await f.client.loadDocument(f.document);await f.client.historyPage('history');assert.equal(f.requests.length,count,'No post-failure document HEAD can reach the deleted server');
+  assert.deepEqual(f.requests.map(row=>row.method),['POST']);
+ }finally{await f.close();}assert.equal(snapshot().cpuBytes,before.cpuBytes);
+});
+test('accepted receipt with failed event and recovery proofs keeps the journalled deletion fenced',async()=>{
+ const before=snapshot(),f=retainedDeletionCommandFixture();
+ try{
+  await f.client.loadDocument(f.document);f.requests.length=0;f.delivery.phase='proof-failure';f.delivery.committed=true;const recoveryFailure=Error('RECOVERY_PROOF_UNAVAILABLE');f.client.sync=async()=>{throw recoveryFailure;};
+  await assert.rejects(f.remove(),error=>error instanceof AggregateError&&error.message==='COMMAND_RESULT_PROOF_FAILED'&&error.errors.includes(recoveryFailure));
+  const [record]=f.records.values();assert.equal(record.result.kind,'receipt');assert.equal(record.result.receipt.status,'accepted');assert.equal(f.client.view.document,f.document);assert.equal(f.client.documentReadBlocked('d'),true);assert.equal(f.deletion.refreshes,0);
+  const count=f.requests.length;await f.client.loadDocument(f.document);await f.client.historyPage('checkpoints');assert.equal(f.requests.length,count);assert.equal(f.requests.filter(row=>row.method==='POST').length,1);
+ }finally{await f.close();}assert.equal(snapshot().cpuBytes,before.cpuBytes);
+});
+test('later exact rejected-receipt lookup releases its own uncertain deletion without replaying the POST',async()=>{
+ const before=snapshot(),f=retainedDeletionCommandFixture();
+ try{
+  f.delivery.failure=Error('Original delivery unknown');await assert.rejects(f.remove(),error=>error===f.delivery.failure);assert.equal(f.client.documentReadBlocked('d'),true);
+  // This branch represents a genuinely rejected original command: the lookup
+  // carries its exact identity and the real deliverOwned validator consumes it.
+  f.delivery.committed=false;f.delivery.phase='rejected';await assert.rejects(f.client.ownedRetry(f.delivery.command.commandId),/STALE_REVISION/);
+  assert.equal(f.client.documentReadBlocked('d'),false);assert.equal(f.deletion.refreshes,1);assert.equal(f.records.get('command:'+f.delivery.command.commandId).result.receipt.status,'rejected');
+  assert.deepEqual(f.requests.map(row=>row.method),['POST','GET']);const count=f.requests.length;await f.client.loadDocument(f.document);assert(f.requests.length>count);
+ }finally{await f.close();}assert.equal(snapshot().cpuBytes,before.cpuBytes);
+});
+test('rejection of an older command cannot release a replacement deletion barrier',async()=>{
+ const before=snapshot(),f=retainedDeletionCommandFixture();let replacement;
+ try{
+  f.delivery.failure=Error('Original delivery unknown');await assert.rejects(f.remove(),error=>error===f.delivery.failure);f.client.documentLifetime++;replacement=f.client.pauseDocumentReads('d','1');await replacement.drain;replacement.journaled('replacement-command');
+  f.delivery.committed=false;f.delivery.phase='rejected';await assert.rejects(f.client.ownedRetry(f.delivery.command.commandId),/STALE_REVISION/);
+  assert.equal(f.client.documentReadBlocked('d'),true);assert.equal(f.deletion.refreshes,0);assert.equal(f.client.documentReadBarrier.commandId,'replacement-command');
+ }finally{f.client.documentLifetime++;replacement?.release();await f.close();}assert.equal(snapshot().cpuBytes,before.cpuBytes);
+});
+
+function retainedDeletionCloseOwner(f){
+ const checkpoint={protocolVersion:1,sessionId:'barrier-ui',uiSeq:'1',preferences:{documentId:'d',selectedLayerIds:[]},drafts:[]},uiRequests=[],transport=f.client.session.transport;
+ f.client.session.csrf=()=> 'fixture-csrf';
+ f.client.session.transport=async(path,init)=>{
+  if(path!=='/api/v1/ui/barrier-ui')return transport(path,init);
+  uiRequests.push({method:init?.method??'GET'});
+  if(init?.method==='POST'){const request=JSON.parse(init.body);assert.equal(request.body.type,'SetPreferences');assert.equal(request.body.preferences.documentId,null);return response({protocolVersion:1,requestId:request.requestId,status:'accepted',uiSeq:'2'});}
+  return response(checkpoint);
+ };
+ const owner=new DraftPersistence('barrier-ui',f.client.session.transport,f.client.session.csrf);
+ owner.checkpoint=checkpoint;owner.drafts.set('saved',{id:'saved',kind:'prompt',documentId:'d',targetLayerId:null,expectedDocumentRevision:'1',generation:'1',composing:false,text:'Saved draft retained through uncertain deletion',savedGeneration:'1',pending:false,error:null});
+ f.client.draftOwner=owner;f.client.ui=owner.checkpoint;
+ return {owner,uiRequests};
+}
+test('actual closeDocument retires an unknown deletion barrier after saved-owner closure without a later blocked read',async()=>{
+ const before=snapshot(),f=retainedDeletionCommandFixture(),{owner,uiRequests}=retainedDeletionCloseOwner(f);
+ try{
+  f.delivery.failure=Error('Deletion response lost');await assert.rejects(f.remove(),error=>error===f.delivery.failure);
+  const barrier=f.client.documentReadBarrier;assert(barrier?.hold);assert.equal(f.client.controlReads.ownership.controlReads,0,'Original command has already rejected');
+  await f.client.closeDocument();
+  assert.equal(f.client.view.document,null);assert.equal(f.client.documentReadBarrier,undefined,'Retirement must occur inside the real publication path');
+  assert.equal(owner.drafts.size,0);assert.equal(f.client.documentResources.snapshot.releases,1);assert.deepEqual(uiRequests.map(row=>row.method),['GET','POST']);
+  assert.equal(f.requests.filter(row=>row.method==='HEAD').length,0);assert.equal(f.records.get('command:'+f.delivery.command.commandId).result,undefined,'Closing does not invent a deletion receipt');
+ }finally{await f.close();}assert.equal(snapshot().cpuBytes,before.cpuBytes);
+});
+for(const deleted of [false,true])test('actual recovered document-list refresh '+(deleted?'retires':'preserves')+' the unknown deletion barrier for its published owner',async()=>{
+ const before=snapshot(),f=retainedDeletionCommandFixture();
+ try{
+  f.delivery.failure=Error('Deletion response lost');await assert.rejects(f.remove(),error=>error===f.delivery.failure);const barrier=f.client.documentReadBarrier;assert(barrier?.hold);
+  f.client.cache.published=async()=>({generation:'after-deletion',cursor:'2',epoch:'1'});
+  f.client.cache.rows=async function*(generation,type){assert.equal(generation,'after-deletion');assert.equal(type,'document');if(!deleted)yield {value:f.document};};
+  await EditorClient.prototype.refresh.call(f.client);
+  assert.equal(f.client.documentReadBarrier,deleted?undefined:barrier,'Inspect stored ownership directly without invoking lazy read admission');
+  assert.equal(f.client.view.document,deleted?null:f.document);assert.equal(f.client.view.documents.length,deleted?0:1);
+  assert.deepEqual(f.requests.map(row=>row.method),['POST'],'Authoritative list publication needs no detailed HEAD against the uncertain document');
+  assert.equal(f.records.get('command:'+f.delivery.command.commandId).result,undefined);
+ }finally{await f.close();}assert.equal(snapshot().cpuBytes,before.cpuBytes);
+});
+test('failed recovered-view publication retains the unknown barrier and original selected owner',async()=>{
+ const before=snapshot(),f=retainedDeletionCommandFixture();let restore;
+ try{
+  f.delivery.failure=Error('Deletion response lost');await assert.rejects(f.remove(),error=>error===f.delivery.failure);const barrier=f.client.documentReadBarrier;
+  f.client.cache.published=async()=>({generation:'after-deletion',cursor:'2',epoch:'1'});f.client.cache.rows=async function*(){};
+  const publish=f.client.state.set.bind(f.client.state),failure=Error('Publication refused');restore=()=>{f.client.state.set=publish;};f.client.state.set=value=>{if(value.document===null)throw failure;publish(value);};
+  await assert.rejects(EditorClient.prototype.refresh.call(f.client),error=>error===failure);
+  assert.equal(f.client.documentReadBarrier,barrier);assert.equal(f.client.view.document,f.document);assert.equal(f.client.viewReads.ownership.activeReads,0);
+ }finally{restore?.();await f.close();}assert.equal(snapshot().cpuBytes,before.cpuBytes);
 });

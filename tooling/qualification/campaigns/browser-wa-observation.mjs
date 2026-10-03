@@ -46,8 +46,8 @@ export const WA_OPAQUE_PATH_SOURCE_PINS = freeze([
   },
   {
     "path": "src/state/editor-client.ts",
-    "bytes": 128517,
-    "sha256": "sha256:1798f543766352ddfaa0e850132b741680f7cbdb1f0cc303940ba93683d0a04b"
+    "bytes": 132260,
+    "sha256": "sha256:86e0d989d26095161a307ddc493a1913a10735a2d6c5d6fcb1f0e40c62c820e1"
   },
   {
     "path": "src/protocol/sha256.ts",
@@ -101,8 +101,8 @@ export const WA_OPAQUE_PATH_SOURCE_PINS = freeze([
   },
   {
     "path": "src/ui/request.ts",
-    "bytes": 147071,
-    "sha256": "sha256:c2852c7801c68207767bd702a4bfd695a63124c981b7331e7ce02dc7c226507d"
+    "bytes": 145982,
+    "sha256": "sha256:45183e1e7df15490abf15189f70c0d03013d64bc36f292835ba5e2ea6c3b6bf2"
   }
 ]);
 

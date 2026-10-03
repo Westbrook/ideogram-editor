@@ -4,8 +4,10 @@ import {newDraft} from '../../dist/local/src/request/core.js';
 import {displayPreviewURL,displayProtocolURL} from '../display-module.mjs';
 const {displayPreviewOwnership}=await import(displayPreviewURL),{displayPath,DISPLAY_HEADERS,DISPLAY_PROFILE}=await import(displayProtocolURL);
 import {RequestEditing,allocationsURL,createOwnedModel,modelPayloadBytes,readOwnedJSON} from './request-controller-module.mjs';
+import {rendered} from './queue-controls.mjs';
 const ownedControllers=new Set(),fixtureCleanups=new Set();test.afterEach(async()=>{try{await Promise.all([...ownedControllers].map(controller=>controller.dispose()));}finally{ownedControllers.clear();for(const cleanup of fixtureCleanups)cleanup();fixtureCleanups.clear();}});const flush=async()=>{for(let i=0;i<100;i++)await Promise.resolve();};const tick=()=>new Promise(r=>setTimeout(r,5));
 function find(t,part){if(!t||typeof t!=='object')return; if(t.strings){const i=t.strings.findIndex(s=>s.includes(part));if(i>=0)return {strings:t.strings.slice(i),values:t.values.slice(i)};}for(const v of Array.isArray(t)?t:t.values??[]){const f=find(v,part);if(f)return f;}}
+function publicButton(template,label){const matches=rendered({render:()=>template}).buttons.filter(button=>button.name===label);assert.equal(matches.length,1,'Exactly one actual public button '+label);assert.equal(typeof matches[0].click,'function','The rendered button retains its click binding');return matches[0];}
 function event(value='',host={value,isConnected:true}){host.value=value;return {currentTarget:host,composedPath:()=>[host],defaultPrevented:false};}
 function fixture(contextualOperationChanged,checkpointDrafts=[]){
  let instance,rendered,identity='client',native={value:'',isConnected:false,updateComplete:Promise.resolve()};const saved=[],reviews=[],responses=new Set(),draftRegistrations=new Map();
@@ -73,7 +75,7 @@ test('pending mask read cannot attach to a replacement owner',async()=>{const f=
 
 for(const boundary of ['owner','session','identity','document','disposed','veto'])for(const queued of [false,true])test('public queue refresh refuses stale authority '+boundary+' '+queued,async()=>{const f=fixture();await f.initial();let calls=0;f.editor.json=async()=>{calls++;return {session:{id:'session',cap:null},jobs:[],counts:{},limits:{}};};const cb=actionById(f,'refresh-queue'),e=event();if(queued)cb(e);if(boundary==='owner')f.editor.draftOwner={drafts:new Map()};if(boundary==='session')f.editor.sessionId='new';if(boundary==='identity')f.identity('new');if(boundary==='document')f.editor.view.document={id:'new',revision:'1'};if(boundary==='disposed')f.instance.dispose();if(boundary==='veto')e.defaultPrevented=true;if(!queued)cb(e);await tick();await flush();assert.equal(calls,0);});
 
-async function riskController(kind){const f=fixture();await f.initial();const displayed={jobId:'displayed-job',attemptId:'displayed-attempt',expectedVersion:'7',kind};f.instance.riskReview=displayed;f.host.requestUpdate();await flush();return {...f,displayed,confirm:()=>find(f.template(),'<en-card id="queue-risk"').values.find(v=>typeof v==='function')};}
+async function riskController(kind){const f=fixture();await f.initial();const displayed={jobId:'displayed-job',attemptId:'displayed-attempt',expectedVersion:'7',kind};f.instance.riskReview=displayed;f.host.requestUpdate();await flush();return {...f,displayed,confirm:()=>publicButton(find(f.template(),'<en-card id="queue-risk"'),'Acknowledge risk and '+(kind==='override'?'release this local hold':'create a new attempt')).click};}
 for(const kind of ['override','retry']){
  for(const scheduled of [false,true])test('rendered '+kind+' refuses replaced selection '+(scheduled?'after scheduling':'before invocation'),async()=>{const f=await riskController(kind),commands=[];f.editor.command=async body=>commands.push(body);const callback=f.confirm(),replacement={jobId:'replacement-job',attemptId:'replacement-attempt',expectedVersion:'9',kind};if(scheduled)callback(event());f.instance.riskReview=replacement;if(!scheduled)callback(event());await tick();await flush();assert.deepEqual(commands,[]);assert.equal(f.instance.riskReview,replacement);});
  test('rendered '+kind+' sends exact displayed payload and retains selection replaced during completion',async()=>{const f=await riskController(kind),commands=[];let complete;f.editor.command=(body,document)=>{commands.push({body,document});return new Promise(r=>complete=r);};f.editor.json=async()=>null;f.confirm()(event());await tick();await flush();assert.equal(commands.length,1);assert.deepEqual(commands[0],{document:null,body:kind==='override'?{type:'OverrideUncertainHold',jobId:'displayed-job',attemptId:'displayed-attempt',expectedVersion:'7',acknowledgeOverlapAndChargeRisk:true}:{type:'RetryUncertainJob',jobId:'displayed-job',attemptId:'displayed-attempt',expectedVersion:'7',acknowledgeDuplicateWorkAndChargeRisk:true}});const replacement={jobId:'replacement-job',attemptId:'replacement-attempt',expectedVersion:'9',kind};f.instance.riskReview=replacement;complete();await tick();await flush();assert.equal(f.instance.riskReview,replacement);assert.equal(commands.length,1);});
@@ -607,7 +609,7 @@ function retainedOutputPage(f){
   text+=part;assert(['string','number'].includes(typeof nav.values[index]),'Status text uses actual primitive bindings');text+=String(nav.values[index]);
  }
  assert(closed,'Rendered page status closes');
- const disabled=nav.strings.flatMap((part,index)=>part.includes('<en-button ?disabled=')?[nav.values[index]]:[]);
+ const buttons=rendered({render:()=>nav}).buttons;assert.deepEqual(buttons.map(button=>button.name),['First retained outputs','Previous retained outputs','Next retained outputs']);const disabled=buttons.map(button=>button.disabledBinding);
  assert.equal(disabled.length,3,'First, Previous and Next remain rendered');assert(disabled.every(value=>typeof value==='boolean'));
  return {text:text.trim(),disabled};
 }
@@ -907,10 +909,10 @@ test('deletion drains superseded and current actual candidate readers without la
 });
 test('deletion pause fences captured and fresh result controls plus history and exact-prompt paths',async t=>{
  const f=fixture();await f.initial();t.mock.timers.enable({apis:['setTimeout']});await publishCandidates(f,candidateObservation());
- const current=f.instance.candidateViews.get('attempt'),old=f.instance.results('job','attempt').values[0],draft=f.instance.entry();assert.equal(typeof old,'function');let reads=0;f.editor.json=async()=>{reads++;throw Error('No observation is admitted during deletion');};
+ const current=f.instance.candidateViews.get('attempt'),old=publicButton(f.instance.results('job','attempt'),'Inspect retained results').click,draft=f.instance.entry();assert.equal(typeof old,'function');let reads=0;f.editor.json=async()=>{reads++;throw Error('No observation is admitted during deletion');};
  const lease=f.instance.pauseDocumentObservation('doc');await lease.drain;
  try{
-  old(event());f.instance.results('job','attempt').values[0](event());t.mock.timers.tick(0);await flush();
+  old(event());publicButton(f.instance.results('job','attempt'),'Inspect retained results').click(event());t.mock.timers.tick(0);await flush();
   await Promise.all([f.instance.refreshQueue(),f.instance.inspectHistory(),f.instance.inspectCandidates('job','attempt','next',{cursor:'next',back:['']}),f.instance.readPrompt('job','attempt','requested')]);
   assert.equal(reads,0);assert.strictEqual(f.instance.candidateViews.get('attempt'),current);assert.strictEqual(f.instance.entry(),draft);assert.equal(f.instance.requestReleasing,false);assert.deepEqual(f.instance.issues,[]);
  }finally{lease.release();await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
@@ -954,4 +956,13 @@ test('deletion fence covers reads queued before their owned transport callback s
  const read=f.instance.inspectCandidates('job','attempt'),lease=f.instance.pauseDocumentObservation('doc');
  try{await Promise.all([read,lease.drain]);assert.equal(requests,0);assert.equal(f.instance.observationTasks.size,0);assert.equal(f.instance.candidateViews.size,0);}
  finally{lease.release();await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
+});
+
+
+for(const boundary of ['accepted','owner','veto'])test(`shared rendered operation-default action preserves ${boundary} admission`,async()=>{
+ const f=fixture();await f.initial();f.instance.mutateEntry(undefined,next=>{next.draft.fields.strength='0.4';});await flush();
+ const button=publicButton(f.template(),'Use operation strength default'),before=f.saved.length,click=event();assert.equal(button.disabled,false);
+ button.click(click);if(boundary==='owner')f.editor.draftOwner={drafts:new Map()};if(boundary==='veto')click.defaultPrevented=true;await tick();await flush();
+ if(boundary==='accepted'){assert(f.saved.length>before,'The actual guarded action saves its draft');assert.equal(lastDraft(f).fields.strength,'0.8');}
+ else{assert.equal(f.saved.length,before,'A captured shared button cannot bypass changed authority or late veto');assert.equal(f.instance.entry().draft.fields.strength,'0.4');}
 });

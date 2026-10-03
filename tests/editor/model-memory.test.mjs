@@ -124,7 +124,8 @@ test('owned JSON admission refuses before invoking transport',async()=>{
   }finally{for(const blocker of blockers)blocker.release();}
 });
 test('document scan publishes only a whole unchanged generation',async()=>{
-  const before=allocationLedger.snapshot(),rows=[{id:'one',revision:'1'},{id:'two',revision:'2'}],owned=await collectOwnedDocuments(cache(rows));
+  const before=allocationLedger.snapshot(),rows=[{id:'one',revision:'1'},{id:'two',revision:'2'}],pointer={generation:'g',cursor:'9',epoch:'1'},owned=await collectOwnedDocuments(cache(rows,()=>pointer));
+  assert.deepEqual(owned.publication,pointer);assert.notEqual(owned.publication,pointer);assert.equal(Object.isFrozen(owned.publication),true);pointer.cursor='10';assert.equal(owned.publication.cursor,'9');
   assert.deepEqual(owned.documents,rows);assert.equal(owned.cursor,'9');assert.equal(allocationLedger.snapshot().cpuBytes-before.cpuBytes,modelPayloadBytes(rows));owned.release();
   let publication=0;const changed=await collectOwnedDocuments(cache(rows,()=>({generation:++publication===1?'a':'b',cursor:'2'})));assert.equal(changed,null);assert.equal(allocationLedger.snapshot().activeRecords,before.activeRecords);
 });
@@ -145,7 +146,7 @@ const clientSource=(await transformWithOxc(await readFile(root+'/src/state/edito
 const {EditorClient}=await import(data(`import {ViewModelOwners,ViewModelReads,canonicalControlHash,VIEW_MODEL_LIMITS,ownDownload} from ${JSON.stringify(viewURL)};import {CommandControlReads} from ${JSON.stringify(commandsURL)};import {allocationLedger} from ${JSON.stringify(allocationURL)};import {readOwnedJSON} from ${JSON.stringify(memoryURL)};import {collectOwnedDocuments} from ${JSON.stringify(documentsURL)};import {DocumentResources} from ${JSON.stringify(resourceURL)};
 const createValueModel=initial=>{let value=initial;return {value:{get:()=>value},set:next=>{value=next;}};};const browserPhases={resetNavigation(){},reset(){}};\n`+clientSource));
 test('EditorClient refusal preserves the exact previous complete list and current row ownership',async()=>{
-  const before=allocationLedger.snapshot(),client=new EditorClient({transport:async()=>{throw Error('Unexpected transport');}});
+  const before=allocationLedger.snapshot(),client=new EditorClient({identity:()=> 'model-memory-fixture',transport:async()=>{throw Error('Unexpected transport');}});
   const controls=allocationLedger.snapshot().cpuBytes-before.cpuBytes;
   assert.equal(controls,modelPayloadBytes(client.renderViewMetadata(client.view).value)+'editor-view-metadata'.length*2+3*8,'one exact metadata payload plus its three-reference ownership index');
   client.cache=cache([{id:'one',revision:'1'}]);await client.refresh();const original=client.view.documents,originalBytes=allocationLedger.snapshot().cpuBytes-before.cpuBytes;client.patch({document:original[0]});

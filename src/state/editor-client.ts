@@ -3,7 +3,7 @@ import {rasterImportCancellation,type RasterImportCancellation} from '../protoco
 import {readUndoAvailability} from './history-availability.js';
 import { createValueModel } from '@en-reve/primitives/state/value.js';
 import type { createSessionClient } from './session-client.js';
-import { RecoveryCache, RecoveryPublicationConflict } from './recovery-cache.js';
+import { RecoveryCache, RecoveryPublicationConflict, type Published } from './recovery-cache.js';
 import { RecoveryConsumer } from './recovery-client.js';
 import { BrowserJournal } from './browser-journal.js';
 import {reserveCommandWire,measureControl} from './control-memory.js';
@@ -99,6 +99,9 @@ export class EditorClient {
   private syncTask?: Promise<void>;
   private refreshTask?: Promise<void>;
   private refreshAgain=false;
+  private refreshRoot=0;
+  private refreshed?:Published&{root:number;cache:RecoveryCache;lifetime:number;documentLifetime:number;owner:string|null;identity:string|null};
+  private documentReadBarrier?:{id:string;current:()=>boolean;hold:boolean;commandId?:string;release():void};
   private owner: string | null = null;
   private retryTimer?: ReturnType<typeof setTimeout>;
   private retryDelay=250;
@@ -130,6 +133,7 @@ export class EditorClient {
     this.documentResources.register('editor-client',{release:async()=>{for(const abort of [...this.uploads,...this.draftReads.keys()])abort.abort();await Promise.allSettled([...this.uploadSettlements.values(),...this.draftReads.values()]);},inspect:()=>({uploads:this.uploads.size,draftReads:this.draftReads.size})});
   }
   patch(value: Partial<EditorView>) {
+    if((['documents','document','image','history','checkpoints','save'] as const).some(key=>key in value&&value[key]!==this.view[key])){this.refreshed=undefined;this.refreshRoot++;}
     if(value.review&&value.review!==this.view.review&&!this.viewModels.isCurrent('review',value.review)){measureControl(value.review,1024*1024);const model=cloneOwnedModel('editor-review-model',value.review);try{this.publishViewModels([this.viewInput('review',model,'prepared-review',model.value)],{...value,review:model.value});}catch(error){model.release();throw error;}return;}
     if(value.download&&value.download!==this.view.download&&!this.viewModels.isCurrent('download',value.download)){
       const model=ownDownload(value.download);try{this.publishViewModels([this.viewInput('download',model,'prepared-download',model.value)],{...value,download:model.value});}catch(error){model.release();throw error;}return;
@@ -145,6 +149,7 @@ export class EditorClient {
     this.viewModels.clearReplaced(value);
     if(changesDocument&&(previousDocument?.id!==value.document?.id||previousDocument?.revision!==value.document?.revision||previousDocument?.image?.state.hash!==value.document?.image?.state.hash||previousDocument?.image?.compositeAssetId!==value.document?.image?.compositeAssetId)||value.image===null)browserPhases.resetNavigation();
     if(changesDocument){this.selectedDocumentPin?.();this.selectedDocumentPin=nextPin;this.selectedDocumentMetadata=nextOwner;}
+    if(this.documentReadBarrier&&!this.documentReadBarrier.current())this.documentReadBarrier=undefined;
   }
   private navigationStatusContext(view:EditorView=this.view){return {sourceId:this.navigationStatusSource,lifecycle:this.lifecycle,documentGeneration:this.documentLifetime,sessionId:this.sessionId,documentId:view.document?.id??null,revision:view.document?.revision??null,cursor:view.cursor};}
   private recordNavigationPublication(view:EditorView){browserPhases.recordNavigationStatus?.({...this.navigationStatusContext(view),message:view.message,ready:view.ready,busy:view.busy,hasError:!!view.error,hasRecovery:!!view.recovery});}
@@ -204,9 +209,25 @@ export class EditorClient {
     return this.controlReads.run(async signal=>{const model=await this.ownedJSON<T>(path,owner,{...init,signal},owns,maxBytes,kind);try{return await work(model.value);}finally{model.release();}},init?.signal);
   }
   private ownedPost<T>(path:string,owner:string,body:unknown,signal?:AbortSignal){const admitted=reserveCommandWire(body);return this.ownedJSON<T>(path,owner,{method:'POST',headers:{'Content-Type':'application/json'},body:admitted.wire,signal},undefined,COMMAND_RESULT_LIMITS.controlBytes).finally(()=>admitted.release());}
+  private documentReadBlocked(id:string){const barrier=this.documentReadBarrier;if(barrier&&!barrier.current())this.documentReadBarrier=undefined;return this.documentReadBarrier?.id===id;}
+  private pauseDocumentReads(id:string,revision:string){
+    const scope=this.controlContext(),owner=this.draftOwner,current=()=>scope.current()&&owner===this.draftOwner&&this.view.document?.id===id&&this.view.document.revision===revision;
+    if(!current()||this.documentReadBlocked(id))throw Error('DOCUMENT_OBSERVATION_OWNER_CHANGED');
+    const barrier={id,current,hold:false,commandId:undefined as string|undefined,release:():void=>{
+      if(this.documentReadBarrier!==barrier||barrier.hold&&current())return;
+      this.documentReadBarrier=undefined;if(current())void this.refresh().catch(error=>{if(current())this.fail(error);});
+    }};this.documentReadBarrier=barrier;
+    // A journalled deletion may commit despite a lost response or proof. Keep
+    // its reads fenced until exact rejection or original-owner retirement.
+    return {drain:this.viewReads.settle(),check:()=>{if(!current()||this.documentReadBarrier!==barrier)throw Error('DOCUMENT_OBSERVATION_OWNER_CHANGED');},journaled:(commandId:string)=>{barrier.commandId=commandId;barrier.hold=true;},accepted:()=>{barrier.hold=true;},release:barrier.release};
+  }
   async withCommandEvents<T>(body:Command['body'],work:(events:readonly DomainEvent[])=>T|Promise<T>,document:Pick<Document,'id'|'revision'>|null=this.view.document,newId?:string,onJournaled?:(commandId:string)=>void):Promise<T>{
     const scope=this.controlContext(),args=reserveCommandWire({body,document:document?{id:document.id,revision:document.revision}:null,newId});
-    try{return await this.controlReads.run(async signal=>{scope.check(signal);const result=await this.ownedCommand(args.request.body,args.request.document,args.request.newId,onJournaled);try{scope.check(signal);return await work(result.value);}finally{result.release();}});}finally{args.release();}
+    try{return await this.controlReads.run(async signal=>{scope.check(signal);const command=args.request.body,pause=command.type==='DeleteDocument'?this.pauseDocumentReads(command.documentId,command.expectedRevision):undefined;
+      try{if(pause){await pause.drain;scope.check(signal);pause.check();}const result=await this.ownedCommand(args.request.body,args.request.document,args.request.newId,pause?id=>{pause.journaled(id);onJournaled?.(id);}:onJournaled);
+        try{if(command.type==='DeleteDocument'&&result.value.some(event=>event.type==='DocumentDeleted'&&event.payload.id===command.documentId))pause?.accepted();scope.check(signal);return await work(result.value);}finally{result.release();}
+      }finally{pause?.release();}
+    });}finally{args.release();}
   }
   private async post<T>(path:string,body:unknown){const admitted=reserveCommandWire(body);try{return await this.json<T>(path,{method:'POST',headers:{'Content-Type':'application/json'},body:admitted.wire});}finally{admitted.release();}}
   private checkLateConnectionFailure(){if(this.lateConnectionFailure)throw this.lateConnectionFailure.error;}
@@ -264,8 +285,9 @@ export class EditorClient {
     this.startStream(lifetime);await this.drainDraftOwners();
   }
   private invalidateConnection() {
+    this.documentReadBarrier=undefined;
     browserPhases.reset();
-    this.lifecycle++; this.stream?.abort(); clearTimeout(this.draftTimer);clearTimeout(this.retryTimer);
+    this.lifecycle++; this.refreshed=undefined;this.stream?.abort(); clearTimeout(this.draftTimer);clearTimeout(this.retryTimer);
     void this.stopRecovery();
   }
   disconnect() {
@@ -284,7 +306,8 @@ export class EditorClient {
     const current=()=>!retired&&!abort.signal.aborted&&this.stream===abort&&consumer===this.consumer&&cache===this.cache&&lifetime===this.lifecycle&&owner===this.owner&&session===this.session&&identity===session.identity()&&!this.syncTask&&!this.recoveryFailure&&!this.disposalPending;
     // A whole recovery can replace the generation without advancing its cursor.
     // This is a scheduling watermark, never proof that a model was published.
-    let observed:{generation:string;cursor:string;epoch:string|null}|undefined,pointerTask:Promise<void>|undefined,pointerFailed=false;
+    const accepted=this.refreshed;
+    let observed:Published|undefined=accepted&&accepted.cache===cache&&accepted.lifetime===lifetime&&accepted.documentLifetime===this.documentLifetime&&accepted.owner===owner&&accepted.identity===identity?accepted:undefined,pointerTask:Promise<void>|undefined,pointerFailed=false;
     const timer=setInterval(()=>{
       if(!current()||pointerTask||pointerFailed)return;
       pointerTask=(async()=>{
@@ -328,18 +351,26 @@ export class EditorClient {
   }
   private async refresh() {
     if(this.refreshTask){this.refreshAgain=true;return this.refreshTask;}
+    this.refreshed=undefined;
     this.refreshTask=(async()=>{
-      const cache=this.cache!,lifetime=this.lifecycle,next=await collectOwnedDocuments(cache,()=>cache===this.cache&&lifetime===this.lifecycle);
+      const cache=this.cache!,lifetime=this.lifecycle,documentLifetime=this.documentLifetime,owner=this.owner,identity=this.session.identity(),next=await collectOwnedDocuments(cache,()=>cache===this.cache&&lifetime===this.lifecycle);
       if(!next)return;
       const current=next.documents.find(d=>d.id===this.view.document?.id)??null,previous=this.documentsMetadata;
       this.documentsMetadata=next;
       try{this.patch({documents:next.documents,cursor:next.cursor});}catch(error){this.documentsMetadata=previous;next.release();throw error;}
       previous?.release();
-      if(current)await this.loadDocument(current);
+      if(current){
+        const published=await this.loadDocument(current);
+        // Reuse only a completed publication, never a scheduling attempt. Any
+        // superseding owner, list, document or view-root change requires a read.
+        if(published&&published.generation===next.publication.generation&&published.cursor===next.publication.cursor&&published.epoch===next.publication.epoch&&published.root===this.refreshRoot&&cache===this.cache&&lifetime===this.lifecycle&&documentLifetime===this.documentLifetime&&owner===this.owner&&identity===this.session.identity()&&next===this.documentsMetadata&&current===this.view.document)this.refreshed={...published,cache,lifetime,documentLifetime,owner,identity};
+      }
       else if(this.view.document)this.patch({document:null,image:null,history:[],checkpoints:[],selected:[],save:null});
     })().finally(()=>{this.refreshTask=undefined;if(this.refreshAgain){this.refreshAgain=false;void this.refresh().catch(e=>this.fail(e));}});return this.refreshTask;
   }
   private async loadDocument(document:Document) {
+    this.refreshed=undefined;
+    if(this.documentReadBlocked(document.id))return;
     const unpin=this.documentRowOwner(document)?.pin();
     try{return await this.viewReads.run(async signal=>{
       const lifetime=this.lifecycle,documentLifetime=this.documentLifetime,sessionId=this.sessionId,cache=this.cache!,published=await cache.published();
@@ -375,10 +406,11 @@ export class EditorClient {
         if(!historyRow.reused)inputs.push(this.viewInput('history',historyRow.model,historyRow.key,history.items));
         if(!checkpointRow.reused)inputs.push(this.viewInput('checkpoints',checkpointRow.model,checkpointRow.key,checkpoints.items));
         if(!saveRow.reused)inputs.push(this.viewInput('save',saveRow.model,saveRow.key,save));
-        this.publishViewModels(inputs,{document,image,history:history.items,historyNext:history.next,undoAvailable,checkpoints:checkpoints.items,checkpointNext:checkpoints.next,save,selected:this.view.selected.filter(id=>document.orderedLayerIds.includes(id))});installed=true;
+        this.publishViewModels(inputs,{document,image,history:history.items,historyNext:history.next,undoAvailable,checkpoints:checkpoints.items,checkpointNext:checkpoints.next,save,selected:this.view.selected.filter(id=>document.orderedLayerIds.includes(id))});installed=true;const root=this.refreshRoot;
         // Only validated, successfully published authority is model-ready. The
         // stored image model and canonical asset do not imply fresh text shaping.
         const navigation=this.navigationTarget();if(navigation&&sessionId===this.sessionId)browserPhases.recordNavigationModelReady({...navigation,snapshotId:published.generation});
+        return {...published,root};
       }finally{for(const model of owned)if(!installed||!inputs.some(input=>input.model===model))model.release();}
     });}finally{unpin?.();}
   }
@@ -431,7 +463,7 @@ export class EditorClient {
     performance.clearMarks('ie.document.closed');performance.mark('ie.document.closed',{detail:{documentId:document.id,...this.documentResources.snapshot}});
   }
   async openCheckpoint(checkpoint:Checkpoint){
-    const document=this.view.document;if(!document||checkpoint.documentId!==document.id)throw Error('DOCUMENT_CHANGED');const unpin=this.pinViewModels(document,checkpoint);
+    const document=this.view.document;if(!document||checkpoint.documentId!==document.id||this.documentReadBlocked(document.id))throw Error('DOCUMENT_CHANGED');const unpin=this.pinViewModels(document,checkpoint);
     try{await this.viewReads.run(async signal=>{const epoch=this.documentLifetime,current=()=>!signal.aborted&&epoch===this.documentLifetime&&this.view.document?.id===document.id;let after:string|null=null;
       do{const page:OwnedModel<{items:(ImageHistoryNode|HistoryNode)[];next:string|null}>=await this.ownedJSON<{items:(ImageHistoryNode|HistoryNode)[];next:string|null}>('/api/v1/documents/'+document.id+'/history'+(after?'?after='+after:''),'editor-checkpoint-navigation',{signal},current,VIEW_MODEL_LIMITS.responseBytes);
         try{if(!current())return;const node=page.value.items.find(n=>n.id===checkpoint.historyHead);if(node){if(!('kind' in node)&&!node.forward.after.image)throw Error('This retained empty-document checkpoint has no image state to restore.');await this.withCommandEvents({type:'SwitchBranch',branchId:node.branchId,historyNode:node.id},()=>undefined,document);return;}after=page.value.next;}finally{page.release();}
@@ -439,7 +471,7 @@ export class EditorClient {
     });}finally{unpin();}
   }
   async historyPage(kind:'history'|'checkpoints',after:string|null=null){
-    const document=this.view.document,cache=this.cache,lifetime=this.lifecycle,documentLifetime=this.documentLifetime;if(!document||!cache)return;const unpin=this.pinViewModels(document);
+    const document=this.view.document,cache=this.cache,lifetime=this.lifecycle,documentLifetime=this.documentLifetime;if(!document||!cache||this.documentReadBlocked(document.id))return;const unpin=this.pinViewModels(document);
     try{await this.viewReads.run(async signal=>{const current=()=>!signal.aborted&&lifetime===this.lifecycle&&documentLifetime===this.documentLifetime&&cache===this.cache&&this.view.document?.id===document.id,published=await cache.published();
       const page=await this.ownedJSON<{items:ImageHistoryNode[]|Checkpoint[];next:string|null}>('/api/v1/documents/'+document.id+'/'+kind+(after?'?after='+after:''),'editor-'+kind+'-page',{signal},current,VIEW_MODEL_LIMITS.responseBytes);let installed=false;
       try{const probe=await this.session.transport('/api/v1/documents/'+document.id,{method:'HEAD',signal}),finalPublication=await cache.published();if(!current()||finalPublication.generation!==published.generation)return;
@@ -608,7 +640,7 @@ export class EditorClient {
       }finally{submitted?.();}
       let delay=0;for(;;){scope.check(signal);await journal.put('command:'+id,{...delivery,result:value.value});scope.check(signal);await this.restorePending(undefined,signal);scope.check(signal);if(value.value.kind!=='pending')break;if(value.value.phase==='waiting-for-resources')throw Error('waiting-for-resources');await pause(delay);delay=delay===0?4:Math.min(30,delay*2);const next=await read('/api/v1/commands/'+id);value.release();value=next;validate(value.value);}
       if(value.value.kind!=='receipt')throw Error('RECEIPT_UNKNOWN');
-      if(value.value.receipt.status==='rejected'){acceptance.end('rejected',{boundary:'authority-durable'});if(adoptionId)browserPhases.adoptionFailed(adoptionId,'rejected');const details=value.value.rejectionDetails?.kind==='inline'?reserveCommandWire(value.value.rejectionDetails.value):undefined;try{throw Error(value.value.receipt.code+' '+(details?.wire??''));}finally{details?.release();}}
+      if(value.value.receipt.status==='rejected'){const barrier=this.documentReadBarrier;if(barrier?.commandId===id){barrier.hold=false;barrier.release();}acceptance.end('rejected',{boundary:'authority-durable'});if(adoptionId)browserPhases.adoptionFailed(adoptionId,'rejected');const details=value.value.rejectionDetails?.kind==='inline'?reserveCommandWire(value.value.rejectionDetails.value):undefined;try{throw Error(value.value.receipt.code+' '+(details?.wire??''));}finally{details?.release();}}
       const receipt=value.value.receipt,receivedAt=performance.now();acceptance.end('ok',{boundary:'authority-durable'});
       const outcomes=await Promise.allSettled([readCommandEvents(session.transport.bind(session),receipt,signal),(async()=>{do{scope.check(signal);await this.sync();scope.check(signal);}while(BigInt((await this.cache!.published()).cursor)<BigInt(receipt.toSeq));})()]);
       if(outcomes[0].status==='fulfilled')events=outcomes[0].value;

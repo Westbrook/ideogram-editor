@@ -1,10 +1,10 @@
 import type {Document} from '../protocol/store.js';
+import type {Published} from './recovery-cache.js';
 import {modelPayloadBytes,reserveModelBytes} from '../observability/model-memory.js';
 
 export const DOCUMENT_LIST_LIMITS=Object.freeze({documents:4096,payloadBytes:32*1024**2,cursorBytes:1024**2});
-type Published={generation:string;cursor:string};
 type Cache={published():Promise<Published>;rows(generation:string,type:string):AsyncIterable<{value:unknown}>};
-export type OwnedDocumentList=Readonly<{documents:Document[];cursor:string;release():void;pin():()=>void}>;
+export type OwnedDocumentList=Readonly<{documents:Document[];cursor:string;publication:Readonly<Published>;release():void;pin():()=>void}>;
 export class DocumentListAdmissionError extends Error {
   constructor(cause?:unknown){super('The complete document list cannot fit its current memory allowance. The previous complete list is retained. Close unused views or reduce the workspace inventory before retrying.',{cause});}
 }
@@ -28,6 +28,6 @@ export async function collectOwnedDocuments(cache:Cache,owns:()=>boolean=()=>tru
       bytes+=size;documents.push(row.value as Document);
     }
     if(!owns()||(await cache.published()).generation!==published.generation||!owns())return null;
-    transferred=true;return Object.freeze({documents,cursor:published.cursor,release:()=>retained.release(),pin:()=>retained.pin()});
+    transferred=true;return Object.freeze({documents,cursor:published.cursor,publication:Object.freeze({...published}),release:()=>retained.release(),pin:()=>retained.pin()});
   }finally{cursor?.release();if(!transferred)retained.release();}
 }
