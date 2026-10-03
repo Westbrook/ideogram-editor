@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Explicitly unmeasured hosted control setup; never invokes a producer phase."""
 import argparse
+import base64
 import datetime
 import grp
 import hashlib
@@ -333,6 +334,137 @@ def export_phase(args):
         final = json.loads(read(directory/'finalization.json', 4*1024**2, True)); require(final['config']['sha256'] == args.grant, 'Closed phase config differs'); records[phase] = final
     print(choose_export_phase(args.attempted, records))
 
+
+# Separate from post-drain export: these are inert controller diagnostics only.
+# Never release a lease, follow producer references, or turn failure into closure.
+DIAGNOSTIC_READ_LIMIT = 64 * 1024**2
+DIAGNOSTIC_DOCUMENT_LIMIT = 16 * 1024**2
+DIAGNOSTIC_STREAM_LIMIT = 65536
+
+def diagnostic_private_member(path, info, directory=False):
+    require(info.st_uid == 0 and stat.S_IMODE(info.st_mode) == (0o700 if directory else 0o600), 'Private controller diagnostic ownership/mode required')
+    require(stat.S_ISDIR(info.st_mode) if directory else stat.S_ISREG(info.st_mode) and info.st_nlink == 1, 'Ordinary controller diagnostic required')
+
+def diagnostic_read(path, maximum, budget):
+    path = canonical(str(path)); diagnostic_private_member(path, path.lstat())
+    require_immutable_directory(path.parent)
+    size = path.lstat().st_size
+    require(size <= maximum and budget['bytes'] + size <= DIAGNOSTIC_READ_LIMIT, 'Controller diagnostic read bound')
+    # Charge admitted size before reading; failed/mutated attempts do not reset it.
+    budget['bytes'] += size
+    return read(path, maximum, True)
+
+def diagnostic_ref(ref, path, maximum):
+    require(isinstance(ref, dict) and set(ref) == {'path','bytes','sha256'} and ref['path'] == str(path) and type(ref['bytes']) is int and 0 <= ref['bytes'] <= maximum and re.fullmatch('[0-9a-f]{64}', ref['sha256'] or ''), 'Exact controller diagnostic reference required')
+
+def diagnostic_text(value, grant, maximum=2048):
+    require(isinstance(value, str), 'Diagnostic text required')
+    return value.replace(grant, '<redacted-controller-grant>')[:maximum]
+
+def diagnostic_failure(value, grant):
+    if value is None: return None
+    require(isinstance(value, dict), 'Diagnostic failure object required')
+    return {key: diagnostic_text(value[key], grant) for key in ('name','message') if key in value}
+
+def diagnostic_stream(value, grant):
+    require(isinstance(value, str) and len(value) <= 4*((16*1024**2+2)//3), 'Original command stream bound')
+    raw = base64.b64decode(value, validate=True); require(len(raw) <= 16*1024**2, 'Decoded command stream bound')
+    # Redact before taking the tail so a truncation boundary cannot split a grant.
+    decoded = raw.decode('utf8', errors='replace'); clean = decoded.replace(grant, '<redacted-controller-grant>').encode('utf8')
+    text = clean[-DIAGNOSTIC_STREAM_LIMIT:].decode('utf8', errors='ignore')
+    return {'originalBytes':len(raw), 'retainedBytes':len(text.encode('utf8')), 'truncated':len(clean)>len(text.encode('utf8')), 'text':text, 'redacted':grant in decoded, 'utf8Replacement':decoded.encode('utf8') != raw}
+
+def phase_diagnostic(config, phase, grant, budget):
+    require(phase in PHASES, 'Fixed diagnostic phase required')
+    root = Path(config['_evidenceRoot']) / config['runId']; directory = root / phase
+    for member in (root, directory):
+        try: info = member.lstat()
+        except FileNotFoundError: return {'phase':phase, 'status':'not-created'}
+        require(canonical(str(member)) == member, 'Controller diagnostic directory alias')
+        diagnostic_private_member(member, info, True)
+    final_path = directory / 'finalization.json'
+    try: final_path.lstat()
+    except FileNotFoundError: return {'phase':phase, 'status':'finalization-absent'}
+    final_raw = diagnostic_read(final_path, 4*1024**2, budget); final = json.loads(final_raw)
+    require(final.get('kind') == 'hosted-native-phase-finalization-1' and final.get('phase') == phase and final.get('config', {}).get('sha256') == grant, 'Terminal diagnostic provenance differs')
+    require(final.get('effectiveOutcome') in ('PASS','FAIL','INCONCLUSIVE') and type(final.get('timingLockReleased')) is bool, 'Terminal diagnostic outcome differs')
+    def provenance(path, raw): return {'member':str(path.relative_to(root)), 'bytes':len(raw), 'sha256':hashlib.sha256(raw).hexdigest()}
+    result = {'phase':phase, 'status':'terminal-record-observed', 'source':provenance(final_path, final_raw), 'effectiveOutcome':final['effectiveOutcome'], 'timingLockReleased':final['timingLockReleased'], 'failure':diagnostic_failure(final.get('failure'), grant), 'commands':[], 'closureVerified':False, 'qualification':False}
+    for key in ('dataSummary','dataReplay','hostAudit','hostReplay'):
+        value = final.get(key); status = value.get('status') if isinstance(value, dict) else None
+        require(status in (None,'PASS','FAIL','INCONCLUSIVE'), 'Unknown diagnostic audit status'); result[key+'Status'] = status
+    if final.get('receipt') is None: return result
+    receipt_path = directory / 'receipt.json'; ref = final['receipt']; diagnostic_ref(ref, receipt_path, 4*1024**2)
+    receipt_raw = diagnostic_read(receipt_path, 4*1024**2, budget); require(identity(receipt_path, receipt_raw) == ref, 'Controller receipt diagnostic differs')
+    receipt = json.loads(receipt_raw)
+    require(receipt.get('kind') == 'hosted-native-phase-1' and receipt.get('phase') == phase and receipt.get('runId') == config['runId'] and receipt.get('config', {}).get('sha256') == grant, 'Receipt diagnostic provenance differs')
+    require(receipt.get('outcome') in ('PASS','FAIL','INCONCLUSIVE'), 'Receipt diagnostic outcome differs')
+    result['receipt'] = {'source':provenance(receipt_path, receipt_raw), 'outcome':receipt['outcome'], 'failure':diagnostic_failure(receipt.get('failure'), grant)}
+    refs = receipt.get('commands'); require(isinstance(refs, list) and len(refs) <= 8, 'Finite controller command references required')
+    allowed = {'host-check', 'initialize', 'inputs', 'prepare'} if phase == 'inputs' else {'host-check', 'recheck', phase, *(['collect'] if phase.startswith(('build','verify')) else [])}
+    seen = set()
+    for ref in refs:
+        require(isinstance(ref, dict) and isinstance(ref.get('path'), str), 'Controller command reference required')
+        name = Path(ref['path']).name; match = re.fullmatch(r'([0-9]{3})-([a-z0-9-]+)\.json', name)
+        require(match is not None and match[2] in allowed and int(match[1]) == len(seen)+1 and name not in seen, 'Fixed controller command member required')
+        path = directory / name; diagnostic_ref(ref, path, 48*1024**2); seen.add(name)
+        raw = diagnostic_read(path, 48*1024**2, budget); require(identity(path, raw) == ref, 'Controller command diagnostic differs')
+        command = json.loads(raw); require(command.get('kind') == 'hosted-native-command-1' and command.get('action') == match[2], 'Controller command action differs')
+        child = command.get('result'); require(isinstance(child, dict), 'Controller child result required')
+        require(child.get('code') is None or type(child['code']) is int, 'Controller child exit code differs')
+        require(child.get('signal') is None or isinstance(child['signal'], str), 'Controller child signal differs')
+        require(all(child.get(key) is None or type(child[key]) is bool for key in ('timedOut','interrupted')), 'Controller child state differs')
+        projected = {'code':child.get('code'), 'signal':None if child.get('signal') is None else diagnostic_text(child['signal'], grant, 80), 'timedOut':child.get('timedOut'), 'interrupted':child.get('interrupted'), 'error':diagnostic_failure(child.get('error'), grant)}
+        if 'reason' in child: projected['reason'] = diagnostic_text(child['reason'], grant)
+        if 'exitObserved' in child:
+            require(type(child['exitObserved']) is bool, 'Controller observed exit differs'); projected['exitObserved'] = child['exitObserved']
+        if 'timeoutMs' in child:
+            require(type(child['timeoutMs']) is int and 0 < child['timeoutMs'] <= 14400000, 'Controller timeout differs'); projected['timeoutMs'] = child['timeoutMs']
+        if 'requestedSignals' in child:
+            require(isinstance(child['requestedSignals'], list) and child['requestedSignals'] in ([], ['SIGTERM','SIGKILL']), 'Controller requested signals differ'); projected['requestedSignals'] = child['requestedSignals']
+        if 'processTree' in child:
+            require(child['processTree'] in ('owned-group-and-proc-descendants','owned-group'), 'Controller process scope differs'); projected['processTree'] = child['processTree']
+        result['commands'].append({'action':command['action'], 'source':provenance(path, raw), 'result':projected, 'failure':diagnostic_failure(command.get('failure'), grant), 'stdout':diagnostic_stream(command.get('stdoutBase64'), grant), 'stderr':diagnostic_stream(command.get('stderrBase64'), grant)})
+    return result
+
+def retain_phase_diagnostics(args):
+    require(os.getuid() == os.geteuid() == 0 and args.attempted in PHASES, 'Root fixed diagnostic invocation required')
+    # The scoped grant is consumed privately and never serialized or printed.
+    grant = sys.stdin.buffer.read(65).decode('ascii'); require(re.fullmatch('[0-9a-f]{64}', grant), 'Exact diagnostic input required')
+    config_raw = read(args.config, 4*1024**2, True); require(hashlib.sha256(config_raw).hexdigest() == grant, 'Diagnostic config identity differs'); config = json.loads(config_raw)
+    require(config.get('kind') == 'hosted-native-controller-config-1' and re.fullmatch('ie-native-[0-9a-f]{32}', config.get('runId','')), 'Diagnostic config kind/run differs')
+    setup_ref = config['setup']; setup_raw = read(setup_ref['path'], 4*1024**2, True); require(identity(setup_ref['path'], setup_raw) == setup_ref, 'Diagnostic setup identity differs'); setup_record = json.loads(setup_raw)
+    require(setup_record.get('kind') == 'hosted-native-unmeasured-setup-1' and setup_record.get('setupMeasured') is False and type(setup_record.get('run')) is int and setup_record['run'] > 0 and type(setup_record.get('attempt')) is int and setup_record['attempt'] > 0 and re.fullmatch('[0-9a-f]{40}', setup_record.get('controlHead','')), 'Diagnostic setup provenance differs')
+    run, attempt = setup_record['run'], setup_record['attempt']; control = Path(f'/var/lib/ideogram-native-control-{run}-{attempt}/control'); parent = Path(f'/var/lib/ideogram-native-export-{run}-{attempt}')
+    require(config['controlRoot'] == str(control) and args.config == str(control/'meta/config.json') and setup_ref['path'] == str(control/'meta/setup.json') and config['exportRoot'] == str(parent/config['runId']), 'Fixed diagnostic control/export paths required')
+    self_path = control/'tooling/rollback-producer/hosted-setup.py'; require(Path(__file__).resolve(strict=True) == self_path, 'Reviewed diagnostic helper location differs')
+    self_refs = [row for row in config['sources'] if row.get('path') == str(self_path)]; require(len(self_refs) == 1 and identity(self_path, read(self_path, 256*1024**2, True)) == self_refs[0], 'Reviewed diagnostic helper bytes differ')
+    allocation_ref = config['evidenceAllocation']; require(allocation_ref['path'] == str(control/'meta/evidence-allocation.json'), 'Fixed diagnostic allocation required')
+    allocation_raw = read(allocation_ref['path'], 16384, True); require(identity(allocation_ref['path'], allocation_raw) == allocation_ref, 'Diagnostic allocation identity differs'); allocation = json.loads(allocation_raw)
+    evidence = Path(f'/var/lib/ideogram-native-{run}-{attempt}/evidence')
+    require(allocation.get('kind') == 'evidence-volume-allocation-1' and allocation.get('purpose') == 'qualification-evidence-only' and allocation.get('capacityBytes') == 4*1024**3 and allocation.get('root') == str(evidence) and allocation.get('allocationId') == config['runId']+'-evidence', 'Diagnostic allocation provenance differs')
+    require_immutable_directory(evidence); diagnostic_private_member(evidence, evidence.lstat(), True); config['_evidenceRoot'] = str(evidence)
+    require_immutable_directory(parent); require_directory_members(parent, {'setup'})
+    require(config['job'] == {key:setup_record['job'][key] for key in ('startedEpochMs','deadlineEpochMs')} and config['job']['deadlineEpochMs']-config['job']['startedEpochMs'] == 21600000, 'Diagnostic job deadline differs')
+    remaining = (config['job']['deadlineEpochMs']-time.time()*1000-60000)//1000; require(remaining >= 1, 'No bounded diagnostic time remains')
+    def expired(*_): raise TimeoutError('Controller diagnostic deadline')
+    previous = signal.signal(signal.SIGALRM, expired); signal.alarm(int(min(60,remaining)))
+    try:
+        # Only fixed root-owned controller records are read; producer data and
+        # host timing-lock files are never opened, traversed, released or removed.
+        budget = {'bytes':0}; phases = []
+        for phase in PHASES[:PHASES.index(args.attempted)+1]:
+            try: phases.append(phase_diagnostic(config, phase, grant, budget))
+            except TimeoutError: raise
+            except (ValueError, OSError, KeyError, TypeError) as error:
+                phases.append({'phase':phase, 'status':'diagnostic-refused', 'errorType':type(error).__name__})
+        value = {'kind':'hosted-native-controller-failure-diagnostics-1', 'run':run, 'attempt':attempt, 'head':setup_record['controlHead'], 'runId':config['runId'], 'attempted':args.attempted, 'phases':phases, 'controllerRecordBytesCharged':budget['bytes'], 'maximumSourceBytes':DIAGNOSTIC_READ_LIMIT, 'maximumDocumentBytes':DIAGNOSTIC_DOCUMENT_LIMIT, 'streamTailBytes':DIAGNOSTIC_STREAM_LIMIT, 'transformedDiagnostics':True, 'rawCommandsCopied':False, 'argvOrEnvironmentCopied':False, 'controllerGrantRedacted':True, 'normalExportSucceeded':False, 'closureVerified':False, 'qualification':False, 'physicalQualification':False, 'originalsChanged':False, 'payloadReferencesFollowed':False, 'leaseTouched':False}
+        raw = (json.dumps(value, sort_keys=True, indent=2, allow_nan=False)+'\n').encode(); require(len(raw) <= DIAGNOSTIC_DOCUMENT_LIMIT and grant.encode() not in raw, 'Diagnostic document bound/redaction differs')
+        target = fresh_directory(parent/'diagnostics'); ref = save(target/'status.json', raw, 0o644)
+        require_directory_members(target, {'status.json'}); require_directory_members(parent, {'setup','diagnostics'})
+        print(json.dumps({'kind':value['kind'], 'status':'diagnostics-retained', 'document':ref, 'qualification':False, 'closureVerified':False}, separators=(',',':')))
+    finally: signal.alarm(0); signal.signal(signal.SIGALRM, previous)
+
 def preserve_setup_failure(args, primary):
     try:
         parent = retain_setup_diagnostics(args, False)
@@ -353,7 +485,9 @@ def main():
     parser = argparse.ArgumentParser(); sub = parser.add_subparsers(dest='mode', required=True)
     p = sub.add_parser('setup'); p.add_argument('--checkout', required=True); p.add_argument('--run', required=True, type=int); p.add_argument('--attempt', required=True, type=int); p.add_argument('--head', required=True); p.add_argument('--source-sha256', required=True)
     p = sub.add_parser('export-phase'); p.add_argument('--config', required=True); p.add_argument('--grant', required=True); p.add_argument('--attempted', required=True, choices=PHASES)
+    p = sub.add_parser('failure-diagnostics'); p.add_argument('--config', required=True); p.add_argument('--attempted', required=True, choices=PHASES)
     args = parser.parse_args()
+    if args.mode == 'failure-diagnostics': return retain_phase_diagnostics(args)
     if args.mode != 'setup': return export_phase(args)
     try: outputs = setup(args)
     except BaseException as primary:

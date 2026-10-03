@@ -1,6 +1,7 @@
 """Pure setup admission and real filesystem refusals; never invokes setup."""
 import copy
 import ast
+import base64
 import contextlib
 import importlib.util
 import hashlib
@@ -55,6 +56,30 @@ def job_response():
 
 def closed(phase, outcome='PASS', released=True):
     return {'kind':'hosted-native-phase-finalization-1','phase':phase,'effectiveOutcome':outcome,'timingLockReleased':released}
+
+
+
+def diagnostic_fixture(root, grant='c'*64):
+    config = {'runId':'ie-native-'+'d'*32, '_evidenceRoot':str(root)}
+    directory = root/config['runId']/'toolchain'; directory.parent.mkdir(mode=0o700); directory.mkdir(mode=0o700)
+    def save(name, value):
+        path = directory/name; path.write_text(json.dumps(value)); path.chmod(0o600)
+        return subject.identity(path)
+    command = {'kind':'hosted-native-command-1', 'action':'toolchain', 'argv':['--grant',grant], 'environment':{'unselected':'never-publish'}, 'result':{'code':1,'signal':None,'timedOut':False,'interrupted':False,'timeoutMs':600000}, 'failure':None, 'stdoutBase64':base64.b64encode(b'').decode(), 'stderrBase64':base64.b64encode(('ValueError: toolchain detail '+grant+'\n').encode()).decode()}
+    receipt = {'kind':'hosted-native-phase-1','phase':'toolchain','runId':config['runId'],'config':{'sha256':grant},'outcome':'FAIL','commands':[save('001-toolchain.json',command)],'failure':{'name':'Error','message':'Unsuccessful fixed child: toolchain'}}
+    final = {'kind':'hosted-native-phase-finalization-1','phase':'toolchain','config':{'sha256':grant},'effectiveOutcome':'FAIL','timingLockReleased':False,'receipt':save('receipt.json',receipt),'failure':{'name':'Error','message':'Unsuccessful fixed child: toolchain'},'dataSummary':{'status':'PASS'},'dataReplay':{'status':'PASS'},'hostAudit':{'status':'PASS'},'hostReplay':{'status':'PASS'}}
+    save('finalization.json',final)
+    return config,directory,command,receipt,final,save
+
+@contextlib.contextmanager
+def diagnostic_files_as_controller():
+    # Real ordinary files, fd stamps, modes, link counts, hashes and bytes. Only
+    # root ownership/immutable shared ancestors are substituted for portable CI.
+    original_admit,original_read=subject.diagnostic_private_member,subject.read
+    def admit(path,info,directory=False):
+        return original_admit(path,types.SimpleNamespace(st_uid=0,st_mode=info.st_mode,st_nlink=info.st_nlink),directory)
+    with mock.patch.object(subject,'diagnostic_private_member',side_effect=admit), mock.patch.object(subject,'require_immutable_directory'), mock.patch.object(subject,'read',side_effect=lambda path,maximum=4*1024**2,root_owned=False:original_read(path,maximum,False)):
+        yield
 
 class Boundaries(unittest.TestCase):
     def test_host_discovery_uses_only_fixed_gcc11_drivers_and_matching_program_queries(self):
@@ -296,6 +321,126 @@ class Boundaries(unittest.TestCase):
     def test_unknown_phase_cannot_select_arbitrary_output(self):
         for phase in ['../outside','build19','export','']:
             with self.assertRaises(ValueError): subject.choose_export_phase(phase,{})
+
+
+    def test_failed_unclosed_diagnostic_keeps_failure_and_actual_error_without_grant(self):
+        with tempfile.TemporaryDirectory() as raw, diagnostic_files_as_controller():
+            config,directory,command,receipt,final,save=diagnostic_fixture(Path(raw).resolve())
+            value=subject.phase_diagnostic(config,'toolchain','c'*64,{'bytes':0})
+            self.assertEqual(value['effectiveOutcome'],'FAIL');self.assertFalse(value['timingLockReleased'])
+            self.assertFalse(value['closureVerified']);self.assertFalse(value['qualification'])
+            self.assertEqual(value['source']['sha256'],subject.identity(directory/'finalization.json')['sha256'])
+            self.assertEqual(value['receipt']['source']['sha256'],subject.identity(directory/'receipt.json')['sha256'])
+            entry=value['commands'][0];self.assertEqual(entry['action'],'toolchain');self.assertEqual(entry['result']['code'],1);self.assertEqual(entry['result']['timeoutMs'],600000)
+            self.assertEqual(entry['source']['sha256'],receipt['commands'][0]['sha256'])
+            self.assertIn('ValueError: toolchain detail',entry['stderr']['text']);self.assertTrue(entry['stderr']['redacted'])
+            serialized=json.dumps(value)
+            for secret in ('c'*64,'never-publish','--grant','stdoutBase64','stderrBase64','environment','argv','"config"'):self.assertNotIn(secret,serialized)
+
+    def test_diagnostic_stream_tail_is_bounded_and_redacts_before_truncation(self):
+        grant='c'*64;raw=(b'x'*70000)+grant.encode()+b' END'
+        value=subject.diagnostic_stream(base64.b64encode(raw).decode(),grant)
+        self.assertEqual(value['originalBytes'],len(raw));self.assertEqual(value['retainedBytes'],65536);self.assertTrue(value['truncated'])
+        self.assertTrue(value['redacted']);self.assertNotIn(grant,value['text']);self.assertTrue(value['text'].endswith('<redacted-controller-grant> END'))
+        for encoded in ('***','a',base64.b64encode(b'x'*(16*1024**2+1)).decode()):
+            with self.assertRaises(ValueError):subject.diagnostic_stream(encoded,grant)
+
+    def test_diagnostic_private_metadata_refuses_wrong_owner_modes_links_and_types(self):
+        def info(uid=0,mode=stat.S_IFREG|0o600,nlink=1):return types.SimpleNamespace(st_uid=uid,st_mode=mode,st_nlink=nlink)
+        subject.diagnostic_private_member(Path('/record'),info())
+        subject.diagnostic_private_member(Path('/phase'),info(mode=stat.S_IFDIR|0o700,nlink=2),True)
+        for value in (info(uid=1001),info(mode=stat.S_IFREG|0o644),info(nlink=2),info(mode=stat.S_IFLNK|0o600),info(mode=stat.S_IFIFO|0o600),info(mode=stat.S_IFDIR|0o600)):
+            with self.assertRaises(ValueError):subject.diagnostic_private_member(Path('/record'),value)
+        for value in (info(uid=1001,mode=stat.S_IFDIR|0o700),info(mode=stat.S_IFDIR|0o755),info(mode=stat.S_IFREG|0o700)):
+            with self.assertRaises(ValueError):subject.diagnostic_private_member(Path('/phase'),value,True)
+
+    def test_real_diagnostic_file_refuses_alias_hardlink_overflow_and_wrong_mode(self):
+        with tempfile.TemporaryDirectory() as raw, diagnostic_files_as_controller():
+            root=Path(raw).resolve();path=root/'record';path.write_bytes(b'abc');path.chmod(0o600)
+            budget={'bytes':0};self.assertEqual(subject.diagnostic_read(path,3,budget),b'abc');self.assertEqual(budget['bytes'],3)
+            for limit,budget in ((2,{'bytes':0}),(3,{'bytes':subject.DIAGNOSTIC_READ_LIMIT-2})):
+                with self.assertRaises(ValueError):subject.diagnostic_read(path,limit,budget)
+            path.chmod(0o644)
+            with self.assertRaises(ValueError):subject.diagnostic_read(path,3,{'bytes':0})
+            path.chmod(0o600);alias=root/'alias';alias.symlink_to(path)
+            with self.assertRaises(ValueError):subject.diagnostic_read(alias,3,{'bytes':0})
+            hard=root/'hard';os.link(path,hard)
+            with self.assertRaises(ValueError):subject.diagnostic_read(path,3,{'bytes':0})
+
+    def test_diagnostic_terminal_binds_exact_phase_grant_outcome_and_release_type(self):
+        with tempfile.TemporaryDirectory() as raw, diagnostic_files_as_controller():
+            config,directory,command,receipt,final,save=diagnostic_fixture(Path(raw).resolve())
+            for key,value in [('kind','other'),('phase','inputs'),('config',{'sha256':'e'*64}),('effectiveOutcome','SUCCESS'),('timingLockReleased','false')]:
+                changed=copy.deepcopy(final);changed[key]=value;save('finalization.json',changed)
+                with self.assertRaises(ValueError):subject.phase_diagnostic(config,'toolchain','c'*64,{'bytes':0})
+
+    def test_diagnostic_receipt_refuses_other_paths_bad_hash_and_run_identity(self):
+        with tempfile.TemporaryDirectory() as raw, diagnostic_files_as_controller():
+            config,directory,command,receipt,final,save=diagnostic_fixture(Path(raw).resolve())
+            for key,value in [('path',str(directory/'../receipt.json')),('path',str(directory/'../../data/receipt.json')),('sha256','e'*64),('bytes',1)]:
+                changed=copy.deepcopy(final);changed['receipt'][key]=value;save('finalization.json',changed)
+                with self.assertRaises(ValueError):subject.phase_diagnostic(config,'toolchain','c'*64,{'bytes':0})
+            receipt['runId']='ie-native-'+'e'*32;final['receipt']=save('receipt.json',receipt);save('finalization.json',final)
+            with self.assertRaises(ValueError):subject.phase_diagnostic(config,'toolchain','c'*64,{'bytes':0})
+
+    def test_diagnostic_command_allowlist_rejects_payload_paths_actions_ordinals_and_duplicates(self):
+        with tempfile.TemporaryDirectory() as raw, diagnostic_files_as_controller():
+            config,directory,command,receipt,final,save=diagnostic_fixture(Path(raw).resolve())
+            original=copy.deepcopy(receipt['commands'])
+            for path in (str(directory/'../001-toolchain.json'),str(directory/'001-observe.json'),str(directory/'002-toolchain.json'),str(directory/'001-build16.json'),str(directory/'001-toolchain.json/child')):
+                receipt['commands']=[{**original[0],'path':path}];final['receipt']=save('receipt.json',receipt);save('finalization.json',final)
+                with self.assertRaises(ValueError):subject.phase_diagnostic(config,'toolchain','c'*64,{'bytes':0})
+            for refs in (original*2,original*9):
+                receipt['commands']=refs;final['receipt']=save('receipt.json',receipt);save('finalization.json',final)
+                with self.assertRaises(ValueError):subject.phase_diagnostic(config,'toolchain','c'*64,{'bytes':0})
+
+    def test_diagnostic_command_hash_and_raw_stream_validation_precede_publication(self):
+        with tempfile.TemporaryDirectory() as raw, diagnostic_files_as_controller():
+            config,directory,command,receipt,final,save=diagnostic_fixture(Path(raw).resolve())
+            command['stderrBase64']='unretained replacement';save('001-toolchain.json',command)
+            with self.assertRaisesRegex(ValueError,'command diagnostic differs'):subject.phase_diagnostic(config,'toolchain','c'*64,{'bytes':0})
+            command['stderrBase64']='***';receipt['commands']=[save('001-toolchain.json',command)];final['receipt']=save('receipt.json',receipt);save('finalization.json',final)
+            with self.assertRaises(ValueError):subject.phase_diagnostic(config,'toolchain','c'*64,{'bytes':0})
+
+    def test_diagnostic_missing_terminal_is_explicit_and_does_not_read_payload(self):
+        with tempfile.TemporaryDirectory() as raw, diagnostic_files_as_controller():
+            root=Path(raw).resolve();config={'runId':'ie-native-'+'d'*32,'_evidenceRoot':str(root)}
+            with mock.patch.object(subject,'diagnostic_read') as read:
+                self.assertEqual(subject.phase_diagnostic(config,'toolchain','c'*64,{'bytes':0}),{'phase':'toolchain','status':'not-created'})
+                directory=root/config['runId']/'toolchain';directory.parent.mkdir(mode=0o700);directory.mkdir(mode=0o700)
+                self.assertEqual(subject.phase_diagnostic(config,'toolchain','c'*64,{'bytes':0}),{'phase':'toolchain','status':'finalization-absent'})
+                for phase in ('../data','export','build19'):
+                    with self.assertRaises(ValueError):subject.phase_diagnostic(config,phase,'c'*64,{'bytes':0})
+                read.assert_not_called()
+
+    def test_real_diagnostic_read_refuses_mid_read_mutation(self):
+        with tempfile.TemporaryDirectory() as raw, diagnostic_files_as_controller():
+            path=Path(raw).resolve()/'record';path.write_bytes(b'abc');path.chmod(0o600);original=subject.os.read;changed=False
+            def mutate(fd,size):
+                nonlocal changed
+                block=original(fd,size)
+                if block and not changed:
+                    changed=True;path.write_bytes(b'xyz')
+                return block
+            budget={'bytes':0}
+            with mock.patch.object(subject.os,'read',side_effect=mutate):
+                with self.assertRaisesRegex(ValueError,'changed during read'):subject.diagnostic_read(path,3,budget)
+            self.assertEqual(budget['bytes'],3)
+
+    def test_diagnostic_cli_refuses_nonroot_before_reading_any_grant_or_config(self):
+        args=types.SimpleNamespace(attempted='toolchain',config='/unselected')
+        with mock.patch.object(subject.os,'getuid',return_value=1001),mock.patch.object(subject.os,'geteuid',return_value=1001),mock.patch.object(subject,'read') as read:
+            with self.assertRaises(ValueError):subject.retain_phase_diagnostics(args)
+            read.assert_not_called()
+
+    def test_workflow_retains_selector_failure_and_keeps_strict_export_separate(self):
+        body=workflow.split('      - name: Export only actually closed phases without changing originals',1)[1].split('      - name: Retain bounded completed export or partial export diagnostics',1)[0]
+        self.assertIn('if through="$(sudo',body);self.assertIn('export-phase',body)
+        closed_branch,failure_branch=body.split('          else\n',1)
+        self.assertIn('--export "$through"',closed_branch);self.assertNotIn('failure-diagnostics',closed_branch)
+        self.assertIn('export_status=$?',failure_branch);self.assertIn('failure-diagnostics',failure_branch);self.assertIn('exit "$export_status"',failure_branch)
+        self.assertNotIn('--export',failure_branch);self.assertNotIn('--grant',failure_branch)
+        for forbidden in ('rm ','chmod ','kill ','--phase ','continue','|| true'):self.assertNotIn(forbidden,failure_branch)
 
 suite=unittest.defaultTestLoader.loadTestsFromTestCase(Boundaries)
 result=unittest.TextTestRunner(verbosity=2).run(suite)

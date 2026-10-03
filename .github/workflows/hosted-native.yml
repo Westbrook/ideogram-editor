@@ -58,7 +58,7 @@ jobs:
         shell: bash
         env:
           IE_SETUP_TOKEN: ${{ github.token }}
-          IE_SOURCE_SELECTION_SHA256: 3fcf7c92abe535fe7de0d40fd94deb363bd2f6b3ab9943b52c5d2b33eb8d6581
+          IE_SOURCE_SELECTION_SHA256: b33e07fe7aa880250dcbe58fb7086dd4c3e6ff55b49d360198add4a0172632e8
         run: |
           set -euo pipefail
           printf '%s' "$IE_SETUP_TOKEN" | sudo -n /usr/bin/python3 -I -S -B tooling/rollback-producer/hosted-setup.py setup \
@@ -93,11 +93,20 @@ jobs:
           IE_ATTEMPTED: ${{ steps.phases.outputs.attempted }}
         run: |
           set -euo pipefail
-          through="$(sudo -n "$IE_CONTROL/bin/python" -I -S -B "$IE_CONTROL/tooling/rollback-producer/hosted-setup.py" export-phase \
-            --config "$IE_CONFIG" --grant "$IE_GRANT" --attempted "$IE_ATTEMPTED")"
-          sudo -n "$IE_CONTROL_NODE" --import "$IE_CONTROL/tests/store/no-network.mjs" \
-            "$IE_CONTROL/tooling/rollback-producer/hosted-control.mjs" \
-            --config "$IE_CONFIG" --grant "$IE_GRANT" --export "$through"
+          if through="$(sudo -n "$IE_CONTROL/bin/python" -I -S -B "$IE_CONTROL/tooling/rollback-producer/hosted-setup.py" export-phase \
+            --config "$IE_CONFIG" --grant "$IE_GRANT" --attempted "$IE_ATTEMPTED")"; then
+            sudo -n "$IE_CONTROL_NODE" --import "$IE_CONTROL/tests/store/no-network.mjs" \
+              "$IE_CONTROL/tooling/rollback-producer/hosted-control.mjs" \
+              --config "$IE_CONFIG" --grant "$IE_GRANT" --export "$through"
+          else
+            export_status=$?
+            # Preserve refusal and the uncertain lease. This separate projection
+            # reads only fixed controller records and grants no closed export.
+            printf '%s' "$IE_GRANT" | sudo -n "$IE_CONTROL/bin/python" -I -S -B \
+              "$IE_CONTROL/tooling/rollback-producer/hosted-setup.py" failure-diagnostics \
+              --config "$IE_CONFIG" --attempted "$IE_ATTEMPTED" || echo 'Bounded controller diagnostics unavailable; original export refusal retained.'
+            exit "$export_status"
+          fi
       - name: Retain bounded completed export or partial export diagnostics
         if: ${{ always() && steps.setup.outputs.safe_export_parent != '' }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
