@@ -1,5 +1,5 @@
 /** PERF-8 §7 evidence lifecycle. Explicit evidence allocation only; never editor storage. */
-import { constants } from 'node:fs';
+import { constants, lstatSync } from 'node:fs';
 import { mkdir, open, opendir, lstat, realpath, readFile } from 'node:fs/promises';
 import { createHash, randomUUID } from 'node:crypto';
 import { join, resolve, relative, dirname, isAbsolute } from 'node:path';
@@ -135,7 +135,7 @@ async function confirmDescendantMutation(allocation, path, ancestors, before) {
 }
 /** Streaming traversal: no content is opened and no path outside the allocation is followed.
  * This is a periodic non-atomic filesystem counter, not a filesystem write-event oracle. */
-export async function sampleVolume(allocation, { maxEntries = LIMIT, statEntry = lstat, openDirectory = opendir } = {}) {
+export async function sampleVolume(allocation, { maxEntries = LIMIT, statEntry, openDirectory = opendir } = {}) {
   if (!Number.isSafeInteger(maxEntries) || maxEntries < 1 || maxEntries > LIMIT) throw Error('Evidence traversal limit must remain bounded');
   try { await checkRoot(allocation); } catch (error) { throw observationError(error, allocation.root, allocation.root, 'root-before'); }
   const startedAt = new Date().toISOString(), startMs = performance.now(), seen = new Set();
@@ -152,6 +152,22 @@ export async function sampleVolume(allocation, { maxEntries = LIMIT, statEntry =
       traversalFailed = true; traversalFailure = error;
     }
   };
+  // Default stats avoid per-entry thread-pool dispatch. All four branches
+  // share one turn budget; none can bypass an already pending cooperative yield.
+  // Explicit statEntry injections retain their own scheduling and error behavior.
+  if (statEntry === undefined) {
+    let statCalls = 0, statTurn;
+    statEntry = async (path, options) => {
+      if (traversalFailed) throw traversalFailure;
+      while (statCalls >= 32) {
+        statTurn ??= new Promise(resolve => setImmediate(resolve)).then(() => { statCalls = 0; statTurn = undefined; });
+        await statTurn;
+        if (traversalFailed) throw traversalFailure;
+      }
+      statCalls++;
+      return lstatSync(path, options);
+    };
+  }
   async function walk(path, depth, ancestors = []) {
     let children, phase = 'bound', before;
 

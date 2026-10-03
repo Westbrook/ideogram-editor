@@ -167,6 +167,44 @@ test('accepted clipped review reuses its exact coverage object and approval with
  assert.deepEqual(f.verify(accepted.outputMapping.effectiveMask),reviewedBytes);assert.deepEqual(f.verify(r.plan.effectiveMask),r.samples);assert.equal(canonical(f.job.review.request),beforeRequest);assert(accepted.proofs.some(proof=>proof.ref.hash===frozen.outputMapping.effectiveMask.hash));f.release(accepted);assert.equal(f.activeProofs.size,0);
 });
 
+// Arm from an actual original-mask read, after the current row's guard.
+// setImmediate is queued ahead of the production row-end tick. No clock or
+// duration oracle is involved; the next row must not outrun this callback.
+function coverageTurnProbe(f,ref,onTurn=()=>{}){
+ const readRange=f.objects.readRange,state={armed:false,ran:false,checksBeforeTurn:0};let immediate;
+ f.objects.readRange=function(input,...args){const bytes=readRange.call(this,input,...args);if(input.hash===ref.hash&&!state.armed){state.armed=true;immediate=setImmediate(()=>{state.ran=true;onTurn();});}return bytes;};
+ return {state,check(){if(state.armed&&!state.ran)state.checksBeforeTurn++;},restore(){if(immediate)clearImmediate(immediate);f.objects.readRange=readRange;}};
+}
+
+for(const phase of ['fresh review','retained clipped replay'])for(const changed of ['candidate','writer epoch'])test('coverage yields before the next row and observes '+changed+' changes during '+phase,async t=>{
+ const f=fixture(t,{width:1}),r=capturedRequest(f),options={actualOutput:{width:1,height:2,clipMask:true}};let frozen;
+ if(phase==='retained clipped replay'){const reviewed=await review(f,'safe-region',options);frozen=structuredClone(reviewed.frozen);f.release(reviewed);}
+ const beforeAssets=f.db.prepare('SELECT id,json FROM assets ORDER BY id').all(),beforeDocument=f.db.prepare('SELECT json FROM documents').get().json,beforeRequest=canonical(f.job.review.request),finished=structuredClone(f.finished),mask=Buffer.from(f.verify(r.plan.effectiveMask));
+ const probe=coverageTurnProbe(f,r.plan.effectiveMask,()=>{if(changed==='candidate')f.saveCandidate({version:'5'});else f.fence.epoch='epoch_2';});
+ try{
+  const operation=phase==='fresh review'?f.candidates.reviewAdoption(f.candidate.id,'safe-region','cooperative_review','cooperative_review_slot',probe.check,options):f.reopen().prepareReviewedAdoption(frozen,'cooperative_accept','cooperative_accept_slot',probe.check);
+  await assert.rejects(operation,reason('STALE_REVISION','CANDIDATE_CHANGED'));
+  assert.equal(probe.state.armed,true);assert.equal(probe.state.ran,true);assert.equal(probe.state.checksBeforeTurn,0,'The first row must yield before any later row or preparation guard');
+ }finally{probe.restore();}
+ assert.equal(f.calls.length,0,'A changed input cannot dispatch preservation');assert.equal(f.registered.length,0);assert.equal(f.activeProofs.size,0);assert.equal(f.streams.size,0);assert.deepEqual(f.finished,finished);assert.deepEqual(f.db.prepare('SELECT id,json FROM assets ORDER BY id').all(),beforeAssets);assert.equal(f.db.prepare('SELECT json FROM documents').get().json,beforeDocument);assert.equal(canonical(f.job.review.request),beforeRequest);assert.deepEqual(f.verify(r.plan.effectiveMask),mask);
+ if(frozen)assert.deepEqual(f.verify(frozen.outputMapping.effectiveMask),Buffer.from([0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,128,0,0,0,0]));
+});
+
+test('successful cooperative clipped replay services a queued turn and retains exact reviewed mapping and R16 bytes',async t=>{
+ const f=fixture(t,{width:1}),r=capturedRequest(f),reviewed=await review(f,'safe-region',{actualOutput:{width:1,height:2,clipMask:true}}),frozen=structuredClone(reviewed.frozen),original=Buffer.from(f.verify(r.plan.effectiveMask)),approved=Buffer.from(f.verify(frozen.outputMapping.effectiveMask)),finished=structuredClone(f.finished),beforeCandidate=f.readCandidate(),beforeRequest=canonical(f.job.review.request);f.release(reviewed);
+ const probe=coverageTurnProbe(f,r.plan.effectiveMask);let accepted;
+ try{accepted=await f.reopen().prepareReviewedAdoption(frozen,'cooperative_accept','cooperative_accept_slot',probe.check);assert.equal(probe.state.armed,true);assert.equal(probe.state.ran,true);assert.equal(probe.state.checksBeforeTurn,0,'The callback must run between the first two scanned rows');}finally{probe.restore();if(accepted)f.release(accepted);}
+ assert.deepEqual(accepted.frozen,frozen);assert.deepEqual(accepted.outputMapping,frozen.outputMapping);assert.deepEqual(accepted.coverage,{originalEffectivePixels:4,effectivePixels:2,lostPixels:2});assert.equal(f.calls.length,1);assert.deepEqual(f.calls[0].body.outputMapping,frozen.outputMapping);assert.deepEqual(f.finished,finished,'Retained replay never opens a second clipping result');assert.equal(f.streams.size,0);assert.equal(f.activeProofs.size,0);assert.equal(f.registered.length,0);assert.deepEqual(f.verify(frozen.outputMapping.effectiveMask),approved);assert.deepEqual(f.verify(r.plan.effectiveMask),original);assert.deepEqual(f.readCandidate(),beforeCandidate);assert.equal(canonical(f.job.review.request),beforeRequest);
+});
+
+test('clipping derivation yields within its single output chunk and aborts the stage on a changed candidate',async t=>{
+ const f=fixture(t,{width:1}),r=capturedRequest(f),original=Buffer.from(f.verify(r.plan.effectiveMask)),beforeAssets=f.db.prepare('SELECT id,json FROM assets ORDER BY id').all(),begin=f.objects.begin,chunk=f.objects.chunk,abort=f.objects.abort,begun=[],aborted=[];let immediate,changed=false,chunksBeforeTurn=0;
+ f.objects.begin=function(...args){const id=begin.apply(this,args);begun.push(id);immediate=setImmediate(()=>{changed=true;f.saveCandidate({version:'5'});});return id;};
+ f.objects.chunk=function(...args){if(!changed)chunksBeforeTurn++;return chunk.apply(this,args);};f.objects.abort=function(id){aborted.push(id);return abort.call(this,id);};
+ try{await assert.rejects(review(f,'safe-region',{actualOutput:{width:1,height:2,clipMask:true}}),reason('STALE_REVISION','CANDIDATE_CHANGED'));}finally{if(immediate)clearImmediate(immediate);f.objects.begin=begin;f.objects.chunk=chunk;f.objects.abort=abort;}
+ assert.equal(changed,true);assert.equal(begun.length,1);assert.deepEqual(aborted,begun);assert.equal(chunksBeforeTurn,0,'The first output row must yield before the completed multirow chunk is emitted');assert.equal(f.streams.size,0);assert.equal(f.finished.length,0);assert.equal(f.activeProofs.size,0);assert.equal(f.calls.length,0);assert.equal(f.registered.length,0);assert.deepEqual(f.db.prepare('SELECT id,json FROM assets ORDER BY id').all(),beforeAssets);assert.deepEqual(f.verify(r.plan.effectiveMask),original);assert.equal(f.readCandidate().version,'5');
+});
+
 test('full candidate review and acceptance retain native pixels without a preservation worker',async t=>{
  const f=fixture(t),result=await review(f,'full-candidate'),frozen=JSON.parse(JSON.stringify(result.frozen));f.release(result);
  const accepted=await acceptReviewed(f,frozen);assert.deepEqual(result.asset,f.prepared);assert.equal(result.preparation,'prepared-reuse');assert.deepEqual(accepted.asset,f.prepared);assert.equal(accepted.preparation,'prepared-reuse');assert.deepEqual(accepted.frozen,frozen);assert.equal(f.calls.length,0);assert.equal(f.finished.length,0);f.release(accepted);assert.equal(f.activeProofs.size,0);

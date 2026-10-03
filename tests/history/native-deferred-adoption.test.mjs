@@ -1,6 +1,9 @@
 import test,{after} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID,createHash} from 'node:crypto';
+import {setTimeout as pause} from 'node:timers/promises';
+import {EventEmitter,getEventListeners} from 'node:events';
+import {exchange} from '../session/helpers.mjs';
 import {readFile,writeFile,rename,cp} from 'node:fs/promises';
 import {terminalWithDiagnostics} from './native-failure-diagnostics.mjs';
 import {createNativeMemoryRecorder,nativeMemoryPhases as memoryPhase} from './native-memory-diagnostics.mjs';
@@ -83,10 +86,10 @@ async function syncNativeClock(root,now){
  await writeFile(path+'.tmp',JSON.stringify({now}),{flag:'wx',mode:0o600});
  await rename(path+'.tmp',path);
 }
-async function fixture(t,{encoded=false,failure=false,now,bounds=false,actualSize=512}={}){
+async function fixture(t,{encoded=false,failure=false,now,bounds=false,actualSize=512,acceptanceWait}={}){
  const memoryFixture=++memoryFixtureSequence;mainMemory.sample(memoryFixture,memoryPhase.fixtureOpen);
  let close;t.after(async()=>{mainMemory.sample(memoryFixture,memoryPhase.fixtureCloseBefore);try{await close?.();mainMemory.sample(memoryFixture,memoryPhase.fixtureCloseAfter,-1,1);}catch(error){mainMemory.sample(memoryFixture,memoryPhase.fixtureCloseAfter,-1,2);throw error;}});const root=await rootFor(t);
- if(actualSize!==512){assert.equal(actualSize,256);assert(!encoded&&!now&&!bounds);await writeFile(join(root,'text-treatment-result-size'),String(actualSize),{flag:'wx',mode:0o600});}
+ if(actualSize!==512){assert.equal(actualSize,256);assert(!now&&!bounds);await writeFile(join(root,'text-treatment-result-size'),String(actualSize),{flag:'wx',mode:0o600});}
  await writeFile(join(root,'j19-memory-enabled'),'1',{flag:'wx',mode:0o600});
  let server;
  if(encoded||now||bounds){
@@ -99,7 +102,7 @@ async function fixture(t,{encoded=false,failure=false,now,bounds=false,actualSiz
  }else server=await providerChild(root,owned=>{close=owned;},new URL('./text-treatment-process-fixture.mjs',import.meta.url));
  mainMemory.sample(memoryFixture,memoryPhase.serverReady);
  const paired=await pair(server);assert.equal(paired.status,200,paired.text);
- const f={root,server,paired,memoryFixture,...(now?{syncClock:()=>syncNativeClock(root,now())}:{}),read:path=>call(server.origin,path,{headers:readHeaders(cookieFrom(paired))}),post:(path,body)=>call(server.origin,path,{method:'POST',body,headers:mutationHeaders(server,paired)}),command:(patch={},body={})=>command(EMPTY_EXPECTED_VERSIONS,{clientId:paired.json.clientId,...patch},body),effects:async()=>{const value=JSON.parse(await readFile(join(root,'request-edits-fixture.json'),'utf8'));assert.deepEqual(value.errors,[]);return value.effects;}};
+ const f={root,server,paired,memoryFixture,...(acceptanceWait?{acceptanceWait}:{}),...(now?{syncClock:()=>syncNativeClock(root,now())}:{}),read:path=>call(server.origin,path,{headers:readHeaders(cookieFrom(paired))}),post:(path,body)=>call(server.origin,path,{method:'POST',body,headers:mutationHeaders(server,paired)}),command:(patch={},body={})=>command(EMPTY_EXPECTED_VERSIONS,{clientId:paired.json.clientId,...patch},body),effects:async()=>{const value=JSON.parse(await readFile(join(root,'request-edits-fixture.json'),'utf8'));assert.deepEqual(value.errors,[]);return value.effects;}};
  f.reopen=async()=>{assert(!encoded&&!now&&!bounds);await close();const reopened=await providerChild(root,owned=>{close=owned;},new URL('./text-treatment-process-fixture.mjs',import.meta.url)),newPair=await pair(reopened);assert.equal(newPair.status,200,newPair.text);return clientFor({...f,server:reopened},newPair);};
  assert.equal((await terminal(f,f.command({},{width:512,height:512}))).json.receipt.status,'accepted');
  const background=(await importRaster(f,'black.png')).asset;
@@ -216,14 +219,14 @@ async function capture(f,scope,layerIds=[]){
  assert.deepEqual(manifest.plan.capture.image,before.image);
  return {asset:captured,manifest,source:{assetId:captured.id,version:captured.version,blob:captured.blob,pixels:captured.raster.pixels,width:512,height:512,scope,documentRevision:before.revision,capture:captured.raster.manifest}};
 }
-async function candidate(f,{kind='native-overlay',placement='current-document',mapped=false}={}){
+async function candidate(f,{kind='native-overlay',placement='current-document',mapped=false,cropSize=384,maskRect={x:128,y:128,width:8,height:8}}={}){
  const before=await document(f),beforeState=await image(f),nativeIds=beforeState.layers.filter(l=>l.kind==='text'&&l.visible).map(l=>l.id),baseline=await capture(f,'visible-document');
  const selected=kind==='native-overlay'?await capture(f,'single-layer',['background']):baseline,source=selected.source;
- const maskAsset=(await operate(f,{type:'PrepareRequestMask',sourceAssetId:source.assetId,plan:{width:512,height:512,feather:0,operations:[{kind:'shape',shape:{kind:'rectangle',x:128,y:128,width:8,height:8},mode:'replace'}]},clip:null})).event.payload.asset;
+ const maskAsset=(await operate(f,{type:'PrepareRequestMask',sourceAssetId:source.assetId,plan:{width:512,height:512,feather:0,operations:[{kind:'shape',shape:{kind:'rectangle',...maskRect},mode:'replace'}]},clip:null})).event.payload.asset;
  const manifest=(await f.read('/api/v1/assets/'+maskAsset.id+'/raster')).json;
  const mask={assetId:maskAsset.id,version:maskAsset.version,blob:maskAsset.blob,pixels:maskAsset.raster.pixels,width:512,height:512,sourceHash:source.pixels.hash,polarity:'white-edit',fullAcknowledged:false,empty:false,full:false,plan:maskAsset.raster.manifest,binding:bindRequestMask(source)};
  mask.requestPlan=confirmRequestMask(source,mask,manifest.plan.hard,manifest.plan.effective,randomUUID());
- if(mapped)mask.requestPlan=createRequestRasterPlan({document:{width:512,height:512},crop:{x:0,y:0,width:384,height:384},padding:{left:0,top:0,right:0,bottom:0},requestGrid:{width:512,height:512},sourcePixels:source.pixels,authoredMask:manifest.plan.hard,effectiveMask:manifest.plan.effective,dependenciesHash:requestMaskDependencies(source,mask),resolution:'already-contained',approvalId:randomUUID()});
+ if(mapped)mask.requestPlan=createRequestRasterPlan({document:{width:512,height:512},crop:{x:0,y:0,width:cropSize,height:cropSize},padding:{left:0,top:0,right:0,bottom:0},requestGrid:{width:512,height:512},sourcePixels:source.pixels,authoredMask:manifest.plan.hard,effectiveMask:manifest.plan.effective,dependenciesHash:requestMaskDependencies(source,mask),resolution:'already-contained',approvalId:randomUUID()});
  const prompt=await stage(f,Buffer.from('Change the selected background and preserve explicitly reviewed native lettering')),draft=newDraft(prompt.blob);
  draft.operation='inpaint';Object.assign(draft.fields,{size:mapped?'custom':'auto',width:'512',height:'512',strength:'1'});draft.source=source;draft.mask=mask;
  const saved=await stage(f,Buffer.from(JSON.stringify(draft))),choice=kind==='native-overlay'?{kind,retainedNativeIds:nativeIds,placement,excludedSemanticIds:[],approvalId:randomUUID()}:{kind,allowedHideNativeIds:nativeIds,duplicationAcknowledgement:randomUUID(),excludedSemanticIds:[],approvalId:randomUUID()};
@@ -265,10 +268,10 @@ async function reviewed(f,body,{candidateTransform=[1,0,0,1,0,0],rawCandidateEqu
  const lettering=review.lettering;assert.equal(lettering.kind,'candidate-lettering-comparison-1');assert.deepEqual(lettering.plan,body.textTreatment.plan);assert.deepEqual(lettering.choice,body.textTreatment.choice);assert.equal(lettering.intentHash,lettering.intent.hash);assert.deepEqual(lettering.grid,{width:512,height:512});
  const intent=JSON.parse(await retained(f,lettering.intent)),manifest=JSON.parse(await retained(f,lettering.manifest));
  assert.equal(intent.kind,'candidate-lettering-intent-1');assert.equal(intent.documentId,before.id);assert.equal(intent.documentRevision,before.revision);assert.deepEqual(intent.source,before.image);assert.deepEqual(intent.placement,expectedPlacement);assert.deepEqual(intent.identity,review.inputs.identity);assert.deepEqual(intent.requestPlan,review.inputs.plan);
- assert.equal(intent.decision.kind,'text-treatment-placement-intent-1');assert.equal(intent.decision.requestedPreservation,body.textTreatment.choice.preservation);assert.equal('preservedExterior' in intent.decision,false);
+ assert.equal(intent.decision.kind,body.actualOutput?.clipMask?'text-treatment-successor-placement-intent-1':'text-treatment-placement-intent-1');assert.equal(intent.decision.requestedPreservation,body.textTreatment.choice.preservation);assert.equal('preservedExterior' in intent.decision,false);
  assert.deepEqual(Object.keys(intent.decision.candidate).sort(),['candidateId','effectiveMask','grid','preparation','sourcePixels']);
  assert.equal(intent.decision.candidate.candidateId,body.candidateId);assert.deepEqual(intent.decision.candidate.grid,{width:512,height:512});assert.equal(intent.decision.candidate.preparation,body.mode);
- assert.deepEqual(intent.decision.candidate.sourcePixels,body.mode==='safe-region'?review.inputs.plan.sourcePixels:null);assert.deepEqual(intent.decision.candidate.effectiveMask,body.mode==='safe-region'?review.inputs.plan.effectiveMask:null);
+ assert.deepEqual(intent.decision.candidate.sourcePixels,body.mode==='safe-region'?review.inputs.plan.sourcePixels:null);assert.deepEqual(intent.decision.candidate.effectiveMask,body.mode==='safe-region'?(review.inputs.outputMapping?.effectiveMask??review.inputs.plan.effectiveMask):null);
  assert.equal(manifest.kind,'candidate-lettering-comparison-manifest-1');assert.deepEqual(manifest.intent,lettering.intent);assert.deepEqual(manifest.grid,lettering.grid);assert.equal(manifest.preservation,'not-applied');
  const ids=[lettering.candidateAloneAssetId,lettering.nativeOffAssetId,lettering.nativeOnAssetId];assert.equal(new Set(ids).size,3);
  assert.deepEqual(prepared.events.slice(0,3).map(event=>event.payload.asset.id),ids);
@@ -301,14 +304,65 @@ async function unchangedNative(f,layer,identity){
  assert.deepEqual(await asset(f,layer.assetId),identity.raster);assert.deepEqual(await asset(f,layer.mask.assetId),identity.mask);
  for(let at=0;at<identity.refs.length;at++)assert.deepEqual(await retained(f,identity.refs[at]),identity.bytes[at]);
 }
+
+async function preservedCandidate(f,wrapper){
+ const retainedManifest=JSON.parse(await retained(f,wrapper.raster.manifest));assert.equal(retainedManifest.plan.kind,'retained-candidate-v1');assert.deepEqual(Object.keys(retainedManifest.plan).sort(),['kind','lineage','source']);assert.deepEqual(retainedManifest.dependencies,[retainedManifest.plan.source,retainedManifest.plan.lineage]);
+ assert.equal(wrapper.raster.sourceAssetIds.length,1);const source=await asset(f,wrapper.raster.sourceAssetIds[0]);assert.equal(source.qualification,'canonical-raster');assert.deepEqual(source.raster.manifest,retainedManifest.plan.source);assert.deepEqual(wrapper.blob,source.blob);assert.deepEqual(wrapper.raster.pixels,source.raster.pixels);assert.equal(wrapper.raster.pixelIdentity,source.raster.pixelIdentity);
+ const manifest=JSON.parse(await retained(f,retainedManifest.plan.source)),lineage=JSON.parse(await retained(f,retainedManifest.plan.lineage));assert.equal(manifest.plan.kind,'request-preservation-v1');assert.equal(lineage.kind,'adopted-candidate-lineage-1');assert.equal(lineage.inert,true);assert.deepEqual(manifest.pixels,wrapper.raster.pixels);
+ for(const key of ['width','height','pipeline']){assert.equal(retainedManifest[key],wrapper.raster[key]);assert.equal(manifest[key],wrapper.raster[key]);assert.equal(source.raster[key],wrapper.raster[key]);}
+ return {manifest,lineage};
+}
+
+function successorWitness(c,choice,identity,mapping,witness){
+ assert.equal(mapping.resolution,'clipped-and-approved');
+ assert.deepEqual(witness,{kind:'text-treatment-mask-successor-1',acceptedTreatmentPlan:c.review.textTreatment.plan,originalRequestPlan:c.plan.edit.requestPlan,originalEffectiveMask:c.draft.mask.requestPlan.effectiveMask,finalEffectiveMask:mapping.effectiveMask,candidateIdentityHash:sha(canonical(identity)),outputMappingHash:sha(canonical(mapping)),adoptionChoiceHash:sha(canonical(choice))});
+}
+async function clippedBoundary(f,c,mapping,coverage){
+ assert.deepEqual(mapping.outputToDocument,[2,0,0,2,0,0]);assert.deepEqual(mapping.actualOutput,{width:256,height:256});assert.deepEqual(mapping.requestPlan,c.draft.mask.requestPlan);
+ assert.deepEqual(coverage,{originalEffectivePixels:64,effectivePixels:56,lostPixels:8});assert.notEqual(mapping.effectiveMask.hash,c.draft.mask.requestPlan.effectiveMask.hash);
+ const original=await retained(f,c.draft.mask.requestPlan.effectiveMask),final=await retained(f,mapping.effectiveMask);
+ // Independent exact raster oracle: the original leftmost column is now
+ // outside reconstruction support. Every other authored cell is unchanged.
+ for(let y=0;y<512;y++)for(let x=0;x<512;x++){const offset=(y*512+x)*2,edited=x<8&&y>=128&&y<136;assert.equal(original.readUInt16LE(offset),edited?65535:0);assert.equal(final.readUInt16LE(offset),edited&&x>0?65535:0);}
+ return {original,final};
+}
+
 function exterior(actual,original,mask){
  let equal=0,changed=0;
  for(let at=0;at<mask.length;at+=2){const offset=at*2;if(mask.readUInt16LE(at)===0){assert(actual.subarray(offset,offset+4).equals(original.subarray(offset,offset+4)),'exterior pixel '+at/2);equal++;}else if(!actual.subarray(offset,offset+4).equals(original.subarray(offset,offset+4)))changed++;}
  assert(equal>250000);assert(changed>0,'The accepted candidate must actually change edited pixels');
 }
+// Only the actual-output acceptance cases opt in. Their one existing case
+// deadline starts before fixture setup and never resets for an HTTP request.
+async function acceptanceHTTP(f,path,options,signal,open=exchange){
+ signal.throwIfAborted();const {request,response}=open(f.server.origin,path,options),closeOf=stream=>stream.closed?Promise.resolve():new Promise(resolve=>stream.once('close',resolve)),closed=closeOf(request);
+ let incoming;const received=value=>{incoming=value;};request.on('response',received);
+ const abort=()=>request.destroy(signal.reason);signal.addEventListener('abort',abort,{once:true});if(signal.aborted)abort();
+ try{return await response;}catch(error){request.destroy(error);throw error;}
+ finally{try{await closed;if(incoming)await closeOf(incoming);}finally{request.removeListener('response',received);signal.removeEventListener('abort',abort);}}
+}
+async function terminalAcceptance(f,request,owner,runtime={}){
+ const now=runtime.now??(()=>performance.now()),sleep=runtime.sleep??((ms,signal)=>pause(ms,undefined,{signal})),send=runtime.send??((path,options,signal)=>acceptanceHTTP(f,path,options,signal)),schedule=runtime.schedule??setTimeout,cancel=runtime.cancel??clearTimeout;
+ const started=now(),commandId=request.command.commandId,path='/api/v1/commands/'+commandId,controller=new AbortController();let timer,polls=0;
+ assert(Number.isFinite(owner.deadline));assert(owner.signal instanceof AbortSignal);
+ const expired=()=>Object.assign(new Error('Native acceptance exceeded its existing whole-case deadline'),{code:'NATIVE_ACCEPTANCE_CASE_DEADLINE'});
+ const abort=()=>controller.abort(owner.signal.reason),check=()=>{if(owner.signal.aborted)abort();if(now()>=owner.deadline&&!controller.signal.aborted)controller.abort(expired());controller.signal.throwIfAborted();};
+ const observed=(point,response)=>owner.observe?.({kind:'native-acceptance-wait-1',point,commandId,polls,elapsedMs:now()-started,...(response.status===202?{operationId:response.json.operationId,phase:response.json.phase}:{receiptStatus:response.json.receipt?.status})});
+ owner.signal.addEventListener('abort',abort,{once:true});
+ try{
+  check();timer=schedule(()=>controller.abort(expired()),owner.deadline-now());
+  let response=await send('/api/v1/commands',{method:'POST',body:request,headers:mutationHeaders(f.server,f.paired)},controller.signal);check();
+  while(response.status===202){
+   assert.equal(response.headers.location,response.json.receiptUrl);assert.equal(response.json.receiptUrl,path);assert.equal(response.json.commandId,commandId);
+   if(polls===1000)observed('original-poll-limit',response);
+   await sleep(5,controller.signal);check();response=await send(path,{headers:readHeaders(cookieFrom(f.paired))},controller.signal);polls++;check();
+  }
+  assert.equal(response.status,200,response.text);assert.equal(response.json.receipt.commandId,commandId);observed('terminal',response);return response;
+ }finally{if(timer!==undefined)cancel(timer);owner.signal.removeEventListener('abort',abort);}
+}
 async function accept(f,approved){
  const creating=approved.review.placement.placement==='new-document',id=creating?approved.review.placement.newDocumentId:documentId;
- const request=f.command({documentId:id,expectedDocumentRevision:creating?null:(await document(f)).revision,body:approved.body}),result=await terminal(f,request);assert.equal(result.json.receipt.status,'accepted',result.text);
+ const request=f.command({documentId:id,expectedDocumentRevision:creating?null:(await document(f)).revision,body:approved.body}),result=await(f.acceptanceWait?terminalAcceptance(f,request,f.acceptanceWait):terminal(f,request));assert.equal(result.json.receipt.status,'accepted',result.text);
  const committed=await events(f,result.json.receipt);assert(committed.length>=3);assert.equal(committed.at(-1).type,creating?'DocumentCreated':'ImageEdited');
  for(const event of committed)assert.equal(event.transactionId,request.command.transactionId);
  assert(committed.slice(0,-1).every(event=>event.type==='AssetRegistered'&&event.documentId===null));assert.equal(committed.at(-1).documentId,id);
@@ -320,12 +374,16 @@ async function accept(f,approved){
  assert.deepEqual((await terminal(f,request)).json.receipt,result.json.receipt,'Exact acceptance replay cannot run a second preparation');
  return {request,result,receipt:result.json.receipt,events:committed,document:current,after};
 }
-async function reject(f,body,{code,reason,target=null,client=f}={}){
- const before=await document(f),beforeState=await image(f),cold=inventory(f),beforeEvents=eventInventory(f),request=client.command({documentId:target??documentId,expectedDocumentRevision:target?null:before.revision,body}),result=await terminal(client,request);
- assert.equal(result.json.receipt.status,'rejected',result.text);if(code)assert.equal(result.json.receipt.code,code,result.text);
- if(reason)assert.equal(JSON.parse(await retained(f,result.json.receipt.details)).issues[0].code,reason);
- assert.deepEqual(await document(f),before);assert.deepEqual(await image(f),beforeState);assert.deepEqual(inventory(f),cold);assert.deepEqual(eventInventory(f),beforeEvents);if(target)assert.equal((await f.read('/api/v1/documents/'+target)).status,404);
- return {request,result,receipt:result.json.receipt};
+async function reject(f,body,{code,reason,target=null,client=f,context='rejection'}={}){
+ let phase='document-before',request;
+ try{
+  const before=await document(f);phase='image-before';const beforeState=await image(f);phase='inventory-before';const cold=inventory(f),beforeEvents=eventInventory(f);
+  request=client.command({documentId:target??documentId,expectedDocumentRevision:target?null:before.revision,body});phase='terminal';const result=await terminal(client,request);
+  phase='receipt';assert.equal(result.json.receipt.status,'rejected',result.text);if(code)assert.equal(result.json.receipt.code,code,result.text);
+  if(reason)assert.equal(JSON.parse(await retained(f,result.json.receipt.details)).issues[0].code,reason);
+  phase='document-after';assert.deepEqual(await document(f),before);phase='image-after';assert.deepEqual(await image(f),beforeState);phase='inventory-after';assert.deepEqual(inventory(f),cold);assert.deepEqual(eventInventory(f),beforeEvents);if(target){phase='target-absence';assert.equal((await f.read('/api/v1/documents/'+target)).status,404);}
+  return {request,result,receipt:result.json.receipt};
+ }catch(error){error.message+='\nRejection context: '+JSON.stringify({context,phase,commandId:request?.command.commandId??null,operation:body.type});throw error;}
 }
 
 test('deferred native review retains only bounded real comparisons; explicit acceptance prepares Q and commits the original slot atomically',{timeout:180000},async t=>{
@@ -368,8 +426,8 @@ for(const mutation of ['changed','deleted','locked'])test('fresh deferred new-do
  const applied=await accept(f,approved);assert.equal(applied.document.revision,'1');assert.deepEqual(await document(f),current);assert.deepEqual(await image(f),currentState);await unchangedNative(f,native,identity);assert.deepEqual(await retained(f,c.review.textTreatment.plan),frozenPlan);assert.deepEqual(await f.effects(),effects);
 });
 
-for(const target of [null,'stale_native_document'])test('deferred native acceptance fences every reviewed origin row for '+(target?'new-document':'current-document'),{timeout:180000},async t=>{
- const f=await fixture(t,{actualSize:256}),c=await candidate(f,{mapped:true}),body=target?placement(c,{action:'new-document',preservation:'none',nativeCopies:[{sourceLayerId:'native_text',newLayerId:'copied_native',transform:[1,0,0,1,8,12]}]},{placement:'new-document',newDocumentId:target,actualOutput:{width:256,height:256,clipMask:false}}):placement(c,{}, {actualOutput:{width:256,height:256,clipMask:false}}),approved=await reviewed(f,body,{candidateTransform:[1.5,0,0,1.5,0,0],rawCandidateEqualsComparison:false});
+for(const clipMask of [false,true])for(const target of [null,'stale_native_document'])test('deferred '+(clipMask?'clipped':'contained')+' native acceptance fences every reviewed origin row for '+(target?'new-document':'current-document'),{timeout:180000},async t=>{
+ const f=await fixture(t,{actualSize:256}),c=await candidate(f,{mapped:true,...(clipMask?{cropSize:512,maskRect:{x:0,y:128,width:8,height:8}}:{})}),body=target?placement(c,{action:'new-document',preservation:'none',nativeCopies:[{sourceLayerId:'native_text',newLayerId:'copied_native',transform:[1,0,0,1,8,12]}]},{placement:'new-document',newDocumentId:target,actualOutput:{width:256,height:256,clipMask}}):placement(c,{}, {actualOutput:{width:256,height:256,clipMask}}),approved=await reviewed(f,body,{candidateTransform:clipMask?[2,0,0,2,0,0]:[1.5,0,0,1.5,0,0],rawCandidateEqualsComparison:false});
  await properties(f,'hidden_picture',{locked:false});await reject(f,approved.body,{code:'STALE_REVISION',target});assert.deepEqual((await image(f)).layers.find(layer=>layer.id==='native_text'),c.beforeState.layers.find(layer=>layer.id==='native_text'));
 });
 
@@ -392,14 +450,15 @@ test('deferred native review rejects forged treatment authority, changed choice,
 });
 
 for(const placementKind of ['current-document','new-document'])test('deferred 512-to-256 contained output compares the actual mapping and preserves exact native treatment in '+placementKind,{timeout:180000},async t=>{
- const f=await fixture(t,{actualSize:256}),c=await candidate(f,{mapped:true,placement:placementKind}),target=placementKind==='new-document'?'mapped_native_document':null,native=c.beforeState.layers.find(layer=>layer.id==='native_text'),identity=await nativeIdentity(f,native),effects=await f.effects();
+ const acceptanceWait={deadline:performance.now()+180000,signal:t.signal,observe:value=>t.diagnostic(JSON.stringify(value))};
+ const f=await fixture(t,{actualSize:256,acceptanceWait}),c=await candidate(f,{mapped:true,placement:placementKind}),target=placementKind==='new-document'?'mapped_native_document':null,native=c.beforeState.layers.find(layer=>layer.id==='native_text'),identity=await nativeIdentity(f,native),effects=await f.effects();
  assert.deepEqual(c.draft.mask.requestPlan.outputToDocument,[0.75,0,0,0.75,0,0]);assert.equal((await asset(f,c.value.preparedAssetId)).raster.width,256);
  const actualOutput={width:256,height:256,clipMask:false},copy={sourceLayerId:native.id,newLayerId:'copied_native',transform:[1,0,0,1,24,12]};
  const body=target?placement(c,{action:'new-document',preservation:'none',nativeCopies:[copy]},{placement:placementKind,newDocumentId:target,actualOutput}):placement(c,{}, {actualOutput});
  await reject(f,{...body,actualOutput:{...actualOutput,width:512}},{code:'INCOMPATIBLE',reason:'OUTPUT_MAPPING_REVIEW_REQUIRED'});
- await reject(f,{...body,actualOutput:{...actualOutput,clipMask:true}},{code:'INCOMPATIBLE',reason:'TEXT_TREATMENT_UNCHANGED_MASK_REQUIRED'});
+ const zeroLoss=await reviewed(f,{...body,actualOutput:{...actualOutput,clipMask:true}},{candidateTransform:[1.5,0,0,1.5,0,0],rawCandidateEqualsComparison:false});assert.deepEqual(zeroLoss.review.inputs.coverage,{originalEffectivePixels:64,effectivePixels:64,lostPixels:0});assert.deepEqual(zeroLoss.review.inputs.outputMapping.effectiveMask,c.draft.mask.requestPlan.effectiveMask);successorWitness(c,body.textTreatment.choice,zeroLoss.review.inputs.identity,zeroLoss.review.inputs.outputMapping,zeroLoss.intent.decision.maskSuccessor);
  const approved=await reviewed(f,body,{candidateTransform:[1.5,0,0,1.5,0,0],rawCandidateEqualsComparison:false}),mapping=approved.review.inputs.outputMapping;
- assert.deepEqual(mapping.outputToDocument,[1.5,0,0,1.5,0,0]);assert.deepEqual(mapping.actualOutput,{width:256,height:256});assert.deepEqual(mapping.effectiveMask,c.draft.mask.requestPlan.effectiveMask);assert.equal(mapping.resolution,'already-contained');assert.equal(approved.review.inputs.coverage.lostPixels,0);
+ assert.deepEqual(mapping.outputToDocument,[1.5,0,0,1.5,0,0]);assert.deepEqual(mapping.actualOutput,{width:256,height:256});assert.deepEqual(mapping.effectiveMask,c.draft.mask.requestPlan.effectiveMask);assert.equal(mapping.resolution,'already-contained');assert.equal(approved.review.inputs.coverage.lostPixels,0);assert.equal('maskSuccessor' in approved.intent.decision,false);
  // Literal document-space pixels distinguish the actual 384px extent from
  // the obsolete request-grid transform, which would stop at x=192.
  const comparison=await pixels(f,approved.review.lettering.candidateAloneAssetId);assert.equal(comparison.length,512*512*4);assert.deepEqual([...comparison.subarray((100*512+300)*4,(100*512+300)*4+4)],[36,104,172,255]);assert.deepEqual([...comparison.subarray((100*512+450)*4,(100*512+450)*4+4)],[0,0,0,0]);
@@ -413,6 +472,72 @@ for(const placementKind of ['current-document','new-document'])test('deferred 51
  }
  await unchangedNative(f,native,identity);assert.deepEqual(await f.effects(),effects);
 });
+
+
+for(const placementKind of ['current-document','new-document'])test('deferred clipped successor binds exact lost coverage, native identity and history in '+placementKind,{timeout:300000},async t=>{
+ const acceptanceWait={deadline:performance.now()+300000,signal:t.signal,observe:value=>t.diagnostic(JSON.stringify(value))};
+ const f=await fixture(t,{actualSize:256,acceptanceWait}),c=await candidate(f,{mapped:true,cropSize:512,maskRect:{x:0,y:128,width:8,height:8},placement:placementKind}),target=placementKind==='new-document'?'clipped_native_document':null,native=c.beforeState.layers.find(layer=>layer.id==='native_text'),identity=await nativeIdentity(f,native),effects=await f.effects(),frozenPlan=await retained(f,c.review.textTreatment.plan);
+ const actualOutput={width:256,height:256,clipMask:true},copy={sourceLayerId:native.id,newLayerId:'copied_native',transform:[1,0,0,1,24,12]},body=target?placement(c,{action:'new-document',preservation:'none',nativeCopies:[copy]},{placement:placementKind,newDocumentId:target,actualOutput}):placement(c,{}, {actualOutput});
+ await reject(f,{...body,actualOutput:{...actualOutput,clipMask:false}},{code:'INCOMPATIBLE',reason:'MASK_DOMAIN_REVIEW_REQUIRED'});
+ const approved=await reviewed(f,body,{candidateTransform:[2,0,0,2,0,0],rawCandidateEqualsComparison:false}),mapping=approved.review.inputs.outputMapping,coverage=await clippedBoundary(f,c,mapping,approved.review.inputs.coverage);
+ successorWitness(c,body.textTreatment.choice,approved.review.inputs.identity,mapping,approved.intent.decision.maskSuccessor);assert.equal(approved.intent.decision.kind,'text-treatment-successor-placement-intent-1');assert.equal(approved.intent.decision.requestedPreservation,target?'none':'single-original-contribution');assert.equal(approved.manifest.preservation,'not-applied');await visibleDifference(f,approved.review,target?{x:24,y:12}:{});
+ const comparison=await pixels(f,approved.review.lettering.candidateAloneAssetId);assert.deepEqual([...comparison.subarray((100*512+450)*4,(100*512+450)*4+4)],[36,104,172,255],'Comparison uses the actual 2x mapping, not the old identity transform');
+ for(const mutate of [value=>{value.placement.actualOutput.clipMask=false;},value=>{value.inputs.outputMapping.resolution='already-contained';},value=>{value.inputs.coverage.lostPixels=0;},value=>{value.inputs.coverage.effectivePixels=0;}]){const forged=structuredClone(approved.review);mutate(forged);assert.throws(()=>candidatePlacementReview(forged));}
+ if(!target){
+  // A hash-valid retained intent and recomputed outer review hash still cannot
+  // substitute a successor belonging to another candidate/output/choice.
+  for(const key of ['candidateIdentityHash','outputMappingHash','adoptionChoiceHash']){
+   const changed=structuredClone(approved.intent);changed.decision.maskSuccessor[key]='sha256:'+'f'.repeat(64);const stored=await stageOwned(f,Buffer.from(canonical(changed))),review=structuredClone(approved.review);review.lettering.intent={...stored.blob,mediaType:'application/json'};review.lettering.intentHash=review.lettering.intent.hash;const {reviewHash,...content}=review;review.reviewHash=sha(canonical(content));assert.doesNotThrow(()=>candidatePlacementReview(review));
+   const db=new DatabaseSync(join(f.root,'metadata.sqlite'));let original;try{original=db.prepare('SELECT json FROM image_edit_reviews WHERE id=?').get(review.reviewId).json;db.prepare('UPDATE image_edit_reviews SET json=? WHERE id=?').run(canonical(review),review.reviewId);}finally{db.close();}
+   try{await reject(f,adoption(review),{code:'STALE_REVISION',reason:'LETTERING_INTENT_CHANGED'});}finally{const restore=new DatabaseSync(join(f.root,'metadata.sqlite'));try{restore.prepare('UPDATE image_edit_reviews SET json=? WHERE id=?').run(original,review.reviewId);}finally{restore.close();}}
+  }
+  for(const [context,ref]of [['original-mask-corruption',c.draft.mask.requestPlan.effectiveMask],['derived-mask-corruption',mapping.effectiveMask]]){const path=objectPath(f,ref),original=await retained(f,ref),changed=Buffer.from(original);changed[0]^=1;try{await writeFile(path,changed);await reject(f,approved.body,{code:'MISSING_ASSET',reason:'HISTORY_DEPENDENCY_UNAVAILABLE',context});}finally{await writeFile(path,original);}}
+ }
+ const applied=await accept(f,approved),generated=applied.after.layers.find(layer=>layer.id==='generated'),wrapper=await asset(f,generated.assetId),{manifest,lineage}=await preservedCandidate(f,wrapper);assert.deepEqual(manifest.plan.requestPlan,c.draft.mask.requestPlan);assert.deepEqual(manifest.plan.outputMapping,mapping);assert.deepEqual(lineage.result.request.textTreatment,c.review.textTreatment);for(const ref of [c.draft.mask.requestPlan.effectiveMask,mapping.effectiveMask])assert(manifest.dependencies.some(dependency=>canonical(dependency)===canonical(ref)));
+ exterior(await pixels(f,generated.assetId),await pixels(f,c.selected.asset.id),coverage.final);
+ if(target){assert.deepEqual(applied.after.layers[1],{...native,id:copy.newLayerId,version:'1',layerToDocument:copy.transform});assert.deepEqual(await document(f),c.before);assert.deepEqual(await image(f),c.beforeState);}
+ else{const original=await pixels(f,c.before.image.compositeAssetId);assert.deepEqual(applied.after.layers.find(layer=>layer.id===native.id),native);exterior(await pixels(f,applied.document.image.compositeAssetId),original,coverage.final);const undo=await run(f,{type:'Undo',historyHead:applied.document.historyHead});assert.deepEqual(await image(f),c.beforeState);assert.deepEqual(await pixels(f,undo.document.image.compositeAssetId),original);await run(f,{type:'Redo',historyNode:applied.document.historyHead});assert.deepEqual(await image(f),applied.after);}
+ await unchangedNative(f,native,identity);assert.deepEqual(await retained(f,c.review.textTreatment.plan),frozenPlan);assert.deepEqual(await retained(f,c.draft.mask.requestPlan.effectiveMask),coverage.original);assert.deepEqual(await f.effects(),effects);
+ if(!target)await clippedPortableRoundTrip(f,c,approved,applied,native,identity,coverage);
+});
+
+test('deferred clipped output refuses an empty final mask without registering review products',{timeout:180000},async t=>{
+ const f=await fixture(t,{actualSize:256}),c=await candidate(f,{mapped:true,cropSize:512,maskRect:{x:0,y:128,width:1,height:8}}),plan=await retained(f,c.review.textTreatment.plan),mask=await retained(f,c.draft.mask.requestPlan.effectiveMask),effects=await f.effects();
+ await reject(f,placement(c,{}, {actualOutput:{width:256,height:256,clipMask:true}}),{code:'INCOMPATIBLE',reason:'EMPTY_MASK'});assert.deepEqual(await retained(f,c.review.textTreatment.plan),plan);assert.deepEqual(await retained(f,c.draft.mask.requestPlan.effectiveMask),mask);assert.deepEqual(await f.effects(),effects);
+});
+
+async function clippedPortableRoundTrip(f,c,approved,applied,native,identity,coverage){
+ const mapping=approved.review.inputs.outputMapping,refs=[c.review.textTreatment.plan,c.plan.edit.requestPlan,c.draft.mask.requestPlan.effectiveMask,mapping.effectiveMask,native.source,identity.native.text.textUtf8,identity.native.render.layout,identity.native.render.pixels,identity.mask.raster.pixels,...identity.native.text.fonts.flatMap(font=>[font.bytes,font.licenseRecord])],expected=new Map();
+ for(const ref of refs)expected.set(ref.hash,await retained(f,ref));
+ const lettering=approved.review.lettering,approvalRefs=[lettering.intent,lettering.manifest],approvalBytes=new Map();
+ for(const ref of approvalRefs)approvalBytes.set(ref.hash,await retained(f,ref));
+ const approvalRoots=owner=>{const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});try{for(const ref of approvalRefs){const root=db.prepare('SELECT o.byte_length,r.media_type FROM roots r JOIN objects o ON o.hash=r.hash WHERE r.owner=? AND r.hash=? AND r.media_type=?').get(owner,ref.hash,ref.mediaType);assert(root,'Accepted successor approval must have durable ownership: '+owner+' '+ref.hash);assert.equal(root.byte_length,ref.byteLength);assert.equal(root.media_type,ref.mediaType);}}finally{db.close();}};
+ approvalRoots('history-command:'+applied.receipt.commandId);
+ const checkApproval=entries=>{
+  for(const ref of approvalRefs){const bytes=entries.get('objects/'+ref.hash.slice(7));assert(bytes,'Portable provenance must retain successor approval '+ref.hash);assert.deepEqual(bytes,approvalBytes.get(ref.hash));}
+  const intent=JSON.parse(entries.get('objects/'+lettering.intent.hash.slice(7))),manifest=JSON.parse(entries.get('objects/'+lettering.manifest.hash.slice(7)));
+  assert.deepEqual(intent,approved.intent);assert.deepEqual(manifest,approved.manifest);assert.deepEqual(manifest.intent,lettering.intent);
+  assert.deepEqual(intent.placement.textTreatment.choice,lettering.choice);assert.deepEqual(intent.decision.choice,lettering.choice);assert.equal(intent.decision.approvalId,lettering.choice.approvalId);
+  assert.deepEqual(intent.decision.maskSuccessor,approved.intent.decision.maskSuccessor);successorWitness(c,lettering.choice,approved.review.inputs.identity,mapping,intent.decision.maskSuccessor);
+ };
+ const checkArchive=async bytes=>{const entries=await unpack(f.root,bytes);for(const [hash,original]of expected){const value=entries.get('objects/'+hash.slice(7));assert(value,'Portable closure must retain '+hash);assert.deepEqual(value,original);}return entries;};
+ const saved=await copy(f);checkApproval(await checkArchive(saved.bytes));const original=await document(f),originalState=await image(f);
+ f=await f.reopen();assert.deepEqual(await document(f),original);assert.deepEqual(await image(f),originalState);assert.deepEqual(await f.effects(),[]);
+ const reviewCount=()=>{const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});try{return db.prepare('SELECT count(*) n FROM image_edit_reviews').get().n;}finally{db.close();}},beforeReviews=reviewCount(),prepared=(await previewCopy(f,saved.bytes)).review;assert.equal(prepared.editable,true,JSON.stringify(prepared));await importBundle(f,prepared);assert.equal(reviewCount(),beforeReviews,'Imported successor provenance grants no live review authority');
+ approvalRoots('namespace:'+prepared.namespaceId);for(const ref of approvalRefs)assert.deepEqual(await retained(f,ref),approvalBytes.get(ref.hash));
+ const imported=await image(f,prepared.documentId),importedNative=imported.layers.find(layer=>layer.kind==='text'),importedGenerated=imported.layers.find(layer=>layer.kind==='image'&&layer.visible),copiedNative=await nativeIdentity(f,importedNative),copiedWrapper=await asset(f,importedGenerated.assetId),{manifest:copiedManifest,lineage:copiedLineage}=await preservedCandidate(f,copiedWrapper);assert.deepEqual(copiedLineage.result.request.textTreatment,c.review.textTreatment);
+ assert.notEqual(importedNative.id,native.id);assert.deepEqual(importedNative.source,native.source);assert.deepEqual(copiedNative.native,identity.native);assert.deepEqual(copiedNative.raster.raster.pixels,identity.raster.raster.pixels);assert.deepEqual(copiedNative.mask.raster.pixels,identity.mask.raster.pixels);assert.deepEqual(importedNative.layerToDocument,native.layerToDocument);assert.equal(importedNative.opacity,native.opacity);assert.equal(importedNative.visible,native.visible);
+ assert.deepEqual(copiedManifest.plan.requestPlan,c.draft.mask.requestPlan);assert.deepEqual(copiedManifest.plan.outputMapping,mapping);for(const ref of [c.draft.mask.requestPlan.effectiveMask,mapping.effectiveMask])assert(copiedManifest.dependencies.some(dependency=>canonical(dependency)===canonical(ref)));exterior(await pixels(f,importedGenerated.assetId),await pixels(f,c.selected.asset.id),coverage.final);
+ const candidates=(await f.read('/api/v1/documents/'+prepared.documentId+'/candidates')).json.items;assert.equal(candidates.length,1);assert(candidates.every(value=>value.inert===true));assert(!(await f.read('/api/v1/queue')).json.jobs.some(job=>job.documentId===prepared.documentId));
+ const importedBefore=await document(f,prepared.documentId),refused=await terminal(f,f.command({documentId:prepared.documentId,expectedDocumentRevision:importedBefore.revision,body:approved.body}));assert.equal(refused.json.receipt.status,'rejected');assert.deepEqual(await document(f,prepared.documentId),importedBefore);assert.deepEqual(await image(f,prepared.documentId),imported);
+ const recopied=await copy(f,prepared.documentId),recopiedEntries=await checkArchive(recopied.bytes);
+ // The remapped image history need not expose the old review as live authority.
+ // Its exact approval remains linked through the immutable imported archive.
+ const importedEvent=records(recopiedEntries,'events').values.find(row=>row.kind==='event'&&row.event.type==='BundleImported'&&row.event.payload.namespaceId===prepared.namespaceId)?.event;assert(importedEvent);assert.equal(importedEvent.documentId,prepared.documentId);assert.deepEqual(importedEvent.payload.source,prepared.source);
+ const sourceArchive=recopiedEntries.get('objects/'+importedEvent.payload.source.hash.slice(7));assert(sourceArchive);assert.deepEqual(sourceArchive,saved.bytes);checkApproval(await unpack(f.root,sourceArchive));
+ for(const ref of approvalRefs){const direct=recopiedEntries.get('objects/'+ref.hash.slice(7));if(direct)assert.deepEqual(direct,approvalBytes.get(ref.hash),'Any directly retained approval must also remain byte-identical');}
+ assert.deepEqual(await document(f),original);assert.deepEqual(await image(f),originalState);await unchangedNative(f,native,identity);assert.deepEqual(await f.effects(),[]);
+}
 
 async function observation(f,commandId){
  const deadline=Date.now()+5000;
@@ -488,6 +613,17 @@ for(const failure of ['missing','hash-mismatch','malformed-json','graph-mismatch
   const mismatch=failure==='graph-mismatch',attempted=await reject(f,body,{code:mismatch?'STALE_REVISION':'MISSING_ASSET',reason:mismatch?'ENCODED_REBUILD_PLACEMENT_CHANGED':'HISTORY_DEPENDENCY_UNAVAILABLE'}),guard=await observation(f,attempted.request.command.commandId);released(guard);assert.deepEqual(guard.workerJobs,[],'Malformed or changed graph metadata must be refused before lease take and raster preparation');boundsReleased(await boundsObservation(f,attempted.request.command.commandId));
  }finally{await restore();}
  assert.deepEqual(await retained(f,graph.ref),graph.bytes);
+});
+
+
+test('encoded deferred clipping joins its successor witness to approved R16 transport without canonical raw rereads',{timeout:180000},async t=>{
+ const f=await fixture(t,{encoded:true,actualSize:256}),c=await candidate(f,{mapped:true,cropSize:512,maskRect:{x:0,y:128,width:8,height:8}}),native=c.beforeState.layers.find(layer=>layer.id==='native_text'),identity=await nativeIdentity(f,native),original=await pixels(f,c.before.image.compositeAssetId),frozenPlan=await retained(f,c.review.textTreatment.plan);
+ const body=placement(c,{}, {preparation:'encoded-rebuild',actualOutput:{width:256,height:256,clipMask:true}}),approved=await reviewed(f,body,{candidateTransform:[2,0,0,2,0,0],rawCandidateEqualsComparison:false}),mapping=approved.review.inputs.outputMapping,coverage=await clippedBoundary(f,c,mapping,approved.review.inputs.coverage),encodedMask=approved.review.inputs.encodedRebuild.mask;
+ successorWitness(c,body.textTreatment.choice,approved.review.inputs.identity,mapping,approved.intent.decision.maskSuccessor);assert.deepEqual(encodedMask.effective.pixels,c.draft.mask.requestPlan.effectiveMask);assert.deepEqual(encodedMask.approved.pixels,mapping.effectiveMask);assert.notEqual(encodedMask.approved.encoded.hash,encodedMask.effective.encoded.hash);await encodedComposition(f,approved.review);await visibleDifference(f,approved.review);
+ const applied=await accept(f,approved),observed=await observation(f,applied.request.command.commandId);released(observed);const slot='history:'+applied.request.command.commandId,records=observed.observations.filter(row=>row.slot===slot);assert.deepEqual(records.map(row=>row.operation),['encoded-preserve','encoded-compose']);assert.deepEqual(observed.workerJobs,[{type:'encoded-preserve',slot},{type:'encoded-compose',slot}]);
+ assert.equal(records[0].evidence.decodeCount,5);assert(records[0].evidence.inputs.some(input=>input.encoded.hash===encodedMask.approved.encoded.hash));assert(records[0].evidence.inputs.some(input=>input.encoded.hash===encodedMask.effective.encoded.hash));assert(records[1].evidence.inputs.some(input=>input.encoded.hash===identity.raster.blob.hash));
+ for(const record of records){assert.equal(record.evidence.canonicalInputPaths,0);assert.equal(record.evidence.reusedPreparedProducts,0);assert.equal(record.evidence.scratchRemoved,true);for(const input of record.evidence.inputs)assert.deepEqual(input.actual,input.expected);}
+ assert.deepEqual(applied.after.layers.find(layer=>layer.id===native.id),native);exterior(await pixels(f,applied.document.image.compositeAssetId),original,coverage.final);await unchangedNative(f,native,identity);assert.deepEqual(await retained(f,c.review.textTreatment.plan),frozenPlan);assert.deepEqual(await retained(f,c.draft.mask.requestPlan.effectiveMask),coverage.original);
 });
 
 test('encoded deferred native acceptance rebuilds the real native layer and R16 mask, without old raw reads or retained Q',{timeout:180000},async t=>{
@@ -610,4 +746,125 @@ test('real native comparison review and adoption copy as PF13; import and re-cop
  const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});try{assert.equal(db.prepare('SELECT count(*) n FROM candidate_adoption_evidence WHERE document_id=?').get(prepared.documentId).n,0);for(const value of importedComparisons)assert.equal(db.prepare('SELECT count(*) n FROM candidate_asset_evidence WHERE asset_id=?').get(value.id).n,0);}finally{db.close();}
  const recopied=await copy(f,prepared.documentId);await archiveComparisons(f,recopied.bytes,expected);assert.deepEqual(await document(f),original);assert.deepEqual(await image(f),originalState);assert.deepEqual(await f.effects(),[]);
  await comparisonReplayControls(t,f,approved.review.inputs.identity.preparedAssetId,expected,original,originalState);
+});
+
+function acceptanceContractHarness({deadline=10100}={}){
+ const controller=new AbortController(),commandId='acceptance_contract_command',path='/api/v1/commands/'+commandId;
+ const f={server:{origin:'http://127.0.0.1:1'},paired:{headers:{'set-cookie':['contract_cookie=value; Path=/']},json:{csrfToken:'contract_csrf'}}},request={command:{commandId}};
+ const h={f,request,controller,clock:100,calls:[],sleeps:[],timers:[],canceled:[],observations:[]};
+ h.pending=()=>({status:202,headers:{location:path},json:{commandId,receiptUrl:path,operationId:'contract_operation',phase:'preparing'},text:'pending'});
+ h.accepted=()=>({status:200,headers:{},json:{receipt:{status:'accepted',commandId}},text:'accepted'});
+ h.owner={deadline,signal:controller.signal,observe:value=>h.observations.push(value)};
+ h.respond=()=>h.pending();
+ h.runtime={
+  now:()=>h.clock,
+  sleep:async(ms,signal)=>{signal.throwIfAborted();h.sleeps.push({ms,signal});h.clock+=ms;signal.throwIfAborted();},
+  send:async(url,options,signal)=>{signal.throwIfAborted();h.calls.push({url,options,signal});return h.respond(url,options,signal);},
+  schedule:(callback,delay)=>{const token={};h.timers.push({callback,delay,token});return token;},
+  cancel:token=>h.canceled.push(token),
+ };
+ return h;
+}
+function acceptanceContractCleanup(h){
+ assert.equal(getEventListeners(h.owner.signal,'abort').length,0,'The owner abort listener must be removed');
+ assert.deepEqual(h.canceled,h.timers.map(timer=>timer.token),'Each one-shot deadline timer must be canceled exactly once');
+ for(const call of h.calls)assert.equal(getEventListeners(call.signal,'abort').length,0,'No completed transport may retain an abort listener');
+}
+
+test('native acceptance uses the same fixed deadline for fast and slow pending replies beyond the old poll ceiling',async()=>{
+ const outcomes=[];
+ for(const [latency,expectedPolls,expectedElapsed] of [[0,1003,5015],[20,200,5020]]){
+  const h=acceptanceContractHarness(),finishAt=5115,deadline=h.owner.deadline,requestBefore=structuredClone(h.request);
+  h.respond=()=>{h.clock+=latency;return h.clock>=finishAt?h.accepted():h.pending();};
+  const result=await terminalAcceptance(h.f,h.request,h.owner,h.runtime);
+  assert.deepEqual(result,h.accepted());assert.deepEqual(h.request,requestBefore);assert.equal(h.owner.deadline,deadline);assert(h.clock<deadline);
+  assert.equal(h.calls.length,expectedPolls+1);assert.equal(h.calls[0].url,'/api/v1/commands');assert.equal(h.calls[0].options.method,'POST');assert.strictEqual(h.calls[0].options.body,h.request);
+  assert.deepEqual(h.calls[0].options.headers,mutationHeaders(h.f.server,h.f.paired));
+  for(const call of h.calls.slice(1)){assert.equal(call.url,'/api/v1/commands/'+h.request.command.commandId);assert.equal(call.options.method??'GET','GET');assert.equal(call.options.body,undefined);assert.deepEqual(call.options.headers,readHeaders(cookieFrom(h.f.paired)));assert.strictEqual(call.signal,h.calls[0].signal);}
+  assert.equal(h.sleeps.length,expectedPolls);assert(h.sleeps.every(wait=>wait.ms===5&&wait.signal===h.calls[0].signal));
+  assert.equal(h.timers.length,1);assert.equal(h.timers[0].delay,10000,'The timer uses the remaining whole-case deadline and is never reset');
+  const terminalPoint={kind:'native-acceptance-wait-1',point:'terminal',commandId:h.request.command.commandId,polls:expectedPolls,elapsedMs:expectedElapsed,receiptStatus:'accepted'};
+  assert.deepEqual(h.observations,latency===0?[{kind:'native-acceptance-wait-1',point:'original-poll-limit',commandId:h.request.command.commandId,polls:1000,elapsedMs:5000,operationId:'contract_operation',phase:'preparing'},terminalPoint]:[terminalPoint]);
+  acceptanceContractCleanup(h);outcomes.push({deadline:h.owner.deadline,finishAt,polls:h.sleeps.length});
+ }
+ assert.deepEqual(outcomes,[{deadline:10100,finishAt:5115,polls:1003},{deadline:10100,finishAt:5115,polls:200}]);
+});
+
+test('native acceptance deadline exhaustion stops before another receipt GET and never reposts',async()=>{
+ const h=acceptanceContractHarness({deadline:112});
+ await assert.rejects(terminalAcceptance(h.f,h.request,h.owner,h.runtime),{code:'NATIVE_ACCEPTANCE_CASE_DEADLINE'});
+ assert.equal(h.clock,115);assert.equal(h.owner.deadline,112);assert.deepEqual(h.calls.map(call=>[call.options.method??'GET',call.url]),[['POST','/api/v1/commands'],['GET','/api/v1/commands/acceptance_contract_command'],['GET','/api/v1/commands/acceptance_contract_command']]);
+ assert.deepEqual(h.sleeps.map(wait=>wait.ms),[5,5,5]);assert.equal(h.timers.length,1);assert.equal(h.timers[0].delay,12);assert.deepEqual(h.observations,[]);acceptanceContractCleanup(h);
+});
+
+test('native acceptance refuses an already-aborted owner without opening a request or scheduling a timer',async()=>{
+ const h=acceptanceContractHarness(),reason=new Error('case already canceled');h.controller.abort(reason);
+ await assert.rejects(terminalAcceptance(h.f,h.request,h.owner,h.runtime),error=>error===reason);
+ let opened=0;await assert.rejects(acceptanceHTTP(h.f,'/api/v1/commands',{method:'POST'},h.owner.signal,()=>{opened++;throw new Error('must not open');}),error=>error===reason);
+ assert.equal(opened,0);assert.deepEqual(h.calls,[]);assert.deepEqual(h.sleeps,[]);assert.deepEqual(h.timers,[]);assert.deepEqual(h.observations,[]);acceptanceContractCleanup(h);
+});
+
+test('native acceptance rejects a pending response that changes its receipt location or command identity',async()=>{
+ for(const mutate of [response=>{response.headers.location='/api/v1/commands/other';},response=>{response.headers.location=response.json.receiptUrl='/api/v1/commands/other';},response=>{response.json.commandId='other';}]){
+  const h=acceptanceContractHarness();h.respond=()=>{const response=h.pending();mutate(response);return response;};
+  await assert.rejects(terminalAcceptance(h.f,h.request,h.owner,h.runtime),{code:'ERR_ASSERTION'});
+  assert.equal(h.calls.length,1);assert.equal(h.calls[0].options.method,'POST');assert.deepEqual(h.sleeps,[]);assert.deepEqual(h.observations,[]);assert.equal(h.timers.length,1);acceptanceContractCleanup(h);
+ }
+});
+
+function acceptanceContractExchange(onOpen){
+ const requests=[];
+ const open=(origin,path,options)=>{
+  const request=new EventEmitter();let resolve,reject;const response=new Promise((yes,no)=>{resolve=yes;reject=no;});
+  const row={origin,path,options,request,response,resolve,reject,destroyed:[]};
+  request.destroy=error=>{row.destroyed.push(error);reject(error);return request;};requests.push(row);onOpen(row);return {request,response};
+ };
+ return {open,requests};
+}
+
+for(const phase of ['POST','GET'])for(const cancellation of ['owner','deadline'])test('native acceptance '+cancellation+' cancellation destroys and drains the active '+phase+' before rejecting',async()=>{
+ const h=acceptanceContractHarness();let opened;const activeReady=new Promise(resolve=>{opened=resolve;});
+ const transport=acceptanceContractExchange(row=>{
+  if(phase==='GET'&&row.options.method==='POST')queueMicrotask(()=>{row.resolve(h.pending());row.request.emit('close');});
+  else opened(row);
+ });
+ h.respond=(path,options,signal)=>acceptanceHTTP(h.f,path,options,signal,transport.open);
+ let settled=false;const wait=terminalAcceptance(h.f,h.request,h.owner,h.runtime),monitor=wait.then(()=>{settled=true;},()=>{settled=true;});
+ const reason=new Error('whole case canceled'),rejection=assert.rejects(wait,error=>cancellation==='owner'?error===reason:error.code==='NATIVE_ACCEPTANCE_CASE_DEADLINE');
+ const active=await activeReady,signal=h.calls.at(-1).signal;assert.equal(active.options.method??'GET',phase);assert.equal(active.request.listenerCount('close'),1);assert.equal(getEventListeners(signal,'abort').length,1,'Only the active exchange may retain an abort listener');assert.equal(h.timers.length,1);
+ if(cancellation==='owner')h.controller.abort(reason);else h.timers[0].callback();
+ // One event-loop turn drains promise reactions; it is not an elapsed-time test.
+ await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(settled,false,'Aborting the response cannot finish until the request closes');assert(active.destroyed.length>=1);assert(active.destroyed.every(error=>error===signal.reason));assert.equal(active.request.listenerCount('close'),1);assert.deepEqual(h.canceled,[],'The waiter is still draining its active exchange');
+ active.request.emit('close');await rejection;await monitor;
+ assert.equal(settled,true);assert.equal(h.calls.length,phase==='POST'?1:2);assert.equal(h.sleeps.length,phase==='POST'?0:1);assert(h.sleeps.every(value=>value.ms===5));assert.equal(h.calls.filter(call=>call.options.method==='POST').length,1);assert.deepEqual(h.observations,[]);
+ for(const row of transport.requests){assert.equal(row.origin,h.f.server.origin);assert.equal(row.request.listenerCount('close'),0);assert.equal(row.request.listenerCount('response'),0);}acceptanceContractCleanup(h);
+});
+
+test('native acceptance HTTP waits for the captured incoming message after request close on abort',async()=>{
+ const h=acceptanceContractHarness(),transport=acceptanceContractExchange(()=>{}),reason=new Error('abort after response headers'),incoming=new EventEmitter();incoming.closed=false;
+ let settled=false;const wait=acceptanceHTTP(h.f,'/api/v1/commands',{method:'POST'},h.owner.signal,transport.open),monitor=wait.then(()=>{settled=true;},()=>{settled=true;}),rejection=assert.rejects(wait,error=>error===reason),row=transport.requests[0];
+ row.request.emit('response',incoming);h.controller.abort(reason);row.request.closed=true;row.request.emit('close');
+ try{
+  await new Promise(resolve=>setImmediate(resolve));assert.equal(settled,false,'Request close alone cannot complete while its incoming message is open');assert(row.destroyed.length>=1);assert(row.destroyed.every(error=>error===reason));assert.equal(row.request.listenerCount('close'),0);assert.equal(incoming.listenerCount('close'),1);assert.equal(row.request.listenerCount('response'),1,'Response capture remains installed while draining');
+ }finally{incoming.closed=true;incoming.emit('close');}
+ await rejection;await monitor;assert.equal(settled,true);assert.equal(incoming.listenerCount('close'),0);assert.equal(row.request.listenerCount('response'),0);acceptanceContractCleanup(h);
+});
+
+test('native acceptance HTTP handles already-closed request and incoming-message close races',async()=>{
+ for(const closedFirst of ['request','incoming']){
+  const h=acceptanceContractHarness();let incoming;
+  const transport=acceptanceContractExchange(row=>{
+   if(closedFirst==='request'){row.request.closed=true;row.resolve(h.accepted());}
+   else queueMicrotask(()=>{incoming=new EventEmitter();incoming.closed=true;row.request.emit('response',incoming);row.resolve(h.accepted());row.request.closed=true;row.request.emit('close');});
+  });
+  const wait=acceptanceHTTP(h.f,'/api/v1/commands',{method:'POST'},h.owner.signal,transport.open),pending=Symbol('still waiting for an already closed stream');
+  try{
+   const result=await Promise.race([wait,new Promise(resolve=>setImmediate(()=>resolve(pending)))]);assert.notStrictEqual(result,pending,'An already closed stream must not require another close event');assert.deepEqual(result,h.accepted());
+  }finally{
+   // Release a defective waiter as well, so a failed assertion leaves no task.
+   for(const row of transport.requests){row.request.closed=true;row.request.emit('close');}if(incoming)incoming.emit('close');await wait;
+  }
+  for(const row of transport.requests){assert.equal(row.request.listenerCount('close'),0);assert.equal(row.request.listenerCount('response'),0);assert.deepEqual(row.destroyed,[]);}if(incoming)assert.equal(incoming.listenerCount('close'),0);acceptanceContractCleanup(h);
+ }
 });

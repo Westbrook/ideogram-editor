@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {syncBuiltinESMExports} from 'node:module';
 import {mkdtemp,mkdir,writeFile,rm,realpath,lstat,opendir,open,link} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -17,6 +19,93 @@ async function fixture(t,files=0){
 }
 function directories(){const handles=[];return {handles,async openDirectory(path){const handle=await opendir(path);handles.push(handle);return handle;}};}
 async function closed(handles){for(const handle of handles)await assert.rejects(handle.read(),{code:'ERR_DIR_CLOSED'});}
+
+function observeDefaultStats(t,observe){
+ const original=fs.lstatSync,stub=t.mock.method(fs,'lstatSync',(...args)=>observe(original,...args));syncBuiltinESMExports();
+ return ()=>{stub.mock.restore();syncBuiltinESMExports();};
+}
+// Finite real fixture entries without intervening read I/O turns. The native
+// handles still close through iterator return, including a sibling's failure.
+function bufferedDirectories(){
+ const handles=[];return {handles,async openDirectory(path){
+  const handle=await opendir(path);handles.push(handle);
+  return (async function*(){try{const entries=[];for(let entry=handle.readSync();entry;entry=handle.readSync())entries.push(entry);entries.sort((a,b)=>Number(b.isDirectory())-Number(a.isDirectory()));yield* entries;}finally{await handle.close();}})();
+ }};
+}
+
+test('default sync observations preserve bigint pre/post checks and unique inode accounting',async t=>{
+ const f=await fixture(t,20);await link(join(f.volume,'entry-0'),join(f.volume,'alias'));
+ const dirs=directories(),visits=new Map(),order=[],stats=new Map();
+ const restore=observeDefaultStats(t,(original,path,options)=>{assert.deepEqual(options,{bigint:true});const value=original(path,options);visits.set(path,(visits.get(path)??0)+1);order.push(path);stats.set(path,value);return value;});
+ try{
+  const result=await sampleVolume(f.allocation,{openDirectory:dirs.openDirectory});
+  assert.equal(result.completeTraversal,true);assert.equal(result.entries,22);assert.equal(result.uniqueFiles,20);assert.equal(result.repeatedInodes,1);assert.equal(result.observedLogicalBytes,30);assert.equal(result.concurrentChanges,0);assert.deepEqual(result.failures,[]);
+  assert.equal(visits.size,22);for(const count of visits.values())assert.equal(count,2);assert.equal(order[0],f.volume);assert.equal(order.at(-1),f.volume);
+  const inodes=new Set();let allocated=0n;for(const value of stats.values()){const inode=`${value.dev}:${value.ino}`;if(!inodes.has(inode)){inodes.add(inode);allocated+=value.blocks*512n;}}assert.equal(result.observedAllocatedBytes,Number(allocated));await closed(dirs.handles);
+ }finally{restore();}
+});
+
+for(const kind of ['error','file-identity'])test('default sync '+kind+' refusal retains its existing failure and closes directories',async t=>{
+ const f=await fixture(t,1),dirs=directories(),visits=new Map();
+ const restore=observeDefaultStats(t,(original,path,options)=>{
+  const value=original(path,options),count=(visits.get(path)??0)+1;visits.set(path,count);
+  if(value.isFile()&&kind==='error')throw Object.assign(Error('private sync failure'),{code:'EIO'});
+  if(count===2&&kind==='file-identity'&&value.isFile())value.ino+=1n;
+  return value;
+ });
+ try{
+  const result=await sampleVolume(f.allocation,{openDirectory:dirs.openDirectory});assert.equal(result.completeTraversal,false);assert.equal(result.failures.length,1);
+  assert.equal(result.failures[0].code,kind==='error'?'EIO':'EVIDENCE_MUTATION');await closed(dirs.handles);
+ }finally{restore();}
+});
+
+test('explicit null stat injection remains invalid instead of selecting the default',async t=>{
+ const f=await fixture(t,1);let defaults=0;
+ const restore=observeDefaultStats(t,(original,...args)=>{defaults++;return original(...args);});
+ try{const result=await sampleVolume(f.allocation,{statEntry:null});assert.equal(defaults,0);assert.equal(result.completeTraversal,false);assert.equal(result.entries,1);assert.deepEqual(result.failures.map(value=>value.code),['EVIDENCE_IO']);}
+ finally{restore();}
+});
+
+test('explicit synchronous stat injection keeps its own scheduling and bypasses default sync stats',async t=>{
+ const f=await fixture(t,64),dirs=bufferedDirectories(),original=fs.lstatSync,immediate=globalThis.setImmediate;let calls=0,defaults=0,yields=0;
+ const restore=observeDefaultStats(t,()=>{defaults++;throw Error('Injected stats must bypass the default');});
+ const scheduled=t.mock.method(globalThis,'setImmediate',(...args)=>{yields++;return immediate(...args);});
+ try{
+  const result=await sampleVolume(f.allocation,{openDirectory:dirs.openDirectory,statEntry(path,options){calls++;assert.deepEqual(options,{bigint:true});return original(path,options);}});
+  assert.equal(result.completeTraversal,true);assert.equal(result.entries,65);assert.equal(calls,130);assert.equal(defaults,0);assert.equal(yields,0);await closed(dirs.handles);
+ }finally{scheduled.mock.restore();restore();}
+});
+
+test('default sync traversal yields to a queued callback within 32 shared stat calls',async t=>{
+ const f=await fixture(t,64),dirs=bufferedDirectories(),observed=gate();let calls=0,atCallback,settled=false,queued=false;
+ const restore=observeDefaultStats(t,(original,path,options)=>{
+  const value=original(path,options);calls++;
+  if(value.isFile()&&!queued){queued=true;setImmediate(()=>{atCallback={calls,settled};observed.resolve();});}return value;
+ });
+ const pending=sampleVolume(f.allocation,{openDirectory:dirs.openDirectory}).then(result=>{settled=true;return result;});
+ try{
+  await within(observed.promise);assert.equal(atCallback.settled,false);assert.equal(atCallback.calls,32,'All traversal branches must share the same 32-call turn budget');
+  const result=await pending;assert.equal(result.completeTraversal,true);assert.equal(result.entries,65);assert.equal(calls,130);await closed(dirs.handles);
+ }finally{try{await pending;}finally{restore();}}
+});
+
+test('a sibling failure observed during the shared yield prevents every waiting default stat',async t=>{
+ const f=await fixture(t,64),blocked=join(f.volume,'blocked');await mkdir(blocked);await writeFile(join(blocked,'entry'),'x');
+ const dirs=bufferedDirectories(),entered=gate(),fail=gate(),yielded=gate(),failedDirectoryClosed=gate(),callbacks=[],immediate=globalThis.setImmediate;let calls=0,settled=false;
+ const restore=observeDefaultStats(t,(original,...args)=>{calls++;return original(...args);});
+ const scheduled=t.mock.method(globalThis,'setImmediate',callback=>{callbacks.push(callback);return immediate(()=>yielded.resolve());});
+ const pending=sampleVolume(f.allocation,{async openDirectory(path){
+  const entries=await dirs.openDirectory(path);if(path!==blocked)return entries;
+  return (async function*(){try{for await(const entry of entries){entered.resolve();await fail.promise;throw Object.assign(Error('held directory read failed'),{code:'EIO'});}}finally{failedDirectoryClosed.resolve();}})();
+ }}).then(result=>{settled=true;return result;});
+ try{
+  await within(Promise.all([entered.promise,yielded.promise]));assert.equal(callbacks.length,1);assert.equal(calls,32);assert.equal(settled,false);
+  fail.resolve();await within(failedDirectoryClosed.promise);await new Promise(resolve=>immediate(resolve));
+  assert.equal(calls,32);assert.equal(settled,false,'Issued siblings must remain drained behind the held barrier');
+  for(const callback of callbacks.splice(0))immediate(callback);
+  const result=await pending;assert.equal(result.completeTraversal,false);assert.equal(result.failures.length,1);assert.equal(result.failures[0].code,'EIO');assert.equal(calls,32,'No default stat may start after the sibling failure was observed');await closed(dirs.handles);
+ }finally{fail.resolve();scheduled.mock.restore();for(const callback of callbacks.splice(0))immediate(callback);try{await pending;}finally{restore();}}
+});
 
 test('traversal admits four real file observations and drains before directory post-stat',async t=>{
  const f=await fixture(t,20),held=gate(),entered=gate(),dirs=directories();let active=0,peak=0,starts=0,postWhileActive=false;const visits=new Map();

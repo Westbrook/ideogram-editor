@@ -199,17 +199,31 @@ function inside(d:Rect,x:number,y:number){return x>=d.x&&x<d.x+d.width&&y>=d.y&&
 export type RequestCoverageInspection = {effectivePixels:number;lostPixels:number;fullDocument:boolean;fullDomain:boolean;contained:boolean};
 // Scan retained R16 samples, never a grayscale PNG or client-supplied counts.
 // Abort/resource owners may check once at the start of each bounded source row.
-export function inspectRequestCoverage(plan:RequestRasterPlan,coverage:Coverage,mapping?:RequestOutputMapping,check?:()=>void):RequestCoverageInspection {
+export function* inspectRequestCoverageRows(plan:RequestRasterPlan,coverage:Coverage,mapping?:RequestOutputMapping,check?:()=>void):Generator<void,RequestCoverageInspection,void> {
   const safe=requestSafeInterior(plan,mapping);coverageGrid(plan,coverage);
   const crop=rawCrop(plan);let effectivePixels=0,lostPixels=0,cropPixels=0;
-  for(let y=0;y<coverage.height;y++){check?.();for(let x=0;x<coverage.width;x++)if(sample(coverage,x,y)>0){effectivePixels++;if(!inside(safe,x,y))lostPixels++;if(inside(crop,x,y))cropPixels++;}}
+  for(let y=0;y<coverage.height;y++){
+    check?.();for(let x=0;x<coverage.width;x++)if(sample(coverage,x,y)>0){effectivePixels++;if(!inside(safe,x,y))lostPixels++;if(inside(crop,x,y))cropPixels++;}
+    yield;
+  }
   return {effectivePixels,lostPixels,fullDocument:effectivePixels===coverage.width*coverage.height,fullDomain:cropPixels===crop.width*crop.height,contained:lostPixels===0};
 }
-export function requireRequestCoverage(plan:RequestRasterPlan,coverage:Coverage,mapping?:RequestOutputMapping,check?:()=>void):RequestCoverageInspection {
-  const result=inspectRequestCoverage(plan,coverage,mapping,check);
+export function* requireRequestCoverageRows(plan:RequestRasterPlan,coverage:Coverage,mapping?:RequestOutputMapping,check?:()=>void):Generator<void,RequestCoverageInspection,void> {
+  const result=yield* inspectRequestCoverageRows(plan,coverage,mapping,check);
   if(!result.contained)fail('MASK_DOMAIN_REVIEW_REQUIRED');
   if(result.effectivePixels===0)fail('EMPTY_MASK');
   return result;
+}
+function completeCoverage(rows:Generator<void,RequestCoverageInspection,void>):RequestCoverageInspection {
+  for(;;){const row=rows.next();if(row.done)return row.value;}
+}
+// Synchronous callers retain immediate validation and the same complete result.
+// Storage callers can yield after each row without duplicating coverage math.
+export function inspectRequestCoverage(plan:RequestRasterPlan,coverage:Coverage,mapping?:RequestOutputMapping,check?:()=>void):RequestCoverageInspection {
+  return completeCoverage(inspectRequestCoverageRows(plan,coverage,mapping,check));
+}
+export function requireRequestCoverage(plan:RequestRasterPlan,coverage:Coverage,mapping?:RequestOutputMapping,check?:()=>void):RequestCoverageInspection {
+  return completeCoverage(requireRequestCoverageRows(plan,coverage,mapping,check));
 }
 // A proposal only: retain/hash these samples and explicitly approve clipping.
 // No reblur after clipping: it would recreate discarded support.

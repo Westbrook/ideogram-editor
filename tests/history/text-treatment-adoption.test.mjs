@@ -112,14 +112,14 @@ async function capture(f,scope,layerIds=[]){
  assert.deepEqual(manifest.plan.capture.image,before.image);
  return {asset:captured,manifest,source:{assetId:captured.id,version:captured.version,blob:captured.blob,pixels:captured.raster.pixels,width:512,height:512,scope,documentRevision:before.revision,capture:captured.raster.manifest}};
 }
-async function candidate(f,{kind='native-overlay',placement='current-document',mapped=false}={}){
+async function candidate(f,{kind='native-overlay',placement='current-document',mapped=false,cropSize=384,maskRect={x:128,y:128,width:8,height:8}}={}){
  const before=await document(f),beforeState=await image(f),nativeIds=beforeState.layers.filter(l=>l.kind==='text'&&l.visible).map(l=>l.id),baseline=await capture(f,'visible-document');
  const selected=kind==='native-overlay'?await capture(f,'single-layer',['background']):baseline,source=selected.source;
- const maskAsset=(await operate(f,{type:'PrepareRequestMask',sourceAssetId:source.assetId,plan:{width:512,height:512,feather:0,operations:[{kind:'shape',shape:{kind:'rectangle',x:128,y:128,width:8,height:8},mode:'replace'}]},clip:null})).event.payload.asset;
+ const maskAsset=(await operate(f,{type:'PrepareRequestMask',sourceAssetId:source.assetId,plan:{width:512,height:512,feather:0,operations:[{kind:'shape',shape:{kind:'rectangle',...maskRect},mode:'replace'}]},clip:null})).event.payload.asset;
  const manifest=(await f.read('/api/v1/assets/'+maskAsset.id+'/raster')).json;
  const mask={assetId:maskAsset.id,version:maskAsset.version,blob:maskAsset.blob,pixels:maskAsset.raster.pixels,width:512,height:512,sourceHash:source.pixels.hash,polarity:'white-edit',fullAcknowledged:false,empty:false,full:false,plan:maskAsset.raster.manifest,binding:bindRequestMask(source)};
  mask.requestPlan=confirmRequestMask(source,mask,manifest.plan.hard,manifest.plan.effective,randomUUID());
- if(mapped)mask.requestPlan=createRequestRasterPlan({document:{width:512,height:512},crop:{x:0,y:0,width:384,height:384},padding:{left:0,top:0,right:0,bottom:0},requestGrid:{width:512,height:512},sourcePixels:source.pixels,authoredMask:manifest.plan.hard,effectiveMask:manifest.plan.effective,dependenciesHash:requestMaskDependencies(source,mask),resolution:'already-contained',approvalId:randomUUID()});
+ if(mapped)mask.requestPlan=createRequestRasterPlan({document:{width:512,height:512},crop:{x:0,y:0,width:cropSize,height:cropSize},padding:{left:0,top:0,right:0,bottom:0},requestGrid:{width:512,height:512},sourcePixels:source.pixels,authoredMask:manifest.plan.hard,effectiveMask:manifest.plan.effective,dependenciesHash:requestMaskDependencies(source,mask),resolution:'already-contained',approvalId:randomUUID()});
  const prompt=await stage(f,Buffer.from('Change the selected background and preserve explicitly reviewed native lettering')),draft=newDraft(prompt.blob);
  draft.operation='inpaint';Object.assign(draft.fields,{size:mapped?'custom':'auto',width:'512',height:'512',strength:'1'});draft.source=source;draft.mask=mask;
  const saved=await stage(f,Buffer.from(JSON.stringify(draft))),choice=kind==='native-overlay'?{kind,retainedNativeIds:nativeIds,placement,excludedSemanticIds:[],approvalId:randomUUID()}:{kind,allowedHideNativeIds:nativeIds,duplicationAcknowledgement:randomUUID(),excludedSemanticIds:[],approvalId:randomUUID()};
@@ -172,6 +172,29 @@ async function unchangedNative(f,layer,identity){
  assert.deepEqual(await asset(f,layer.assetId),identity.raster);assert.deepEqual(await asset(f,layer.mask.assetId),identity.mask);
  for(let at=0;at<identity.refs.length;at++)assert.deepEqual(await retained(f,identity.refs[at]),identity.bytes[at]);
 }
+
+async function preservedCandidate(f,wrapper){
+ const retainedManifest=JSON.parse(await retained(f,wrapper.raster.manifest));assert.equal(retainedManifest.plan.kind,'retained-candidate-v1');assert.deepEqual(Object.keys(retainedManifest.plan).sort(),['kind','lineage','source']);assert.deepEqual(retainedManifest.dependencies,[retainedManifest.plan.source,retainedManifest.plan.lineage]);
+ assert.equal(wrapper.raster.sourceAssetIds.length,1);const source=await asset(f,wrapper.raster.sourceAssetIds[0]);assert.equal(source.qualification,'canonical-raster');assert.deepEqual(source.raster.manifest,retainedManifest.plan.source);assert.deepEqual(wrapper.blob,source.blob);assert.deepEqual(wrapper.raster.pixels,source.raster.pixels);assert.equal(wrapper.raster.pixelIdentity,source.raster.pixelIdentity);
+ const manifest=JSON.parse(await retained(f,retainedManifest.plan.source)),lineage=JSON.parse(await retained(f,retainedManifest.plan.lineage));assert.equal(manifest.plan.kind,'request-preservation-v1');assert.equal(lineage.kind,'adopted-candidate-lineage-1');assert.equal(lineage.inert,true);assert.deepEqual(manifest.pixels,wrapper.raster.pixels);
+ for(const key of ['width','height','pipeline']){assert.equal(retainedManifest[key],wrapper.raster[key]);assert.equal(manifest[key],wrapper.raster[key]);assert.equal(source.raster[key],wrapper.raster[key]);}
+ return {manifest,lineage};
+}
+
+function successorWitness(c,choice,identity,mapping,witness){
+ assert.equal(mapping.resolution,'clipped-and-approved');
+ assert.deepEqual(witness,{kind:'text-treatment-mask-successor-1',acceptedTreatmentPlan:c.review.textTreatment.plan,originalRequestPlan:c.plan.edit.requestPlan,originalEffectiveMask:c.draft.mask.requestPlan.effectiveMask,finalEffectiveMask:mapping.effectiveMask,candidateIdentityHash:sha(canonical(identity)),outputMappingHash:sha(canonical(mapping)),adoptionChoiceHash:sha(canonical(choice))});
+}
+async function clippedBoundary(f,c,mapping,coverage){
+ assert.deepEqual(mapping.outputToDocument,[2,0,0,2,0,0]);assert.deepEqual(mapping.actualOutput,{width:256,height:256});assert.deepEqual(mapping.requestPlan,c.draft.mask.requestPlan);
+ assert.deepEqual(coverage,{originalEffectivePixels:64,effectivePixels:56,lostPixels:8});assert.notEqual(mapping.effectiveMask.hash,c.draft.mask.requestPlan.effectiveMask.hash);
+ const original=await retained(f,c.draft.mask.requestPlan.effectiveMask),final=await retained(f,mapping.effectiveMask);
+ // Independent exact raster oracle: the original leftmost column is now
+ // outside reconstruction support. Every other authored cell is unchanged.
+ for(let y=0;y<512;y++)for(let x=0;x<512;x++){const offset=(y*512+x)*2,edited=x<8&&y>=128&&y<136;assert.equal(original.readUInt16LE(offset),edited?65535:0);assert.equal(final.readUInt16LE(offset),edited&&x>0?65535:0);}
+ return {original,final};
+}
+
 function exterior(actual,original,mask){
  let equal=0,changed=0;
  for(let at=0;at<mask.length;at+=2){const offset=at*2;if(mask.readUInt16LE(at)===0){assert(actual.subarray(offset,offset+4).equals(original.subarray(offset,offset+4)),'exterior pixel '+at/2);equal++;}else if(!actual.subarray(offset,offset+4).equals(original.subarray(offset,offset+4)))changed++;}
@@ -314,9 +337,12 @@ for(const placementKind of ['current-document','new-document'])test('J17 reviewe
  const actualOutput={width:256,height:256,clipMask:false},copy={sourceLayerId:native.id,newLayerId:'copied_native',transform:[1,0,0,1,32,48]};
  const body=target?placement(c,{action:'new-document',preservation:'none',nativeCopies:[copy]},{placement:placementKind,newDocumentId:target,actualOutput}):placement(c,{}, {actualOutput});
  await reject(f,{...body,actualOutput:{...actualOutput,width:512}},{code:'INCOMPATIBLE',reason:'OUTPUT_MAPPING_REVIEW_REQUIRED'});
- await reject(f,{...body,actualOutput:{...actualOutput,clipMask:true}},{code:'INCOMPATIBLE',reason:'TEXT_TREATMENT_UNCHANGED_MASK_REQUIRED'});
+ // An accepted eager preview permanently reserves its generated layer ID.
+ // Keep this independent zero-loss review separate from the adoption below.
+ const zeroChoice={...body.textTreatment.choice,newLayerId:'zero_loss_generated',approvalId:randomUUID()},zeroBody={...body,newLayerId:zeroChoice.newLayerId,actualOutput:{...actualOutput,clipMask:true},textTreatment:{...body.textTreatment,choice:zeroChoice}};
+ const zeroLoss=await reviewed(f,zeroBody),zeroPlan=JSON.parse(await retained(f,zeroLoss.preview.plan));assert.deepEqual(zeroPlan.coverage,{originalEffectivePixels:64,effectivePixels:64,lostPixels:0});assert.deepEqual(zeroPlan.outputMapping.effectiveMask,c.draft.mask.requestPlan.effectiveMask);successorWitness(c,zeroChoice,zeroPlan.identity,zeroPlan.outputMapping,zeroPlan.textTreatmentMaskSuccessor);
  const approved=await reviewed(f,body),prepared=JSON.parse(await retained(f,approved.preview.plan)),after=JSON.parse(await retained(f,approved.preview.after.state));
- assert.deepEqual(prepared.requestPlan,c.draft.mask.requestPlan);assert.deepEqual(prepared.outputMapping.outputToDocument,[1.5,0,0,1.5,0,0]);assert.deepEqual(prepared.outputMapping.effectiveMask,c.draft.mask.requestPlan.effectiveMask);assert.equal(prepared.outputMapping.resolution,'already-contained');assert.equal(prepared.coverage.lostPixels,0);
+ assert.deepEqual(prepared.requestPlan,c.draft.mask.requestPlan);assert.deepEqual(prepared.outputMapping.outputToDocument,[1.5,0,0,1.5,0,0]);assert.deepEqual(prepared.outputMapping.effectiveMask,c.draft.mask.requestPlan.effectiveMask);assert.equal(prepared.outputMapping.resolution,'already-contained');assert.equal(prepared.coverage.lostPixels,0);assert.equal('textTreatmentMaskSuccessor' in prepared,false);
  assert.deepEqual(JSON.parse(await retained(f,prepared.lineage)).result.request.textTreatment,c.review.textTreatment);
  const generated=after.layers.find(layer=>layer.id==='generated'),wrapper=await asset(f,generated.assetId);assert.equal(wrapper.raster.width,512);assert.equal(wrapper.raster.height,512);assert.deepEqual(generated.layerToDocument,[1,0,0,1,0,0]);
  exterior(await pixels(f,generated.assetId),await pixels(f,c.selected.asset.id),await retained(f,c.draft.mask.requestPlan.effectiveMask));
@@ -330,9 +356,37 @@ for(const placementKind of ['current-document','new-document'])test('J17 reviewe
  await unchangedNative(f,native,identity);assert.deepEqual(await f.effects(),effects);
 });
 
-for(const placementKind of ['current-document','new-document'])test('J17 '+placementKind+' commit rejects inventory changed after its eager treatment preview',{timeout:180000},async t=>{
- const f=await fixture(t,{actualSize:256}),c=await candidate(f,{placement:placementKind,mapped:true}),target=placementKind==='new-document'?'stale_text_document':null;
- const body=target?placement(c,{action:'new-document',preservation:'none',nativeCopies:[{sourceLayerId:'native_text',newLayerId:'copied_native',transform:[1,0,0,1,8,12]}]},{placement:placementKind,newDocumentId:target,actualOutput:{width:256,height:256,clipMask:false}}):placement(c,{}, {actualOutput:{width:256,height:256,clipMask:false}}),approved=await reviewed(f,body),effects=await f.effects();
+
+for(const placementKind of ['current-document','new-document'])test('J17 clipped actual output preserves all final-mask exterior cells and native identities in '+placementKind,{timeout:180000},async t=>{
+ const f=await fixture(t,{actualSize:256}),c=await candidate(f,{mapped:true,cropSize:512,maskRect:{x:0,y:128,width:8,height:8},placement:placementKind}),target=placementKind==='new-document'?'clipped_text_document':null,native=c.beforeState.layers.find(layer=>layer.id==='native_text'),identity=await nativeIdentity(f,native),effects=await f.effects(),frozenPlan=await retained(f,c.review.textTreatment.plan);
+ assert.deepEqual(c.draft.mask.requestPlan.outputToDocument,[1,0,0,1,0,0]);
+ const actualOutput={width:256,height:256,clipMask:true},copy={sourceLayerId:native.id,newLayerId:'copied_native',transform:[1,0,0,1,32,48]},body=target?placement(c,{action:'new-document',preservation:'none',nativeCopies:[copy]},{placement:placementKind,newDocumentId:target,actualOutput}):placement(c,{}, {actualOutput});
+ await reject(f,{...body,actualOutput:{...actualOutput,clipMask:false}},{code:'INCOMPATIBLE',reason:'MASK_DOMAIN_REVIEW_REQUIRED'});
+ const approved=await reviewed(f,body),prepared=JSON.parse(await retained(f,approved.preview.plan)),after=JSON.parse(await retained(f,approved.preview.after.state)),coverage=await clippedBoundary(f,c,prepared.outputMapping,prepared.coverage);
+ successorWitness(c,body.textTreatment.choice,prepared.identity,prepared.outputMapping,prepared.textTreatmentMaskSuccessor);assert.deepEqual(JSON.parse(await retained(f,prepared.lineage)).result.request.textTreatment,c.review.textTreatment);
+ const generated=after.layers.find(layer=>layer.id==='generated'),wrapper=await asset(f,generated.assetId),{manifest,lineage}=await preservedCandidate(f,wrapper);assert.deepEqual(manifest.plan.requestPlan,c.draft.mask.requestPlan);assert.deepEqual(manifest.plan.outputMapping,prepared.outputMapping);assert.deepEqual(lineage.result.request.textTreatment,c.review.textTreatment);assert.equal(wrapper.raster.width,512);assert.equal(wrapper.raster.height,512);assert.deepEqual(generated.layerToDocument,[1,0,0,1,0,0]);
+ for(const ref of [c.draft.mask.requestPlan.effectiveMask,prepared.outputMapping.effectiveMask])assert(manifest.dependencies.some(dependency=>canonical(dependency)===canonical(ref)),'Prepared raster must root both accepted and final masks');
+ exterior(await pixels(f,generated.assetId),await pixels(f,c.selected.asset.id),coverage.final);
+ // Acceptance must reread/prove its retained successor dependencies, including
+ // cells that were in M but have become protected exterior in M'.
+ for(const ref of [approved.preview.plan,prepared.outputMapping.effectiveMask]){const path=objectPath(f,ref),original=await retained(f,ref),changed=Buffer.from(original);changed[0]^=1;try{await writeFile(path,changed);await reject(f,approved.body,{target});}finally{await writeFile(path,original);}}
+ if(target){
+  const request=f.command({documentId:target,expectedDocumentRevision:null,body:approved.body}),result=await terminal(f,request);assert.equal(result.json.receipt.status,'accepted',result.text);assert.deepEqual((await events(f,result.json.receipt)).map(event=>event.type),['DocumentCreated']);assert.deepEqual(await image(f,target),after);assert.deepEqual(after.layers[1],{...native,id:copy.newLayerId,version:'1',layerToDocument:copy.transform});assert.deepEqual(await document(f),c.before);assert.deepEqual(await image(f),c.beforeState);assert.deepEqual((await terminal(f,request)).json.receipt,result.json.receipt);
+ }else{
+  const original=await pixels(f,c.before.image.compositeAssetId),applied=await run(f,approved.body);assert.deepEqual(await image(f),after);assert.deepEqual(after.layers.find(layer=>layer.id===native.id),native);exterior(await pixels(f,applied.document.image.compositeAssetId),original,coverage.final);
+  const undo=await run(f,{type:'Undo',historyHead:applied.document.historyHead});assert.deepEqual(await image(f),c.beforeState);assert.deepEqual(await pixels(f,undo.document.image.compositeAssetId),original);await run(f,{type:'Redo',historyNode:applied.document.historyHead});assert.deepEqual(await image(f),after);
+ }
+ await unchangedNative(f,native,identity);assert.deepEqual(await retained(f,c.review.textTreatment.plan),frozenPlan);assert.deepEqual(await retained(f,c.draft.mask.requestPlan.effectiveMask),coverage.original);assert.deepEqual(await f.effects(),effects);
+});
+
+test('J17 clipped actual-output review refuses an empty successor without altering the accepted treatment',{timeout:180000},async t=>{
+ const f=await fixture(t,{actualSize:256}),c=await candidate(f,{mapped:true,cropSize:512,maskRect:{x:0,y:128,width:1,height:8}}),plan=await retained(f,c.review.textTreatment.plan),mask=await retained(f,c.draft.mask.requestPlan.effectiveMask),effects=await f.effects();
+ await reject(f,placement(c,{}, {actualOutput:{width:256,height:256,clipMask:true}}),{code:'INCOMPATIBLE',reason:'EMPTY_MASK'});assert.deepEqual(await retained(f,c.review.textTreatment.plan),plan);assert.deepEqual(await retained(f,c.draft.mask.requestPlan.effectiveMask),mask);assert.deepEqual(await f.effects(),effects);
+});
+
+for(const clipMask of [false,true])for(const placementKind of ['current-document','new-document'])test('J17 '+placementKind+' commit rejects inventory changed after its '+(clipMask?'clipped':'contained')+' eager treatment preview',{timeout:180000},async t=>{
+ const f=await fixture(t,{actualSize:256}),c=await candidate(f,{placement:placementKind,mapped:true,...(clipMask?{cropSize:512,maskRect:{x:0,y:128,width:8,height:8}}:{})}),target=placementKind==='new-document'?'stale_text_document':null;
+ const body=target?placement(c,{action:'new-document',preservation:'none',nativeCopies:[{sourceLayerId:'native_text',newLayerId:'copied_native',transform:[1,0,0,1,8,12]}]},{placement:placementKind,newDocumentId:target,actualOutput:{width:256,height:256,clipMask}}):placement(c,{}, {actualOutput:{width:256,height:256,clipMask}}),approved=await reviewed(f,body),effects=await f.effects();
  // Hidden and otherwise unrelated rows are part of the exact reviewed inventory.
  await properties(f,'hidden_picture',{locked:false});
  await reject(f,approved.body,{code:'STALE_REVISION',target});

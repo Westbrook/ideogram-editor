@@ -1,6 +1,8 @@
 import type { BlobRef } from '../protocol/store.js';
 import type { Source } from './core.js';
 import type { RequestSourceCapture } from '../protocol/request-edits.js';
+import type {CandidateAdoptionIdentity} from '../protocol/candidates.js';
+import {requireOutputMapping,type RequestRasterPlan,type RequestOutputMapping} from './raster-plan.js';
 import { canonical } from '../protocol/json.js';
 import { SHA256 } from '../protocol/sha256.js';
 
@@ -97,6 +99,14 @@ export type TextTreatmentPlacementIntent = Omit<TextTreatmentAdoptionDecision,'k
  kind:'text-treatment-placement-intent-1';candidate:TreatmentPlacementCandidate;
  requestedPreservation:TreatmentAdoptionChoice['preservation'];
 };
+/** Metadata witness only. The writer owes exact derived-mask byte proofs. */
+export type TextTreatmentMaskSuccessor = {
+ kind:'text-treatment-mask-successor-1';acceptedTreatmentPlan:BlobRef;originalRequestPlan:BlobRef;
+ originalEffectiveMask:BlobRef;finalEffectiveMask:BlobRef;candidateIdentityHash:string;outputMappingHash:string;adoptionChoiceHash:string;
+};
+export type TextTreatmentMaskSuccessorInputs = {identity:CandidateAdoptionIdentity;requestPlan:RequestRasterPlan;outputMapping:RequestOutputMapping};
+export type TextTreatmentSuccessorPlacementIntent = Omit<TextTreatmentPlacementIntent,'kind'> & {kind:'text-treatment-successor-placement-intent-1';maskSuccessor:TextTreatmentMaskSuccessor};
+export type TextTreatmentSuccessorAdoptionDecision = Omit<TextTreatmentAdoptionDecision,'kind'> & {kind:'text-treatment-successor-adoption-decision-1';maskSuccessor:TextTreatmentMaskSuccessor};
 export type TextTreatmentProvenance = {
  kind:'text-treatment-provenance-1';planId:string;planHash:string;treatment:TextTreatmentChoice['kind'];
  stackFingerprint:string;sourceSubsetFingerprint:string;
@@ -271,7 +281,7 @@ export function planTextTreatmentAdoption(plan:TextTreatmentPlan,current:TextTre
 
 /** Both public contracts validate freshness and their exact candidate shape
  * before sharing graph decisions. This helper invents no prepared identity. */
-function placementBody<C extends TreatmentPlacementCandidate,K extends TextTreatmentAdoptionDecision['kind']|TextTreatmentPlacementIntent['kind']>(kind:K,plan:TextTreatmentPlan,current:TextTreatmentInventory,candidate:C,choice:TreatmentAdoptionChoice) {
+function placementBody<C extends TreatmentPlacementCandidate,K extends TextTreatmentAdoptionDecision['kind']|TextTreatmentPlacementIntent['kind']>(kind:K,plan:TextTreatmentPlan,current:TextTreatmentInventory,candidate:C,choice:TreatmentAdoptionChoice,approvedMask:BlobRef|null=plan.edit?.effectiveMask??null) {
  exact(choice,['kind','action','approvalId','duplicationAcknowledgement','newLayerId','hideNativeIds','nativeCopies','preservation']);
  if(choice.kind!=='text-treatment-adoption-choice-1'||!['keep-native-overlay','hide-native-originals','keep-both','new-document'].includes(choice.action)||!identifier(choice.approvalId)||!identifier(choice.newLayerId)||!['none','single-original-contribution','full-visible-root'].includes(choice.preservation)||!(choice.duplicationAcknowledgement===null||identifier(choice.duplicationAcknowledgement)))fail('TEXT_TREATMENT_ADOPTION_CHOICE');
  ids(choice.hideNativeIds);if(!Array.isArray(choice.nativeCopies)||choice.nativeCopies.length>100)fail('TEXT_TREATMENT_NATIVE_COPIES');
@@ -299,7 +309,7 @@ function placementBody<C extends TreatmentPlacementCandidate,K extends TextTreat
   let insertion=current.layers.length;
   if(choice.preservation!=='none'){
    const source=plan.afterSource;
-   if(candidate.preparation!=='safe-region'||source===null||plan.edit===null||!same(candidate.grid,current.grid)||!same(candidate.sourcePixels,source.source.pixels)||!same(candidate.effectiveMask,plan.edit.effectiveMask))fail('TEXT_TREATMENT_PRESERVATION_PROOF_REQUIRED');
+   if(candidate.preparation!=='safe-region'||source===null||plan.edit===null||!same(candidate.grid,current.grid)||!same(candidate.sourcePixels,source.source.pixels)||!same(candidate.effectiveMask,approvedMask))fail('TEXT_TREATMENT_PRESERVATION_PROOF_REQUIRED');
    if(choice.preservation==='single-original-contribution'){
     const eligibility=textTreatmentPlacementEligibility(current,source,plan.retainedNativeIds,'current-document');
     if(!eligibility.eligible||eligibility.kind!=='single-original-contribution')fail('TEXT_TREATMENT_NEW_DOCUMENT_REQUIRED');
@@ -315,6 +325,42 @@ function placementBody<C extends TreatmentPlacementCandidate,K extends TextTreat
   afterOrder.splice(insertion,0,{id:choice.newLayerId,version:'1',visible:true});
  }
  return {kind,planHash:plan.fingerprint,approvalId:choice.approvalId,choice:structuredClone(choice),candidate:structuredClone(candidate),stackFingerprint:plan.stackFingerprint,sourceDocumentUnchanged:choice.action==='new-document',hiddenOriginalIds,beforeOrder,afterOrder,preservedExterior:choice.preservation,copiedNative};
+}
+/** Bind the original accepted treatment to an already proved clipping result.
+ * This does not read M/M' and cannot establish that M' is a subset. Only the
+ * writer's frozen clipping/replay proof or encoded review lease can do that. */
+export function createTextTreatmentMaskSuccessor(plan:TextTreatmentPlan,bindings:TextTreatmentMaskSuccessorInputs,choice:TreatmentAdoptionChoice):TextTreatmentMaskSuccessor {
+ validateTextTreatmentPlan(plan);validateTextTreatmentAdoptionChoice(choice);exact(bindings,['identity','requestPlan','outputMapping']);
+ const {identity,requestPlan,outputMapping}=bindings;
+ exact(identity,['candidateId','candidateVersion','documentId','jobId','attemptId','requestId','outputIdentity','preparedAssetId','preparedAssetVersion','preparedAssetHash','requestHash','jobVersion','writerEpoch']);
+ for(const field of ['candidateId','documentId','jobId','attemptId','requestId','preparedAssetId'] as const)if(!identifier(identity[field]))fail('TEXT_TREATMENT_SUCCESSOR_IDENTITY');
+ for(const field of ['candidateVersion','preparedAssetVersion','jobVersion','writerEpoch'] as const)if(!sequence(identity[field]))fail('TEXT_TREATMENT_SUCCESSOR_IDENTITY');
+ for(const field of ['outputIdentity','preparedAssetHash','requestHash'] as const)if(!digest(identity[field]))fail('TEXT_TREATMENT_SUCCESSOR_IDENTITY');
+ try{requireOutputMapping(requestPlan,outputMapping,outputMapping.actualOutput.width,outputMapping.actualOutput.height);}catch{fail('TEXT_TREATMENT_SUCCESSOR_MAPPING');}
+ const requestRef={hash:hash(requestPlan),byteLength:String(new TextEncoder().encode(canonical(requestPlan)).byteLength),mediaType:'application/json'};
+ if(!plan.edit||!plan.afterSource||identity.documentId!==plan.inventory.documentId||outputMapping.resolution!=='clipped-and-approved'||!same(requestRef,plan.edit.requestPlan)||!same(requestPlan.effectiveMask,plan.edit.effectiveMask)||!same(requestPlan.sourcePixels,plan.afterSource.source.pixels)||!same(requestPlan.document,plan.inventory.grid))fail('TEXT_TREATMENT_SUCCESSOR_PARENT');
+ return {kind:'text-treatment-mask-successor-1',acceptedTreatmentPlan:textTreatmentPlanRef(plan),originalRequestPlan:structuredClone(plan.edit.requestPlan),originalEffectiveMask:structuredClone(plan.edit.effectiveMask),finalEffectiveMask:structuredClone(outputMapping.effectiveMask),candidateIdentityHash:hash(identity),outputMappingHash:hash(outputMapping),adoptionChoiceHash:hash(choice)};
+}
+function successorMask(plan:TextTreatmentPlan,candidate:TreatmentPlacementCandidate,choice:TreatmentAdoptionChoice,bindings:TextTreatmentMaskSuccessorInputs,witness:TextTreatmentMaskSuccessor):BlobRef {
+ const expected=createTextTreatmentMaskSuccessor(plan,bindings,choice);
+ if(!same(witness,expected)||candidate.candidateId!==bindings.identity.candidateId||candidate.preparation!=='safe-region'||!same(candidate.grid,plan.inventory.grid)||!same(candidate.sourcePixels,bindings.requestPlan.sourcePixels)||!same(candidate.effectiveMask,expected.finalEffectiveMask))fail('TEXT_TREATMENT_SUCCESSOR_IDENTITY');
+ return expected.finalEffectiveMask;
+}
+export function planTextTreatmentSuccessorPlacement(plan:TextTreatmentPlan,current:TextTreatmentInventory,candidate:TreatmentPlacementCandidate,choice:TreatmentAdoptionChoice,bindings:TextTreatmentMaskSuccessorInputs,witness:TextTreatmentMaskSuccessor):TextTreatmentSuccessorPlacementIntent {
+ assertTextTreatmentFresh(plan,current);exact(candidate,['candidateId','grid','preparation','sourcePixels','effectiveMask']);grid(candidate.grid);
+ const approved=successorMask(plan,candidate,choice,bindings,witness),{preservedExterior,...body}=placementBody('text-treatment-placement-intent-1',plan,current,candidate,choice,approved);
+ const intent={...body,kind:'text-treatment-successor-placement-intent-1' as const,requestedPreservation:preservedExterior,maskSuccessor:structuredClone(witness)};return {...intent,fingerprint:hash(intent)};
+}
+export function planTextTreatmentSuccessorAdoption(plan:TextTreatmentPlan,current:TextTreatmentInventory,candidate:TreatmentAdoptionCandidate,choice:TreatmentAdoptionChoice,bindings:TextTreatmentMaskSuccessorInputs,witness:TextTreatmentMaskSuccessor):TextTreatmentSuccessorAdoptionDecision {
+ assertTextTreatmentFresh(plan,current);exact(candidate,['candidateId','assetId','pixels','grid','preparation','preparationIdentity','sourcePixels','effectiveMask']);grid(candidate.grid);
+ if(!identifier(candidate.assetId))fail('TEXT_TREATMENT_CANDIDATE');ref(candidate.pixels,'application/x-ideogram-rgba8');ref(candidate.preparationIdentity,'application/json',65536);
+ if(candidate.pixels.byteLength!==String(candidate.grid.width*candidate.grid.height*4))fail('TEXT_TREATMENT_CANDIDATE');
+ const approved=successorMask(plan,candidate,choice,bindings,witness),body=placementBody('text-treatment-adoption-decision-1',plan,current,candidate,choice,approved);
+ const decision={...body,kind:'text-treatment-successor-adoption-decision-1' as const,maskSuccessor:structuredClone(witness)};return {...decision,fingerprint:hash(decision)};
+}
+/** A successor can only be validated with its complete joined frozen inputs. */
+export function validateTextTreatmentSuccessorAdoptionDecision(value:TextTreatmentSuccessorAdoptionDecision,plan:TextTreatmentPlan,current:TextTreatmentInventory,bindings:TextTreatmentMaskSuccessorInputs):void {
+ const expected=planTextTreatmentSuccessorAdoption(plan,current,value.candidate,value.choice,bindings,value.maskSuccessor);if(!same(value,expected))fail('TEXT_TREATMENT_ADOPTION_IDENTITY');
 }
 export function validateTextTreatmentAdoptionDecision(value:TextTreatmentAdoptionDecision,plan:TextTreatmentPlan,current:TextTreatmentInventory):void {
  const expected=planTextTreatmentAdoption(plan,current,value.candidate,value.choice);

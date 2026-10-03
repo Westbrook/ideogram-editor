@@ -29,7 +29,13 @@ import {AssetRejection} from './assets.js';
 import {validateRequestSourceCapture,type RequestSourceCapture} from '../../src/protocol/request-edits.js';
 import {requireRequestMaskPlan,requestMaskDependencies} from '../../src/request/core.js';
 import {isV45Request} from '../../src/request/family.js';
-import {requireActualOutput,requireOutputMapping,requirePlanDependencies,requireRequestCoverage,inspectRequestCoverage,createActualOutputMapping,clipRequestCoverage,type RequestRasterPlan,type RequestOutputMapping} from '../../src/request/raster-plan.js';
+import {requireActualOutput,requireOutputMapping,requirePlanDependencies,requireRequestCoverageRows,inspectRequestCoverageRows,createActualOutputMapping,clipRequestCoverage,type RequestRasterPlan,type RequestOutputMapping,type RequestCoverageInspection} from '../../src/request/raster-plan.js';
+
+// Keep each shared row's stale guard, then let receipt/cancel RPCs run before
+// continuing. Only scalar counts live across yields; no full-grid copy is made.
+async function completeCoverage(rows:Generator<void,RequestCoverageInspection,void>,check:()=>void):Promise<RequestCoverageInspection> {
+ for(;;){const row=rows.next();if(row.done){check();return row.value;}await tick();}
+}
 
 export type CandidateWireEvidence={kind:'candidate-wire-evidence-1';status:RuntimeWireRef|null;result:RuntimeWireRef|null;contradictions:RuntimeWireRef[];overflow:boolean};
 export type CandidateOutputWireEvidence={kind:'candidate-output-wire-1';result:RuntimeWireRef;index:number;image:Record<string,unknown>;safe:boolean};
@@ -419,20 +425,26 @@ export class Candidates {
      if(actual.width!==asset.raster!.width||actual.height!==asset.raster!.height||typeof actual.clipMask!=='boolean')throw new AssetRejection('INCOMPATIBLE','OUTPUT_MAPPING_REVIEW_REQUIRED');
      if(reviewed?.outputMapping)try{requireOutputMapping(plan,reviewed.outputMapping,actual.width,actual.height);}catch{throw new AssetRejection('STALE_REVISION','CANDIDATE_REVIEW_CHANGED');}
      outputMapping=createActualOutputMapping(plan,{actualOutput:{width:actual.width,height:actual.height},effectiveMask:plan.effectiveMask,resolution:'already-contained',approvalId:reviewed?.outputMapping?.approvalId??randomUUID()});
+     // A reviewed clipped mask is an input, not an output of this replay.
+     // Prove it before scanning coverage so corrupt input rejects promptly.
+     const retained=actual.clipMask?reviewed?.outputMapping?.effectiveMask:undefined;
+     if(retained)await protect(retained);
      const successorCoverage=actual.clipMask?clipRequestCoverage(plan,coverage,outputMapping):coverage;
-     try{const original=inspectRequestCoverage(plan,coverage,outputMapping,guard),final=requireRequestCoverage(plan,successorCoverage,outputMapping,guard);coverageReview={originalEffectivePixels:original.effectivePixels,effectivePixels:final.effectivePixels,lostPixels:original.lostPixels};}catch(e){if(e instanceof StoreError||e instanceof AssetRejection)throw e;throw new AssetRejection('INCOMPATIBLE',e instanceof Error?e.message:'OUTPUT_MAPPING_REVIEW_REQUIRED');}
+     try{const original=await completeCoverage(inspectRequestCoverageRows(plan,coverage,outputMapping,guard),guard),final=await completeCoverage(requireRequestCoverageRows(plan,successorCoverage,outputMapping,guard),guard);coverageReview={originalEffectivePixels:original.effectivePixels,effectivePixels:final.effectivePixels,lostPixels:original.lostPixels};}catch(e){if(e instanceof StoreError||e instanceof AssetRejection)throw e;throw new AssetRejection('INCOMPATIBLE',e instanceof Error?e.message:'OUTPUT_MAPPING_REVIEW_REQUIRED');}
      if(actual.clipMask){
       // Retain a successor object derived only from the frozen exact R16 mask.
       // It is rooted by the preview's proof set; the original mask is unchanged.
-      const retained=reviewed?.outputMapping?.effectiveMask;
-      if(retained)await protect(retained);
       const stage=retained?null:this.objects.begin(plan.effectiveMask.byteLength,'application/x-ideogram-r16le');
       let effective:BlobRef;
       try{
        for(let at=0;at<total;at+=chunkSize){
         guard();const bytes=Buffer.alloc(Math.min(chunkSize,total-at));
-        for(let offset=0;offset<bytes.length;offset+=2){const pixel=(at+offset)/2;bytes.writeUInt16LE(successorCoverage.get(pixel%plan.document.width,Math.floor(pixel/plan.document.width)),offset);}
-        if(retained){if(!bytes.equals(Buffer.from(this.objects.readRange(retained,String(at),bytes.length))))throw new AssetRejection('STALE_REVISION','CANDIDATE_REVIEW_CHANGED');}
+        for(let offset=0;offset<bytes.length;){
+         guard();const pixel=(at+offset)/2,x=pixel%plan.document.width,y=Math.floor(pixel/plan.document.width),end=Math.min(bytes.length,offset+(plan.document.width-x)*2);
+         for(let column=x;offset<end;column++,offset+=2)bytes.writeUInt16LE(successorCoverage.get(column,y),offset);
+         await tick();
+        }
+        guard();if(retained){if(!bytes.equals(Buffer.from(this.objects.readRange(retained,String(at),bytes.length))))throw new AssetRejection('STALE_REVISION','CANDIDATE_REVIEW_CHANGED');}
         else this.objects.chunk(stage!,bytes);await tick();
        }
        guard();for(const proof of proofs)this.objects.proven(proof.ref,proof.token);effective=retained??this.objects.finish(stage!);
@@ -442,7 +454,7 @@ export class Candidates {
      }
     }else{
      try{requireActualOutput(plan,asset.raster!.width,asset.raster!.height);}catch{throw new AssetRejection('INCOMPATIBLE','OUTPUT_MAPPING_REVIEW_REQUIRED');}
-     try{const measured=requireRequestCoverage(plan,coverage,undefined,guard);coverageReview={originalEffectivePixels:measured.effectivePixels,effectivePixels:measured.effectivePixels,lostPixels:0};}catch(e){if(e instanceof StoreError||e instanceof AssetRejection)throw e;throw new AssetRejection('INCOMPATIBLE',e instanceof Error?e.message:'MASK_DOMAIN_REVIEW_REQUIRED');}
+     try{const measured=await completeCoverage(requireRequestCoverageRows(plan,coverage,undefined,guard),guard);coverageReview={originalEffectivePixels:measured.effectivePixels,effectivePixels:measured.effectivePixels,lostPixels:0};}catch(e){if(e instanceof StoreError||e instanceof AssetRejection)throw e;throw new AssetRejection('INCOMPATIBLE',e instanceof Error?e.message:'MASK_DOMAIN_REVIEW_REQUIRED');}
     }
    }
    if(mode==='full-candidate'&&options.actualOutput)throw new AssetRejection('INCOMPATIBLE','OUTPUT_MAPPING_REQUIRES_SAFE_REGION');

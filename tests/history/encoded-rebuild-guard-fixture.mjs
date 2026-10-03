@@ -2,11 +2,14 @@
 // guarded fixture used by deferred adoption; storage and raster work stay real.
 import {readFileSync,writeFileSync,renameSync,existsSync} from 'node:fs';
 import {join} from 'node:path';
-import {setup as providerSetup} from '../request-edits/observer-fixture.mjs';
+import assert from 'node:assert/strict';
 import {installFailureDiagnostics} from './returned-description-observer-fixture.mjs';
 import {AssetRejection} from '../../dist/local/server/storage/assets.js';
 
 export async function setup(store){
+ let resultSize='512';try{resultSize=readFileSync(join(store.root,'text-treatment-result-size'),'utf8');}catch(error){if(error.code!=='ENOENT')throw error;}
+ assert(resultSize==='512'||resultSize==='256','Only the existing local observer result grids are allowed');
+ const {setup:providerSetup}=await import(new URL('../request-edits/observer-fixture.mjs?resultSize='+resultSize,import.meta.url).href);
  const closeProvider=await providerSetup(store),config=JSON.parse(readFileSync(join(store.root,'encoded-guard-config.json'),'utf8'));
  const stopDiagnostics=installFailureDiagnostics(store);
  const original={command:store.histories.command,prepare:store.histories.prepare,liveReview:store.histories.liveReview,compute:store.rasters.compute,preserve:store.rasters.prepareEncodedPreservation,retained:store.candidates.retainedPreservation};

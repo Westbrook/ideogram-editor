@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createIdentityRequestPlan,createRequestRasterPlan,validateRequestRasterPlan,requirePlanDependencies,inspectRequestCoverage,requireRequestCoverage,clipRequestCoverage,providerMaskRow,providerSourceRow,requestRasterGrid,requestSafeInterior,requireActualOutput,preserveRequestRow,preserveMappedRequestRow,createActualOutputMapping,requireOutputMapping,proposeRequestExpansion,proposeRequestExpansionBounds,proposeIntegerRequestCrop,sourceRequestFootprint} from '../../dist/local/src/request/raster-plan.js';
+import {createIdentityRequestPlan,createRequestRasterPlan,validateRequestRasterPlan,requirePlanDependencies,inspectRequestCoverage,inspectRequestCoverageRows,requireRequestCoverage,requireRequestCoverageRows,clipRequestCoverage,providerMaskRow,providerSourceRow,requestRasterGrid,requestSafeInterior,requireActualOutput,preserveRequestRow,preserveMappedRequestRow,createActualOutputMapping,requireOutputMapping,proposeRequestExpansion,proposeRequestExpansionBounds,proposeIntegerRequestCrop,sourceRequestFootprint} from '../../dist/local/src/request/raster-plan.js';
 import {featherRows} from '../../dist/local/src/raster/mask.js';
 
 const hash=n=>'sha256:'+String(n).repeat(64);
@@ -246,4 +246,105 @@ test('expansion remains monotone when ceil-sized grids change the exact reconstr
  const accepted=mapped(24,1,proposal.crop,proposal.requestGrid,proposal.padding,{expectedOutput:proposal.expectedOutput,resolution:'expanded-and-approved',approvalId:'expanded_2'});
  const m=coverage([Array.from({length:24},(_,x)=>x>=4&&x<8?65535:0)]);
  assert.equal(requireRequestCoverage(accepted,m).contained,true);
+});
+
+function collectCoverageRows(iterator){
+ const yields=[];
+ for(;;){const step=iterator.next();if(step.done)return {yields,result:step.value};yields.push(step.value);}
+}
+
+test('coverage row inspection yields only complete rows and preserves literal counts, row guards and synchronous order',()=>{
+ const plan=createIdentityRequestPlan(input(3,3,{x:1,y:0,width:2,height:2})),before=structuredClone(plan),rows=[[0,1,65535],[32768,1,16384],[1,0,0]],trace=[];
+ const measured={width:3,height:3,get(x,y){trace.push(['sample',x,y]);return rows[y][x];}},check=()=>trace.push(['check']);
+ const iterator=inspectRequestCoverageRows(plan,measured,undefined,check);
+ assert.deepEqual(trace,[],'Creating an iterator must not scan ahead');
+ assert.deepEqual(iterator.next(),{value:undefined,done:false});
+ assert.deepEqual(trace,[['check'],['sample',0,0],['sample',1,0],['sample',2,0]]);
+ assert.deepEqual(iterator.next(),{value:undefined,done:false});
+ assert.deepEqual(trace,[['check'],['sample',0,0],['sample',1,0],['sample',2,0],['check'],['sample',0,1],['sample',1,1],['sample',2,1]]);
+ assert.deepEqual(iterator.next(),{value:undefined,done:false});
+ const expected={effectivePixels:6,lostPixels:2,fullDocument:false,fullDomain:true,contained:false};
+ assert.deepEqual(iterator.next(),{value:expected,done:true});
+ assert.deepEqual(trace,[['check'],['sample',0,0],['sample',1,0],['sample',2,0],['check'],['sample',0,1],['sample',1,1],['sample',2,1],['check'],['sample',0,2],['sample',1,2],['sample',2,2]]);
+ assert.deepEqual(iterator.next(),{value:undefined,done:true});assert.equal(trace.length,12,'Reading completion cannot rescan or invoke another guard');
+ const iteratorOrder=structuredClone(trace);trace.length=0;
+ assert.deepEqual(inspectRequestCoverage(plan,measured,undefined,check),expected);assert.deepEqual(trace,iteratorOrder);
+ assert.throws(()=>requireRequestCoverage(plan,coverage(rows)),code('MASK_DOMAIN_REVIEW_REQUIRED'));assert.deepEqual(plan,before);assert.deepEqual(rows,[[0,1,65535],[32768,1,16384],[1,0,0]]);
+});
+
+test('coverage rows honor actual-output containment and explicit clipping without losing nonzero R16 samples',()=>{
+ const plan=mapped(12,2,{x:2,y:0,width:8,height:2},{width:4,height:2}),mapping=createActualOutputMapping(plan,{actualOutput:{width:2,height:2},effectiveMask:ref(7,12,2,2),resolution:'clipped-and-approved',approvalId:'rows_actual_1'});
+ const rows=[[0,0,0,1,65535,32768,16384,1,1,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0]],raw=coverage(rows),before=structuredClone(mapping);let checks=0,visits=0;
+ const measured={width:12,height:2,get(x,y){visits++;return raw.get(x,y);}},expected={effectivePixels:6,lostPixels:2,fullDocument:false,fullDomain:false,contained:false};
+ assert.deepEqual(requestSafeInterior(plan,mapping),{x:4,y:0,width:4,height:2});
+ assert.deepEqual(collectCoverageRows(inspectRequestCoverageRows(plan,measured,mapping,()=>checks++)),{yields:[undefined,undefined],result:expected});assert.equal(checks,2);assert.equal(visits,24);
+ checks=0;visits=0;assert.deepEqual(inspectRequestCoverage(plan,measured,mapping,()=>checks++),expected);assert.equal(checks,2);assert.equal(visits,24);
+ assert.throws(()=>requireRequestCoverage(plan,raw,mapping),code('MASK_DOMAIN_REVIEW_REQUIRED'));
+ const clipped=clipRequestCoverage(plan,raw,mapping),contained={effectivePixels:4,lostPixels:0,fullDocument:false,fullDomain:false,contained:true};
+ assert.deepEqual(values(clipped,0),[0,0,0,0,65535,32768,16384,1,0,0,0,0]);assert.deepEqual(collectCoverageRows(inspectRequestCoverageRows(plan,clipped,mapping)),{yields:[undefined,undefined],result:contained});assert.deepEqual(collectCoverageRows(requireRequestCoverageRows(plan,clipped,mapping)),{yields:[undefined,undefined],result:contained});assert.deepEqual(requireRequestCoverage(plan,clipped,mapping),contained);assert.deepEqual(mapping,before);
+});
+
+test('coverage row totals use the real document and crop rather than transparent padding',()=>{
+ const plan=mapped(2,2,{x:0,y:0,width:2,height:2},{width:4,height:2},{left:1,top:0,right:1,bottom:0}),mask=coverage([[1,65535],[32768,16384]]),expected={effectivePixels:4,lostPixels:0,fullDocument:true,fullDomain:true,contained:true};let checks=0;
+ assert.deepEqual(collectCoverageRows(inspectRequestCoverageRows(plan,mask,undefined,()=>checks++)),{yields:[undefined,undefined],result:expected});assert.equal(checks,2);checks=0;assert.deepEqual(collectCoverageRows(requireRequestCoverageRows(plan,mask,undefined,()=>checks++)),{yields:[undefined,undefined],result:expected});assert.equal(checks,2);assert.deepEqual(inspectRequestCoverage(plan,mask),expected);assert.deepEqual(requireRequestCoverage(plan,mask),expected);
+});
+
+test('coverage rows preserve the distinction between uncontained support and an empty clipped successor',()=>{
+ const plan=mapped(),mapping=createActualOutputMapping(plan,{actualOutput:{width:1,height:5},effectiveMask:ref(7,12,5,2),resolution:'clipped-and-approved',approvalId:'rows_empty_1'}),raw=clipRequestCoverage(plan,strips(5)),empty=clipRequestCoverage(plan,raw,mapping);
+ assert.deepEqual(requestSafeInterior(plan,mapping),{x:6,y:0,width:0,height:5});
+ const uncontained={effectivePixels:10,lostPixels:10,fullDocument:false,fullDomain:false,contained:false},zero={effectivePixels:0,lostPixels:0,fullDocument:false,fullDomain:false,contained:true};
+ assert.deepEqual(collectCoverageRows(inspectRequestCoverageRows(plan,raw,mapping)),{yields:[undefined,undefined,undefined,undefined,undefined],result:uncontained});assert.deepEqual(inspectRequestCoverage(plan,raw,mapping),uncontained);assert.throws(()=>requireRequestCoverage(plan,raw,mapping),code('MASK_DOMAIN_REVIEW_REQUIRED'));
+ assert.deepEqual(collectCoverageRows(inspectRequestCoverageRows(plan,empty,mapping)),{yields:[undefined,undefined,undefined,undefined,undefined],result:zero});assert.deepEqual(inspectRequestCoverage(plan,empty,mapping),zero);assert.throws(()=>requireRequestCoverage(plan,empty,mapping),code('EMPTY_MASK'));
+ for(const [mask,error] of [[raw,'MASK_DOMAIN_REVIEW_REQUIRED'],[empty,'EMPTY_MASK']]){let checks=0,visits=0;const measured={width:12,height:5,get(x,y){visits++;return mask.get(x,y);}},iterator=requireRequestCoverageRows(plan,measured,mapping,()=>checks++);
+  for(let row=0;row<5;row++){assert.deepEqual(iterator.next(),{value:undefined,done:false});assert.equal(checks,row+1);assert.equal(visits,(row+1)*12);}
+  assert.throws(()=>iterator.next(),code(error));assert.equal(checks,5);assert.equal(visits,60);assert.deepEqual(iterator.next(),{value:undefined,done:true});
+ }
+});
+
+test('coverage rows reject malformed plans, foreign mappings and wrong mask grids before guards or reads',()=>{
+ const plan=createIdentityRequestPlan(input(3,2,{x:0,y:0,width:3,height:2})),mapping=createActualOutputMapping(plan,{actualOutput:{width:3,height:2},effectiveMask:plan.effectiveMask,resolution:'already-contained',approvalId:'rows_valid_1'});
+ const cases=[
+  {plan:{...plan,kernel:'unknown'},mapping:undefined,width:3,height:2,error:'MASK_MAPPING_REVIEW_REQUIRED'},
+  {plan,mapping:{...mapping,requestPlan:{...plan,approvalId:'foreign_parent'}},width:3,height:2,error:'REQUEST_RASTER_APPROVAL_REQUIRED'},
+  {plan,mapping:{...mapping,outputToDocument:[1,0,0,1,1,0]},width:3,height:2,error:'MASK_MAPPING_REVIEW_REQUIRED'},
+  {plan,mapping:undefined,width:2,height:2,error:'REQUEST_MASK_GRID_MISMATCH'},
+  {plan,mapping,width:3,height:1,error:'REQUEST_MASK_GRID_MISMATCH'},
+ ];
+ for(const value of cases){let checks=0,visits=0;const mask={width:value.width,height:value.height,get(){visits++;return 1;}},check=()=>checks++;
+  for(const inspect of [inspectRequestCoverageRows,requireRequestCoverageRows]){assert.throws(()=>inspect(value.plan,mask,value.mapping,check).next(),code(value.error));assert.equal(checks,0);assert.equal(visits,0);}
+  for(const inspect of [inspectRequestCoverage,requireRequestCoverage]){assert.throws(()=>inspect(value.plan,mask,value.mapping,check),code(value.error));assert.equal(checks,0);assert.equal(visits,0);}
+ }
+});
+
+test('coverage rows reject an invalid R16 sample without yielding a partial row or reading later cells',()=>{
+ const plan=createIdentityRequestPlan(input(3,2,{x:0,y:0,width:3,height:2}));
+ for(const inspect of [inspectRequestCoverageRows,requireRequestCoverageRows])for(const invalid of [-1,65536,.5,NaN,Infinity,undefined,null,'1']){
+  const rows=[[0,1,65535],[1,invalid,32768]],visits=[];let checks=0;
+  const mask={width:3,height:2,get(x,y){visits.push([x,y]);return rows[y][x];}},check=()=>checks++,iterator=inspect(plan,mask,undefined,check);
+  assert.deepEqual(iterator.next(),{value:undefined,done:false});assert.equal(checks,1);assert.deepEqual(visits,[[0,0],[1,0],[2,0]]);
+  assert.throws(()=>iterator.next(),code('REQUEST_MASK_COVERAGE_INVALID'));assert.equal(checks,2);assert.deepEqual(visits,[[0,0],[1,0],[2,0],[0,1],[1,1]]);
+  assert.deepEqual(iterator.next(),{value:undefined,done:true});assert.equal(visits.length,5);
+  const sync=inspect===inspectRequestCoverageRows?inspectRequestCoverage:requireRequestCoverage;visits.length=0;checks=0;assert.throws(()=>sync(plan,mask,undefined,check),code('REQUEST_MASK_COVERAGE_INVALID'));assert.equal(checks,2);assert.deepEqual(visits,[[0,0],[1,0],[2,0],[0,1],[1,1]]);
+ }
+});
+
+test('a stale owner between coverage yields rejects before the next row samples any mask bytes',()=>{
+ for(const inspect of [inspectRequestCoverageRows,requireRequestCoverageRows]){
+ const plan=createIdentityRequestPlan(input(2,3,{x:0,y:0,width:2,height:3})),staleError=new Error('source ownership changed'),trace=[];let stale=false;
+ const mask={width:2,height:3,get(x,y){trace.push(['sample',x,y]);return 1;}},check=()=>{trace.push(['check']);if(stale)throw staleError;},iterator=inspect(plan,mask,undefined,check);
+ assert.deepEqual(iterator.next(),{value:undefined,done:false});assert.deepEqual(trace,[['check'],['sample',0,0],['sample',1,0]]);
+ // A real caller can await here and discover changed ownership before resuming.
+ stale=true;assert.throws(()=>iterator.next(),error=>error===staleError);assert.deepEqual(trace,[['check'],['sample',0,0],['sample',1,0],['check']]);assert.deepEqual(iterator.next(),{value:undefined,done:true});assert.equal(trace.length,4);
+ trace.length=0;assert.throws(()=>inspect(plan,mask,undefined,check).next(),error=>error===staleError);assert.deepEqual(trace,[['check']]);
+ const sync=inspect===inspectRequestCoverageRows?inspectRequestCoverage:requireRequestCoverage;trace.length=0;assert.throws(()=>sync(plan,mask,undefined,check),error=>error===staleError);assert.deepEqual(trace,[['check']]);
+ }
+});
+
+test('stopping coverage iteration after a completed row performs no later guard or mask read',()=>{
+ for(const inspect of [inspectRequestCoverageRows,requireRequestCoverageRows]){
+ const plan=createIdentityRequestPlan(input(2,3,{x:0,y:0,width:2,height:3}));let checks=0,visits=0;
+ const iterator=inspect(plan,{width:2,height:3,get(){visits++;return 1;}},undefined,()=>checks++);
+ assert.deepEqual(iterator.next(),{value:undefined,done:false});assert.equal(checks,1);assert.equal(visits,2);
+ assert.deepEqual(iterator.return(),{value:undefined,done:true});assert.deepEqual(iterator.next(),{value:undefined,done:true});assert.equal(checks,1);assert.equal(visits,2);
+ }
 });

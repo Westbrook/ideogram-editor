@@ -7,7 +7,7 @@ import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {transformWithOxc} from 'vite';
 const data=code=>'data:text/javascript;base64,'+Buffer.from(code).toString('base64'),lit=data('export const nothing=null;export function html(strings,...values){return {strings,values};}');
-const imports=Object.fromEntries(['protocol/json','protocol/sha256'].map(name=>['../'+name+'.js',pathToFileURL(resolve('dist/local/src/'+name+'.js')).href]));
+const imports={...Object.fromEntries(['protocol/json','protocol/sha256'].map(name=>['../'+name+'.js',pathToFileURL(resolve('dist/local/src/'+name+'.js')).href])),'./raster-plan.js':pathToFileURL(resolve('dist/local/src/request/raster-plan.js')).href};
 const {canonical}=await import(imports['../protocol/json.js']),{SHA256}=await import(imports['../protocol/sha256.js']),hash=value=>new SHA256().update(new TextEncoder().encode(value)).digest();
 async function compiled(path,values){let code=(await transformWithOxc(await readFile(path,'utf8'),path)).code;for(const [from,to]of Object.entries(values))code=code.replaceAll(JSON.stringify(from),JSON.stringify(to)).replaceAll("'"+from+"'",JSON.stringify(to));return data(code);}
 const pureURL=await compiled('src/request/text-treatment.ts',imports),{planTextTreatment,textTreatmentPlanRef,bindTextTreatmentEnvelope}=await import(pureURL);
