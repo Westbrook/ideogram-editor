@@ -25,9 +25,9 @@ function publicGraph(): Plugin {
     name: 'ideogram-pages-public-graph', enforce: 'pre',
     transform(_code, id) {
       if (id.startsWith('\0')) return;
-      // Pinned Vite emits this empty browser stub for CanvasKit's Node-only imports.
+      // Rolldown 1.2.11's Vite resolver emits an empty CJS module for production builds.
       const browserExternal = id === '__vite-browser-external';
-      if (browserExternal && _code.trim() !== 'export default {}') throw Error('Unexpected Vite browser external stub');
+      if (browserExternal && _code.trim() !== 'module.exports = {}') throw Error('Unexpected Vite browser external stub');
       const path = browserExternal ? id : relative(root, id.split('?')[0]).replaceAll('\\', '/');
       if (path.startsWith('../') || isAbsolute(path)) throw Error('Pages module is outside the owned repository');
       const packageMatch = /^node_modules\/((?:@[^/]+\/)?[^/]+)\//.exec(path);
