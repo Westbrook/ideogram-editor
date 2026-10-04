@@ -65,7 +65,7 @@ const verify=({result,readRetained,journalEvents},overrides={})=>verifyTextResou
 // With the reviewed renderer registry empty, every issued value stays incomplete.
 test('actual transition evidence replays its simultaneous peak, retains exact bytes and remains unqualified without native ownership proof',async t=>{
  const fixtureValue=await fixture(t),{result,retained,journalEvents}=fixtureValue;
- assert.deepEqual(TEXT_RESOURCE_OPERATIONS,['text.font-set','text.mixed-ready','text.active-layout','text.apply','text.recovery']);
+ assert.deepEqual(TEXT_RESOURCE_OPERATIONS,['text.font-set','text.mixed-ready','text.active-layout','text.apply','text.recovery','portable.reopen']);
  assert.equal(result.evidence.window.observationComplete,true);assert.equal(result.evidence.window.transitionCount,6);
  assert.deepEqual(result.evidence.window.rows.map(row=>row.cpu.reduce((sum,n)=>sum+n,row.poolTextBytes)),[420,0,77,727,77,0]);
  assert.deepEqual(result.evidence.window.peakCpu,{bytes:727,sequence:4});
@@ -246,4 +246,182 @@ test('a dropped actual final owner remains a retained lower bound and declared p
   const forged=structuredClone(window);mutate(forged);
   assert.throws(()=>replayTextResourceWindow(forged),/partial peak below retained observation/);
  }
+});
+
+// Only the page transport/realm metadata is a deterministic boundary specimen.
+// Resource rows, transitions, acknowledgments and snapshot release are supplied
+// by actual AllocationLedger/MemoryPool instances. This is not native evidence.
+import {createContext,runInContext} from 'node:vm';
+async function portableResourceFixture(t,{prior='blank',operation='portable.reopen',sampleValue=sample,serialValue=1}={}){
+ const identity='portable-resource-campaign-'+ ++serial,{allocationsURL,diagnosticMemoryURL}=await isolatedDiagnosticModules();
+ const contractsURL=await stagedModuleURL('src/text/contracts.ts',{},identity),budgetURL=await stagedModuleURL('src/protocol/text-budget.ts',{},identity);
+ const admissionURL=await stagedModuleURL('src/text/admission.ts',{'./contracts':contractsURL},identity),profile=JSON.parse(await readStagedSource('src/text/profile.json'));
+ const memoryURL=await stagedModuleURL('src/text/memory.ts',{
+  '../observability/diagnostic-memory.js':diagnosticMemoryURL,'./contracts':contractsURL,'./admission':admissionURL,
+  '../protocol/text-budget':budgetURL,'./profile.json':data('const profile='+JSON.stringify(profile)+';export default profile;export const engine=profile.engine;'),
+ },identity);
+ const {MemoryPool}=await import(memoryURL),{AllocationLedger}=await import(allocationsURL);
+ const pool=new MemoryPool();let clock=10;const ledger=new AllocationLedger(undefined,()=>++clock);
+ ledger.observeTextReservations(()=>pool.snapshot.textBytes,pool);
+ const startup=ledger.textResourceStartupIdentity(),output=await mkdtemp(join(tmpdir(),'ideogram-portable-resource-'));
+ t.after(()=>rm(output,{recursive:true,force:true}));
+ const counts={evaluates:0,snapshots:0,releases:0,disposals:0,seals:0};
+ const api={textResourceStartupIdentity:()=>ledger.textResourceStartupIdentity(),
+  sealTextResourceStartupWindow(){counts.seals++;return ledger.sealTextResourceStartupWindow();},
+  readTextResourceSnapshot(){counts.snapshots++;let live=true;return {value:ledger.copyTextResourceObservation(),release(){if(live){live=false;counts.releases++;}}};},
+ };
+ const oldLedger='cccccccc-cccc-4ccc-8ccc-cccccccccccc',oldOrigin=startup.clockOriginMs-1;
+ const priorIdentity={ledgerInstanceId:oldLedger,clockOriginMs:oldOrigin,begin:{id:'startup-'+oldLedger,ordinal:1},ended:true};
+ const realm=createContext({location:{href:prior==='blank'?'about:blank':'http://127.0.0.1/editor'},performance:{timeOrigin:oldOrigin,now:()=>++clock}});
+ runInContext('globalThis.window=globalThis;window.top=window',realm);
+ if(prior==='loaded')realm.__IDEOGRAM_PHASES__={textResourceStartupIdentity:()=>priorIdentity};
+ const frame={},listeners=new Set();
+ function evaluateRaw(fn,arg){counts.evaluates++;realm.__argument=arg;try{return runInContext('('+fn.toString()+')(__argument)',realm);}finally{delete realm.__argument;}}
+ const page={mainFrame:()=>frame,on(event,fn){assert.equal(event,'framenavigated');listeners.add(fn);},off(event,fn){assert.equal(event,'framenavigated');listeners.delete(fn);},
+  async evaluate(fn,arg){return structuredClone(evaluateRaw(fn,arg));},
+  async evaluateHandle(fn,arg){const owner=evaluateRaw(fn,arg);return {async evaluate(project){return project(owner);},async dispose(){counts.disposals++;}};},
+ };
+ const journalEvents=[],portableCell={id:'portable-resource-original-action',operation};
+ const observer=createTextResourceObserver({page,cell:portableCell,sample:sampleValue,serial:serialValue,fixtureIdentity:hash(Buffer.from('portable-fixture')),
+  processIdentity:{pid:123,startIdentity:'isolated-portable-test'},executableIdentity:{kind:'unreviewed-test-executable'},output,
+  journal:async event=>journalEvents.push(structuredClone(event)),
+ });
+ function navigate(){realm.location.href='http://127.0.0.1/editor';realm.performance.timeOrigin=startup.clockOriginMs;realm.__IDEOGRAM_PHASES__=api;for(const fn of listeners)fn(frame);}
+ function subframe(){for(const fn of listeners)fn({});}
+ async function retained(result){const bytes=await readFile(result.artifact.path);return {result,retained:bytes,journalEvents,readRetained:async(path,{maximum})=>{assert.equal(path,result.artifact.path);assert.equal(maximum,8*1048576);return bytes;}};}
+ return {observer,ledger,pool,realm,api,page,priorIdentity,counts,listeners,navigate,subframe,retained,journalEvents};
+}
+
+for(const prior of ['blank','loaded'])test('portable '+prior+' prior keeps the real startup window live through the original endpoint and final seal',async t=>{
+ const f=await portableResourceFixture(t,{prior,sampleValue:prior==='loaded'?{cache:'warm',ordinal:2,prime:false}:sample,serialValue:prior==='loaded'?3:1});
+ await assert.rejects(f.observer.checkpoint(),/active observer/);assert.equal(f.counts.evaluates,0);
+ const start=await f.observer.begin();assert.deepEqual(await f.observer.begin(),start);assert.equal(f.listeners.size,1);
+ f.subframe();f.navigate();
+ const font=f.ledger.reserve({owner:'portable-open-font',kind:'font',cpuBytes:420});font.release();
+ const text=f.pool.reserve(77);let staging;
+ try{
+  const checkpoint=await f.observer.checkpoint();assert.equal(checkpoint.ended,false);assert.equal(f.counts.seals,0);
+  assert.equal(f.ledger.textResourceStartupIdentity().ended,false);
+  // A caller cannot mutate the observer's retained checkpoint through its return.
+  checkpoint.windowOrdinal=999;
+  staging=f.ledger.reserve({owner:'composition-after-portable-endpoint',kind:'staging',cpuBytes:650});staging.release();staging=null;text.release();
+  const result=await f.observer.finish();assert.equal(await f.observer.finish(),result);
+  assert.equal(result.evidence.realm.prior.documentKind,prior==='blank'?'about:blank':'application');
+  assert.equal(result.evidence.realm.prior.phaseOwnerPresent,prior!=='blank');
+  assert.equal(result.evidence.realm.navigations.length,1);assert.equal(result.evidence.realm.checkpoint.windowOrdinal,result.evidence.window.ordinal);
+  assert.deepEqual(result.evidence.realm.failures,[]);assert.equal(result.evidence.window.observationComplete,true);
+  assert(result.evidence.window.rows.some(row=>row.atMs>result.evidence.realm.checkpoint.atMs));
+  assert.deepEqual(result.evidence.window.peakCpu,{bytes:727,sequence:4});
+  assert(result.evidence.window.final.atMs>=result.evidence.realm.checkpoint.atMs);
+  assert.deepEqual(f.journalEvents.map(row=>row.event),['text-resources-intent','text-resources-checkpoint','text-resources-begin','text-resources-observed']);
+  assert.equal(f.counts.snapshots,1);assert.equal(f.counts.releases,1);assert.equal(f.counts.disposals,1);assert.equal(f.listeners.size,0);
+  const verified=await verify(await f.retained(result));assert.equal(verified.complete,false);
+  assert.deepEqual(verified.missing,['exact-text-resource-source-native-runtime-review-unavailable']);
+  await assert.rejects(f.observer.checkpoint(),/active observer/);
+ }finally{staging?.release();text.release();}
+});
+
+test('portable prior capture refuses non-top-level, missing owner and invalid loaded identities before attaching or journaling',async t=>{
+ for(const change of [
+  f=>{f.realm.window.top={};},
+  f=>{delete f.realm.__IDEOGRAM_PHASES__;},
+  f=>{f.realm.__IDEOGRAM_PHASES__={};},
+  f=>{f.priorIdentity.ledgerInstanceId='invalid';},
+  f=>{f.priorIdentity.clockOriginMs++;},
+  f=>{f.priorIdentity.begin.id='startup-wrong';},
+ ]){
+  const f=await portableResourceFixture(t,{prior:'loaded'});change(f);
+  await assert.rejects(f.observer.begin(),/PORTABLE_TEXT_RESOURCE|portable.*realm/i);
+  assert.equal(f.listeners.size,0);assert.deepEqual(f.journalEvents,[]);assert.equal(f.counts.seals,0);
+ }
+ const f=await portableResourceFixture(t);f.realm.__IDEOGRAM_PHASES__={};
+ await assert.rejects(f.observer.begin(),/PORTABLE_TEXT_RESOURCE|portable.*realm/i);
+ assert.equal(f.listeners.size,0);assert.deepEqual(f.journalEvents,[]);
+});
+
+test('portable missing endpoint and original endpoint read failure retain distinct incomplete evidence without retrying a read',async t=>{
+ for(const mode of ['missing','pending-navigation','wrong-clock']){
+  const f=await portableResourceFixture(t);await f.observer.begin();
+  if(mode==='pending-navigation')assert.equal(await f.observer.checkpoint(),null);
+  f.navigate();
+  if(mode==='wrong-clock'){
+   const original=f.api.textResourceStartupIdentity;f.api.textResourceStartupIdentity=()=>({...original(),clockOriginMs:f.realm.performance.timeOrigin+1});
+   assert.equal(await f.observer.checkpoint(),null);f.api.textResourceStartupIdentity=original;
+  }
+  const result=await f.observer.finish({failed:mode==='pending-navigation'});
+  assert.equal(result.evidence.realm.checkpoint,null);
+  assert.deepEqual(result.evidence.realm.failures,[mode==='missing'?'checkpoint-missing':'checkpoint-unavailable']);
+  assert.equal(f.journalEvents.some(row=>row.event==='text-resources-checkpoint'),false);
+  const verified=await verify(await f.retained(result));assert.equal(verified.complete,false);
+  assert(verified.missing.includes('portable-text-resource-original-action-endpoint-unavailable'));
+  if(mode==='pending-navigation')assert(verified.missing.includes('text-resource-action-failed'));
+  assert.equal(f.counts.snapshots,1);assert.equal(f.counts.releases,1);assert.equal(f.listeners.size,0);
+ }
+});
+
+test('portable pending endpoint read rejects duplication and retains exactly one checkpoint after settlement',async t=>{
+ const f=await portableResourceFixture(t);await f.observer.begin();f.navigate();
+ const original=f.page.evaluate;let release,entered;
+ const barrier=new Promise(resolve=>{release=resolve;}),readEntered=new Promise(resolve=>{entered=resolve;});
+ f.page.evaluate=async function(fn,arg){let value;try{value=await original.call(this,fn,arg);}finally{entered();}await barrier;return value;};
+ const settled=f.observer.checkpoint().then(value=>({value}),error=>({error}));
+ try{
+  await readEntered;const reads=f.counts.evaluates;
+  await assert.rejects(f.observer.checkpoint(),/checkpoint repeated/);assert.equal(f.counts.evaluates,reads);
+  assert.equal(f.journalEvents.some(row=>row.event==='text-resources-checkpoint'),false);
+ }finally{release();await settled;f.page.evaluate=original;}
+ const endpoint=await settled;assert.equal(endpoint.error,undefined);assert.equal(endpoint.value.ended,false);
+ const result=await f.observer.finish();assert.deepEqual(result.evidence.realm.failures,['checkpoint-repeated']);
+ assert.equal(f.journalEvents.filter(row=>row.event==='text-resources-checkpoint').length,1);
+ assert((await verify(await f.retained(result))).missing.includes('portable-text-resource-original-action-endpoint-unavailable'));
+});
+
+test('portable already-sealed endpoint and repeated main navigation preserve raw failure bytes and release snapshots',async t=>{
+ for(const mode of ['sealed','second-navigation']){
+  const f=await portableResourceFixture(t);await f.observer.begin();f.navigate();
+  if(mode==='sealed')f.ledger.sealTextResourceStartupWindow();
+  await f.observer.checkpoint();if(mode==='second-navigation')f.navigate();
+  let failure;try{await f.observer.finish();assert.fail('invalid portable boundary must reject');}catch(error){failure=error;}
+  assert(failure.textResourceArtifact);const raw=JSON.parse(await readFile(failure.textResourceArtifact.path,'utf8'));
+  assert.equal(raw.realm.checkpoint.ended,mode==='sealed');assert.equal(raw.realm.navigations.length,mode==='sealed'?1:2);
+  assert.equal(f.counts.snapshots,1);assert.equal(f.counts.releases,1);assert.equal(f.counts.disposals,1);assert.equal(f.listeners.size,0);
+  await assert.rejects(f.observer.finish(),/already closed/);
+ }
+});
+
+test('portable replay refuses stale realms, changed endpoint identities and final windows that fail to cover the original action',async t=>{
+ const f=await portableResourceFixture(t,{prior:'loaded'});await f.observer.begin();f.navigate();await f.observer.checkpoint();const result=await f.observer.finish();
+ const priorStillOpen=structuredClone(result.evidence);priorStillOpen.realm.prior.ended=false;assert.equal(replayTextResourceEvidence(priorStillOpen).complete,false);
+ for(const change of [
+  e=>{e.realm.prior.ledgerInstanceId=e.window.ledgerInstanceId;e.realm.prior.windowId=e.window.id;},
+  e=>{e.realm.prior.clockOriginMs=e.window.clockOriginMs;},
+  e=>{e.realm.prior.phaseOwnerPresent=false;},
+  e=>{e.realm.checkpoint.ledgerInstanceId=e.realm.prior.ledgerInstanceId;},
+  e=>{e.realm.checkpoint.clockOriginMs++;},
+  e=>{e.realm.checkpoint.windowId='startup-'+e.realm.prior.ledgerInstanceId;},
+  e=>{e.realm.checkpoint.windowOrdinal++;},
+  e=>{e.realm.checkpoint.ended=true;},
+  e=>{e.realm.checkpoint.atMs=e.window.final.atMs+1;},
+  e=>{e.realm.checkpoint.startedMs=e.realm.navigations[0]-1;},
+  e=>{e.realm.checkpoint.endedMs=e.timing.endedMs+1;},
+  e=>{e.binding.operation='text.mixed-ready';},
+ ]){const raw=structuredClone(result.evidence);change(raw);assert.throws(()=>replayTextResourceEvidence(raw),/portable|realm/);}
+});
+
+test('portable artifact replay requires one exact original endpoint journal and cannot repair a missing endpoint with an invented row',async t=>{
+ const f=await portableResourceFixture(t);await f.observer.begin();f.navigate();await f.observer.checkpoint();const result=await f.observer.finish(),value=await f.retained(result);
+ const row=value.journalEvents.find(event=>event.event==='text-resources-checkpoint');
+ for(const events of [value.journalEvents.filter(event=>event!==row),[...value.journalEvents,structuredClone(row)],
+  value.journalEvents.map(event=>event===row?{...event,checkpoint:{...event.checkpoint,windowOrdinal:999}}:event),
+  value.journalEvents.map(event=>event===row?{...event,binding:{...event.binding,serial:999}}:event)]){
+  await assert.rejects(verify(value,{journalEvents:events}),/single actual portable checkpoint journal binding/);
+ }
+ const g=await portableResourceFixture(t);await g.observer.begin();g.navigate();const missing=await g.observer.finish(),missingValue=await g.retained(missing);
+ const invented={...row,observerId:missing.evidence.binding.observerId,binding:missing.evidence.binding};
+ await assert.rejects(verify(missingValue,{journalEvents:[...missingValue.journalEvents,invented]}),/single actual portable checkpoint journal binding/);
+});
+
+test('the portable checkpoint API does not acquire a page snapshot for an explicit-window observer',async t=>{
+ const f=await portableResourceFixture(t,{operation:'text.font-set'});
+ await assert.rejects(f.observer.checkpoint(),/active observer/);assert.equal(f.counts.evaluates,0);assert.equal(f.counts.snapshots,0);
 });

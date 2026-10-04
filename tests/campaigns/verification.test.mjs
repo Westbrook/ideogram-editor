@@ -343,3 +343,74 @@ test('a retained source-recovery failure can downgrade the completed worker with
   await p.writeJSON(`${p.folder}/controller.json`, p.group); await p.seal();
   assert.equal((await p.verify()).attempts, 1);
 });
+
+// Reuse the real on-disk packet and exported verifier. These deliberately
+// incomplete portable specimens prove routing and rejection, not qualification
+// of empty source/build inventories or a synthetic native renderer.
+async function portableVerificationPacket(t){
+ const p=await packet(t,{trace:false});
+ p.group.cell.operation='portable.reopen';p.group.cell.handler='browser';
+ p.receipt.identity.tools={browserPins:{browsers:[]}};
+ const environment={sourceDigest:p.receipt.identity.before.digest,buildDigest:p.receipt.identity.buildsBefore.digest,
+  toolsDigest:digest(p.receipt.identity.tools),controlDigest:p.receipt.identity.controlBefore.digest,
+  host:{platform:'darwin',architecture:null,kernel:null,osVersion:null,osBuild:null,hostnameHash:null}};
+ p.input.reopenFontEnvironment=structuredClone(environment);
+ p.attempt.status='INCONCLUSIVE';p.attempt.result.status='INCONCLUSIVE';p.worker.status='INCONCLUSIVE';p.group.status='INCONCLUSIVE';p.events.at(-1).status='INCONCLUSIVE';
+ async function reseal(){
+  await p.writeJSON(`${p.folder}/input.json`,p.input);await p.writeJSON(`${p.folder}/receipt.json`,p.worker);await p.writeJSON(`${p.folder}/controller.json`,p.group);
+  await p.writeJournal();await p.seal();
+ }
+ await reseal();return {...p,environment,reseal};
+}
+
+test('full sealed verifier accepts only incomplete portable bookkeeping when original reopen evidence is absent',async t=>{
+ const p=await portableVerificationPacket(t),result=await p.verify();
+ assert.equal(result.groups,1);assert.equal(result.attempts,1);assert.equal(p.attempt.status,'INCONCLUSIVE');assert.equal(p.attempt.result.status,'INCONCLUSIVE');
+ assert.deepEqual(p.attempt.result.measurements??[],[]);assert.equal(p.attempt.result.observations?.reopenFonts,undefined);
+ delete p.input.reopenFontEnvironment;await p.reseal();assert.equal((await p.verify()).attempts,1);
+ assert.equal(p.group.status,'INCONCLUSIVE');
+});
+
+test('full sealed verifier independently reconstructs portable source build tools control and host bindings',async t=>{
+ for(const change of [env=>{env.sourceDigest='0'.repeat(64);},env=>{env.buildDigest=digest('other-build');},env=>{env.toolsDigest=digest('other-tools');},env=>{env.controlDigest='1'.repeat(64);},env=>{env.host.platform='linux';}]){
+  const p=await portableVerificationPacket(t);change(p.input.reopenFontEnvironment);await p.reseal();
+  await assert.rejects(p.verify(),/Reopen font source\/build\/host identity differs from campaign/);
+ }
+});
+
+test('full sealed verifier rejects portable executable binding on an unrelated operation',async t=>{
+ const p=await portableVerificationPacket(t);p.group.cell.operation='test.sample';await p.reseal();
+ await assert.rejects(p.verify(),/Reopen font executable binding belongs only to portable reopen/);
+});
+
+test('full sealed verifier invokes reopen replay for missing evidence instead of trusting either PASS or published font rows',async t=>{
+ for(const mode of ['attempt-pass','result-pass','published-font']){
+  const p=await portableVerificationPacket(t);
+  if(mode==='attempt-pass')p.attempt.status='PASS';
+  else if(mode==='result-pass')p.attempt.result.status='PASS';
+  else p.attempt.result.measurements=[{name:'R35CurrentFontFaces',value:0,unit:'count',complete:true}];
+  // Missing input binding must not disable reconstruction or the replay branch.
+  delete p.input.reopenFontEnvironment;await p.reseal();
+  await assert.rejects(p.verify(),/reopen measurements or PASS lack retained observation/);
+ }
+});
+
+test('full sealed verifier propagates real portable retained-member and binding errors after every outer envelope is resealed',async t=>{
+ for(const mode of ['malformed-binding','mismatched-raw-seal','missing-binding']){
+  const p=await portableVerificationPacket(t),nonce='a'.repeat(32),prefix='reopen-font-'+nonce;
+  const member=async(name,value)=>{const path=prefix+'-'+name+'.json';await p.writeJSON(`${p.folder}/${path}`,value);return {path,...await fileIdentity(join(p.root,path))};};
+  const binding=await member('binding',{kind:'not-a-reopen-binding'}),raw=await member('raw',{});
+  p.attempt.result.observations={reopenFonts:{kind:'reopen-font-observation-1',qualification:false,acceptedDocumentOnly:true,nonce,binding,raw}};
+  if(mode==='mismatched-raw-seal')raw.sha256=digest('not-the-retained-raw');
+  if(mode==='missing-binding')await rm(join(p.root,binding.path));
+  await p.reseal();
+  await assert.rejects(p.verify(),mode==='malformed-binding'?/binding differs/:/outer seal differs/);
+ }
+});
+
+test('full portable verifier also routes resource rows through their independent retained-window branch',async t=>{
+ const p=await portableVerificationPacket(t);
+ p.attempt.result.measurements=[{name:'R35FontShapingCpuBytes',value:0,unit:'bytes',complete:true}];
+ await p.reseal();await assert.rejects(p.verify(),/Ordinary text resource measurements lack their retained observation/);
+ assert.equal(p.attempt.result.observations?.reopenFonts,undefined);
+});

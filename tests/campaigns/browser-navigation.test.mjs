@@ -334,3 +334,53 @@ test('an already aborted attempt performs no navigation or public action', async
   await assert.rejects(runBrowserAction(s.input), error => error === reason);
   assert.deepEqual(s.events, []);
 });
+
+
+// These exercise the actual public driver and its original four actions. The
+// observers are orchestration doubles, not font/resource proof authorities.
+test('portable reopen nests its original action and checkpoint inside font and composition observers',async()=>{
+ const s=scenario({operation:'portable.reopen'}),boundaries=[];let fontResult,compositionResult,checkpoints=0;
+ s.input.services={...s.input.services,
+  compositionObservation:{async navigation(action){boundaries.push('composition-enter');compositionResult=await action();boundaries.push('composition-return');return compositionResult;}},
+  reopenFonts:{async navigation(action){boundaries.push('font-enter');fontResult=await action();boundaries.push('font-return');return fontResult;}},
+  reopenResources:{async checkpoint(){checkpoints++;assert.deepEqual(actions(s.events),['goto','click:Open','click:document-row','click:Save checkpoint']);assert(s.events.includes('checkpoint-status'));boundaries.push('checkpoint');}}};
+ const result=await runBrowserAction(s.input);
+ assert.deepEqual(boundaries,['composition-enter','font-enter','checkpoint','font-return','composition-return']);assert.equal(checkpoints,1);
+ assert.strictEqual(result,fontResult);assert.strictEqual(result,compositionResult);assert.equal(result.publicOpenCompleted,true);assert.equal(result.acceptedTestEdit,true);assert.equal(result.startupBoundary,'document-ready-via-Open');
+ assert.deepEqual(actions(s.events),['goto','click:Open','click:document-row','click:Save checkpoint']);assert.equal(s.shellWitnesses.length,0);assert.equal(s.canvasWitnesses.length,0);
+});
+
+test('ordinary navigation never borrows portable reopen observers or their checkpoint',async()=>{
+ const s=scenario({unselected:true}),unexpected=()=>{assert.fail('unrelated operation acquired reopen authority');};
+ s.input.services={reopenFonts:{navigation:unexpected},reopenResources:{checkpoint:unexpected}};
+ const result=await runBrowserAction(s.input);
+ assert.equal(result.publicOpenCompleted,true);assert.deepEqual(actions(s.events),['goto','click:Open','click:document-row','click:Save checkpoint']);
+ assert.equal(result.nativeReadiness,undefined);assert.equal(s.shellWitnesses.length,0);assert.equal(s.canvasWitnesses.length,0);
+});
+
+test('portable reopen preserves original action failures through both observers without checkpointing',async()=>{
+ for(const failure of [{failGoto:true},{failClick:'Open'},{failClick:'Save checkpoint'}]){
+  const s=scenario({operation:'portable.reopen',...failure}),boundaries=[];let checkpoints=0;
+  s.input.services={...s.input.services,
+   compositionObservation:{async navigation(action){boundaries.push('composition-enter');try{return await action();}finally{boundaries.push('composition-exit');}}},
+   reopenFonts:{async navigation(action){boundaries.push('font-enter');try{return await action();}finally{boundaries.push('font-exit');}}},
+   reopenResources:{async checkpoint(){checkpoints++;}}};
+  await assert.rejects(runBrowserAction(s.input),error=>error===s.pageFailure);
+  assert.deepEqual(boundaries,['composition-enter','font-enter','font-exit','composition-exit']);assert.equal(checkpoints,0);
+  const observed=actions(s.events);assert.equal(observed.filter(value=>value==='goto').length,1);assert.equal(new Set(observed).size,observed.length,'A failure cannot cause a second public action');
+  assert.equal(s.shellWitnesses.length,0);assert.equal(s.canvasWitnesses.length,0);
+ }
+});
+
+test('portable reopen observer or checkpoint failures retain identity without repeating successful actions',async()=>{
+ for(const where of ['font-before','checkpoint','font-after']){
+  const s=scenario({operation:'portable.reopen'}),original=Object.freeze(Error('original '+where+' failure'));let fontCalls=0,compositionCalls=0,checkpoints=0;
+  s.input.services={...s.input.services,
+   compositionObservation:{async navigation(action){compositionCalls++;return action();}},
+   reopenFonts:{async navigation(action){fontCalls++;if(where==='font-before')throw original;const value=await action();if(where==='font-after')throw original;return value;}},
+   reopenResources:{async checkpoint(){checkpoints++;if(where==='checkpoint')throw original;}}};
+  await assert.rejects(runBrowserAction(s.input),error=>error===original);
+  assert.equal(fontCalls,1);assert.equal(compositionCalls,1);assert.equal(checkpoints,where==='font-before'?0:1);
+  assert.deepEqual(actions(s.events),where==='font-before'?[]:['goto','click:Open','click:document-row','click:Save checkpoint']);assert.equal(original.message,'original '+where+' failure');
+ }
+});

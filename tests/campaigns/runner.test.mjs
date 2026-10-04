@@ -176,3 +176,98 @@ test('live H-WA publication actually replays retained bytes before classifying a
   groups[0].attempts[0].status = 'FAIL'; groups[0].status = 'FAIL';
   assert.equal((await summarizeRetainedCampaign(receipt, output, {hostEligible: true, sourceStable: true})).status, 'FAIL');
 });
+
+import {runInNewContext} from 'node:vm';
+import {runWorker} from '../../tooling/qualification/campaigns/worker.mjs';
+import {ORDINARY_TEXT_OPERATIONS} from '../../tooling/qualification/campaigns/browser-ordinary-text.mjs';
+import {ORDINARY_COMPOSITION_OPERATIONS} from '../../tooling/qualification/campaigns/browser-ordinary-composition.mjs';
+import {TEXT_RESOURCE_OPERATIONS} from '../../tooling/qualification/campaigns/browser-text-resources.mjs';
+
+// launchGroup is private. Execute its exact body through its first exclusive
+// input publication, then stop before spawn. This is a construction/forwarding
+// control, not a process-lifecycle or fixture-admission substitute. runWorker
+// below uses its supported factory injection and real journal/receipt handling.
+async function capturedPortableInput({operation='portable.reopen',environment={sourceDigest:'test-source'},renderer={sourceDigest:'test-renderer'}}={}){
+ const source=await readFile(new URL('../../tooling/qualification/campaigns/run.mjs',import.meta.url),'utf8');
+ const begin='async function launchGroup(group, context) {',end='\nasync function evidenceFiles(output) {';
+ assert.equal(source.split(begin).length,2);assert.equal(source.split(end).length,2);
+ const body=source.slice(source.indexOf(begin),source.indexOf(end));
+ const safeCell=source.match(/^const safeCell = [^\n]+$/gm);assert.equal(safeCell?.length,1);
+ const stop=Error('test-input-publication-boundary'),directories=[],selected=[],writes=[];
+ const fixture={workload:'WXn',testOnly:true},configuration={browser:{headless:true}},timingLease={testOnly:true};
+ const context={repo:'/subject',subjectRepo:'/subject',output:'/evidence',fixture,configuration,browserCache:'/pinned-browser-cache',timingLease,nativeImeEnvironment:environment,rendererIdentity:renderer};
+ const group={id:'portable/cold/1',cell:{id:'portable',handler:'browser',operation,kind:'operation'},cache:'cold',attempts:[{ordinal:1,prime:false}]};
+ const scope={join,ORDINARY_TEXT_OPERATIONS,ORDINARY_COMPOSITION_OPERATIONS,TEXT_RESOURCE_OPERATIONS,
+  mkdir:async(path,options)=>{directories.push({path,options});},
+  selectFixture:async(value,cell)=>{selected.push({value,cell});return value;},
+  exclusiveJSON:async(path,value)=>{writes.push({path,value});throw stop;},
+  spawn(){assert.fail('construction control must not launch a process');},
+ };
+ const launch=runInNewContext(safeCell[0]+'\n('+body+')',scope);
+ await assert.rejects(launch(group,context),error=>error===stop);
+ assert.equal(writes.length,1);assert.equal(writes[0].path,'/evidence/portable_cold_1/input.json');
+ assert.deepEqual(directories.map(value=>[value.path,value.options.mode]),[['/evidence/portable_cold_1',0o700]]);
+ assert.equal(selected.length,1);assert.equal(selected[0].value,fixture);assert.equal(selected[0].cell,group.cell);
+ return {spec:writes[0].value,context,group};
+}
+
+test('actual launchGroup input publishes the exact portable environment and independent renderer inputs only for their operation',async()=>{
+ const environment=Object.freeze({sourceDigest:'source',buildDigest:'build',toolsDigest:'tools',controlDigest:'control',host:{platform:'darwin'}});
+ const {spec,context,group}=await capturedPortableInput({environment});
+ assert.equal(spec.reopenFontEnvironment,environment);assert.equal(spec.rendererIdentity,context.rendererIdentity);
+ assert.equal(spec.ordinaryCompositionEnvironment,environment);assert.equal(spec.ordinaryTextEnvironment,null);
+ assert.equal(spec.nativeImeEnvironment,null);assert.equal(spec.recoveryTextEnvironment,null);assert.equal(spec.navigationEnvironment,null);
+ assert.equal(spec.fixture,context.fixture);assert.equal(spec.configuration,context.configuration);assert.equal(spec.timingLease,context.timingLease);
+ assert.equal(spec.attempts,group.attempts);assert.equal(spec.browserCache,context.browserCache);
+ for(const operation of ['text.font-set','navigation.ready','text.recovery']){
+  const other=await capturedPortableInput({operation,environment});assert.equal(other.spec.reopenFontEnvironment,null);
+ }
+ const missing=await capturedPortableInput({environment:null,renderer:null});assert.equal(missing.spec.reopenFontEnvironment,null);assert.equal(missing.spec.rendererIdentity,null);
+});
+
+async function portableWorkerSpec(t,{environment={sourceDigest:'exact-test-environment'},cache='cold',attempts=[{ordinal:1,prime:false}]}={}){
+ const output=await realpath(await mkdtemp(join(tmpdir(),'portable-worker-forwarding-')));t.after(()=>rm(output,{recursive:true,force:true}));
+ return {cell:{id:'portable-worker',operation:'portable.reopen',handler:'browser',kind:'operation'},cache,attempts,output,repo:'/subject',
+  fixture:{workload:'WXn'},configuration:{browser:{headless:true}},reopenFontEnvironment:environment,
+  nativeImeEnvironment:{sourceDigest:'must-not-be-used-as-fallback'},ordinaryCompositionEnvironment:{sourceDigest:'independent-composition'},rendererIdentity:{sourceDigest:'independent-renderer'}};
+}
+
+test('actual worker forwards the same portable binding across its ordered warm cohort and retains real cleanup/journal closure',async t=>{
+ const environment=Object.freeze({sourceDigest:'exact-source',host:{platform:'linux'}}),spec=await portableWorkerSpec(t,{environment,cache:'warm',attempts:[{ordinal:1,prime:true},{ordinal:1,prime:false},{ordinal:2,prime:false}]});
+ const actions=[],resets=[];let captured,closed=0;
+ const receipt=await runWorker(spec,async context=>{captured=context;return {
+  prepareCell:async cell=>({operation:cell.operation}),
+  resetCell:async(cell,sample)=>{resets.push({...sample});return {status:'PASS',cache:sample.cache};},
+  execute:async(cell,sample)=>{assert.equal(context.reopenFontEnvironment,environment);actions.push([cell.operation,sample.cache,sample.ordinal,sample.prime]);return {status:'PASS',phases:[]};},
+  close:async()=>{closed++;return {testOnly:true,closed:true};},
+ };});
+ assert.equal(captured.reopenFontEnvironment,environment);assert.equal(captured.ordinaryCompositionEnvironment,spec.ordinaryCompositionEnvironment);
+ assert.equal(captured.rendererIdentity,spec.rendererIdentity);assert.equal(captured.fixture,spec.fixture);assert.equal(captured.configuration,spec.configuration);
+ assert.deepEqual(actions,[['portable.reopen','warm',1,true],['portable.reopen','warm',1,false],['portable.reopen','warm',2,false]]);
+ assert.deepEqual(resets,spec.attempts.map(value=>({cache:'warm',...value})));assert.equal(closed,1);assert.equal(receipt.status,'PASS');
+ assert.equal(receipt.attempts.length,3);assert.deepEqual(receipt.cleanup,{testOnly:true,closed:true});
+ const journal=readJournal(await readFile(join(spec.output,'events.jsonl'),'utf8'));assert.equal(journal.incompleteTail,false);
+ assert.equal(journal.events.filter(event=>event.event==='attempt-end').length,3);assert.equal(journal.events.at(-2).event,'process-cleanup');assert.equal(journal.events.at(-1).event,'process-end');
+ const retained=JSON.parse(await readFile(join(spec.output,'receipt.json'),'utf8'));assert.equal(retained.status,'PASS');assert.equal(retained.attempts.length,3);assert.deepEqual(retained.cleanup,receipt.cleanup);
+});
+
+test('actual worker does not borrow another observer environment when portable input is absent',async t=>{
+ const spec=await portableWorkerSpec(t,{environment:null});delete spec.reopenFontEnvironment;let closed=0,captured;
+ const receipt=await runWorker(spec,async context=>{captured=context;return {resetCell:async()=>({status:'PASS'}),execute:async()=>{throw new PrerequisiteError('portable environment unavailable');},close:async()=>{closed++;return {closed:true};}};});
+ assert.equal(captured.reopenFontEnvironment,null);assert.equal(captured.nativeImeEnvironment,spec.nativeImeEnvironment);
+ assert.equal(receipt.status,'INCONCLUSIVE');assert.equal(receipt.attempts[0].error.code,'CAMPAIGN_PREREQUISITE');assert.equal(closed,1);
+ const journal=readJournal(await readFile(join(spec.output,'events.jsonl'),'utf8'));assert.equal(journal.events.at(-1).status,'INCONCLUSIVE');
+ assert.equal(JSON.parse(await readFile(join(spec.output,'receipt.json'),'utf8')).status,'INCONCLUSIVE');
+});
+
+test('actual worker preserves portable action rejection classification, stops later starts and closes the adapter once',async t=>{
+ for(const error of [new PrerequisiteError('stale portable source'),Object.assign(Error('portable retained observation failed'),{code:'PORTABLE_TEST_REPLAY'})]){
+  const spec=await portableWorkerSpec(t,{attempts:[{ordinal:1,prime:false},{ordinal:2,prime:false}]});let actions=0,closed=0;
+  const receipt=await runWorker(spec,async context=>({resetCell:async()=>({status:'PASS'}),execute:async()=>{assert.equal(context.reopenFontEnvironment,spec.reopenFontEnvironment);actions++;throw error;},close:async()=>{closed++;return {closed:true};}}));
+  const expected=error.code==='CAMPAIGN_PREREQUISITE'?'INCONCLUSIVE':'FAIL';
+  assert.equal(receipt.status,expected);assert.equal(actions,1);assert.equal(closed,1);assert.equal(receipt.attempts.length,1);
+  assert.equal(receipt.attempts[0].error.message,error.message);assert.equal(receipt.attempts[0].error.code,error.code);
+  const journal=readJournal(await readFile(join(spec.output,'events.jsonl'),'utf8'));
+  assert.equal(journal.events.filter(event=>event.event==='attempt-start').length,1);assert.equal(journal.events.at(-1).status,expected);
+ }
+});

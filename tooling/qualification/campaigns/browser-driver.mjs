@@ -558,7 +558,17 @@ export async function runBrowserAction({ page, cell, fixture, signal, pair, serv
       startupBoundary: fixture.documentId ? 'document-ready-via-Open' : 'shell-ready-no-document', publicOpenCompleted: !!fixture.documentId,
       viewportAsset: await canvas.getAttribute('data-asset'), authoritativeDOMReadyMs: monotonic(), presentation: 'awaiting independent trace correlation' };
     };
-    return services.compositionObservation ? services.compositionObservation.navigation(action) : action();
+    // The original action and its endpoint above remain unchanged. Reopen
+    // observers retain metadata only after that endpoint, inside the existing
+    // Composition navigation boundary so its shared startup window is live.
+    const observedAction = operation === 'portable.reopen' ? async () => {
+      const result = await action();
+      await services.reopenResources?.checkpoint();
+      return result;
+    } : action;
+    const navigation = services.reopenFonts && operation === 'portable.reopen'
+      ? () => services.reopenFonts.navigation(observedAction) : observedAction;
+    return services.compositionObservation ? services.compositionObservation.navigation(navigation) : navigation();
   }
   if (operation === 'raster.stroke-finalize') return stroke(page, { signal, commit: false, fixture, gestures: services.gestures });
   if (operation === 'interaction.brush') return interaction(page, cell, fixture, services.gestures, signal, services);

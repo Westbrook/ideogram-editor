@@ -118,7 +118,7 @@ export async function archiveFeatureEvidence(db, read, { seal } = {}) {
   return { features, captionVersions: captionIds.size, typedFeaturesVerified: true };
 }
 
-export async function inspectPortableArchive({ repo, path, output, signal, product, seal }) {
+export async function inspectPortableArchive({ repo, path, output, signal, product, seal, includeReopenFonts = false }) {
   product ??= await modules(repo);
   const db = product.spool(join(output, `inspect-${randomUUID()}.sqlite`));
   let zip;
@@ -139,11 +139,61 @@ export async function inspectPortableArchive({ repo, path, output, signal, produ
     const document = await product.validateClosure(db, read, check, manifest.formatVersion >= 4, manifest.formatVersion >= 5,
       manifest.formatVersion >= 6, manifest.formatVersion >= 7, manifest.formatVersion >= 9);
     const typed = await archiveFeatureEvidence(db, read, { seal });
+    // This is the actual current imported graph, not the retained-history font
+    // inventory or the original seed's identifiers. Read-only preparation adds
+    // no command, preview, archive member or qualification authority.
+    let reopen = {};
+    if (includeReopenFonts) {
+      try { reopen = await portableReopenFontProjection(db, read, document); }
+      catch (error) { abort(signal); reopen = {reopenFontMissing: ['Current portable font projection unavailable: ' + String(error.message).slice(0, 256)]}; }
+    }
     let closureBytes = 0n; for (const row of db.prepare('SELECT bytes FROM refs').iterate()) closureBytes += BigInt(row.bytes);
     return { document, counts: { closureBytes: String(closureBytes), events: db.prepare('SELECT count(*) n FROM events').get().n,
       assets: db.prepare("SELECT count(*) n FROM entities WHERE kind='asset'").get().n, captionVersions: typed.captionVersions, manifestBytes: String(manifestBytes) },
-      features: typed.features, formatVersion: manifest.formatVersion, fullHashesVerified: true, semanticClosureVerified: true, typedFeaturesVerified: true };
+      features: typed.features, formatVersion: manifest.formatVersion, fullHashesVerified: true, semanticClosureVerified: true, typedFeaturesVerified: true, ...reopen };
   } finally { zip?.close(); db.close(); }
+}
+
+/** Only call after validateClosure. Bounded current graph metadata supplies
+ * locator hints; the live observer still hashes every associated font file. */
+export async function portableReopenFontProjection(db, read, document) {
+  const identity = value => typeof value === 'string' && /^[A-Za-z0-9_-]{1,128}$/.test(value);
+  const metadata = async (ref, maximum) => {
+    assert(ref && /^sha256:[a-f0-9]{64}$/.test(ref.hash) && /^(0|[1-9][0-9]*)$/.test(ref.byteLength) && Number(ref.byteLength) <= maximum && ref.mediaType === 'application/json', 'Bounded current metadata ref required');
+    const bytes = await read(ref); assert.equal(bytes.length, Number(ref.byteLength)); assert.equal(hash(bytes), ref.hash);
+    return JSON.parse(new TextDecoder('utf-8', {fatal: true}).decode(bytes));
+  };
+  assert(identity(document?.id) && /^(0|[1-9][0-9]{0,19})$/.test(document.revision) && document.image && Array.isArray(document.orderedLayerIds) && document.orderedLayerIds.length <= 100, 'Current portable document required');
+  const image = await metadata(document.image.state, MiB);
+  assert(Array.isArray(image.layers) && image.layers.length <= 100);
+  assert.deepEqual(image.layers.map(layer => layer.id), document.orderedLayerIds);
+  const fonts = new Map(), textFacts = [];
+  for (const layer of image.layers) {
+    assert(identity(layer.id) && ['image', 'text'].includes(layer.kind));
+    if (layer.kind !== 'text') continue;
+    const source = await metadata(layer.source, 65536);
+    assert(Array.isArray(source.text?.fonts) && source.text.fonts.length > 0 && source.text.fonts.length <= 16);
+    for (const font of source.text.fonts) {
+      assert(/^sha256:[a-f0-9]{64}$/.test(font.id));
+      if (fonts.has(font.id)) assert.deepEqual(fonts.get(font.id), font); else fonts.set(font.id, font);
+      assert(fonts.size <= 16, 'Current public font locator boundary exceeded');
+    }
+    textFacts.push({layerId: layer.id, sourceHash: layer.source.hash, textHash: source.text.textUtf8.hash, textBytes: Number(source.text.textUtf8.byteLength),
+      layoutHash: source.render.layout.hash, pixelHash: source.render.pixels.hash, rendererHash: source.render.rendererProfile.id, fonts: source.text.fonts.map(font => font.bytes.hash)});
+  }
+  assert(textFacts.length > 0 && fonts.size > 0, 'Current portable native text is unavailable');
+  const typed = [...fonts.values()].sort((a, b) => a.id.localeCompare(b.id)), fontAssetIds = [];
+  for (const font of typed) {
+    const row = db.prepare("SELECT id,json FROM entities WHERE kind='asset' AND json_extract(json,'$.font.id')=? ORDER BY id LIMIT 1").get(font.id);
+    assert(row && identity(row.id) && typeof row.json === 'string' && Buffer.byteLength(row.json) <= 65536, 'Bounded current font locator required');
+    const asset = JSON.parse(row.json);
+    assert.equal(asset.id, row.id); assert.equal(asset.purpose, 'font'); assert.equal(asset.qualification, 'font');
+    assert.equal(asset.safety, 'safe'); assert.equal(asset.availability, 'available'); assert.deepEqual(asset.font, font); assert.deepEqual(asset.blob, font.bytes);
+    fontAssetIds.push(asset.id);
+  }
+  return {text: {schema: 'browser-reopen-text-fixture-1', documentId: document.id, revision: document.revision,
+    imageState: document.image.state, semanticDigest: document.image.semanticDigest, orderedLayerIds: document.orderedLayerIds},
+  native: {schema: 'browser-reopen-native-fixture-1', textFacts, fonts: typed, fontAssetIds}};
 }
 
 async function treeFiles(root, directory = '', signal) {
@@ -266,7 +316,7 @@ export async function buildPortableFixture(options = {}) {
       const start = performance.now(), saved = await execute({ type: 'SaveCopy' }, 'portableCommand', true);
       const bundle = saved.events.find(e => e.type === 'BundlePrepared').payload.bundle;
       const bare = rawHash(bundle.blob.hash), path = join(root, 'objects/sha256', bare.slice(0, 2), bare);
-      const inspected = await inspectPortableArchive({ repo, path, output, signal, product });
+      const inspected = await inspectPortableArchive({ repo, path, output, signal, product, includeReopenFonts: true });
       receipt.exports.push({ label, preparationOnly: true, ms: performance.now() - start, bundle, counts: inspected.counts });
       await onProgress({ phase: label, workload: plan.workload, counts: inspected.counts });
       return { ...inspected, path, bundle };
@@ -342,16 +392,18 @@ export async function buildPortableFixture(options = {}) {
     assert(!files.some(file => /^metadata\.sqlite-(wal|shm)$/.test(file.path)), 'Final writer must be cleanly closed before sealing');
     const manifest = { schemaVersion: 1, kind: 'ideogram-wc-fixture', workload: plan.workload, documentId,
       counts: current.counts, features: current.features, archive, files, preparedBy: 'production-writer-command-only',
-      qualification: false, sourceArchive: sourceArchive.sha256, complete: true };
+      qualification: false, sourceArchive: sourceArchive.sha256, complete: true,
+      ...(current.text && current.native ? {text: current.text, native: current.native} : {reopenFontMissing: current.reopenFontMissing}) };
     const sealPath = join(output, 'wc-seal.json'), sealBytes = Buffer.from(json(manifest));
     await writeFile(sealPath, sealBytes, { flag: 'wx', mode: 0o600 });
     const observed = { productionValidated: true, closureVerified: true, ...current.counts,
       features: { original: true, candidate: true, rawCaption: true, derivedCaption: true, nativeText: true,
         font: true, layout: true, contribution: true, adapter: current.features.adapters.length > 0 }, zeroNetworkEffects: true };
-    Object.assign(receipt, { status: 'pass', completedAt: new Date().toISOString(), root, documentId, archive, observed, missing: [] });
+    const reopen = current.text && current.native ? {text: current.text, native: current.native} : {reopenFontMissing: current.reopenFontMissing};
+    Object.assign(receipt, { status: 'pass', completedAt: new Date().toISOString(), root, documentId, archive, observed, missing: [], ...reopen });
     await writeFile(join(output, 'preparation.json'), json(receipt), { flag: 'wx', mode: 0o600 });
     return { status: 'pass', qualification: false, root, documentId, archive: { ...archive, path: archivePath },
-      seal: { path: sealPath, sha256: hash(sealBytes) }, portableSeal: { path: sealPath, sha256: hash(sealBytes) }, observed };
+      seal: { path: sealPath, sha256: hash(sealBytes) }, portableSeal: { path: sealPath, sha256: hash(sealBytes) }, observed, ...reopen };
   } catch (error) {
     receipt.status = error.code === 'FIXTURE_REQUIRED' ? 'inconclusive' : 'fail';
     receipt.error = { code: error.code ?? null, message: error.message };

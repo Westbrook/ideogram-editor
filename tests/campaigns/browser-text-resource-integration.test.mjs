@@ -334,3 +334,106 @@ test('recovery native hashes never collapse distinct invalid UTF16 drafts into r
   const value = await readRecoveryFontState(f.page, 'missing-glyph');
   assert.equal(value.draftHash, hash('\ud83d\ude00')); assert.equal(value.draftBytes, 4);
 });
+
+// Portable specimens exercise retained replay and parent ownership intervals.
+// They do not impersonate a reviewed renderer or a real browser navigation.
+async function portableResourcePacket({loaded=false,missing=false,failed=false}={}){
+ const cell={id:'H7/WXn-portable-reopen',handler:'browser',host:'H',kind:'operation',operation:'portable.reopen',workload:'WXn',requiredMeasurements:clone(rules)};
+ const attempt={id:cell.id+(loaded?'/warm/scored/2':'/cold/scored/1'),cache:loaded?'warm':'cold',ordinal:loaded?2:1,prime:false,startMs:10,endMs:90,status:'INCONCLUSIVE',result:{status:'INCONCLUSIVE',measurements:[]}};
+ const serial=loaded?3:1,binding=textResourceBinding({cell,sample:attempt,serial,fixtureIdentity:fixture.seal.sha256,processIdentity,executableIdentity,observerId:'text-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'});
+ const raw=envelope(binding),files=new Map();
+ raw.window.id='startup-'+raw.window.ledgerInstanceId;raw.window.clockOriginMs=3000;
+ for(const ack of [raw.begin,raw.end]){ack.id=raw.window.id;ack.clockOriginMs=raw.window.clockOriginMs;}
+ const prior={documentKind:loaded?'application':'about:blank',topLevel:true,phaseOwnerPresent:loaded,clockOriginMs:2000,atMs:5};
+ if(loaded)Object.assign(prior,{ledgerInstanceId:'cccccccc-cccc-4ccc-8ccc-cccccccccccc',windowId:'startup-cccccccc-cccc-4ccc-8ccc-cccccccccccc',windowOrdinal:1,ended:true});
+ raw.realm={mode:'portable-reopen-startup',prior,navigations:[40],checkpoint:missing?null:{startedMs:50,endedMs:55,clockOriginMs:3000,atMs:3,ledgerInstanceId:raw.window.ledgerInstanceId,windowId:raw.window.id,windowOrdinal:raw.window.ordinal,ended:false},failures:missing?['checkpoint-missing']:[]};
+ raw.failed=failed;
+ const put=(path,value)=>{const bytes=seal(value);files.set(path,bytes);return {path,bytes:bytes.length,sha256:hash(bytes)};};
+ const artifact=put(join(output,'text-resources',binding.observerId+'.json'),raw);
+ const journalEvents=[{event:'text-resources-intent',observerId:binding.observerId,binding,startedMs:20,monotonicMs:21},
+  ...(!missing?[{event:'text-resources-checkpoint',observerId:binding.observerId,binding,checkpoint:clone(raw.realm.checkpoint),monotonicMs:56}]:[]),
+  {event:'text-resources-begin',windowId:raw.begin.id,binding,begin:raw.begin,startedMs:20,monotonicMs:65},
+  {event:'text-resources-observed',windowId:raw.begin.id,binding,artifact,endedMs:70,monotonicMs:80}];
+ const readRetained=async(path,{maximum})=>{assert(path.startsWith(output+'/'));const bytes=files.get(path);assert(bytes);assert(bytes.length<=maximum);return bytes;};
+ const replay=await verifyTextResourceArtifact({artifact,binding,rendererOwnershipProof:null,readRetained,journalEvents});
+ const {proof,...observation}=replay;attempt.result.textResources=clone(observation);
+ const args={cell,attempt,serial,fixture:clone(fixture),processIdentity:clone(processIdentity),executableIdentity:clone(executableIdentity),rendererOwnershipProof:null,readRetained,journalEvents};
+ // Rehash an intentionally changed specimen and its raw journal references so
+ // a negative targets semantic replay, not an unrelated hash mismatch.
+ function rewriteRaw(){
+  const changed=put(artifact.path,raw);Object.assign(artifact,changed);attempt.result.textResources.artifact=clone(artifact);
+  const end=journalEvents.find(row=>row.event==='text-resources-observed');end.artifact=clone(artifact);
+  const checkpoint=journalEvents.find(row=>row.event==='text-resources-checkpoint');if(checkpoint)checkpoint.checkpoint=clone(raw.realm.checkpoint);
+ }
+ return {args,raw,files,artifact,proof,observation,rewriteRaw};
+}
+
+for(const loaded of [false,true])test('portable '+(loaded?'warm loaded':'cold blank')+' replay joins the original checkpoint and final resource window without renderer authority',async()=>{
+ const p=await portableResourcePacket({loaded});
+ assert.equal(p.raw.binding.operation,'portable.reopen');assert.equal(p.raw.realm.prior.phaseOwnerPresent,loaded);
+ assert.deepEqual(await verifyOrdinaryTextResourceEvidence(p.args),{applicable:true,complete:false});
+ assert.deepEqual(p.observation.measurements.map(row=>[row.value,row.complete]),[[450,false],[0,false]]);
+ assert.deepEqual(p.observation.missing,['exact-text-resource-source-native-runtime-review-unavailable']);
+ const measured=extractBrowserMeasurements({cell:p.args.cell,sample:p.args.attempt,textResourceProof:p.proof});
+ assert.deepEqual(measured.measurements,[]);assert.equal(measured.unavailable.length,2);
+ assert(p.raw.window.final.atMs>=p.raw.realm.checkpoint.atMs);
+});
+
+test('portable replay keeps an omitted original endpoint incomplete and refuses either parent PASS claim',async()=>{
+ const p=await portableResourcePacket({missing:true,failed:true});
+ assert.deepEqual(await verifyOrdinaryTextResourceEvidence(p.args),{applicable:true,complete:false});
+ assert(p.observation.missing.includes('portable-text-resource-original-action-endpoint-unavailable'));
+ assert(p.observation.missing.includes('text-resource-action-failed'));
+ for(const field of ['status','result']){
+  const q=await portableResourcePacket({missing:true});if(field==='status')q.args.attempt.status='PASS';else q.args.attempt.result.status='PASS';
+  await assert.rejects(verifyOrdinaryTextResourceEvidence(q.args),/Incomplete ordinary text resource observation/);
+ }
+});
+
+test('portable checkpoint journal must be inside its own observed endpoint and enclosing runner interval',async()=>{
+ for(const value of [undefined,NaN,54,71,91]){
+  const p=await portableResourcePacket();p.args.journalEvents.find(row=>row.event==='text-resources-checkpoint').monotonicMs=value;
+  await assert.rejects(verifyOrdinaryTextResourceEvidence(p.args),/checkpoint journal is outside its owned action/);
+ }
+ for(const change of [p=>{p.args.attempt.startMs=21;},p=>{p.args.attempt.endMs=69;}]){
+  const p=await portableResourcePacket();change(p);await assert.rejects(verifyOrdinaryTextResourceEvidence(p.args),/outside its owned action/);
+ }
+});
+
+test('portable retained replay rejects missing, repeated and substituted original checkpoint journal identities',async()=>{
+ for(const change of [
+  p=>{p.args.journalEvents=p.args.journalEvents.filter(row=>row.event!=='text-resources-checkpoint');},
+  p=>{p.args.journalEvents.push(clone(p.args.journalEvents.find(row=>row.event==='text-resources-checkpoint')));},
+  p=>{p.args.journalEvents.find(row=>row.event==='text-resources-checkpoint').checkpoint.windowId='startup-other';},
+  p=>{p.args.journalEvents.find(row=>row.event==='text-resources-checkpoint').binding={...p.raw.binding,serial:2};},
+ ]){const p=await portableResourcePacket();change(p);await assert.rejects(verifyOrdinaryTextResourceEvidence(p.args),/single actual portable checkpoint journal binding/);}
+});
+
+test('portable freshly hashed artifacts cannot authorize an early seal, stale realm or uncovered endpoint',async()=>{
+ for(const change of [
+  raw=>{raw.realm.checkpoint.ended=true;},
+  raw=>{raw.realm.checkpoint.atMs=raw.window.final.atMs+1;},
+  raw=>{raw.realm.checkpoint.windowOrdinal++;},
+  raw=>{raw.realm.checkpoint.clockOriginMs=raw.realm.prior.clockOriginMs;},
+  raw=>{raw.realm.navigations=[];},
+  raw=>{raw.realm.navigations.push(45);},
+  raw=>{raw.realm.prior.ledgerInstanceId=raw.window.ledgerInstanceId;raw.realm.prior.windowId=raw.window.id;},
+  raw=>{raw.realm.prior.clockOriginMs=raw.window.clockOriginMs;},
+ ]){const p=await portableResourcePacket({loaded:true});change(p.raw);p.rewriteRaw();await assert.rejects(verifyOrdinaryTextResourceEvidence(p.args),/portable|realm/);}
+});
+
+test('portable summary, serialized proof and published metric cannot promote a source-only renderer binding',async()=>{
+ for(const change of [p=>{p.args.attempt.result.textResources.complete=true;},
+  p=>{p.args.attempt.result.textResources.measurements[0].value++;},
+  p=>{p.args.attempt.result.measurements=[{name:names[0],value:450,unit:'bytes',complete:true}];}]){
+  const p=await portableResourcePacket();change(p);await assert.rejects(verifyOrdinaryTextResourceEvidence(p.args),/differs|differ/);
+ }
+ const p=await portableResourcePacket();
+ for(const proof of [clone(p.proof),p.observation,{...p.observation,complete:true}])assert.deepEqual(extractBrowserMeasurements({cell:p.args.cell,sample:p.args.attempt,textResourceProof:proof}).measurements,[]);
+});
+
+test('portable warm attempt may not substitute the prior sample, serial or process receipt',async()=>{
+ for(const change of [p=>{p.args.serial=1;},p=>{p.args.attempt.cache='cold';},p=>{p.args.attempt.ordinal=1;},p=>{p.args.processIdentity.pid++;}]){
+  const p=await portableResourcePacket({loaded:true});change(p);await assert.rejects(verifyOrdinaryTextResourceEvidence(p.args),/binding/);
+ }
+});

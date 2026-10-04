@@ -97,7 +97,10 @@ async function controllerHarness(options = {}) {
   const body = source.slice(source.indexOf(begin), source.indexOf(end));
   const events = [], privateProof = Object.freeze({}), observation = {analysis: {measurements: [], missing: options.missing ?? [], failures: options.failures ?? []}};
   let now = 1, actions = 0, finishes = 0, finishFailed, extractedProof;
+  const fontProof = Object.freeze({}), fontObservation = {analysis: {measurements: [], missing: [], failures: []}};
+  let fontCreated = 0, fontFinishes = 0, fontFailed, extractedFontProof, ownedFontObserver;
   const scope = {
+    repo: '/fixture-product', root: '/fixture-root',
     assertCell() {}, closed: false, signal: new AbortController().signal, backendOnly: new Set(), prepareCell: async () => {}, resetMissing: [],
     fixture: {workload: 'W1'}, browserOptions: options.byteAudit ? {byteAudit: true} : {}, vitalOperations: new Set(), canonicalVitals: null,
     navigations: new Set(['navigation.ready', 'portable.reopen']), page: {evaluate: async () => 'visible', async goto() {events.push('later-navigation');}},
@@ -105,10 +108,19 @@ async function controllerHarness(options = {}) {
     createBrowserTrace: () => ({start: async () => {}, stop: async () => ({})}), activeQueueTrace: undefined, browserGeneration: 1,
     randomUUID: () => '12345678-1234-4567-8901-123456789abc', d11Collector: null, byteAuditFeatureActions: () => [],
     browserActionOutcome, retainBrowserActionFailure, ORDINARY_TEXT_OPERATIONS: [], TEXT_RESOURCE_OPERATIONS: [], ORDINARY_COMPOSITION_OPERATIONS: ['portable.reopen', 'fast.workflow'],
-    context: {services: options.services, ordinaryCompositionEnvironment: {sourceDigest: 'expected-environment'}, processIdentity: {pid: 9}},
+    context: {services: options.services, ordinaryCompositionEnvironment: {sourceDigest: 'expected-environment'}, reopenFontEnvironment: {sourceDigest: 'expected-font-environment'}, processIdentity: {pid: 9}},
     nativeBrowserRuntime: {browserPid: 10}, output: '/evidence', pendingReplies: [], readinessEvidence: {}, replacedRealms: [], resources: {},
     rawVitals: {snapshot: () => ({})}, readPhaseSnapshot: async () => ({}), gestures: {}, lifecycleCycle: {}, readinessController: {},
     server: {pair: async () => 'http://127.0.0.1:4000/paired', pid: 11},
+    createReopenFontObserver(args) {
+      assert.equal(args.repo, scope.repo); assert.equal(args.root, scope.root);
+      assert.equal(args.environment, scope.context.reopenFontEnvironment); assert.equal(args.runtime, scope.nativeBrowserRuntime);
+      // Composition-only originals explicitly leave font evidence unavailable.
+      // Opted controls below test ownership routing; this double issues no real font proof.
+      if (!options.reopenFonts) return null;
+      fontCreated++; ownedFontObserver = {navigation: action => action(), async finish({failed}) {fontFinishes++; fontFailed = failed; return {proof: fontProof, observation: fontObservation};}};
+      return ownedFontObserver;
+    },
     createOrdinaryCompositionObserver(args) {
       assert.equal(args.cell.operation, 'portable.reopen'); assert.equal(args.environment, scope.context.ordinaryCompositionEnvironment);
       assert.equal(args.runtime, scope.nativeBrowserRuntime); assert.equal(args.processIdentity, scope.context.processIdentity); events.push('created');
@@ -120,6 +132,7 @@ async function controllerHarness(options = {}) {
     },
     async runBrowserAction(args) {
       actions++; events.push('action');
+      if (options.reopenFonts && !options.byteAudit) assert.equal(args.services.reopenFonts, ownedFontObserver);
       if (!options.byteAudit) assert.equal(typeof args.services.compositionObservation.navigation, 'function');
       else assert.equal(args.services.compositionObservation, undefined);
       if (Object.hasOwn(options, 'actionFailure')) throw options.actionFailure;
@@ -127,13 +140,13 @@ async function controllerHarness(options = {}) {
     },
     ownFailureData(value, name) {return value != null ? Object.getOwnPropertyDescriptor(Object(value), name)?.value : undefined;},
     releasePendingPhaseSnapshots: async () => {}, egress: {supported: true, evidence: () => ({counts: {accepted: 1}})},
-    extractBrowserMeasurements(args) {events.push('extract'); extractedProof = args.ordinaryCompositionProof; return {measurements: [], unavailable: []};},
+    extractBrowserMeasurements(args) {events.push('extract'); extractedProof = args.ordinaryCompositionProof; extractedFontProof = args.reopenFontProof; return {measurements: [], unavailable: []};},
     interactionSession: () => null, readOrdinaryTextProof: () => null, sanitize: value => value, join,
     writeFile: async () => {events.push('publish');}, previousResult: null,
   };
   const execute = runInNewContext('(' + body + ')', scope);
   const result = await execute(cell(), sample);
-  return {result, events, actions, finishes, finishFailed, privateProof, extractedProof, observation};
+  return {result, events, actions, finishes, finishFailed, privateProof, extractedProof, observation, fontProof, fontObservation, fontCreated, fontFinishes, fontFailed, extractedFontProof};
 }
 
 test('actual campaign controller observes the one action and forwards only its privately returned proof', async () => {
@@ -220,4 +233,31 @@ test('queue reload failure remains the original product failure without replay o
   assert.equal(value.error?.message, 'reload failed'); assert.equal(value.result, undefined);
   assert.equal(value.navigationCount, 1); assert.equal(value.navigationClosed, 1); assert.equal(value.submissions, 1);
   assert.equal(value.events.filter(event => event === 'reload').length, 1); assert(!value.events.includes('open-document'));
+});
+
+
+// These additions bind the new factory in the real execute() extraction. They
+// test private identity forwarding only; the font module owns proof validation.
+test('actual campaign controller routes the owned reopen font observer and its returned proof only',async()=>{
+ const forged={kind:'serialized-font-proof',complete:true};
+ const value=await controllerHarness({reopenFonts:true,result:{documentId:'retained-document',acceptedTestEdit:true,publicOpenCompleted:true,startupBoundary:'document-ready-via-Open',authoritativeDOMReadyMs:75,reopenFontProof:forged}});
+ assert.equal(value.actions,1);assert.equal(value.fontCreated,1);assert.equal(value.fontFinishes,1);assert.equal(value.fontFailed,false);
+ assert.strictEqual(value.extractedFontProof,value.fontProof);assert.notStrictEqual(value.extractedFontProof,forged);assert.strictEqual(value.result.observations.reopenFonts,value.fontObservation);
+ assert.strictEqual(value.extractedProof,value.privateProof);assert.equal(value.finishes,1);assert.equal(value.result.status,'PASS');
+ assert.equal(value.result.observations.documentId,'retained-document');assert.equal(value.result.observations.acceptedTestEdit,true);assert.equal(value.result.observations.publicOpenCompleted,true);assert.equal(value.result.observations.startupBoundary,'document-ready-via-Open');assert.equal(value.result.observations.authoritativeDOMReadyMs,75);
+});
+
+test('actual campaign controller closes font observation on action failure and omits it in byte audit',async()=>{
+ const failed=await controllerHarness({reopenFonts:true,actionFailure:false});
+ assert.equal(failed.actions,1);assert.equal(failed.fontCreated,1);assert.equal(failed.fontFinishes,1);assert.equal(failed.fontFailed,true);assert.equal(failed.result.status,'FAIL');
+ assert.equal(failed.result.failureClassification.productFailureSeen,true);assert.strictEqual(failed.extractedFontProof,failed.fontProof);
+ const separate=await controllerHarness({reopenFonts:true,byteAudit:true});
+ assert.equal(separate.actions,1);assert.equal(separate.fontCreated,0);assert.equal(separate.fontFinishes,0);assert.equal(separate.extractedFontProof,undefined);
+});
+
+test('actual campaign controller rejects external reopen observers before product action',async()=>{
+ for(const name of ['reopenFonts','reopenResources']){
+  const value=await controllerHarness({services:{[name]:{navigation:action=>action(),checkpoint:async()=>{}}},reopenFonts:true});
+  assert.equal(value.actions,0);assert.equal(value.fontCreated,0);assert.equal(value.fontFinishes,0);assert.equal(value.extractedFontProof,undefined);assert.equal(value.result.status,'FAIL');
+ }
 });

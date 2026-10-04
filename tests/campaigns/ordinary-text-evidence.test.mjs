@@ -848,3 +848,164 @@ test('recovery observer preserves one original action through unavailable reads 
   await assert.rejects(observer.finish(), /observer must settle/);
   assert.equal(actions, 1); assert.equal(refusals, 1); assert.equal(events.length, 1);
 });
+
+
+import {createReopenFontObserver, inspectReopenFontRaw, reopenFontFixtureIdentity, reopenFontOutcome, reopenFontMeasurement, verifyReopenFontEvidence} from '../../tooling/qualification/campaigns/browser-reopen-fonts.mjs';
+
+// This reuses the genuine immutable source/layout/font sidecars above. Browser
+// metadata and clocks remain synthetic verifier inputs, never a browser result.
+function reopenFixtureProjection(f) {
+  const fonts=f.p.raw.fonts, root=fonts.before;
+  return {documentId:root.documentId,seal:clone(f.p.args.fixture.seal),
+    text:{schema:'browser-reopen-text-fixture-1',documentId:root.documentId,revision:root.revision,imageState:clone(root.imageState),semanticDigest:root.semanticDigest,orderedLayerIds:[...root.orderedLayerIds]},
+    native:{schema:'browser-reopen-native-fixture-1',fonts:clone(fonts.fonts),fontAssetIds:fonts.files.map(file=>file.assetId),textFacts:fonts.layers.map((layer,i)=>({layerId:layer.id,sourceHash:layer.source.hash,textHash:layer.textHash,textBytes:Number(f.sources[i].text.textUtf8.byteLength),layoutHash:f.sources[i].render.layout.hash,pixelHash:layer.rasterHash,rendererHash:layer.renderer.id,fonts:layer.fontIds.map(id=>fonts.fonts.find(font=>font.id===id).bytes.hash)}))}};
+}
+async function reopenInvariantFixture(t) {
+  const f=await invariantFixture(t),p=f.p,nonce=p.raw.nonce;
+  p.args.cell.id='I10H/portable-reopen';p.args.cell.operation='portable.reopen';p.args.attempt.id=p.args.cell.id+'/cold/scored/1';
+  p.args.fixture=reopenFixtureProjection(f);
+  const attempt={cellId:p.args.cell.id,id:p.args.attempt.id,cache:'cold',ordinal:1,prime:false,serial:1};
+  const binding={kind:'reopen-font-binding-1',nonce,operation:'portable.reopen',attempt,fixtureSeal:clone(p.args.fixture.seal),fixture:reopenFontFixtureIdentity(p.args.fixture),environment:clone(p.args.environment),processIdentity:clone(p.args.workerProcessIdentity),runtime:clone(p.binding.runtime)};
+  const fonts={...clone(p.raw.fonts),kind:'accepted-document-fonts-1',binding:clone(attempt),timeOrigin:2000,startMs:230,endMs:250,nativeEditorBefore:{present:true,hidden:true,session:''},nativeEditorAfter:{present:true,hidden:true,session:''}};
+  const outcome={documentId:'doc',acceptedTestEdit:true,startupBoundary:'document-ready-via-Open',publicOpenCompleted:true,viewportAsset:'current-composite',authoritativeDOMReadyMs:280};
+  const raw={kind:'reopen-font-raw-1',nonce,binding:clone(attempt),clock:'runner-monotonic',startedMs:20,endedMs:400,actionStartedMs:100,actionEndedMs:300,
+    priorRealm:{timeOrigin:1000,atMs:50},afterRealm:{timeOrigin:2000,atMs:260},navigations:[150],navigationCount:1,
+    checkpoint:{commandId:'checkpoint',documentId:'doc',status:'accepted',observedDurableReceiptMs:320,replyObservedMs:290,expectedDocumentRevision:'3',documentRevision:'3',transactionId:'transaction'},fonts,outcome:reopenFontOutcome(outcome),failed:false,fontInvariant:null,missing:[]};
+  const invariant=await f.collect({fonts,nonce});await f.retain(invariant.evidence);raw.fontInvariant=invariant.evidence;
+  for(const name of ['browser-driver.mjs','browser-reopen-fonts.mjs','browser-text-resources.mjs','fixture-portable.mjs','fixtures.mjs'])p.args.controlFiles.push({path:'tooling/qualification/campaigns/'+name,sha256:hash(name).slice(7)});
+  p.args.cell.requiredMeasurements=[{name:'R35CurrentFontFaces',unit:'count',budgetId:'R35'},{name:'R35SingleFontBytes',unit:'bytes',budgetId:'R35'},{name:'R35CurrentFontSetBytes',unit:'bytes',budgetId:'R35'},invariantRule];
+  p.args.attempt.result.observations=clone(outcome);p.args.attempt.result.phases=[];
+  p.args.attempt.result.evidence={observedCommandReceipts:[{commandId:'checkpoint',observedMs:305}]};
+  for(const path of p.files.keys())if(path.startsWith('ordinary-text-')&&(path.endsWith('-raw.json')||path.endsWith('-binding.json')))p.files.delete(path);
+  const seal=({fontInvariantProof=invariant.proof}={})=>{
+    const put=(name,value)=>{const path='reopen-font-'+nonce+'-'+name+'.json',bytes=Buffer.from(JSON.stringify(value));p.files.set(path,bytes);return{path,bytes:bytes.length,sha256:hash(bytes)};};
+    const bindingArtifact=put('binding',binding),artifact=put('raw',raw),analysis=inspectReopenFontRaw(raw,binding,{fontInvariantProof});
+    p.args.attempt.result.observations.reopenFonts={kind:'reopen-font-observation-1',nonce,binding:bindingArtifact,raw:artifact,analysis,qualification:false,acceptedDocumentOnly:true};
+    p.args.attempt.result.measurements=analysis.measurements.map(row=>({...row,evidence:[{kind:'reopen-font-retained-observation-1',artifact:{...artifact,path:join(f.output,artifact.path)}}]}));
+    p.args.retainedFiles=[...p.files].map(([path,bytes])=>({path,bytes:bytes.length,sha256:hash(bytes)}));
+    p.args.journalEvents=[{event:'reopen-font-observed',cellId:p.args.cell.id,nonce,binding:bindingArtifact,raw:artifact,monotonicMs:410}];return analysis;
+  };
+  seal();return{...f,raw,binding,invariant,seal};
+}
+
+test('portable reopen replays immutable hidden-layer fonts and translates only its owned four-row proof',async t=>{
+  const f=await reopenInvariantFixture(t),{p}=f;p.args.attempt.status=p.args.attempt.result.status='PASS';
+  const proof=await verifyReopenFontEvidence(p.args),analysis=p.args.attempt.result.observations.reopenFonts.analysis;
+  assert.equal(f.image.layers[1].visible,false);assert.equal(f.invariant.evidence.members.length,7);
+  assert.deepEqual(analysis.missing,[]);assert.deepEqual(analysis.failures,[]);assert.equal(analysis.qualification,false);assert.equal(analysis.draftRendering,false);assert.equal(analysis.physicalPresentation,false);
+  const rows=p.args.cell.requiredMeasurements.map(rule=>reopenFontMeasurement({cell:p.args.cell,sample:p.args.attempt,rule,proof}).measurement);
+  assert.deepEqual(Object.fromEntries(rows.map(row=>[row.name,row.value])),{R35CurrentFontFaces:1,R35SingleFontBytes:32,R35CurrentFontSetBytes:32,R35SilentFontSubstitutionCount:0});
+  assert.deepEqual(rows,p.args.attempt.result.measurements);assert(rows.every(row=>row.evidence[0].kind==='reopen-font-retained-observation-1'));
+  const translated=extractBrowserMeasurements({cell:p.args.cell,sample:p.args.attempt,reopenFontProof:proof});assert.deepEqual(translated.measurements,rows);assert.deepEqual(translated.unavailable,[]);
+  for(const supplied of [clone(proof),{complete:true,measurements:rows}]){const forged=extractBrowserMeasurements({cell:p.args.cell,sample:p.args.attempt,reopenFontProof:supplied});assert.deepEqual(forged.measurements,[]);assert.equal(forged.unavailable.length,4);}
+  const other=clone(p.args.attempt);other.ordinal++;assert.match(reopenFontMeasurement({cell:p.args.cell,sample:other,rule:invariantRule,proof}).reason,/unavailable/);
+  assert.match(reopenFontMeasurement({cell:{...p.args.cell,operation:'navigation.ready'},sample:p.args.attempt,rule:invariantRule,proof}).reason,/unavailable/);
+  assert.match(reopenFontMeasurement({cell:p.args.cell,sample:p.args.attempt,rule:{...invariantRule,unit:'bytes'},proof}).reason,/unavailable/);
+});
+
+test('portable reopen rejects old realms, unrelated receipt revisions and changed sealed current graph without borrowing proof',async t=>{
+  const f=await reopenInvariantFixture(t);
+  const cases=[
+    r=>{r.afterRealm.timeOrigin=r.priorRealm.timeOrigin;},r=>{r.fonts.timeOrigin++;},r=>{r.navigationCount=2;r.navigations.push(160);},
+    r=>{r.checkpoint.documentRevision='4';},r=>{r.checkpoint.expectedDocumentRevision='2';},r=>{r.checkpoint.replyObservedMs=301;},r=>{r.checkpoint.observedDurableReceiptMs=299;},
+    r=>{r.outcome.publicOpenCompleted=false;},r=>{r.fonts.before.imageState.hash=hash('foreign image');r.fonts.after.imageState.hash=hash('foreign image');},
+    r=>{r.fonts.files[0].assetId='seed-font-not-current';},r=>{r.fontInvariant.members=r.fontInvariant.members.filter(member=>member.ref.hash!==f.sources[1].render.layout.hash);},
+  ];
+  for(const mutate of cases){const raw=clone(f.raw);mutate(raw);const analysis=inspectReopenFontRaw(raw,f.binding,{fontInvariantProof:f.invariant.proof});assert.equal(analysis.measurements.length,0);assert(analysis.failures.length||analysis.missing.length);}
+  const missing=clone(f.raw);missing.fontInvariant=null;const absent=inspectReopenFontRaw(missing,f.binding);assert.equal(absent.measurements.length,3);assert(!absent.measurements.some(row=>row.name===invariantRule.name));assert(absent.missing.length);
+  const failed=clone(f.raw);failed.failed=true;assert.equal(inspectReopenFontRaw(failed,f.binding,{fontInvariantProof:f.invariant.proof}).measurements.length,0);
+});
+
+test('portable retained replay requires exact attempt, runtime, journal, original endpoint and response joins',async t=>{
+  const f=await reopenInvariantFixture(t),{p}=f;await verifyReopenFontEvidence(p.args);
+  const cases=[
+    a=>{a.attempt.ordinal++;},a=>{a.fixture.documentId='seed-document';},a=>{a.environment.sourceDigest=hash('other source').slice(7);},
+    a=>{a.controlFiles=a.controlFiles.filter(row=>!row.path.endsWith('/browser-reopen-fonts.mjs'));},a=>{a.sourceFiles=a.sourceFiles.filter(row=>row.path!=='src/ui/native-text.ts');},
+    a=>{a.workerProcessIdentity.pid++;},a=>{a.tools.browserPins.browsers[0].revision='other';},a=>{a.journalEvents=[];},
+    a=>{a.attempt.result.observations.authoritativeDOMReadyMs=281;},a=>{a.attempt.result.evidence.observedCommandReceipts=[];},
+    a=>{a.attempt.result.evidence.observedCommandReceipts[0].observedMs=289;},a=>{a.attempt.result.evidence.observedCommandReceipts.push(clone(a.attempt.result.evidence.observedCommandReceipts[0]));},
+  ];
+  for(const mutate of cases){const args=copyReplayArguments(p.args);mutate(args);await assert.rejects(verifyReopenFontEvidence(args),/Reopen fonts:/);}
+  const missing=copyReplayArguments(p.args);delete missing.attempt.result.observations.reopenFonts;missing.attempt.status=missing.attempt.result.status='PASS';await assert.rejects(verifyReopenFontEvidence(missing),/lack retained observation/);
+});
+
+test('portable immutable replay refuses modified retained bytes even after an outer artifact seal is replaced',async t=>{
+  const f=await reopenInvariantFixture(t),{p}=f;
+  const member=f.invariant.evidence.members.find(value=>value.ref.hash===f.sources[1].render.layout.hash),original=p.files.get(member.path),changed=Buffer.from(original);changed[0]^=1;p.files.set(member.path,changed);
+  const outer=p.args.retainedFiles.find(value=>value.path===member.path);outer.sha256=hash(changed);
+  await assert.rejects(verifyReopenFontEvidence(p.args));
+  p.files.set(member.path,original);outer.sha256=hash(original);
+  await verifyReopenFontEvidence(p.args);
+  const rawIdentity=p.args.attempt.result.observations.reopenFonts.raw,rawBytes=p.files.get(rawIdentity.path);p.files.set(rawIdentity.path,Buffer.concat([rawBytes,Buffer.from(' ')]));
+  await assert.rejects(verifyReopenFontEvidence(p.args),/retained bytes differ/);
+});
+
+function reopenObserverHarness(f,{failReads=false}={}){
+  const listeners=new Map(),frame={},events=[],reads=[],journal=[];let origin=1000;
+  const page={mainFrame:()=>frame,on(name,fn){assert(!listeners.has(name));listeners.set(name,fn);},off(name,fn){assert.equal(listeners.get(name),fn);listeners.delete(name);},
+    async evaluate(_fn,arg){reads.push(arg);if(failReads)throw Error('diagnostic unavailable');if(arg===undefined)return{timeOrigin:origin,atMs:500};
+      if(arg&&typeof arg==='object'&&Object.hasOwn(arg,'commandId')){events.push('durable-read');return{commandId:arg.commandId,status:'accepted',transactionId:arg.transactionId,documentRevision:'3'};}
+      if(typeof arg==='string')return;throw Error('font closure deliberately unavailable');}};
+  const observer=createReopenFontObserver({page,repo:f.repo,root:f.root,cell:f.p.args.cell,sample:f.p.args.attempt,serial:1,fixture:f.p.args.fixture,runtime:f.binding.runtime,environment:f.p.args.environment,processIdentity:f.p.args.workerProcessIdentity,output:f.output,journal:async event=>journal.push(event)});
+  const emit=(name,value)=>{assert(listeners.has(name));listeners.get(name)(value);};
+  const request=(overrides={})=>{const command={commandId:'checkpoint',documentId:'doc',expectedDocumentRevision:'3',transactionId:'transaction',body:{type:'SaveCheckpoint'},...overrides};return{method:()=> 'POST',url:()=> 'http://127.0.0.1:4000/api/v1/commands',postData:()=>JSON.stringify({command})};};
+  const navigate=()=>{origin=2000;emit('framenavigated',frame);};
+  return{observer,listeners,events,reads,journal,emit,request,navigate};
+}
+
+test('portable observer keeps the original result and reads one exact same-request checkpoint only after action return',async t=>{
+  const f=await reopenInvariantFixture(t),h=reopenObserverHarness(f),result={documentId:'doc',acceptedTestEdit:true,startupBoundary:'document-ready-via-Open',publicOpenCompleted:true,viewportAsset:'current',authoritativeDOMReadyMs:null};let actions=0;
+  const actual=await h.observer.navigation(async()=>{actions++;h.events.push('action');h.navigate();const req=h.request();h.emit('request',req);h.emit('response',{request:()=>h.request(),status:()=>202});h.emit('response',{request:()=>req,status:()=>202});assert(!h.events.includes('durable-read'));result.authoritativeDOMReadyMs=performance.now();h.events.push('action-return');return result;});
+  assert.strictEqual(actual,result);assert.equal(actions,1);assert.deepEqual(h.events,['action','action-return','durable-read']);assert.equal(h.listeners.size,0);
+  const {observation}=await h.observer.finish(),raw=JSON.parse(await readFile(join(f.output,observation.raw.path)));
+  assert.equal(raw.checkpoint.commandId,'checkpoint');assert.equal(raw.checkpoint.transactionId,'transaction');assert.equal(raw.checkpoint.documentRevision,'3');assert.equal(raw.navigationCount,1);
+  assert(raw.checkpoint.replyObservedMs<=raw.actionEndedMs);assert(raw.checkpoint.observedDurableReceiptMs>=raw.actionEndedMs);assert.deepEqual(raw.outcome,reopenFontOutcome(result));
+  assert.equal(raw.fonts,null);assert.equal(observation.analysis.measurements.length,0);assert(raw.missing.includes('reopen-accepted-font-closure-unavailable'));
+  assert.equal(h.reads.filter(arg=>arg&&typeof arg==='object'&&Object.hasOwn(arg,'commandId')).length,1);assert.equal(h.journal.length,1);
+});
+
+test('portable observer refuses ambiguous original requests and responses without inventing a durable receipt',async t=>{
+  for(const variant of ['two-requests','two-responses','foreign-response','wrong-document']){
+    const f=await reopenInvariantFixture(t),h=reopenObserverHarness(f);let actions=0;
+    await h.observer.navigation(async()=>{actions++;h.navigate();const req=h.request(variant==='wrong-document'?{documentId:'other'}:{});h.emit('request',req);if(variant==='two-requests')h.emit('request',h.request());
+      h.emit('response',{request:()=>variant==='foreign-response'?h.request():req,status:()=>202});if(variant==='two-responses')h.emit('response',{request:()=>req,status:()=>202});return{};});
+    const {observation}=await h.observer.finish(),raw=JSON.parse(await readFile(join(f.output,observation.raw.path)));
+    assert.equal(actions,1);assert.equal(h.listeners.size,0);assert.equal(raw.checkpoint,null);assert(!h.events.includes('durable-read'));assert.equal(observation.analysis.measurements.length,0);assert(raw.missing.length);
+  }
+});
+
+test('portable observer preserves original thrown identity, removes listeners and prevents duplicate action or finish',async t=>{
+  const f=await reopenInvariantFixture(t),h=reopenObserverHarness(f,{failReads:true}),failure=Object.freeze(new Error('original action refused'));let actions=0;
+  await assert.rejects(h.observer.navigation(async()=>{actions++;await assert.rejects(h.observer.navigation(async()=>{actions++;}),/one original reopen/);await assert.rejects(h.observer.finish(),/must settle/);throw failure;}),error=>error===failure);
+  assert.equal(actions,1);assert.equal(h.reads.length,2);assert.equal(h.listeners.size,0);assert.deepEqual(h.events,[]);
+  const {observation,proof}=await h.observer.finish(),bytes=await readFile(join(f.output,observation.raw.path)),raw=JSON.parse(bytes);
+  assert.equal(bytes.length,observation.raw.bytes);assert.equal(hash(bytes),observation.raw.sha256);assert.equal(raw.failed,true);assert.equal(raw.fonts,null);assert.equal(raw.checkpoint,null);assert.equal(raw.fontInvariant,null);
+  assert(raw.missing.includes('original-reopen-action-failed'));assert.equal(observation.analysis.measurements.length,0);assert.match(reopenFontMeasurement({cell:f.p.args.cell,sample:f.p.args.attempt,rule:invariantRule,proof}).reason,/unavailable/);
+  assert.equal(h.journal.length,1);await assert.rejects(h.observer.navigation(async()=>{actions++;}),/one original reopen/);await assert.rejects(h.observer.finish(),/must settle/);assert.equal(actions,1);
+});
+
+
+test('portable compact binding admits all 100 layers and 16 ordered fonts while preserving sequence identity',async t=>{
+  const f=await reopenInvariantFixture(t),fixture=clone(f.p.args.fixture);
+  const {canonical}=await import('../../dist/local/server/storage/canonical.js');
+  fixture.native.fonts=Array.from({length:16},(_,i)=>{const {id:_id,...body}=clone(f.font);body.bytes={...body.bytes,hash:hash('maximal font '+i)};return{...body,id:hash(canonical(body))};});
+  fixture.native.fontAssetIds=fixture.native.fonts.map((_,i)=>'current_font_'+i);
+  const ordered=fixture.native.fonts.map(font=>font.bytes.hash),fact=fixture.native.textFacts[0];
+  fixture.text.orderedLayerIds=Array.from({length:100},(_,i)=>'current_text_'+String(i).padStart(3,'0'));
+  fixture.native.textFacts=fixture.text.orderedLayerIds.map((layerId,i)=>({...clone(fact),layerId,sourceHash:hash('current source '+i),fonts:[...ordered]}));
+  const before=clone(fixture),identity=reopenFontFixtureIdentity(fixture),bytes=Buffer.byteLength(JSON.stringify(identity));
+  assert.deepEqual(fixture,before);assert.equal(identity.native.textFacts.length,100);assert.equal(identity.native.fonts.length,16);assert.equal(identity.native.fontAssetIds.length,16);assert(bytes<=112*1024);
+  for(const row of identity.native.textFacts){assert.equal(row.fontCount,16);assert.equal(row.fontSequenceHash,hash(JSON.stringify(ordered)));assert.equal(Object.hasOwn(row,'fonts'),false);}
+  for(const mutate of [fonts=>fonts.reverse(),fonts=>fonts.pop(),fonts=>{fonts[7]=hash('changed single font');}]){
+    const changed=clone(fixture);mutate(changed.native.textFacts[0].fonts);const other=reopenFontFixtureIdentity(changed);
+    assert.notEqual(other.native.textFacts[0].fontSequenceHash,identity.native.textFacts[0].fontSequenceHash);assert.deepEqual(other.native.textFacts.slice(1),identity.native.textFacts.slice(1));
+  }
+  for(const mutate of [fact=>{fact.fontCount++;},fact=>{fact.fontSequenceHash=hash('different ordered fonts');}]){
+    const binding=clone(f.binding);mutate(binding.fixture.native.textFacts[0]);const analysis=inspectReopenFontRaw(f.raw,binding,{fontInvariantProof:f.invariant.proof});assert.equal(analysis.measurements.length,0);assert(analysis.failures.length);
+  }
+  // The complete maximum fixture can be retained under the original binding
+  // cap, even when a browser observation is unavailable. It grants no rows.
+  const observer=createReopenFontObserver({page:{},repo:f.repo,root:f.root,cell:f.p.args.cell,sample:f.p.args.attempt,serial:1,fixture,runtime:f.binding.runtime,environment:f.p.args.environment,processIdentity:f.p.args.workerProcessIdentity,output:f.output});
+  const {observation}=await observer.finish({failed:true}),retained=await readFile(join(f.output,observation.binding.path));
+  assert(retained.length<=128*1024);assert.equal(retained.length,observation.binding.bytes);assert.equal(hash(retained),observation.binding.sha256);assert.deepEqual(JSON.parse(retained).fixture,identity);assert.equal(observation.analysis.measurements.length,0);
+});

@@ -1,3 +1,4 @@
+import {verifyReopenFontEvidence} from './browser-reopen-fonts.mjs';
 import {verifyRecoveryFontEvidence} from './browser-text-recovery-fonts.mjs';
 import {verifyLifecycleCompositionEvidence} from './browser-lifecycle-composition.mjs';
 export {verifyLifecycleCompositionEvidence} from './browser-lifecycle-composition.mjs';
@@ -91,6 +92,12 @@ function textResourceInterval(evidence, interval, journalEvents) {
   if (begin.length !== 1 || end.length !== 1 || !Number.isFinite(begin[0].monotonicMs) || !Number.isFinite(end[0].monotonicMs) ||
       begin[0].monotonicMs < timing.startedMs || begin[0].monotonicMs > timing.endedMs || end[0].monotonicMs < timing.endedMs ||
       end[0].monotonicMs > interval.endMs) throw Error('Text resource journal is outside its owned action');
+  if (evidence.realm?.mode === 'portable-reopen-startup' && evidence.realm.checkpoint !== null) {
+    const checkpoint = evidence.realm.checkpoint;
+    const events = journalEvents.filter(event => event.event === 'text-resources-checkpoint' && event.observerId === evidence.binding.observerId);
+    if (events.length !== 1 || !Number.isFinite(events[0].monotonicMs) || checkpoint.startedMs < timing.startedMs ||
+        checkpoint.endedMs > timing.endedMs || events[0].monotonicMs < checkpoint.endedMs || events[0].monotonicMs > timing.endedMs) throw Error('Portable text resource checkpoint journal is outside its owned action');
+  }
 }
 
 /** Ordinary resource rows have their own continuous transition witness. The
@@ -403,6 +410,11 @@ export async function verifySealedEvidence(receipt, output) {
     }
     const recoveryTextEnvironment = group.cell.operation === 'text.recovery' ? {sourceDigest: receipt.identity.before.digest, buildDigest: receipt.identity.buildsBefore.digest, toolsDigest: digest(receipt.identity.tools), controlDigest: receipt.identity.controlBefore.digest, host: Object.fromEntries(['platform', 'architecture', 'kernel', 'osVersion', 'osBuild', 'hostnameHash'].map(key => [key, receipt.host?.observed?.[key] ?? null]))} : null;
     if (input.recoveryTextEnvironment != null) equal(input.recoveryTextEnvironment, recoveryTextEnvironment, 'Recovery text source/build/host identity differs from campaign');
+    const reopenFontEnvironment = group.cell.operation === 'portable.reopen' ? {sourceDigest: receipt.identity.before.digest, buildDigest: receipt.identity.buildsBefore.digest, toolsDigest: digest(receipt.identity.tools), controlDigest: receipt.identity.controlBefore.digest, host: Object.fromEntries(['platform', 'architecture', 'kernel', 'osVersion', 'osBuild', 'hostnameHash'].map(key => [key, receipt.host?.observed?.[key] ?? null]))} : null;
+    if (input.reopenFontEnvironment != null) {
+      if (group.cell.operation !== 'portable.reopen') throw Error('Reopen font executable binding belongs only to portable reopen');
+      equal(input.reopenFontEnvironment, reopenFontEnvironment, 'Reopen font source/build/host identity differs from campaign');
+    }
     const ordinaryTextEnvironment = ORDINARY_TEXT_OPERATIONS.includes(group.cell.operation) ? {sourceDigest: receipt.identity.before.digest, buildDigest: receipt.identity.buildsBefore.digest, toolsDigest: digest(receipt.identity.tools), controlDigest: receipt.identity.controlBefore.digest, host: Object.fromEntries(['platform', 'architecture', 'kernel', 'osVersion', 'osBuild', 'hostnameHash'].map(key => [key, receipt.host?.observed?.[key] ?? null]))} : null;
     if (input.ordinaryTextEnvironment != null) {
       if (!ORDINARY_TEXT_OPERATIONS.includes(group.cell.operation)) throw Error('Ordinary text executable binding belongs only to its selected cells');
@@ -532,6 +544,15 @@ export async function verifySealedEvidence(receipt, output) {
         const members = [...records.values()].filter(file => file.path.startsWith(folder + '/')).map(file => ({...file, path: file.path.slice(folder.length + 1)}));
         await verifyRecoveryFontEvidence({attempt: actual, cell: group.cell, serial: index + 1, fixture: input.fixture,
           environment: recoveryTextEnvironment, workerProcessIdentity: group.processIdentity, groupOutput: group.output, retainedFiles: members,
+          readRetained: (path, {maximum} = {}) => bytes(`${folder}/${safeRelative(path)}`, {cacheResult: false, maximum}),
+          controlFiles: receipt.identity.controlBefore.files, sourceFiles: receipt.identity.before.files, sourceRoot: input.repo,
+          browserCache: input.browserCache, tools: receipt.identity.tools, developerState: consumedInputs.developerState,
+          developerStateIdentity: receipt.inputIdentities.developerState, journalEvents: journal.events});
+      }
+      if (!byteAudit && group.cell.operation === 'portable.reopen') {
+        const members = [...records.values()].filter(file => file.path.startsWith(folder + '/')).map(file => ({...file, path: file.path.slice(folder.length + 1)}));
+        await verifyReopenFontEvidence({attempt: actual, cell: group.cell, serial: index + 1, fixture: input.fixture,
+          environment: reopenFontEnvironment, workerProcessIdentity: group.processIdentity, groupOutput: group.output, retainedFiles: members,
           readRetained: (path, {maximum} = {}) => bytes(`${folder}/${safeRelative(path)}`, {cacheResult: false, maximum}),
           controlFiles: receipt.identity.controlBefore.files, sourceFiles: receipt.identity.before.files, sourceRoot: input.repo,
           browserCache: input.browserCache, tools: receipt.identity.tools, developerState: consumedInputs.developerState,

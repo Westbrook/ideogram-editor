@@ -1,3 +1,4 @@
+import {createReopenFontObserver} from './browser-reopen-fonts.mjs';
 import {createRecoveryFontObserver} from './browser-text-recovery-fonts.mjs';
 import {createOrdinaryCompositionObserver, ORDINARY_COMPOSITION_OPERATIONS} from './browser-ordinary-composition.mjs';
 import {readVerifiedNavigationBounds} from './windowserver-navigation-verification.mjs';
@@ -874,7 +875,7 @@ export async function createBrowserCampaign(context = {}) {
     } : undefined;
     const discreteInputSessionId = 'input-' + randomUUID();
     let result, evidence, d11, auditAction, discreteInputFailure, nativeFirstUse, nativeFirstUseObservation, nativeGeneric, nativeGenericObservation,
-      nativeText, nativeTextObservation, textBinding, textServices, ordinaryText, ordinaryTextObservation, ordinaryTextProof, recoveryFonts, recoveryFontObservation, recoveryFontProof, ordinaryComposition, ordinaryCompositionObservation, ordinaryCompositionProof, nativeNavigation, nativeNavigationObservation, navigationProof, textResourceObserver, textResources, textResourceProof, textResourceFailure, auditActive = false, featureBoundary, featureAbsence;
+      nativeText, nativeTextObservation, textBinding, textServices, ordinaryText, ordinaryTextObservation, ordinaryTextProof, recoveryFonts, recoveryFontObservation, recoveryFontProof, reopenFonts, reopenFontObservation, reopenFontProof, ordinaryComposition, ordinaryCompositionObservation, ordinaryCompositionProof, nativeNavigation, nativeNavigationObservation, navigationProof, textResourceObserver, textResources, textResourceProof, textResourceFailure, auditActive = false, featureBoundary, featureAbsence;
     const featureAudits = [], featureActions = d11Collector ? byteAuditFeatureActions(cell) : [];
     const auditId = featureActions.length ? attemptIdentity(cell, visitCohort.cache, sample.ordinal, sample.prime)
       : String(cell.id) + ':' + String(sample.cache) + ':' + String(sample.ordinal);
@@ -980,6 +981,11 @@ export async function createBrowserCampaign(context = {}) {
         recoveryFonts = createRecoveryFontObserver({page, repo, root, cell, sample, serial: index, fixture, runtime: nativeBrowserRuntime,
           environment: context.recoveryTextEnvironment, processIdentity: context.processIdentity, output, signal, journal: context.trace});
       } catch {rawTraceMissing.push('recovery-font-observation-start-unavailable');}
+      if (context.services?.reopenFonts !== undefined || context.services?.reopenResources !== undefined) throw Error('An external service cannot replace portable reopen evidence');
+      if (cell.operation === 'portable.reopen' && browserOptions.byteAudit !== true) try {
+        reopenFonts = createReopenFontObserver({page, repo, root, cell, sample, serial: index, fixture, runtime: nativeBrowserRuntime,
+          environment: context.reopenFontEnvironment, processIdentity: context.processIdentity, output, signal, journal: context.trace});
+      } catch {rawTraceMissing.push('reopen-font-observation-start-unavailable');}
       if (context.services?.compositionObservation !== undefined) throw Error('An external service cannot replace ordinary composition observation');
       if (ORDINARY_COMPOSITION_OPERATIONS.includes(cell.operation) && browserOptions.byteAudit !== true) {
         ordinaryComposition = createOrdinaryCompositionObserver({page, cell, sample, serial: index, fixture, runtime: nativeBrowserRuntime,
@@ -1007,6 +1013,8 @@ export async function createBrowserCampaign(context = {}) {
         const action = () => runBrowserAction({ page, cell, fixture, signal, pair: () => server.pair(), services: { ...context.services,
         ...(ordinaryComposition ? {compositionObservation: ordinaryComposition} : {}),
         ...(nativeNavigation ? {nativeNavigation} : {}),
+        ...(reopenFonts ? {reopenFonts} : {}),
+        ...(cell.operation === 'portable.reopen' && textResourceObserver ? {reopenResources: textResourceObserver} : {}),
         discreteInputSessionId, ...(nativeFirstUse ? {discreteInputHook: nativeFirstUse.hook, discreteFirstUseReady: nativeFirstUse.ready} : {}), retainDiscreteInputFailure: value => { discreteInputFailure = value; },
         ...(genericSelected ? {genericInputEnabled: true} : {}),
         ...(nativeGeneric ? {discreteInputHook: nativeGeneric.hook, genericPointerHook: nativeGeneric.hook,
@@ -1099,6 +1107,12 @@ export async function createBrowserCampaign(context = {}) {
         result = {...result, observations: {...(result?.observations ?? {}), recoveryFonts: recoveryFontObservation}};
         if (recoveryFontObservation.analysis.failures.length) retainFailure(Error('Recovery accepted-font contradiction'));
       } catch {rawTraceMissing.push('recovery-font-observation-closure-unavailable');}
+      if (reopenFonts) try {
+        const observed = await reopenFonts.finish({failed: !browserActionOutcome({...failureState, resultStatus: result?.status}).actionCompleted});
+        reopenFontObservation = observed.observation; reopenFontProof = observed.proof;
+        result = {...result, observations: {...(result?.observations ?? result), reopenFonts: reopenFontObservation}};
+        if (reopenFontObservation.analysis.failures.length) retainFailure(Error('Portable reopen accepted-font contradiction'));
+      } catch {rawTraceMissing.push('reopen-font-observation-closure-unavailable');}
       if (ordinaryComposition) try {
         const observed = await ordinaryComposition.finish({failed: !browserActionOutcome({...failureState, resultStatus: result?.status}).actionCompleted});
         ordinaryCompositionObservation = observed.observation; ordinaryCompositionProof = observed.proof;
@@ -1150,9 +1164,10 @@ export async function createBrowserCampaign(context = {}) {
     missing.push(...rawTraceMissing);
     missing.push(...(ordinaryTextObservation?.analysis.missing ?? []));
     missing.push(...(recoveryFontObservation?.analysis.missing ?? []));
+    missing.push(...(reopenFontObservation?.analysis.missing ?? []));
     missing.push(...(ordinaryCompositionObservation?.analysis.missing ?? []));
     missing.push(...(textResources?.missing ?? []));
-    const measured = byteAudit ? { measurements: [], unavailable: [] } : extractBrowserMeasurements({ cell, sample, visits, result, evidence, trace: traced, resources, ordinaryTextProof, recoveryFontProof, ordinaryCompositionProof, navigationProof, navigationObservation: nativeNavigationObservation, textResourceProof });
+    const measured = byteAudit ? { measurements: [], unavailable: [] } : extractBrowserMeasurements({ cell, sample, visits, result, evidence, trace: traced, resources, ordinaryTextProof, recoveryFontProof, reopenFontProof, ordinaryCompositionProof, navigationProof, navigationObservation: nativeNavigationObservation, textResourceProof });
     missing.push(...measured.unavailable.filter(row => row.source !== 'separate-byte-audit').map(row => row.name + ': ' + row.reason));
     if (!byteAudit && !evidence?.productPhases) missing.push('Product phase snapshot unavailable');
     if (!byteAudit && vitalOperations.has(cell.operation) && !canonicalVitals) missing.push(canonicalMissing ?? 'Pinned canonical Web Vitals observer unavailable');

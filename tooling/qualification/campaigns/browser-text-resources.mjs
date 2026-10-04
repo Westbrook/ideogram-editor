@@ -5,7 +5,7 @@ import {join,isAbsolute} from 'node:path';
 import {isDeepStrictEqual} from 'node:util';
 import {readTextResourceSnapshot} from './browser-phase-snapshot.mjs';
 import {isTextResourceOwnershipProof,TEXT_RESOURCE_OWNERSHIP_CONTRACT} from './renderer-ownership.mjs';
-export const TEXT_RESOURCE_OPERATIONS=Object.freeze(['text.font-set','text.mixed-ready','text.active-layout','text.apply','text.recovery']);
+export const TEXT_RESOURCE_OPERATIONS=Object.freeze(['text.font-set','text.mixed-ready','text.active-layout','text.apply','text.recovery','portable.reopen']);
 const proofs=new WeakMap();
 const hash=value=>'sha256:'+createHash('sha256').update(value).digest('hex');
 const natural=value=>Number.isSafeInteger(value)&&value>=0;
@@ -15,6 +15,7 @@ const exact=(value,keys)=>!!value&&typeof value==='object'&&!Array.isArray(value
 const check=(value,message)=>assert(value,'TEXT_RESOURCE_EVIDENCE: '+message);
 const keys=['atMs','ledgerSequence','textSequence','cpu','poolTextBytes','glyphGpuBytes','sequence'];
 const failures=new Set(['invalid-point','clock-regression','same-sequence-changed-amounts','transition-gap','counter-overflow','row-limit','text-observer-unavailable','text-observer-rebound','text-observer-disconnected','text-sequence-discontinuity','text-observer-fault','text-observation-invalid','clock-invalid','observer-reentrant']);
+const reopenFailures=new Set(['checkpoint-unavailable','checkpoint-missing','checkpoint-repeated']);
 const total=point=>point.cpu.reduce((sum,bytes)=>sum+bytes,point.poolTextBytes);
 const canonical=value=>JSON.stringify(value,(_key,item)=>item&&typeof item==='object'&&!Array.isArray(item)?Object.fromEntries(Object.keys(item).sort().map(key=>[key,item[key]])):item);
 function point(value){check(exact(value,keys),'point keys');for(const key of ['ledgerSequence','textSequence','poolTextBytes','glyphGpuBytes','sequence'])check(natural(value[key]),'point '+key);check(time(value.atMs)&&Array.isArray(value.cpu)&&value.cpu.length===7&&value.cpu.every(natural)&&natural(total(value)),'point amount or clock');}
@@ -57,22 +58,46 @@ export function replayTextResourceEvidence(evidence,{binding,rendererOwnershipPr
  const timing=evidence.timing;check(exact(timing,['clock','originMs','startedMs','endedMs'])&&timing.clock==='runner-monotonic'&&time(timing.originMs)&&time(timing.startedMs)&&time(timing.endedMs)&&timing.endedMs>=timing.startedMs,'runner interval');
  const w=evidence.window,{complete}=replayTextResourceWindow(w);
  ack(evidence.begin,'begin',w);ack(evidence.end,'end',w);
- const realm=evidence.realm;check(exact(realm,['mode','prior','navigations']),'realm keys');
+ const realm=evidence.realm,reopen=realm?.mode==='portable-reopen-startup';let realmComplete=true;
+ check(exact(realm,reopen?['mode','prior','navigations','checkpoint','failures']:['mode','prior','navigations']),'realm keys');
  if(realm.mode==='new-realm-startup'){
   check(b.operation==='text.mixed-ready'&&exact(realm.prior,['ledgerInstanceId','clockOriginMs'])&&ledgerIdentity(realm.prior.ledgerInstanceId)&&time(realm.prior.clockOriginMs)&&realm.prior.ledgerInstanceId!==w.ledgerInstanceId&&realm.prior.clockOriginMs<w.clockOriginMs&&w.id==='startup-'+w.ledgerInstanceId,'fresh native font authority realm');
   check(Array.isArray(realm.navigations)&&realm.navigations.length===1&&time(realm.navigations[0])&&realm.navigations[0]>=timing.startedMs&&realm.navigations[0]<=timing.endedMs,'actual single main-frame navigation');
- }else check(realm.mode==='explicit-window'&&b.operation!=='text.mixed-ready'&&realm.prior===null&&Array.isArray(realm.navigations)&&realm.navigations.length===0,'explicit stable-realm window');
- check(/^text-[a-f0-9-]{36}$/.test(b.observerId??'')&&(realm.mode==='new-realm-startup'||w.id===b.observerId),'attempt observer/window identity');
+  }else if(reopen){
+  // Cold starts begin blank; a warm child keeps its actual previous document.
+  // The loaded prior is identity evidence only: its allocations, teardown and
+  // clock are never combined with the new startup window.
+  const prior=realm.prior;
+  const blank=prior?.documentKind==='about:blank',priorKeys=['documentKind','topLevel','phaseOwnerPresent','clockOriginMs','atMs'];
+  check(b.operation==='portable.reopen'&&exact(prior,blank?priorKeys:[...priorKeys,'ledgerInstanceId','windowId','windowOrdinal','ended'])&&
+   prior.topLevel===true&&time(prior.clockOriginMs)&&prior.clockOriginMs>0&&time(prior.atMs)&&prior.clockOriginMs<w.clockOriginMs&&
+   (blank?prior.phaseOwnerPresent===false:prior.documentKind==='application'&&prior.phaseOwnerPresent===true&&ledgerIdentity(prior.ledgerInstanceId)&&
+    prior.ledgerInstanceId!==w.ledgerInstanceId&&prior.windowId==='startup-'+prior.ledgerInstanceId&&natural(prior.windowOrdinal)&&prior.windowOrdinal>0&&typeof prior.ended==='boolean')&&
+   w.id==='startup-'+w.ledgerInstanceId,'fresh portable prior-to-application realm');
+  check(Array.isArray(realm.navigations)&&realm.navigations.length===1&&time(realm.navigations[0])&&realm.navigations[0]>=timing.startedMs&&realm.navigations[0]<=timing.endedMs,'actual single portable main-frame navigation');
+  check(Array.isArray(realm.failures)&&realm.failures.length<=reopenFailures.size&&new Set(realm.failures).size===realm.failures.length&&realm.failures.every(code=>reopenFailures.has(code)),'portable observation failures');
+  const checkpoint=realm.checkpoint;
+  if(checkpoint!==null){
+   check(exact(checkpoint,['startedMs','endedMs','clockOriginMs','atMs','ledgerInstanceId','windowId','windowOrdinal','ended'])&&
+    time(checkpoint.startedMs)&&time(checkpoint.endedMs)&&checkpoint.startedMs>=realm.navigations[0]&&checkpoint.endedMs>=checkpoint.startedMs&&checkpoint.endedMs<=timing.endedMs&&
+    checkpoint.clockOriginMs===w.clockOriginMs&&time(checkpoint.atMs)&&checkpoint.atMs>=w.initial.atMs&&checkpoint.atMs<=w.final.atMs&&
+    checkpoint.ledgerInstanceId===w.ledgerInstanceId&&checkpoint.windowId===w.id&&checkpoint.windowOrdinal===w.ordinal&&checkpoint.ended===false,
+    'portable original action endpoint or startup window differs');
+  }else check(realm.failures.some(code=>code==='checkpoint-missing'||code==='checkpoint-unavailable'),'portable missing checkpoint reason');
+  realmComplete=checkpoint!==null&&realm.failures.length===0;
+ }else check(realm.mode==='explicit-window'&&!['text.mixed-ready','portable.reopen'].includes(b.operation)&&realm.prior===null&&Array.isArray(realm.navigations)&&realm.navigations.length===0,'explicit stable-realm window');
+ check(/^text-[a-f0-9-]{36}$/.test(b.observerId??'')&&(realm.mode==='new-realm-startup'||reopen||w.id===b.observerId),'attempt observer/window identity');
  if(rendererOwnershipProof!==undefined)check(isDeepStrictEqual(evidence.rendererOwnershipProof,rendererOwnershipProof),'renderer proof substitution');
  const proof=evidence.rendererOwnershipProof,approved=isTextResourceOwnershipProof(proof);
  // Exact full executable identity comes from the parent, never the producer.
  if(proof)check(isDeepStrictEqual(proof.executableIdentity,b.executableIdentity),'renderer proof executable identity');
  const cpuBoundSufficient=w.peakCpu.bytes<=128*1048576;
- const cpuComplete=complete&&!evidence.failed&&approved&&cpuBoundSufficient;
- const glyphComplete=complete&&!evidence.failed&&approved&&w.peakGlyphGpu.bytes===0;
+ const cpuComplete=complete&&realmComplete&&!evidence.failed&&approved&&cpuBoundSufficient;
+ const glyphComplete=complete&&realmComplete&&!evidence.failed&&approved&&w.peakGlyphGpu.bytes===0;
  const scope='Simultaneous conservative reservations: text pool (including parser/worker/bounded WASM) plus shared font/text/control/prompt/staging/scratch/copy owners; no physical RSS claim';
  const measurements=[...(cpuBoundSufficient?[{name:'R35FontShapingCpuBytes',value:w.peakCpu.bytes,unit:'bytes',method:scope,complete:cpuComplete}]:[]),{name:'R35GlyphGpuBytes',value:w.peakGlyphGpu.bytes,unit:'bytes',method:'Exact reviewed software renderer application-owned glyph bookings; excludes physical/native GPU memory and display RGBA backing',complete:glyphComplete}];
  const missing=[];if(!cpuBoundSufficient)missing.push('conservative-shared-owner-upper-bound-exceeds-r35-ceiling-attribution-required');if(!complete)missing.push('text-resource-transition-window-incomplete');if(evidence.failed)missing.push('text-resource-action-failed');if(!approved)missing.push('exact-text-resource-source-native-runtime-review-unavailable');if(w.peakGlyphGpu.bytes!==0)missing.push('glyph-bookings-conflict-with-reviewed-software-renderer');
+ if(!realmComplete)missing.push('portable-text-resource-original-action-endpoint-unavailable');
  return {measurements,missing,complete:cpuComplete&&glyphComplete,scope:TEXT_RESOURCE_OWNERSHIP_CONTRACT};
 }
 export async function verifyTextResourceArtifact({artifact,binding,rendererOwnershipProof,readRetained,journalEvents}){
@@ -86,28 +111,73 @@ export async function verifyTextResourceArtifact({artifact,binding,rendererOwner
  check(begins.length===1&&ends.length===1,'single actual producer journal bracket');
  check(isDeepStrictEqual(begins[0].binding,evidence.binding)&&isDeepStrictEqual(begins[0].begin,evidence.begin)&&begins[0].startedMs===evidence.timing.startedMs,'begin journal binding');
  check(isDeepStrictEqual(ends[0].binding,evidence.binding)&&isDeepStrictEqual(ends[0].artifact,artifact)&&ends[0].endedMs===evidence.timing.endedMs,'final journal binding');
+ if(evidence.realm.mode==='portable-reopen-startup'){
+  const checkpoints=journalEvents.filter(event=>event.event==='text-resources-checkpoint'&&event.observerId===evidence.binding.observerId);
+  check(evidence.realm.checkpoint===null?checkpoints.length===0:checkpoints.length===1&&isDeepStrictEqual(checkpoints[0].binding,evidence.binding)&&isDeepStrictEqual(checkpoints[0].checkpoint,evidence.realm.checkpoint),'single actual portable checkpoint journal binding');
+ }
  return issueResult(replay,evidence,artifact);
 }
 export function textResourceBinding({cell,sample,serial,cycleOrdinal,fixtureIdentity,processIdentity,executableIdentity,observerId}){return {cellId:cell.id,operation:cell.operation,...(cycleOrdinal?{cycleOrdinal}:{serial,sample:{cache:sample?.cache??null,ordinal:sample?.ordinal??null,prime:sample?.prime??null}}),fixtureIdentity,processIdentity:typeof processIdentity==='string'?processIdentity:canonical(processIdentity),executableIdentity,...(observerId?{observerId}:{})};}
 export function createTextResourceObserver({page,cell,sample,serial,cycleOrdinal,fixtureIdentity,processIdentity,rendererOwnershipProof=null,executableIdentity,output,journal}){
  const id='text-'+randomUUID(),binding=textResourceBinding({cell,sample,serial,cycleOrdinal,fixtureIdentity,processIdentity,executableIdentity,observerId:id});
- const startup=cell.operation==='text.mixed-ready',realm={mode:startup?'new-realm-startup':'explicit-window',prior:null,navigations:[]};
- let started=null,done=null,startedMs=null,navigationCount=0;
+ const reopen=cell.operation==='portable.reopen',startup=cell.operation==='text.mixed-ready'||reopen;
+ const realm={mode:reopen?'portable-reopen-startup':startup?'new-realm-startup':'explicit-window',prior:null,navigations:[],...(reopen?{checkpoint:null,failures:[]}: {})};
+ let started=null,done=null,startedMs=null,navigationCount=0,checkpointCalled=false,closed=false;
  const navigation=frame=>{if(frame!==page.mainFrame())return;navigationCount++;if(realm.navigations.length<2)realm.navigations.push(performance.now());};
  return {
   async begin(){
    if(started)return started;startedMs=performance.now();
-   if(startup){const prior=await page.evaluate(()=>globalThis.__IDEOGRAM_PHASES__?.textResourceStartupIdentity?.()??null);check(prior,'prior realm identity unavailable');realm.prior={ledgerInstanceId:prior.ledgerInstanceId,clockOriginMs:prior.clockOriginMs};page.on('framenavigated',navigation);started={navigationPending:true};}
+   if(reopen){
+    realm.prior=await page.evaluate(()=>{
+     if(window.top!==window)throw Error('PORTABLE_TEXT_RESOURCE_PRIOR_REALM');
+     const owner=globalThis.__IDEOGRAM_PHASES__;
+     if(location.href==='about:blank'){
+      if(owner!==undefined)throw Error('PORTABLE_TEXT_RESOURCE_PRIOR_REALM');
+      return {documentKind:'about:blank',topLevel:true,phaseOwnerPresent:false,clockOriginMs:performance.timeOrigin,atMs:performance.now()};
+     }
+     const identity=owner?.textResourceStartupIdentity?.();
+     if(!identity||identity.clockOriginMs!==performance.timeOrigin)throw Error('PORTABLE_TEXT_RESOURCE_PRIOR_IDENTITY');
+     return {documentKind:'application',topLevel:true,phaseOwnerPresent:true,clockOriginMs:performance.timeOrigin,atMs:performance.now(),
+      ledgerInstanceId:identity.ledgerInstanceId,windowId:identity.begin?.id,windowOrdinal:identity.begin?.ordinal,ended:identity.ended};
+    });
+    const prior=realm.prior,blank=prior?.documentKind==='about:blank',priorKeys=['documentKind','topLevel','phaseOwnerPresent','clockOriginMs','atMs'];
+    check(exact(prior,blank?priorKeys:[...priorKeys,'ledgerInstanceId','windowId','windowOrdinal','ended'])&&prior.topLevel===true&&time(prior.clockOriginMs)&&prior.clockOriginMs>0&&time(prior.atMs)&&
+     (blank?prior.phaseOwnerPresent===false:prior.documentKind==='application'&&prior.phaseOwnerPresent===true&&ledgerIdentity(prior.ledgerInstanceId)&&
+      prior.windowId==='startup-'+prior.ledgerInstanceId&&natural(prior.windowOrdinal)&&prior.windowOrdinal>0&&typeof prior.ended==='boolean'),'observed portable prior realm unavailable');
+    page.on('framenavigated',navigation);started={navigationPending:true};
+   }else if(startup){const prior=await page.evaluate(()=>globalThis.__IDEOGRAM_PHASES__?.textResourceStartupIdentity?.()??null);check(prior,'prior realm identity unavailable');realm.prior={ledgerInstanceId:prior.ledgerInstanceId,clockOriginMs:prior.clockOriginMs};page.on('framenavigated',navigation);started={navigationPending:true};}
    else{started=await page.evaluate(id=>globalThis.__IDEOGRAM_PHASES__?.beginTextResourceObservationWindow?.(id)??null,id);check(started,'product window unavailable');}
    await journal?.({event:'text-resources-intent',observerId:id,binding,startedMs});
    if(!startup)await journal?.({event:'text-resources-begin',windowId:started.id,binding,begin:started,startedMs});return started;
   },
+  /** Called inside the original portable action after its real public Open and
+   * accepted checkpoint, before Composition closes the shared startup window.
+   * No navigation, product input, preparation or memory reset is introduced. */
+  async checkpoint(){
+   check(reopen&&started&&!done&&!closed,'portable checkpoint requires its active observer');
+   if(checkpointCalled){if(!realm.failures.includes('checkpoint-repeated'))realm.failures.push('checkpoint-repeated');throw Error('TEXT_RESOURCE_EVIDENCE: portable checkpoint repeated');}
+   checkpointCalled=true;const checkpointStartedMs=performance.now();
+   let value;
+   try{value=await page.evaluate(()=>{
+    if(location.href==='about:blank'||window.top!==window)throw Error('PORTABLE_TEXT_RESOURCE_CURRENT_REALM');
+    const identity=globalThis.__IDEOGRAM_PHASES__?.textResourceStartupIdentity?.();
+    if(!identity||identity.clockOriginMs!==performance.timeOrigin)throw Error('PORTABLE_TEXT_RESOURCE_STARTUP_IDENTITY');
+    return {clockOriginMs:performance.timeOrigin,atMs:performance.now(),ledgerInstanceId:identity.ledgerInstanceId,windowId:identity.begin?.id,windowOrdinal:identity.begin?.ordinal,ended:identity.ended};
+   });}catch{realm.failures.push('checkpoint-unavailable');return null;}
+   realm.checkpoint={startedMs:checkpointStartedMs,endedMs:performance.now(),...value};
+   await journal?.({event:'text-resources-checkpoint',observerId:id,binding,checkpoint:realm.checkpoint});
+   return structuredClone(realm.checkpoint);
+  },
   async finish({failed=false}={}){
    if(done)return done;check(started,'resource window did not begin');
-   let end;
-   if(startup){page.off('framenavigated',navigation);check(navigationCount===1,'one actual navigation required');const boundaries=await page.evaluate(()=>globalThis.__IDEOGRAM_PHASES__?.sealTextResourceStartupWindow?.()??null);check(boundaries,'new realm startup window unavailable');started=boundaries.begin;end=boundaries.end;await journal?.({event:'text-resources-begin',windowId:started.id,binding,begin:started,startedMs});}
-   else end=await page.evaluate(id=>globalThis.__IDEOGRAM_PHASES__?.endTextResourceObservationWindow?.(id)??null,id);
-   const window=await readTextResourceSnapshot(page);
+   if(reopen){check(!closed,'portable resource observer already closed');closed=true;}
+   if(reopen&&!checkpointCalled)realm.failures.push('checkpoint-missing');
+   let end,window;
+   try{
+    if(startup){if(!reopen){page.off('framenavigated',navigation);check(navigationCount===1,'one actual navigation required');}const boundaries=await page.evaluate(()=>globalThis.__IDEOGRAM_PHASES__?.sealTextResourceStartupWindow?.()??null);check(boundaries,'new realm startup window unavailable');started=boundaries.begin;end=boundaries.end;await journal?.({event:'text-resources-begin',windowId:started.id,binding,begin:started,startedMs});}
+    else end=await page.evaluate(id=>globalThis.__IDEOGRAM_PHASES__?.endTextResourceObservationWindow?.(id)??null,id);
+    window=await readTextResourceSnapshot(page);
+   }finally{if(reopen)page.off('framenavigated',navigation);}
    const timing={clock:'runner-monotonic',originMs:performance.timeOrigin,startedMs,endedMs:performance.now()};
    const evidence={kind:'text-resource-evidence-1',schemaVersion:1,binding,begin:started,end,window,failed,rendererOwnershipProof,timing,realm};
    const directory=join(output,'text-resources');await mkdir(directory,{recursive:true,mode:0o700});const path=join(directory,id+'.json');
