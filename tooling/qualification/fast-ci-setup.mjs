@@ -12,11 +12,17 @@ import {createBrowserPlan} from './container/browser-plan.mjs';
 import {historyRequirements, fixtureRequirements, adapterSourceURL, verifyAdapterFixture} from './container/inputs.mjs';
 import {rendererReceiptOwner, rendererReceiptRequirement} from './r18-ci-inputs.mjs';
 
-const hostedFiles = new Set([
+const historicalHostedFiles = new Set([
   'tests/history/mask-text-compatibility.test.mjs',
   'tests/composition/retained-text.test.mjs',
   'tests/text-state/native.test.mjs',
   'tests/text-state/placement-text-compatibility.test.mjs',
+]);
+// Current-root negative harnesses use the pinned Playwright runner with synthetic
+// handles. Retain the maintained Chromium prerequisite, without legacy history.
+const currentRecoveryHostedFiles = new Set([
+  'tests/recovery/owner-runner.test.mjs',
+  'tests/recovery/persistent-runner.test.mjs',
 ]);
 const priorPath = 'tests/text-state/prior-writer.mjs';
 const directHistoryOwner = 'tests/history/returned-description.test.mjs';
@@ -116,9 +122,13 @@ export function fastSetupPlan(plan, {sourceFor, history = historyRequirements} =
   const totalBudgetMs = gateBudgetMs + setupReserveMs + finalizationReserveMs;
   if (!Number.isSafeInteger(totalBudgetMs) || totalBudgetMs > fastSelectedJobMinutes * 60_000) throw Error('Selected plan exceeds the 180-minute Fast CI budget; split the whole-file selection');
   if (plan.gates.some(gate => gate.freshFixtureFiles?.length)) throw Error('Fast CI does not provision genuine schema18 executable packets');
-  const hosted = plan.gates.flatMap(gate => gate.browserPrerequisites?.files ?? []);
-  if (hosted.some(file => !hostedFiles.has(file)) || plan.requiredBrowsers.some(engine => engine !== 'chromium')) throw Error('Selected Node-hosted browser prerequisite is not provisioned by Fast CI');
-  if (Boolean(hosted.length) !== Boolean(plan.requiredBrowsers.length)) throw Error('Inconsistent selected browser prerequisites');
+  const hostedGates = plan.gates.filter(gate => gate.browserPrerequisites);
+  const hosted = hostedGates.flatMap(gate => gate.browserPrerequisites.files);
+  if (hosted.some(file => !historicalHostedFiles.has(file) && !currentRecoveryHostedFiles.has(file)) || plan.requiredBrowsers.some(engine => engine !== 'chromium')) throw Error('Selected Node-hosted browser prerequisite is not provisioned by Fast CI');
+  if (!same(plan.requiredBrowsers, hosted.length ? ['chromium'] : []) || new Set(hosted).size !== hosted.length ||
+      hostedGates.some(gate => !same(gate.browserPrerequisites.engines, ['chromium']) || !same(gate.browserPrerequisites.files, gate.files)) ||
+      hosted.some(file => !plan.selectedFiles.includes(file))) throw Error('Inconsistent selected browser prerequisites');
+  const historicalHosted = hosted.filter(file => historicalHostedFiles.has(file));
   const sources = [], historyInputs = [];
   const read = path => {
     const text = sourceFor(path), bytes = Buffer.from(text);
@@ -132,9 +142,9 @@ export function fastSetupPlan(plan, {sourceFor, history = historyRequirements} =
     if (prior) { if (!same(prior.paths, paths)) throw Error('Conflicting historical archive closure'); prior.owners.push(path); }
     else historyInputs.push({commit, paths: [...paths], owners: [path]});
   };
-  if (hosted.length) {
+  if (historicalHosted.length) {
     const defaultCommit = priorContract(read(priorPath));
-    for (const path of hosted) admit(path, requiredCommit(path, read(path), defaultCommit), archivePaths);
+    for (const path of historicalHosted) admit(path, requiredCommit(path, read(path), defaultCommit), archivePaths);
   }
   if (plan.selectedFiles.includes(directHistoryOwner)) {
     const {commit, paths} = directHistory(read(directHistoryOwner));

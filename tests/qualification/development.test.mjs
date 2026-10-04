@@ -920,6 +920,119 @@ test('Fast provisioning retains failure without fallback fetch or browser instal
 });
 
 
+const fastRecoveryHostedSelection = [
+ 'tests/recovery/owner-runner.test.mjs',
+ 'tests/recovery/persistent-runner.test.mjs',
+];
+test('Fast current recovery setup preserves each whole negative parent and its maintained Chromium gate without historical source reads',()=>{
+ for(const files of [[fastRecoveryHostedSelection[0]],[fastRecoveryHostedSelection[1]],fastRecoveryHostedSelection]){
+  const plan=developmentPlan(process.cwd(),{groups:'all',nodeFiles:files.join(','),browsers:'none'});
+  const setup=fastSetupPlan(plan,{sourceFor:path=>assert.fail('Current recovery does not need historical source: '+path)});
+  assert.deepEqual(setup.selectedFiles,files);assert.deepEqual(setup.requiredBrowsers,['chromium']);
+  assert.deepEqual(setup.history,[]);assert.deepEqual(setup.sources,[]);assert.equal(setup.qualification,false);
+  const gate=plan.gates.find(gate=>gate.id==='node:recovery:browser');assert.ok(gate);
+  assert.deepEqual(gate.files,files);assert.deepEqual(gate.browserPrerequisites,{engines:['chromium'],files});
+  assert.deepEqual(gate.dependencies,['build-server','build-app']);assert.equal(gate.timeoutMs,1_800_000);
+  assert.equal(gate.guard,'tests/session/no-egress.mjs');
+  assert.deepEqual(gate.command.slice(0,6),['node','--import','./tests/session/no-egress.mjs','--test','--test-reporter=tap','--test-concurrency=1']);
+  assert.deepEqual(gate.command.slice(6),files);assert.equal(gate.freshFixtureFiles,undefined);
+  assert.equal(setup.gates.filter(row=>row.id==='build-app').length,1);
+  assert.equal(setup.gates.filter(row=>row.id==='build-server').length,1);
+  assert.deepEqual(setup.gates.find(row=>row.id===gate.id),{id:gate.id,timeoutMs:gate.timeoutMs,graceMs:5000});
+  assert.equal(setup.jobMinutes,180);assert.ok(setup.totalBudgetMs<180*60_000);
+ }
+});
+test('Fast mixed current recovery and historical setup retains only the actual legacy source and archive authorities',()=>{
+ const legacy=fastHostedSelection[0],files=[...fastRecoveryHostedSelection,legacy];
+ const plan=developmentPlan(process.cwd(),{groups:'all',nodeFiles:files.join(','),browsers:'none'}),read=[];
+ const setup=fastSetupPlan(plan,{sourceFor:path=>{read.push(path);return readFileSync(path,'utf8');}});
+ assert.deepEqual([...setup.selectedFiles].sort(),[...files].sort());assert.deepEqual(setup.requiredBrowsers,['chromium']);
+ assert.deepEqual(read,['tests/text-state/prior-writer.mjs',legacy]);
+ assert.deepEqual(setup.sources.map(row=>row.path),read);
+ assert.deepEqual(setup.history,[{commit:'4b2c82ccc41dd72c3f83480f23481b7b62135d23',paths:['server','src','tests','tooling','tsconfig.server.json'],owners:[legacy]}]);
+ assert.throws(()=>fastSetupPlan(plan,{sourceFor:path=>readFileSync(path,'utf8'),history:[]}),/not admitted/);
+ assert.throws(()=>fastSetupPlan(plan,{sourceFor:path=>{
+  const source=readFileSync(path,'utf8');return path===legacy?source.replace('priorWriter(t,oldCommit)','priorWriter(t)'):source;
+ }}),/call changed/);
+});
+test('Fast current recovery dispatch preserves all six selected integration owners through the real maintained plan',()=>{
+ const files=[
+  'tests/recovery/e4-delivery-observer.test.mjs','tests/recovery/fixture-owner.test.mjs',
+  ...fastRecoveryHostedSelection,'tests/qualification/runner.test.mjs','tests/qualification/development.test.mjs',
+ ];
+ const setup=selectedFastDispatchSetup(process.cwd(),{SELECTED_NODE_FILES:files.join(','),SELECTED_BROWSER_FAMILY:'none'});
+ assert.deepEqual([...setup.selectedFiles].sort(),[...files].sort());assert.deepEqual(setup.requiredBrowsers,['chromium']);
+ assert.deepEqual(setup.history,[]);assert.deepEqual(setup.sources,[]);
+ assert.deepEqual(setup.gates.map(gate=>gate.id),[
+  'typecheck','preflight','storage-environment','vendor','text-inputs','imports','build-server','build-app',
+  'node:recovery','node:qualification','node:recovery:browser',
+ ]);
+ assert.equal(setup.gates.at(-1).timeoutMs,1_800_000);assert.ok(setup.totalBudgetMs<=180*60_000);
+});
+test('Fast current recovery setup rejects unknown owners and inconsistent declared browser prerequisites before reading sources',()=>{
+ const plan=developmentPlan(process.cwd(),{groups:'all',nodeFiles:fastRecoveryHostedSelection.join(','),browsers:'none'});
+ for(const corrupt of [
+  value=>{value.gates.find(gate=>gate.browserPrerequisites).browserPrerequisites.files[0]='tests/recovery/other-runner.test.mjs';},
+  value=>{value.gates.find(gate=>gate.browserPrerequisites).browserPrerequisites.files[0]='tests/recovery/nested/owner-runner.test.mjs';},
+  value=>{value.requiredBrowsers=['firefox'];},
+  value=>{value.requiredBrowsers=[];},
+  value=>{value.requiredBrowsers=['chromium','chromium'];},
+  value=>{value.gates.find(gate=>gate.browserPrerequisites).browserPrerequisites.engines=['firefox'];},
+  value=>{value.gates.find(gate=>gate.browserPrerequisites).browserPrerequisites.engines=[];},
+  value=>{const gate=value.gates.find(gate=>gate.browserPrerequisites);gate.browserPrerequisites.files=gate.browserPrerequisites.files.slice(0,1);},
+  value=>{const gate=value.gates.find(gate=>gate.browserPrerequisites);gate.files=gate.files.slice(0,1);},
+  value=>{value.selectedFiles.pop();},
+  value=>{value.gates.push(structuredClone(value.gates.find(gate=>gate.browserPrerequisites)));},
+ ]){
+  const changed=structuredClone(plan);corrupt(changed);
+  assert.throws(()=>fastSetupPlan(changed,{sourceFor:()=>assert.fail('Invalid plan must fail before source reads')}),/not provisioned|Inconsistent selected browser prerequisites/);
+ }
+ assert.throws(()=>selectedFastSetup(process.cwd(),'tests/editor/model-memory-browser.test.mjs'),/not provisioned/);
+});
+test('Fast current recovery setup retains the 180-minute cap and existing fresh-fixture and deadline refusals',()=>{
+ const plan=developmentPlan(process.cwd(),{groups:'all',nodeFiles:fastRecoveryHostedSelection.join(','),browsers:'none'});
+ const setup=fastSetupPlan(plan),boundary=structuredClone(plan);
+ boundary.gates[0].timeoutMs+=180*60_000-setup.totalBudgetMs;
+ assert.equal(fastSetupPlan(boundary).totalBudgetMs,180*60_000);
+ boundary.gates[0].timeoutMs++;assert.throws(()=>fastSetupPlan(boundary),/exceeds the 180-minute/);
+ for(const [corrupt,error] of [
+  [value=>{value.gates[0].freshFixtureFiles=['tests/portable/legacy.test.mjs'];},/genuine schema18/],
+  [value=>{delete value.gates[0].timeoutMs;},/bounded deadline/],
+  [value=>{value.gates[0].graceMs=-1;},/invalid drain allowance/],
+ ]){const changed=structuredClone(plan);corrupt(changed);assert.throws(()=>fastSetupPlan(changed),error);}
+});
+test('Fast current recovery provisioning installs pinned Chromium once without fetching or archiving history',()=>{
+ const root=process.cwd(),plan=selectedFastSetup(root,fastRecoveryHostedSelection.join(','));
+ const commands=[],records=[],head='a'.repeat(40);
+ const result=provisionFastSetup(root,plan,{execute:(command,args,options)=>{
+  commands.push({command,args,options});
+  if(command===process.execPath){
+   assert.deepEqual(args,[join(root,'node_modules/playwright/cli.js'),'install','--with-deps','chromium']);
+   assert.deepEqual(options,{cwd:root,timeout:7*60_000,stdio:'inherit'});return Buffer.alloc(0);
+  }
+  assert.equal(command,'git');assert.deepEqual(args,['-c','core.hooksPath=/dev/null','-C',root,'rev-parse','--verify','HEAD']);
+  assert.equal(options.env.GIT_NO_REPLACE_OBJECTS,'1');assert.equal(options.env.GIT_TERMINAL_PROMPT,'0');
+  return Buffer.from(head+'\n');
+ },record:receipt=>records.push(structuredClone(receipt))});
+ assert.equal(result.status,'PASS');assert.equal(result.qualification,false);assert.deepEqual(result.history,[]);
+ assert.equal(result.headBefore,head);assert.equal(result.headAfter,head);assert.equal(commands.length,3);
+ assert.deepEqual(result.browser,{command:[process.execPath,join(root,'node_modules/playwright/cli.js'),'install','--with-deps','chromium'],status:'PASS'});
+ assert.equal(records.at(-1).status,'PASS');
+});
+test('Fast current recovery provisioning retains a Chromium installation refusal without fallback or history',()=>{
+ const root=process.cwd(),plan=selectedFastSetup(root,fastRecoveryHostedSelection.join(','));
+ const commands=[],records=[];
+ assert.throws(()=>provisionFastSetup(root,plan,{execute:(command,args)=>{
+  commands.push({command,args});
+  if(command===process.execPath){assert.deepEqual(args,[join(root,'node_modules/playwright/cli.js'),'install','--with-deps','chromium']);throw Error('Pinned Chromium install failed');}
+  assert.equal(command,'git');assert.equal(args[4],'rev-parse');return Buffer.from('a'.repeat(40));
+ },record:receipt=>records.push(structuredClone(receipt))}),/Pinned Chromium install failed/);
+ assert.equal(commands.length,3);assert.equal(records.at(-1).status,'FAIL');
+ assert.deepEqual(records.at(-1).history,[]);assert.equal(records.at(-1).browser,null);
+ assert.deepEqual(records.at(-1).plan.selectedFiles,fastRecoveryHostedSelection);
+});
+
+
 test('Fast ordinary R33 setup provisions the actual prior reader without a browser or invented archive',()=>{
  const owner='tests/history/returned-description.test.mjs',plan=developmentPlan(process.cwd(),{groups:'all',nodeFiles:owner,browsers:'none'});
  const setup=selectedFastSetup(process.cwd(),owner);
