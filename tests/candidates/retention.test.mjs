@@ -127,3 +127,171 @@ test('background cadence survives writer restart without restarting inference',a
 test('actual versus requested count is retained in stable bounded output pages',async t=>{
  const x=await setup(t,{mutate:v=>({...v,images:Array.from({length:40},()=>v.images[0]),has_nsfw_concepts:Array(40).fill(false)})});let f=x.o.db.queue.resultFence(x.q.job.id,x.q.job.attempts[0].id);const status=await x.dispatcher.readKnown(f.jobId,f.attemptId,'status');f=x.o.db.candidates.observe(f,status.evidence,Date.now()).fence;const result=await x.dispatcher.readKnown(f.jobId,f.attemptId,'result'),policy=x.provider.policy({attemptId:f.attemptId,identity:{endpoint:x.q.job.review.endpoint,requestId:f.requestId},profileId:'local-fixture-v1'}).applied;x.o.db.candidates.receive(f,result.evidence,policy,[]);const first=x.o.db.candidates.view(f.jobId),second=x.o.db.candidates.view(f.jobId,f.attemptId,first.nextCursor);assert.equal(first.requestedCount,1);assert.equal(first.actualCount,40);assert.equal(first.items.length,32);assert.equal(second.items.length,8);assert.equal(second.nextCursor,null);assert.equal(new Set([...first.items,...second.items].map(c=>c.id)).size,40);assert(Buffer.byteLength(JSON.stringify(first))<65536);assert.equal(x.effects.filter(e=>e.path.startsWith('/image')).length,0);
 });
+
+// These controls declare synthetic external reservation pressure; they allocate
+// no pressure buffer and make no native-RSS or 99-asset campaign claim. The real
+// preflight/decoder, retained original, command admission and fences stay active.
+const syntheticRetryReservation=512*1024*1024;
+function syntheticRetryCandidate(x){
+ const view=x.o.db.candidates.view(x.q.job.id);assert.equal(view.items.length,1);return view.items[0];
+}
+function syntheticRetryTransient(x){
+ const raster=x.o.db.rasters.resourceOwnership();
+ return {objects:x.o.db.objects.resourceOwnership(),proofs:x.o.db.objects.proofInventory(),reservations:x.o.db.objects.reservationInventory(),candidates:x.o.db.candidates.resourceOwnership(),queue:x.o.db.queue.resourceOwnership(),raster:{running:raster.running,documentBusy:raster.documentBusy,activeWorkers:raster.activeWorkers,bookedCPUBytes:raster.bookedCPUBytes,approvalAuthorities:raster.approvalAuthorities}};
+}
+function syntheticRetryRefusals(x,id){
+ const read=x.o.db.rasters.readDiagnostics();
+ try{return read.value.observations.filter(row=>row.phase==='resource-preflight'&&row.slot==='candidate-prepare:'+id).map(row=>structuredClone(row));}
+ finally{read.release();}
+}
+function syntheticRetryPreparedRoots(x){
+ return Number(x.o.db.db.prepare("SELECT count(*) n FROM roots WHERE owner LIKE 'candidate-prepared:%'").get().n);
+}
+function syntheticRetryQueueIdentity(x){
+ const view=x.o.db.queue.view();
+ return {totalJobs:view.totalJobs,counts:view.counts,jobs:view.jobs.map(job=>({id:job.id,attempts:job.attempts.map(attempt=>({id:attempt.id,previousAttemptId:attempt.previousAttemptId,requestId:attempt.requestId,count:attempt.count,spendSessionId:attempt.spendSessionId}))}))};
+}
+function syntheticRetryAssertDrained(s){
+ assert.deepEqual(syntheticRetryTransient(s.x),s.transient);
+ assert.equal(s.x.o.db.rasters.resourceOwnership().activeWorkers,0);
+ assert.equal(s.x.o.db.candidates.resourceOwnership().transfers,0);
+ // A successfully used idle worker may remain resident until normal owned close.
+ // Neither activeJobs===0 nor close() proves physical native allocator release.
+}
+async function syntheticRetryAssertRetained(s){
+ const {x}=s,c=syntheticRetryCandidate(x);
+ for(const key of ['id','documentId','jobId','attemptId','requestId','outputIndex','outputIdentity','encodedAssetId'])assert.deepEqual(c[key],s.candidate[key],key);
+ const asset=x.o.db.assets.asset(c.encodedAssetId);assert.deepEqual(asset,s.original);
+ assert.deepEqual(await readFile(x.o.db.objects.path(asset.blob)),x.png);
+ assert.equal(asset.blob.hash,'sha256:'+createHash('sha256').update(x.png).digest('hex'));
+ assert.throws(()=>x.o.db.assets.safeAsset(c.encodedAssetId),error=>error.code==='CONTENT_WITHHELD');
+ assert.deepEqual(x.o.db.document('document_1'),s.document);
+ assert.deepEqual(x.o.db.histories.state('document_1'),s.image);
+ assert.deepEqual(syntheticRetryQueueIdentity(x),s.queueIdentity);
+ assert.deepEqual(x.effects,s.effects,'retained retry must not submit, upload or read status/result/media');
+ syntheticRetryAssertDrained(s);return c;
+}
+async function syntheticRetryAssertUnpublished(s){
+ const c=await syntheticRetryAssertRetained(s);assert.equal(c.state,'preparation-failed');assert.equal(c.safety,'safe');assert.equal(c.preparedAssetId,null);
+ assert.equal(syntheticRetryPreparedRoots(s.x),s.preparedRoots);
+ assert.deepEqual(s.x.o.db.candidates.retries(),[]);return c;
+}
+async function syntheticRetryRequest(s){
+ const {x}=s,before=syntheticRetryCandidate(x),receipt=await x.o.db.queue.command(encode(envelope({type:'RetryCandidateImport',candidateId:before.id,expectedVersion:before.version})),auth());
+ assert.equal(receipt.status,'accepted');const intent=syntheticRetryCandidate(x);
+ assert.equal(intent.id,before.id);assert.equal(intent.version,String(BigInt(before.version)+1n));
+ assert.equal(intent.state,'preparation-failed');assert.equal(intent.preparedAssetId,null);
+ assert.deepEqual(x.o.db.candidates.retries().map(candidate=>candidate.id),[before.id]);
+ return intent;
+}
+async function withSyntheticRetryRefusal(t,run){
+ const x=await setup(t),rasters=x.o.db.rasters,externalCPU=rasters.externalCPU;
+ const document=structuredClone(x.o.db.document('document_1')),image=structuredClone(x.o.db.histories.state('document_1')),transient=syntheticRetryTransient(x),worker=rasters.resourceOwnership().workerService,preparedRoots=syntheticRetryPreparedRoots(x);
+ assert.equal(preparedRoots,0);
+ const restore=()=>{rasters.externalCPU=externalCPU;};
+ rasters.externalCPU=function(){return externalCPU.call(this)+syntheticRetryReservation;};
+ try{
+  t.diagnostic('Synthetic external-reservation refusal: real 128MiB decode preflight, unchanged 512MiB cap; no allocated pressure buffer or native-RSS reproduction.');
+  await x.observer.tick();const candidate=syntheticRetryCandidate(x);
+  assert.equal(candidate.state,'preparation-failed');assert.equal(candidate.safety,'safe');assert(candidate.encodedAssetId);assert.equal(candidate.preparedAssetId,null);
+  assert.match(candidate.warning,/Preparation failed; encoded original retained\. Retry prepares the same candidate\./);
+  const rows=syntheticRetryRefusals(x,candidate.id);assert.equal(rows.length,1);const row=rows[0];
+  assert.equal(row.job,'decode');assert.equal(row.admitted,false);assert.equal(row.limit,syntheticRetryReservation);assert.equal(row.preflightCPU,128*1024*1024);
+  assert(row.externalCPU>=syntheticRetryReservation);assert(Number.isSafeInteger(row.processRSS)&&row.processRSS>0);
+  assert.equal(row.combinedReservedBytes,row.processRSS+row.externalCPU+row.preflightCPU);assert(row.combinedReservedBytes>row.limit);
+  assert.deepEqual(rasters.resourceOwnership().workerService,worker,'preflight refusal must precede native worker admission');
+  assert.equal(x.effects.filter(effect=>effect.method==='POST').length,1);assert.equal(x.effects.filter(effect=>effect.path==='/image0').length,1);
+  const s={x,restore,externalCPU,document,image,transient,worker,preparedRoots,candidate:structuredClone(candidate),original:structuredClone(x.o.db.assets.asset(candidate.encodedAssetId)),effects:structuredClone(x.effects),queueIdentity:structuredClone(syntheticRetryQueueIdentity(x)),initialRefusals:rows};
+  await syntheticRetryAssertUnpublished(s);await run(s);
+ }finally{restore();}
+}
+
+test('synthetic external-reservation refusal permits one explicit retained-original retry without provider work',async t=>{
+ await withSyntheticRetryRefusal(t,async s=>{
+  const {x}=s;s.restore();assert.strictEqual(x.o.db.rasters.externalCPU,s.externalCPU);
+  // Merely removing pressure cannot create retry intent or preparation work.
+  await x.observer.tick();assert.deepEqual(syntheticRetryRefusals(x,s.candidate.id),s.initialRefusals);assert.equal((await syntheticRetryAssertUnpublished(s)).version,s.candidate.version);
+  const intent=await syntheticRetryRequest(s);await x.observer.tick();
+  const prepared=await syntheticRetryAssertRetained(s);assert.equal(prepared.state,'prepared');assert(BigInt(prepared.version)>BigInt(intent.version));assert(prepared.preparedAssetId);
+  const asset=x.o.db.assets.safeAsset(prepared.preparedAssetId);assert.equal(asset.qualification,'canonical-raster');assert.equal(asset.safety,'safe');assert.equal(asset.raster.width,512);assert.equal(asset.raster.height,512);
+  x.o.db.objects.verify(asset.blob);for(const ref of asset.dependencies)x.o.db.objects.verify(ref);
+  assert(syntheticRetryPreparedRoots(x)>s.preparedRoots);assert.deepEqual(x.o.db.candidates.retries(),[]);
+  assert.equal(x.o.db.rasters.resourceOwnership().workerService.completedJobs,s.worker.completedJobs+1);
+  assert.deepEqual(syntheticRetryRefusals(x,s.candidate.id),s.initialRefusals);
+ });
+});
+test('synthetic external-reservation pressure still refuses one explicit retry and does not retry itself',async t=>{
+ await withSyntheticRetryRefusal(t,async s=>{
+  const {x}=s,intent=await syntheticRetryRequest(s);await x.observer.tick();
+  const failed=await syntheticRetryAssertUnpublished(s);assert(BigInt(failed.version)>BigInt(intent.version));
+  const rows=syntheticRetryRefusals(x,s.candidate.id);assert.equal(rows.length,2);assert.deepEqual(rows[0],s.initialRefusals[0]);
+  assert.equal(rows[1].job,'decode');assert.equal(rows[1].admitted,false);assert.equal(rows[1].limit,syntheticRetryReservation);assert.equal(rows[1].preflightCPU,128*1024*1024);assert(rows[1].externalCPU>=syntheticRetryReservation);assert.equal(rows[1].combinedReservedBytes,rows[1].processRSS+rows[1].externalCPU+rows[1].preflightCPU);assert(rows[1].combinedReservedBytes>rows[1].limit);
+  await x.observer.tick();assert.deepEqual(syntheticRetryRefusals(x,s.candidate.id),rows);assert.equal((await syntheticRetryAssertUnpublished(s)).version,failed.version);
+  assert.deepEqual(x.o.db.rasters.resourceOwnership().workerService,s.worker);
+ });
+});
+test('synthetic external-reservation refusal does not admit a stale-version RetryCandidateImport',async t=>{
+ await withSyntheticRetryRefusal(t,async s=>{
+  const {x}=s;s.restore();assert(BigInt(s.candidate.version)>0n);
+  const receipt=await x.o.db.queue.command(encode(envelope({type:'RetryCandidateImport',candidateId:s.candidate.id,expectedVersion:String(BigInt(s.candidate.version)-1n)})),auth());
+  assert.equal(receipt.status,'rejected');assert.equal(receipt.code,'STALE_REVISION');
+  const detail=JSON.parse(await readFile(x.o.db.objects.path(receipt.details),'utf8'));
+  assert.deepEqual(detail,{kind:'fields',issues:[{path:'command.body',code:'CANDIDATE_CHANGED'}]});
+  assert.deepEqual(await syntheticRetryAssertUnpublished(s),s.candidate);assert.deepEqual(syntheticRetryRefusals(x,s.candidate.id),s.initialRefusals);
+  assert.deepEqual(x.o.db.rasters.resourceOwnership().workerService,s.worker);
+ });
+});
+
+function syntheticRetryHoldOriginal(s){
+ const rasters=s.x.o.db.rasters,original=rasters.prepareDocument;let release,entered,calls=0;
+ const released=new Promise(resolve=>{release=resolve;}),entry=new Promise(resolve=>{entered=resolve;});
+ rasters.prepareDocument=async function(...args){
+  if(args[0]?.type==='PrepareCandidate'&&args[0].assetId===s.candidate.encodedAssetId&&args[2]==='candidate-prepare:'+s.candidate.id){
+   calls++;assert.equal(calls,1,'one explicit retry may enter original preparation only once');entered();await released;
+  }
+  return Reflect.apply(original,this,args);
+ };
+ return {entry,release,restore:()=>{rasters.prepareDocument=original;},calls:()=>calls};
+}
+async function syntheticRetryHeldControl(t,action){
+ await withSyntheticRetryRefusal(t,async s=>{
+  const {x}=s;s.restore();const hold=syntheticRetryHoldOriginal(s);let settled;
+  try{
+   await syntheticRetryRequest(s);
+   // Attach rejection handling immediately, before awaiting entry or assertions.
+   settled=x.observer.tick().then(value=>({status:'fulfilled',value}),error=>({status:'rejected',error}));
+   assert.equal(await Promise.race([hold.entry.then(()=> 'entered'),settled.then(()=> 'settled')]),'entered','tick settled before the selected original preparation entry');
+   assert.equal(hold.calls(),1);assert.equal(x.o.db.candidates.resourceOwnership().transfers,1);assert.deepEqual(x.o.db.candidates.retries(),[]);
+   assert.equal(x.o.db.rasters.resourceOwnership().documentBusy,false,'barrier precedes original prepareDocument');
+   assert.equal(x.o.db.objects.reservationInventory().activeTransfers,s.transient.reservations.activeTransfers+1);
+   if(action==='cancel'){
+    const job=x.o.db.queue.view().jobs.find(job=>job.id===s.candidate.jobId);assert(job);
+    const receipt=await x.o.db.queue.command(encode(envelope({type:'CancelJob',jobId:job.id,attemptId:s.candidate.attemptId,expectedVersion:job.version})),auth());
+    assert.equal(receipt.status,'accepted');assert.equal(x.o.db.queue.view().jobs.find(current=>current.id===job.id)?.disposition,'cancel-requested');
+   }else if(action==='observer-close')x.observer.close();
+   else{assert.equal(action,'candidates-close');await x.o.db.candidates.close();}
+   hold.release();const outcome=await settled;
+   if(action==='cancel'){assert.equal(outcome.status,'rejected');assert.equal(outcome.error.code,'STALE_EPOCH');}
+   else assert.equal(outcome.status,'fulfilled');
+   // Close flags are not drains: these reads happen only after the held tick.
+   await syntheticRetryAssertUnpublished(s);assert.equal(hold.calls(),1);
+   assert.deepEqual(syntheticRetryRefusals(x,s.candidate.id),s.initialRefusals);
+   assert.deepEqual(x.o.db.rasters.resourceOwnership().workerService,s.worker);
+   // A truthful failed-state version/warning is allowed. No further tick is run:
+   // after CancelJob it could legitimately deliver a separate provider cancel.
+  }finally{
+   // Always release even when command/entry/assertion checks fail. Drain the same
+   // promptly handled tick before restoring methods and before setup's teardown.
+   hold.release();try{if(settled)await settled;}finally{hold.restore();s.restore();}
+  }
+ });
+}
+test('synthetic external-reservation retry held at original entry is fenced by CancelJob',async t=>{
+ await syntheticRetryHeldControl(t,'cancel');
+});
+test('synthetic external-reservation retry held at original entry cannot publish after observer close',async t=>{
+ await syntheticRetryHeldControl(t,'observer-close');
+});
+test('synthetic external-reservation retry held at original entry cannot publish after candidate owner close',async t=>{
+ await syntheticRetryHeldControl(t,'candidates-close');
+});
