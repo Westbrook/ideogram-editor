@@ -178,27 +178,3 @@ test('container dependency proof refuses planned, failed or ambiguous observatio
     assert.throws(() => containerPrerequisiteIds(value), /Container dependency proof/);
   }
 });
-
-test('hosted container refuses unavailable packet provisioning before setup and retains the reason', () => {
-  const workflow = readFileSync(new URL('../../.github/workflows/qualification.yml', import.meta.url), 'utf8');
-  const functional = workflow.split('\n  functional:\n')[1]?.split('\n  physical-qualification-required:\n')[0];
-  assert.ok(functional, 'The hosted functional job must remain identifiable');
-  const steps = functional.split(/(?=^      - )/m).slice(1);
-  assert.match(steps[0], /^      - name: Check out exact source\n/);
-  const refusal = steps[1];
-  assert.match(refusal, /^      - name: Require hosted schema18 packet provisioning\n/);
-  assert.match(refusal, /prerequisite-unavailable/);
-  assert.match(refusal, /::error::Hosted container execution requires a reviewed platform-matching schema18 packet closure/);
-  assert.match(refusal, / > artifacts\/qualification-ci\/prerequisite-status\.txt\n/);
-  assert.match(refusal, /^          exit 2\s*$/m);
-  assert.doesNotMatch(refusal, /^\s*(?:if|continue-on-error):/m);
-  assert.doesNotMatch(functional, /^\s*continue-on-error:/m);
-  for (const setup of ['Validate input and retain source identity', 'Prepare sealed public and historical fixture closure', 'Build isolated dependency and browser image', 'Run gates without external networking']) {
-    assert.ok(steps.findIndex(step => step.startsWith('      - name: ' + setup + '\n')) > 1, setup);
-  }
-  const upload = steps.find(step => step.startsWith('      - name: Upload functional gate evidence\n'));
-  assert.ok(upload);
-  assert.match(upload, /^        if: always\(\)$/m);
-  assert.match(upload, /^            artifacts\/qualification-ci$/m);
-  assert.doesNotMatch(upload, /!.*prerequisite-status/);
-});

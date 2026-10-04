@@ -1077,21 +1077,6 @@ test('Fast browser provisioning installs only the selected locked CLI engine and
   assert.equal(failedCommands.length,1);assert.deepEqual(failures.map(row=>row.status),['PENDING','FAIL']);assert.equal(failures.at(-1).browser,null);
  }
 });
-test('Fast workflow offers the reviewed single-family choices and preserves quoted serial runner and existing default commands',()=>{
- const workflow=readFileSync('.github/workflows/validation.yml','utf8');
- const block=workflow.split('      browser_family:\n')[1].split('      browser:\n')[0];
- assert.deepEqual([...block.matchAll(/^          - (.+)$/gm)].map(match=>match[1]),['none',...fastBrowserFamilies]);
- assert(workflow.includes('npm run validate -- run --groups preflight --browsers "$SELECTED_BROWSER" --browser-groups "$SELECTED_BROWSER_FAMILY" --workers 1 --fresh --serial-browser --output "$IE_VALIDATION_OUTPUT"'));
- assert(workflow.includes('npm run validate -- run --groups all --node-files "$SELECTED_NODE_FILES" --browsers none --workers 1 --fresh --output "$IE_VALIDATION_OUTPUT"'));
- assert(workflow.includes('npm run validate -- run --groups tooling --browsers none --workers 1 --fresh --output "$IE_VALIDATION_OUTPUT"'));
- assert(workflow.includes("SELECTED_BROWSER_FAMILY: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_family || 'none' }}"));
- assert(workflow.includes('retention-days: 90'));assert(workflow.includes('contents: read'));
- const uploads=workflow.split('      - name: Retain failure and success receipts\n');assert.equal(uploads.length,2);
- const uploadWith=uploads[1].split('        with:\n')[1].split('\n#')[0];
- assert.deepEqual([...uploadWith.matchAll(/^          (path|include-hidden-files): (.+)$/gm)].map(match=>[match[1],match[2]]),[['path','artifacts/validation'],['include-hidden-files','true']]);
- assert.equal((workflow.match(/^          include-hidden-files:/gm)||[]).length,1);
- assert.equal((workflow.match(/--browser-grep|--batch-browser/g)||[]).length,0);
-});
 
 
 const publicAdapterPath = 'artifacts/p27-evidence/fal-public-lora-example/provider-example.safetensors';

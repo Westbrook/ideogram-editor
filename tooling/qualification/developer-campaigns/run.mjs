@@ -48,7 +48,7 @@ export function campaignPlan(campaign) {
   return {kind: 'developer-pipeline-campaign-plan-1', job: 'I0', qualification: false,
     samples: ['one complete normal core pipeline', 'one complete cold core pipeline'],
     execution: 'Dedicated physical C and H hosts execute sealed CI graph stages; one local stage is only part of I0.',
-    executor: 'tooling/qualification/ci/execute.mjs', workflow: '.github/workflows/qualification.yml',
+    executor: 'tooling/qualification/ci/execute.mjs',
     planPurposes: {comparison: 'Both base and candidate I0 graphs; immutable distinct revisions.', 'initial-baseline': 'Candidate-only full Q3 including both I0 graphs; no comparison base or relative qualification.'},
     stage: '--campaign I0 --run --install --ci-plan <sealed-ci-plan.json> --stage q3-<base|candidate>-i0-<normal|cold>-<prepareC|restC|H> --received <downloaded-stage-artifacts> --workspace <owned-subjects> --output <fresh-stage-output>',
     join: '--campaign I0 --verify --ci-plan <same-plan.json> --received <all-stage-artifacts> --output <new-result.json>',
