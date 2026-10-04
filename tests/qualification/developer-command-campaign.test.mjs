@@ -6,7 +6,7 @@ import {join} from 'node:path';
 import {gzipSync} from 'node:zlib';
 import {createHash} from 'node:crypto';
 import {commandSchedule, commandBudgets, developerCommandPlan, summarizeCommands, observeD11Build} from '../../tooling/qualification/developer-campaigns/commands.mjs';
-import {caseIdentity, classifySuite, validateBrowserSelection, validateFocused, nodeClassification, exactPattern, nativeNodeBrowserFiles, contractsForCase} from '../../tooling/qualification/developer-campaigns/selectors.mjs';
+import {caseIdentity, classifySuite, validateBrowserSelection, validateFocused, nodeClassification, exactPattern, nativeNodeBrowserFiles, contractsForCase, discoverNodeFiles} from '../../tooling/qualification/developer-campaigns/selectors.mjs';
 import BrowserReporter from '../../tooling/qualification/developer-campaigns/browser-reporter.mjs';
 import {admitSchema18Input, cleanEnvironment, execute, json} from '../../tooling/qualification/developer-campaigns/common.mjs';
 import {browserCacheIdentity} from '../../tooling/qualification/developer-campaigns/verify-browsers.mjs';
@@ -177,6 +177,16 @@ test('exact Node patterns escape operators and stable method IDs cannot cross na
   assert(nativeNodeBrowserFiles.includes('tests/editor/model-memory-browser.test.mjs'));
   assert.deepEqual(nodeClassification('tests/editor/model-memory-browser.test.mjs'), {method: 'B', guard: 'tests/session/no-egress.mjs', contracts: ['B-controls']});
   for (const file of nativeNodeBrowserFiles) assert.equal(nodeClassification(file).method, 'B');
+});
+test('full discovery selects portable writer controls only in the integration suite', async () => {
+  const inventory = await discoverNodeFiles(process.cwd());
+  const file = 'tests/campaigns/fixture-portable.test.mjs';
+  assert.deepEqual(inventory.filter(item => item.file === file), [{
+    file, method: 'L', guard: 'tests/session/no-egress.mjs', contracts: ['L-runner'],
+  }]);
+  assert.equal(inventory.filter(item => item.method === 'U').some(item => item.file === file), false);
+  assert.equal(inventory.filter(item => item.method === 'L').filter(item => item.file === file).length, 1);
+  assert.equal(inventory.find(item => item.file === 'tests/campaigns/fixture-native.test.mjs').method, 'U');
 });
 test('reporter retains framework identity and full title without changing stable leaf name', () => {
   const reporter = new BrowserReporter();

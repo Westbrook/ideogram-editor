@@ -16,11 +16,14 @@ export const nativeNodeBrowserFiles = Object.freeze([
   'tests/browser/wa-observation.test.mjs',
 ]);
 const integrationNames = /(?:writer|transport|backend|flow|deletion|upload-owner|retention|compatibility|retained-text|initialization|network|process|host)/;
+// This mixed helper owner includes real writer/Composition archive controls.
+// Keep those controls in the integration suite despite its historical filename.
+const integrationFiles = new Set(['tests/campaigns/fixture-portable.test.mjs']);
 export function nodeClassification(file) {
   const [, directory, ...parts] = safeRelative(file).split('/');
   // Classification follows the real execution boundary. These Node-hosted
   // cases launch Chromium and belong after browser provisioning in full B.
-  const method = nativeNodeBrowserFiles.includes(file) ? 'B' : integrationDirectories.has(directory) || integrationNames.test(parts.at(-1)) ? 'L' : 'U';
+  const method = nativeNodeBrowserFiles.includes(file) ? 'B' : integrationFiles.has(file) || integrationDirectories.has(directory) || integrationNames.test(parts.at(-1)) ? 'L' : 'U';
   const group = file === 'tests/recovery/editor-capability-preflight.test.mjs' ? 'editor-capability-preflight' : directory;
   const guard = nodeGuardForFile(group, file);
   const contract = {request: 'route', provider: 'provider', queue: 'job', candidates: 'job', composition: 'composition', adapters: 'adapter', raster: 'raster', history: 'state', store: 'store', portable: 'copy', 'text-state': 'text', 'ui-state': 'controls', recovery: 'recovery', assets: 'assets', session: 'session', protocol: 'protocol', editor: 'controls', browser: 'controls', text: 'text', qualification: 'runner', campaigns: 'runner', export: 'raster'}[directory];
