@@ -1,11 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
-import { mkdtemp, readdir, rm } from 'node:fs/promises';
+import { fstatSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { mkdtemp, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { archiveFeatureEvidence, buildPortableFixture, portableFixturePlan } from '../../tooling/qualification/campaigns/fixture-portable.mjs';
+import { archiveFeatureEvidence, buildPortableFixture, inspectPortableArchive, portableFixturePlan } from '../../tooling/qualification/campaigns/fixture-portable.mjs';
+import { fileIdentity, productFor, verifyArchive } from '../../tooling/qualification/campaigns/backend-portable.mjs';
+import * as portableCommon from '../../tooling/qualification/campaigns/backend-common.mjs';
+import { ownTestRoot } from '../../tooling/qualification/owned-test-roots.mjs';
 
 const seed = () => ({ root: '/closed/mixed-root', documentId: 'mixed_document', archive: {
   path: '/sealed/mixed.zip', sha256: 'a'.repeat(64), byteLength: '20000',
@@ -163,4 +168,159 @@ test('portable reopen projection cannot turn an empty native closure or over-lim
  const empty=reopenProjectionFixture(t,{text:false});await assert.rejects(portableReopenFontProjection(empty.db,empty.read,empty.document),/Current portable native text is unavailable/);
  const excessive=reopenProjectionFixture(t,{fontCount:17});await assert.rejects(portableReopenFontProjection(excessive.db,excessive.read,excessive.document),/Current public font locator boundary exceeded/);
  assert.equal(excessive.reads.length,18);assert.equal(excessive.rows().length,17);
+});
+
+
+// Small real ordinary-writer archives exercise the production archive helpers.
+// Their observed counts are used honestly below; this is not WC512/WC4G fixture
+// admission, workload timing, or a replacement for any large-volume campaign.
+async function smallCompositionArchive(t) {
+  const repo = fileURLToPath(new URL('../../', import.meta.url));
+  const output = ownTestRoot(await mkdtemp(join(tmpdir(), 'portable-composition-closure-')));
+  const product = await productFor(repo), core = await portableCommon.product({repo}, 'src/composition/core.js');
+  const {canonical} = await portableCommon.product({repo}, 'src/protocol/json.js');
+  const f = await portableCommon.createProductFixture({repo, output: join(output, 'writer')});
+  try {
+    await portableCommon.createDocument(f, {width: 3, height: 2});
+    const raw = await portableCommon.stageBlob(f, Buffer.from('Original caption with retained Unicode: Café / 東京\n'), 'text', 'application/octet-stream');
+    let composition = core.emptyComposition(3, 2, randomUUID());
+    const element = core.emptyElement('text', 'caption_element'); element.text.value = 'Editable semantic caption';
+    composition.scene = 'Small portable closure control'; composition.elements = [element]; composition.raw = [raw.blob];
+    const commit = async type => {
+      const stored = await portableCommon.stageBlob(f, Buffer.from(canonical(composition)), 'text', 'application/octet-stream');
+      const value = {...stored.blob, mediaType: 'application/json'};
+      await portableCommon.finish(f.writer, portableCommon.envelope({type, composition: {id: composition.id, value, bindings: {}}, draft: null},
+        {documentId: f.documentId, expectedDocumentRevision: await f.writer.documentRevision(f.documentId)}), 'historyCommand');
+      return value;
+    };
+    const initialGraph = await commit('CommitCompositionVersion');
+    composition = structuredClone(composition); composition.id = randomUUID();
+    const projected = core.serialize(composition, [], {}), prompt = await portableCommon.stageCaption(f, projected.prompt);
+    composition.review = {serializer: 'caption-json-1', sourceId: composition.id, frame: composition.frame, request: composition.request,
+      dependencies: projected.dependencies, boxes: projected.boxes, prompt: prompt.blob};
+    const reviewedGraph = await commit('ApprovePromptProjection'), expectedDocument = await f.writer.document(f.documentId);
+    assert.equal(expectedDocument.compositionVersion, composition.id);
+    const saveRequest = portableCommon.envelope({type: 'SaveCopy'},
+      {documentId: f.documentId, expectedDocumentRevision: expectedDocument.revision});
+    let saved;
+    try { saved = await portableCommon.finish(f.writer, saveRequest, 'portableCommand'); }
+    catch (error) {
+      // Preserve the actual command and bounded producer rejection for diagnosis.
+      // This does not turn a rejected SaveCopy into a usable archive or test pass.
+      try {
+        const state = await f.writer.commandState(saveRequest.command.commandId), receipt = state.record?.receipt ?? null;
+        let details = null;
+        if (receipt?.status === 'rejected' && receipt.details) {
+          const length = Number(receipt.details.byteLength);
+          assert(Number.isSafeInteger(length) && length > 0 && length <= 65536);
+          const bytes = Buffer.from(await f.writer.readMetadata(receipt.details));
+          assert.equal(String(bytes.length), receipt.details.byteLength);
+          assert.equal('sha256:' + createHash('sha256').update(bytes).digest('hex'), receipt.details.hash);
+          details = {ref: receipt.details, value: JSON.parse(bytes.toString('utf8'))};
+        }
+        const diagnostic = join(output, 'save-copy-failure.json');
+        await writeFile(diagnostic, JSON.stringify({kind: 'small-composition-save-copy-failure-1',
+          commandId: saveRequest.command.commandId, receipt, details}, null, 2) + '\n', {mode: 0o600, flag: 'wx'});
+        t.diagnostic('Actual SaveCopy failure retained at ' + diagnostic);
+      } catch (captureError) { throw new AggregateError([error, captureError], 'SaveCopy failed and rejection detail capture failed'); }
+      throw error;
+    }
+    const bundle = saved.events.find(event => event.type === 'BundlePrepared')?.payload.bundle;
+    assert.equal(bundle?.status, 'copy-ready');
+    const bare = bundle.blob.hash.slice(7), path = join(f.root, 'objects', 'sha256', bare.slice(0, 2), bare);
+    assert.deepEqual(await fileIdentity(path), {sha256: bare, byteLength: bundle.blob.byteLength});
+    return {repo, output, product, path, bundle, expectedDocument, initialGraph, reviewedGraph, raw: raw.blob, prompt: prompt.blob};
+  } finally {await f.close();}
+}
+
+// These wrappers delegate every real archive read/validation and every actual
+// Composition reservation. Faults occur only once a production metadata read
+// has both its graph scope and its async cache reservations, not at a fake API.
+function observedArchiveProduct(actual, {fault, controller} = {}) {
+  const owners = [], databases = [], zips = [], calls = [], activeReads = [];
+  const injected = Error('controlled portable Composition metadata ' + (fault ?? 'read'));
+  let injectedOnce = false;
+  class ObservedCompositionMemory extends actual.CompositionMemory {
+    constructor(...args) {super(...args); owners.push({value: this, before: this.resourceOwnership()});}
+  }
+  class ObservedZipIndex extends actual.ZipIndex {
+    constructor(...args) {super(...args); this.closeCalls = 0; zips.push(this);}
+    async *chunks(entry, check) {
+      const current = owners.find(owner => owner.value.resourceOwnership().borrowers >= 2);
+      if (current) {
+        activeReads.push({entry: entry.name, ownership: current.value.resourceOwnership()});
+        if (fault && !injectedOnce) {
+          injectedOnce = true;
+          if (fault === 'read-failure') throw injected;
+          assert.equal(fault, 'abort'); controller.abort(injected);
+        }
+      }
+      yield* super.chunks(entry, check);
+    }
+    close() {this.closeCalls++; return super.close();}
+  }
+  const product = {...actual, CompositionMemory: ObservedCompositionMemory, ZipIndex: ObservedZipIndex,
+    spool(path) {const db = actual.spool(path); databases.push(db); return db;},
+    async validateClosure(...args) {
+      assert(args[3] instanceof actual.CompositionMemory, 'Fourth closure argument is the actual Composition owner');
+      calls.push({owner: args[3], flags: args.slice(4)});
+      return actual.validateClosure(...args);
+    },
+  };
+  const drained = () => {
+    assert.equal(owners.length, 1); assert.equal(databases.length, 1); assert.equal(zips.length, 1); assert.equal(calls.length, 1);
+    assert(activeReads.length > 0, 'Real Composition closure enters owned metadata reads');
+    assert(activeReads.every(read => read.entry.startsWith('objects/') && read.ownership.borrowedBytes > 0));
+    for (const owner of owners) {assert.deepEqual(owner.value.resourceOwnership(), owner.before); assert.equal(owner.value.bytes, 0);}
+    for (const zip of zips) {assert.equal(zip.closeCalls, 1); assert.throws(() => fstatSync(zip.fd), {code: 'EBADF'});}
+    for (const db of databases) assert.throws(() => db.prepare('SELECT 1'), /not open|closed/i);
+    if (fault) assert.equal(injectedOnce, true, 'Fault is delivered during the protected real metadata read');
+  };
+  return {product, owners, calls, activeReads, injected, drained};
+}
+const smallArchiveSeal = inspected => ({documentId: inspected.document.id, counts: structuredClone(inspected.counts), features: structuredClone(inspected.features)});
+const closureFlags = format => [4, 5, 6, 7, 9, 10, 10, 12, 13].map(minimum => format >= minimum);
+
+test('both portable archive validators accept a genuine ordinary-writer Composition closure with exact small counts', async t => {
+  const f = await smallCompositionArchive(t), inspect = observedArchiveProduct(f.product);
+  const actual = await inspectPortableArchive({repo: f.repo, path: f.path, output: f.output, product: inspect.product});
+  inspect.drained();
+  assert(actual.formatVersion >= 7); assert.equal(actual.document.id, f.expectedDocument.id);
+  assert.equal(actual.document.compositionVersion, f.expectedDocument.compositionVersion);
+  assert.equal(actual.fullHashesVerified, true); assert.equal(actual.semanticClosureVerified, true); assert.equal(actual.typedFeaturesVerified, true);
+  assert.equal(actual.counts.captionVersions, 1); assert(actual.counts.events > 0); assert(BigInt(actual.counts.closureBytes) > 0n);
+  assert(BigInt(actual.counts.closureBytes) < 536870912n); assert(actual.counts.assets < 1000 && actual.counts.events < 10000);
+  assert.deepEqual(actual.features.rawCaptions, [f.raw.hash]);
+  assert.deepEqual(actual.features.derivedCaptions, [f.reviewedGraph.hash, f.prompt.hash].sort());
+  assert.deepEqual(inspect.calls[0].flags, closureFlags(actual.formatVersion));
+  const verify = observedArchiveProduct(f.product), seal = smallArchiveSeal(actual);
+  const checked = await verifyArchive(verify.product, f.path, f.output, seal);
+  verify.drained(); assert.deepEqual(verify.calls[0].flags, closureFlags(actual.formatVersion));
+  assert.equal(checked.documentId, actual.document.id); assert.equal(checked.formatVersion, actual.formatVersion);
+  for (const name of ['events', 'assets', 'closureBytes', 'manifestBytes', 'captionVersions']) assert.equal(checked[name], actual.counts[name], name);
+  assert.equal(checked.fullHashesVerified, true); assert.equal(checked.semanticClosureVerified, true); assert.equal(checked.typedFeaturesVerified, true);
+  assert.equal(checked.ownedClosureHashesVerified, false); assert.match(checked.inputIdentity, /^sha256:[a-f0-9]{64}$/);
+  // Successful validation is read-only: the actual archive is still its writer's
+  // exact retained object, including the earlier unreviewed Composition version.
+  assert.notEqual(f.initialGraph.hash, f.reviewedGraph.hash);
+  assert.deepEqual(await fileIdentity(f.path), {sha256: f.bundle.blob.hash.slice(7), byteLength: f.bundle.blob.byteLength});
+});
+
+for (const helper of ['inspectPortableArchive', 'verifyArchive']) test(helper + ' drains real Composition owners and archive handles on protected read failure and abort', async t => {
+  const f = await smallCompositionArchive(t);
+  const baseline = await inspectPortableArchive({repo: f.repo, path: f.path, output: f.output, product: f.product});
+  for (const fault of ['read-failure', 'abort']) {
+    const controller = new AbortController(), observed = observedArchiveProduct(f.product, {fault, controller});
+    const run = () => helper === 'inspectPortableArchive'
+      ? inspectPortableArchive({repo: f.repo, path: f.path, output: f.output, product: observed.product, signal: controller.signal})
+      : verifyArchive(observed.product, f.path, f.output, smallArchiveSeal(baseline), controller.signal);
+    await assert.rejects(run(), error => error === observed.injected);
+    observed.drained(); assert.deepEqual(observed.calls[0].flags, closureFlags(baseline.formatVersion));
+    assert.equal(controller.signal.aborted, fault === 'abort');
+  }
+  // A failed diagnostic read neither mutates the source nor poisons a later
+  // independent owner. Reverify the same archive with unmodified product APIs.
+  const after = await inspectPortableArchive({repo: f.repo, path: f.path, output: f.output, product: f.product});
+  assert.deepEqual(after, baseline);
+  assert.deepEqual(await fileIdentity(f.path), {sha256: f.bundle.blob.hash.slice(7), byteLength: f.bundle.blob.byteLength});
 });

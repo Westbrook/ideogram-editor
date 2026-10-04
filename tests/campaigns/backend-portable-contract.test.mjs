@@ -199,3 +199,28 @@ test('WC source digest includes transaction, record and root ancestry beyond equ
     assert.equal(calls,1,'The actual row walk observes cancellation');
   } finally {db.close();}
 });
+
+
+import {preparePortableFontFault, validateFontFaultDescriptor} from '../../tooling/qualification/campaigns/portable-font-fault.mjs';
+
+test('font-negative admission refuses absent, unversioned and caller-issued success contracts', () => {
+  for (const descriptor of [null, {}, {kind:'portable-font-negative-fixture-1',schemaVersion:2},
+    {kind:'portable-font-negative-fixture-1',schemaVersion:1,negativeOnly:false,qualification:true},
+    {kind:'portable-font-negative-fixture-1',schemaVersion:1,negativeOnly:true,qualification:false,
+      failure:'FONT_EMBEDDING_RESTRICTED',setupModule:'file:///untrusted/setup.mjs',outcome:'pass'}]) {
+    assert.throws(() => validateFontFaultDescriptor(descriptor), {code:'FIXTURE_REQUIRED'});
+  }
+});
+
+test('font-negative preparation rejects unsupported direction and absent baseline before taking writer ownership', async t => {
+  const parent=await directory(t),output=join(parent,'must-not-exist');let closes=0;
+  const writer={close:async()=>{closes++;assert.fail('Invalid preparation must not close the caller writer');}};
+  for(const direction of ['export','copy-out','reopen','import-and-copy',null]) {
+    await assert.rejects(preparePortableFontFault({direction,repo:process.cwd(),output,root:join(parent,'root'),writer}), {code:'FIXTURE_REQUIRED'});
+  }
+  for(const direction of ['copy','import']) {
+    await assert.rejects(preparePortableFontFault({direction,repo:process.cwd(),output,root:join(parent,'root'),writer}), {code:'FIXTURE_REQUIRED'});
+  }
+  assert.equal(closes,0);
+  assert.deepEqual(await (await import('node:fs/promises')).readdir(parent),[], 'No output or alternate root is created for an inadmissible request');
+});

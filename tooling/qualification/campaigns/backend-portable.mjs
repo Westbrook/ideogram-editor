@@ -1,3 +1,4 @@
+import {preparePortableFontFault} from './portable-font-fault.mjs';
 import {createWarmOwner,warmInventory,warmDigest,warmCell,retainWarmProof} from './backend-warm-proof.mjs';
 // C10 / I12C use the production writer and PF-1 reader. Fixture preparation and
 // reset are explicit phases; imports consume their own presealed archive.
@@ -123,11 +124,11 @@ async function cloneRoot(fixture, target, signal) {
 
 export async function productFor(repo) {
   const module = path => import(pathToFileURL(join(repo, 'dist/local', path)).href);
-  const [writer, zip, format, closure, protocol] = await Promise.all([
+  const [writer, zip, format, closure, protocol, composition] = await Promise.all([
     module('server/storage/writer.js'), module('server/portable/zip.js'), module('server/portable/format.js'),
-    module('server/portable/closure.js'), module('src/protocol/store.js'),
+    module('server/portable/closure.js'), module('src/protocol/store.js'), module('server/storage/composition-memory.js'),
   ]);
-  return { ...writer, ...zip, ...format, ...closure, ...protocol };
+  return { ...writer, ...zip, ...format, ...closure, ...protocol, ...composition };
 }
 
 function command(product, auth, body, document = null) {
@@ -196,10 +197,14 @@ export function portableInputIdentity(db,manifest,check=()=>{}) {
 }
 
 export async function verifyArchive(product, path, output, seal, signal, owned = null) {
+  let compositionMemory; compositionMemory = new product.CompositionMemory(() => compositionMemory.bytes);
+  const memoryBefore = compositionMemory.resourceOwnership();
   const db = product.spool(join(output, `archive-check-${randomUUID()}.sqlite`));
-  const zip = new product.ZipIndex(path, db), check = () => checkSignal(signal);
-  const ownedDatabase = owned ? new DatabaseSync(join(owned.root, 'metadata.sqlite'), { readOnly: true }) : null;
+  const check = () => checkSignal(signal);
+  let zip, ownedDatabase;
   try {
+    zip = new product.ZipIndex(path, db);
+    ownedDatabase = owned ? new DatabaseSync(join(owned.root, 'metadata.sqlite'), { readOnly: true }) : null;
     await zip.headers(check); await zip.hashes(check);
     const manifest = await product.decodeRecords(zip, db, check);
     assert.equal(manifest.unsupported, undefined);
@@ -210,8 +215,9 @@ export async function verifyArchive(product, path, output, seal, signal, owned =
       for await (const bytes of zip.chunks(zip.entry('objects/' + ref.hash.slice(7)), check)) parts.push(bytes);
       return Buffer.concat(parts);
     };
-    const document = await product.validateClosure(db, read, check, manifest.formatVersion >= 4, manifest.formatVersion >= 5,
-      manifest.formatVersion >= 6, manifest.formatVersion >= 7, manifest.formatVersion >= 9);
+    const document = await product.validateClosure(db, read, check, compositionMemory, manifest.formatVersion >= 4, manifest.formatVersion >= 5,
+      manifest.formatVersion >= 6, manifest.formatVersion >= 7, manifest.formatVersion >= 9, manifest.formatVersion >= 10,
+      manifest.formatVersion >= 10, manifest.formatVersion >= 12, manifest.formatVersion >= 13);
     assert.equal(document.id, seal.documentId, 'Archive document matches its sealed source identity');
     const assets = db.prepare("SELECT count(*) n FROM entities WHERE kind='asset'").get().n;
     const events = db.prepare('SELECT count(*) n FROM events').get().n;
@@ -238,7 +244,11 @@ export async function verifyArchive(product, path, output, seal, signal, owned =
     return { inputIdentity:portableInputIdentity(db,manifest,check), documentId: document.id, events, assets, closureBytes: String(closureBytes), manifestBytes: String(manifestBytes), formatVersion: manifest.formatVersion,
       archiveEntries: db.prepare('SELECT count(*) n FROM zip_entries').get().n, fullHashesVerified: true, semanticClosureVerified: true,
       ownedClosureHashesVerified: owned !== null, typedFeaturesVerified: typed.typedFeaturesVerified, captionVersions: typed.captionVersions };
-  } finally { zip.close(); db.close(); ownedDatabase?.close(); }
+  } finally {
+    try { zip?.close(); } finally { try { db.close(); } finally { ownedDatabase?.close();
+      assert.deepEqual(compositionMemory.resourceOwnership(), memoryBefore, 'Portable closure releases every Composition borrower');
+    } }
+  }
 }
 
 async function verifyImportedState(writer, fixture, sourceDocument, review, auth) {
@@ -521,14 +531,23 @@ export async function runCell(context, cell) {
     let stage;
     const failureTarget = fixture.seal.failureTarget ?? fixture.seal.features.originals[0];
     if (fault === 'font-restriction') {
-      // A byte flip under an old font hash would only exercise hash mismatch.
-      const variant = fixture.seal.faults?.[`${direction}-font-restriction`];
-      required(variant && variant.failure === 'FONT_EMBEDDING_RESTRICTED' && safeRelative(variant.path) && HASH.test(variant.sha256) && decimal(variant.byteLength),
-        'Font restriction requires a separately sealed coherent font-restriction specimen; corrupt bytes are not that test');
-      required(direction === 'import', 'Export font restriction needs a coherent retained restricted-font writer fixture, which cannot be replaced by corrupting an accepted font');
-      const path = resolve(dirname(fixture.sealPath), variant.path);
-      await phase('fault-fixture-verify', () => checkFile(path, variant, signal));
-      archive = { ...variant, path };
+      // An explicit negative fixture has coherent hashes and deliberately false
+      // eligibility metadata. It is never accepted native history or a WC sample.
+      // Setup stays inside the campaign envelope; the original failure timer below
+      // still starts at the real SaveCopy/PreviewBundleImport operation.
+      const prepared = await phase('prepare-font-negative-fixture', () => preparePortableFontFault({
+        direction, repo, output: join(output, 'font-negative'), root: targetRoot, archive,
+        baseline: { sealSha256: fixture.sealIdentity, documentId: fixture.seal.documentId,
+          archive: { sha256: fixture.seal.archive.sha256, byteLength: fixture.seal.archive.byteLength }, counts: fixture.seal.counts },
+        writer, auth, product, signal,
+      }));
+      writer = prepared.writer;
+      if (prepared.archive) archive = prepared.archive;
+      evidence.push(...prepared.evidence);
+      assert.deepEqual((await sourceState(writer, fixture.seal.documentId)).document, before.document,
+        'Negative fixture preparation does not change the WC document');
+      assert.deepEqual(await writer.queueView(), before.queue, 'Negative fixture preparation leaves original provider jobs inert');
+      assert.deepEqual(publicationCounts(targetRoot), priorPublications, 'Negative fixture preparation publishes no bundle or imported namespace');
     }
     if (fault && ['missing-closure', 'hash-mismatch'].includes(fault)) {
       if (direction === 'copy') await phase('inject-owned-root-fault', async () => {
@@ -654,13 +673,13 @@ export async function runCell(context, cell) {
       for (const file of fixture.seal.files) await checkFile(join(fixture.root, file.path), file, signal);
       await checkFile(fixture.archive, fixture.seal.archive, signal);
     });
-    assertions.push('Original sealed fixture bytes are unchanged', 'Zero provider/network effects', retained ? 'Warm starts reuse one actual writer owner and public reset' : 'Each cold operation owns an independent reset root');
+    assertions.push('Original sealed fixture bytes are unchanged', 'Zero provider/network effects', retained ? (fault ? 'Retained fault cohort preserves its owned root; preparation restarts are disclosed' : 'Warm starts reuse one actual writer owner and public reset') : 'Each cold operation owns an independent reset root');
     const result = { status: 'pass', phases, assertions, observations, evidence, missing: [], copied: copied ?? null };
     if (retained) {
       retained.globalAfter = retainedInventory(targetRoot);
       observations.push({ kind: 'retained-portable-cohort', cohortId: retained.id, ordinal: retained.starts, writerEpoch: writer.epoch,
         root: targetRoot, globalBefore: retained.globalBefore, globalAfter: retained.globalAfter,
-        restartException: fault === 'interruption' || fault === 'disk-pressure',
+        restartException: fault === 'interruption' || fault === 'disk-pressure' || fault === 'font-restriction' && direction === 'copy',
         limitation: 'Publications, reviews, staged inputs and audit history remain public retained state; public cleanup cannot restore an identical global byte/count baseline.' });
       if(!fault){
         const sample=retained.sample??{}, packet={kind:'backend-warm-input-proof-1',family:'WC',cell:warmCell(cell),sample:{cache:sample.cache,ordinal:sample.ordinal??null,prime:sample.prime??null},serial:retained.starts,previous:retained.previous?warmDigest(retained.previous):null,

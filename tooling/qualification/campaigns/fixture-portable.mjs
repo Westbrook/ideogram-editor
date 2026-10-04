@@ -37,7 +37,8 @@ export function portableFixturePlan({ workload, seed }) {
 async function modules(repo) {
   const load = path => import(pathToFileURL(join(repo, 'dist/local', path)).href);
   const entries = await Promise.all(['server/storage/writer.js', 'server/portable/zip.js', 'server/portable/format.js',
-    'server/portable/closure.js', 'src/protocol/store.js', 'src/protocol/json.js', 'src/composition/core.js'].map(load));
+    'server/portable/closure.js', 'src/protocol/store.js', 'src/protocol/json.js', 'src/composition/core.js',
+    'server/storage/composition-memory.js'].map(load));
   return Object.assign({}, ...entries);
 }
 
@@ -120,6 +121,8 @@ export async function archiveFeatureEvidence(db, read, { seal } = {}) {
 
 export async function inspectPortableArchive({ repo, path, output, signal, product, seal, includeReopenFonts = false }) {
   product ??= await modules(repo);
+  let compositionMemory; compositionMemory = new product.CompositionMemory(() => compositionMemory.bytes);
+  const memoryBefore = compositionMemory.resourceOwnership();
   const db = product.spool(join(output, `inspect-${randomUUID()}.sqlite`));
   let zip;
   try {
@@ -136,8 +139,9 @@ export async function inspectPortableArchive({ repo, path, output, signal, produ
       const parts = []; for await (const chunk of zip.chunks(zip.entry('objects/' + rawHash(ref.hash)), check)) parts.push(chunk);
       return Buffer.concat(parts);
     };
-    const document = await product.validateClosure(db, read, check, manifest.formatVersion >= 4, manifest.formatVersion >= 5,
-      manifest.formatVersion >= 6, manifest.formatVersion >= 7, manifest.formatVersion >= 9);
+    const document = await product.validateClosure(db, read, check, compositionMemory, manifest.formatVersion >= 4, manifest.formatVersion >= 5,
+      manifest.formatVersion >= 6, manifest.formatVersion >= 7, manifest.formatVersion >= 9, manifest.formatVersion >= 10,
+      manifest.formatVersion >= 10, manifest.formatVersion >= 12, manifest.formatVersion >= 13);
     const typed = await archiveFeatureEvidence(db, read, { seal });
     // This is the actual current imported graph, not the retained-history font
     // inventory or the original seed's identifiers. Read-only preparation adds
@@ -151,7 +155,11 @@ export async function inspectPortableArchive({ repo, path, output, signal, produ
     return { document, counts: { closureBytes: String(closureBytes), events: db.prepare('SELECT count(*) n FROM events').get().n,
       assets: db.prepare("SELECT count(*) n FROM entities WHERE kind='asset'").get().n, captionVersions: typed.captionVersions, manifestBytes: String(manifestBytes) },
       features: typed.features, formatVersion: manifest.formatVersion, fullHashesVerified: true, semanticClosureVerified: true, typedFeaturesVerified: true, ...reopen };
-  } finally { zip?.close(); db.close(); }
+  } finally {
+    try { zip?.close(); } finally { db.close();
+      assert.deepEqual(compositionMemory.resourceOwnership(), memoryBefore, 'Portable fixture closure releases every Composition borrower');
+    }
+  }
 }
 
 /** Only call after validateClosure. Bounded current graph metadata supplies

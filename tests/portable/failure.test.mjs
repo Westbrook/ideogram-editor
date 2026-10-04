@@ -1,8 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {DatabaseSync} from 'node:sqlite';
-import {join} from 'node:path';
-import {unlink,writeFile,readFile} from 'node:fs/promises';
+import {join,resolve} from 'node:path';
+import {unlink,writeFile,readFile,cp,readdir,mkdir} from 'node:fs/promises';
+import {fileURLToPath} from 'node:url';
 import {randomUUID,createHash} from 'node:crypto';
 import {setup,copy,preview,workspace,terminal,edit,doc,upload} from './helpers.mjs';
 import {importRaster} from '../raster/helpers.mjs';
@@ -15,8 +16,12 @@ import {StoreDatabase} from '../../dist/local/server/storage/database.js';
 import {acquireRoot} from '../../dist/local/server/storage/ownership.js';
 import {canonical,hashBytes} from '../../dist/local/server/storage/canonical.js';
 import {entity} from '../../dist/local/src/protocol/validate.js';
-import {unpack} from './archive-fixture.mjs';
+import {unpack,records} from './archive-fixture.mjs';
 import {EMPTY_EXPECTED_VERSIONS} from '../../dist/local/src/protocol/store.js';
+import {CompositionMemory} from '../../dist/local/server/storage/composition-memory.js';
+import {validateTransactions} from '../../dist/local/server/portable/transactions.js';
+import {productFor} from '../../tooling/qualification/campaigns/backend-portable.mjs';
+import {preparePortableFontFault,validateFontFaultDescriptor} from '../../tooling/qualification/campaigns/portable-font-fault.mjs';
 const pause=()=>new Promise(r=>setTimeout(r,5));
 async function wait(w,c,a){let receipt=await w.portableCommand(encode(c),a);for(let n=0;!receipt&&n<1000;n++){receipt=(await w.commandState(c.command.commandId)).record?.receipt;await pause();}return receipt;}
 for(const failure of ['deleted-layer-pixels','hidden-branch-pixels'])test('missing '+failure+' refuses copy and preserves all other current roots',async t=>{
@@ -195,4 +200,197 @@ test('real SaveCopy inspects retained font drafts and preserves cancellation, mi
  }
  assert.deepEqual(db.document('document_1'),before);assert.equal(db.texts.reservedCPU,0);assert.deepEqual(await readFile(fontPath),original.bytes);
  const state=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});try{assert.equal(state.prepare('SELECT count(*) n FROM portable_bundles').get().n,1);assert.equal(state.prepare('SELECT count(*) n FROM portable_pins').get().n,0);}finally{state.close();}
+});
+
+// Actual small writer controls for the negative fixture mechanism. These use
+// the owner's existing literal-loopback session guard; they neither measure
+// zero loopback attempts nor stand in for WC sizes, I12C timing or qualification.
+const faultRepo=resolve(fileURLToPath(new URL('../../',import.meta.url)));
+const objectPath=(root,ref)=>join(root,'objects','sha256',ref.hash.slice(7,9),ref.hash.slice(7));
+async function sealedTree(root,prefix=''){
+ const rows=[];
+ for(const entry of await readdir(join(root,prefix),{withFileTypes:true})){
+  const path=prefix?prefix+'/'+entry.name:entry.name;assert(!entry.isSymbolicLink());
+  if(entry.isDirectory())rows.push(...await sealedTree(root,path));
+  else{assert(entry.isFile());const bytes=await readFile(join(root,path));rows.push({path,bytes:bytes.length,sha256:hashBytes(bytes)});}
+ }
+ return rows.sort((a,b)=>a.path.localeCompare(b.path));
+}
+async function inspectFaultArchive(product,path,output){
+ const index=product.spool(join(output,'test-archive-'+randomUUID()+'.sqlite')),check=()=>{};let zip,memory;
+ try{
+  zip=new product.ZipIndex(path,index);memory=new CompositionMemory(()=>memory.bytes);
+  await zip.headers(check);await zip.hashes(check);const manifest=await product.decodeRecords(zip,index,check);
+  assert.equal(manifest.unsupported,undefined);assert.equal(manifest.complete,true);
+  const read=async ref=>{assert(BigInt(ref.byteLength)<=16777216n);const chunks=[];for await(const bytes of zip.chunks(zip.entry('objects/'+ref.hash.slice(7)),check))chunks.push(bytes);return Buffer.concat(chunks);};
+  const document=await product.validateClosure(index,read,check,memory,manifest.formatVersion>=4,manifest.formatVersion>=5,manifest.formatVersion>=6,manifest.formatVersion>=7,manifest.formatVersion>=9,manifest.formatVersion>=10,manifest.formatVersion>=10,manifest.formatVersion>=12,manifest.formatVersion>=13);
+  await validateTransactions(index,manifest.capturedHighWater,check);
+  const entities=index.prepare('SELECT kind,id,json,record_hash FROM entities ORDER BY kind,id').all();
+  const events=index.prepare('SELECT seq,tx,json FROM events ORDER BY length(seq),seq').all();
+  const transactions=index.prepare('SELECT archive,id,command_id,first_seq,last_seq,json FROM transactions ORDER BY archive,id').all();
+  const refs=index.prepare('SELECT hash,bytes,media FROM refs ORDER BY hash').all();
+  return {document,manifest,entities,events,transactions,refs,counts:{events:events.length,assets:entities.filter(row=>row.kind==='asset').length,closureBytes:String(refs.reduce((total,row)=>total+BigInt(row.bytes),0n)),captionVersions:0}};
+ }finally{try{if(memory)assert.equal(memory.bytes,0);}finally{try{zip?.close();}finally{index.close();}}}
+}
+async function smallFontFaultBaseline(t){
+ const f=await setup(t);await terminal(f,f.command({}, {width:1,height:1}));const document=await doc(f),saved=await copy(f);await f.server.close();
+ const owner=await rootFor(t),output=join(owner,'preparation');await mkdir(output,{mode:0o700});const path=join(output,'genuine-small-baseline.ieproject');await writeFile(path,saved.bytes,{mode:0o600,flag:'wx'});
+ const product=await productFor(faultRepo),archive={path,sha256:hashBytes(saved.bytes).slice(7),byteLength:String(saved.bytes.length)},decoded=await inspectFaultArchive(product,path,output);
+ assert.deepEqual(decoded.document,document);assert.equal(decoded.counts.captionVersions,0);
+ const seal={kind:'small-portable-font-test-baseline-1',qualification:false,documentId:document.id,archive:{sha256:archive.sha256,byteLength:archive.byteLength},counts:decoded.counts};
+ const sealBytes=Buffer.from(canonical(seal)),sealPath=join(output,'small-baseline-seal.json');await writeFile(sealPath,sealBytes,{mode:0o600,flag:'wx'});
+ const baseline={sealSha256:hashBytes(sealBytes).slice(7),documentId:document.id,archive:seal.archive,counts:seal.counts};
+ const original=await sealedTree(f.root);
+ return {f,output,product,archive,baseline,decoded,document,bytes:saved.bytes,async unchanged(){assert.deepEqual(await sealedTree(f.root),original);assert.deepEqual(await readFile(path),saved.bytes);assert.deepEqual(await readFile(sealPath),sealBytes);}};
+}
+async function assertFaultPreparation(prepared){
+ const evidence=prepared.evidence.find(row=>row.kind==='portable-font-negative-fixture-1');assert(evidence);assert.equal(evidence.qualification,false);assert.equal(evidence.negativeOnly,true);assert.equal(evidence.runtimeOutcome,'not-executed');
+ const bytes=await readFile(evidence.descriptor.path);assert.equal(hashBytes(bytes).slice(7),evidence.descriptor.sha256);assert.equal(String(bytes.length),evidence.descriptor.byteLength);assert.deepEqual(JSON.parse(bytes).descriptor,prepared.descriptor);
+}
+function faultCommand(auth,body,document=null){return command(EMPTY_EXPECTED_VERSIONS,{clientId:auth.clientId,documentId:document?.id??null,expectedDocumentRevision:document?.revision??null,body});}
+async function writerReceipt(writer,value,auth,method='portableCommand'){
+ let receipt=await writer[method](encode(value),auth);const deadline=performance.now()+30000;
+ while(!receipt&&performance.now()<deadline){await pause();receipt=(await writer.commandState(value.command.commandId)).record?.receipt;}
+ assert(receipt,'Actual writer command reached a terminal receipt');return receipt;
+}
+async function writerEvent(writer,receipt){
+ assert.equal(receipt.status,'accepted',JSON.stringify(receipt));
+ const event=(await writer.events(String(BigInt(receipt.fromSeq)-1n))).events.find(value=>value.commandId===receipt.commandId);assert(event);return event;
+}
+async function stageWriterBytes(writer,auth,bytes){
+ const stagingId=randomUUID(),expectedSha256=hashBytes(bytes);
+ await writer.assetCreate({protocolVersion:1,stagingId,purpose:'bundle',expectedBytes:String(bytes.length),sha256:expectedSha256,mediaType:'application/x-ideogram-project'},auth);
+ for(let at=0;at<bytes.length;at+=1048576){const part=bytes.subarray(at,at+1048576),token=await writer.assetBeginChunk(stagingId,String(at),part.length,auth);try{await writer.assetChunk(token,part,auth);}catch(error){await writer.assetAbortChunk(token);throw error;}}
+ return {stagingId,expectedSha256};
+}
+async function sourceState(writer,id){return {document:await writer.document(id),queue:await writer.queueView(),provider:await writer.providerView()};}
+function faultPublications(root){
+ const db=new DatabaseSync(join(root,'metadata.sqlite'),{readOnly:true});
+ try{return {bundles:db.prepare('SELECT count(*) n FROM portable_bundles').get().n,namespaces:db.prepare('SELECT count(*) n FROM portable_namespaces').get().n};}finally{db.close();}
+}
+async function exactFontRefusal(writer,receipt){
+ assert.equal(receipt.status,'rejected',JSON.stringify(receipt));assert(receipt.details);
+ const detail=JSON.parse(Buffer.from(await writer.readMetadata(receipt.details)).toString('utf8'));
+ assert.deepEqual(detail.issues.map(issue=>issue.code),['FONT_EMBEDDING_RESTRICTED'],'Malformed archives, stale hashes and checksums do not satisfy this negative case');
+}
+async function assertFaultDrained(writer,root){
+ const read=await writer.readDiagnostics();
+ try{
+  assert.equal(read.value.text.reservedCPU,0);assert.equal(read.value.text.externalBytes,0);
+  assert.deepEqual(read.value.observer.worker.ledger.ownedWorkerThreads.filter(worker=>worker.kind==='text-font'||worker.kind==='text-verification'),[]);
+ }finally{read.release();}
+ const db=new DatabaseSync(join(root,'metadata.sqlite'),{readOnly:true});
+ try{assert.equal(db.prepare('SELECT count(*) n FROM portable_pins').get().n,0);assert.equal(db.prepare('SELECT count(*) n FROM portable_preparations').get().n,0);}finally{db.close();}
+}
+function assertActualRestrictedFont(bytes){
+ const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);let observed=false;
+ for(let i=0;i<view.getUint16(4);i++){
+  const at=12+i*16;if(bytes.toString('ascii',at,at+4)!=='OS/2')continue;
+  const start=view.getUint32(at+8),length=view.getUint32(at+12);assert.equal(view.getUint16(start+8),2);let checksum=0;
+  for(let j=0;j<length;j+=4){let word=0;for(let k=0;k<4;k++)word=word*256+(j+k<length?bytes[start+j+k]:0);checksum=(checksum+word)>>>0;}
+  assert.equal(view.getUint32(at+4),checksum);observed=true;
+ }
+ assert(observed,'Actual retained SFNT has a checksum-correct restricted OS/2 table');
+ let wholeFontChecksum=0;
+ for(let at=0;at<bytes.length;at+=4){let word=0;for(let i=0;i<4;i++)word=word*256+(at+i<bytes.length?bytes[at+i]:0);wholeFontChecksum=(wholeFontChecksum+word)>>>0;}
+ assert.equal(wholeFontChecksum,0xB1B0AFBA,'Restricted fixture also preserves the padded whole-font checksum via head.checkSumAdjustment');
+}
+async function openFaultWriter(t,root){
+ const writer=await openWriter({root}),auth={clientId:'font_fault_client',sessionHash:'d'.repeat(64),now:Date.now(),expires:Date.now()+1800000};
+ t.after(()=>writer.close());await writer.protocolDefaults();await writer.rememberClient(auth.sessionHash,auth.clientId,auth.expires);return {writer,auth};
+}
+
+test('full SaveCopy refuses the staged restricted-font draft through the actual inspector without changing the genuine baseline', {timeout:60000},async t=>{
+ const b=await smallFontFaultBaseline(t),root=join(await rootFor(t),'negative-copy-root');await cp(b.f.root,root,{recursive:true,force:false,errorOnExist:true});
+ let {writer,auth}=await openFaultWriter(t,root);t.after(()=>writer.close());
+ const before=await sourceState(writer,b.document.id),publications=faultPublications(root);
+ const prepared=await preparePortableFontFault({direction:'copy',repo:faultRepo,output:b.output,baseline:b.baseline,root,archive:b.archive,writer,auth,product:b.product});writer=prepared.writer;
+ await assertFaultPreparation(prepared);
+ assert.equal(writer.epoch,String(BigInt(before.provider.epoch)+1n),'Negative copy preparation performs exactly one real writer reopen');
+ const reopened={...before,provider:{...before.provider,epoch:writer.epoch}};
+ const descriptor=prepared.descriptor;assert.equal(descriptor.kind,'portable-font-negative-fixture-1');assert.equal(descriptor.schemaVersion,1);assert.equal(descriptor.negativeOnly,true);assert.equal(descriptor.qualification,false);
+ const trusted={direction:'copy',baseline:b.baseline,root,repo:faultRepo};assert.equal(validateFontFaultDescriptor(descriptor,trusted),descriptor);
+ for(const [label,mutate] of [
+  ['positive fixture claim',value=>{value.negativeOnly=false;}],
+  ['qualification claim',value=>{value.qualification=true;}],
+  ['restricted metadata admission',value=>{value.alias.font.fsType=2;const {id,...body}=value.alias.font;value.alias.font.id=hashBytes(canonical(body));}],
+  ['foreign owned root',value=>{value.root=join(root,'different-owned-root');}],
+  ['different sealed baseline',value=>{value.baseline.sealSha256=hashBytes('another actual baseline').slice(7);}],
+  ['caller-selected setup module',value=>{value.setupModule='file:///tmp/caller-selected-setup.mjs';}],
+ ]){const changed=structuredClone(descriptor);mutate(changed);assert.throws(()=>validateFontFaultDescriptor(changed,trusted),{code:'FIXTURE_REQUIRED'},label);}
+ assert.deepEqual(await sourceState(writer,b.document.id),reopened);
+ const restricted=await readFile(objectPath(root,descriptor.objects.font));assert.equal(hashBytes(restricted),descriptor.objects.font.hash);assert.equal(String(restricted.length),descriptor.objects.font.byteLength);assertActualRestrictedFont(restricted);
+ assert.equal(descriptor.alias.font.fsType,0);assert.equal(descriptor.alias.font.embedding,'permitted');assert.deepEqual(descriptor.alias.font.bytes,descriptor.objects.font);assert.deepEqual(descriptor.alias.blob,descriptor.objects.font);
+ const draft=JSON.parse(await readFile(objectPath(root,descriptor.objects.draft),'utf8'));assert.deepEqual(draft.fonts,[descriptor.alias.font]);assert.deepEqual(draft.textUtf8,descriptor.objects.text);
+ const ui=await writer.uiRead(descriptor.sessionId,auth);assert.equal(ui.drafts.length,1);assert.equal(ui.drafts[0].assetId,descriptor.ui.drafts[0].assetId);assert.equal(ui.drafts[0].status,'saved-unapplied');
+ const value=faultCommand(auth,{type:'SaveCopy'},before.document),receipt=await writerReceipt(writer,value,auth);await exactFontRefusal(writer,receipt);
+ assert.deepEqual(await writerReceipt(writer,value,auth),receipt);assert.deepEqual(faultPublications(root),publications);assert.deepEqual(await sourceState(writer,b.document.id),reopened);
+ assert.deepEqual(await readFile(objectPath(root,descriptor.objects.font)),restricted);await assertFaultDrained(writer,root);
+ // The negative setup is not new permission for normal ImportFont admission.
+ const ordinary=faultCommand(auth,{type:'ImportFont',source:descriptor.objects.font,license:descriptor.objects.license,origin:'local-file',embeddingReviewed:true},before.document);
+ await exactFontRefusal(writer,await writerReceipt(writer,ordinary,auth,'historyCommand'));assert.deepEqual(await sourceState(writer,b.document.id),reopened);assert.deepEqual(faultPublications(root),publications);
+ await assertFaultDrained(writer,root);await writer.close();assert.equal(writer.available,false);const owner=await acquireRoot(root);owner.close();await b.unchanged();
+ t.diagnostic(JSON.stringify({mechanism:'real writer SaveCopy and ImportFont',refusal:'FONT_EMBEDDING_RESTRICTED',negativeOnly:true,qualification:false,baseline:'small genuine SaveCopy; not WC',guard:'existing literal-loopback session guard',networkAttemptCount:null}));
+});
+
+test('hash-complete restricted-font PF-1 variant reaches real import refusal while the original archive remains importable', {timeout:60000},async t=>{
+ const b=await smallFontFaultBaseline(t),root=await rootFor(t);let {writer,auth}=await openFaultWriter(t,root);t.after(()=>writer.close());
+ const before=await sourceState(writer,b.document.id),publications=faultPublications(root);
+ const prepared=await preparePortableFontFault({direction:'import',repo:faultRepo,output:b.output,baseline:b.baseline,root,archive:b.archive,writer,auth,product:b.product});writer=prepared.writer;
+ await assertFaultPreparation(prepared);
+ assert.equal(prepared.descriptor.negativeOnly,true);assert.equal(prepared.descriptor.qualification,false);assert(prepared.archive);
+ const bytes=await readFile(prepared.archive.path);assert.equal(hashBytes(bytes).slice(7),prepared.archive.sha256.replace(/^sha256:/,''));assert.equal(String(bytes.length),prepared.archive.byteLength);
+ const variant=await inspectFaultArchive(b.product,prepared.archive.path,b.output);assert.deepEqual(variant.document,b.decoded.document);assert.deepEqual(variant.events,b.decoded.events);assert.deepEqual(variant.transactions,b.decoded.transactions);
+ for(const original of b.decoded.entities)assert.deepEqual(variant.entities.find(row=>row.kind===original.kind&&row.id===original.id),original);
+ for(const original of b.decoded.refs)assert.deepEqual(variant.refs.find(row=>row.hash===original.hash),original);
+ const entries=await unpack(b.output,bytes),restricted=entries.get('objects/'+prepared.descriptor.objects.font.hash.slice(7));assert(restricted);assert.equal(hashBytes(restricted),prepared.descriptor.objects.font.hash);assertActualRestrictedFont(restricted);
+ const stage=await stageWriterBytes(writer,auth,bytes),value=faultCommand(auth,{type:'PreviewBundleImport',...stage}),receipt=await writerReceipt(writer,value,auth);await exactFontRefusal(writer,receipt);
+ assert.deepEqual(await writerReceipt(writer,value,auth),receipt);assert.deepEqual(faultPublications(root),publications);assert.deepEqual(await sourceState(writer,b.document.id),before);await assertFaultDrained(writer,root);
+ const intact=await stageWriterBytes(writer,auth,b.bytes),reviewed=await writerReceipt(writer,faultCommand(auth,{type:'PreviewBundleImport',...intact}),auth),event=await writerEvent(writer,reviewed),review=await writer.bundleReview(event.payload.reviewId,auth);
+ assert.equal(review.editable,true);const imported=await writerReceipt(writer,faultCommand(auth,{type:'ImportBundle',reviewId:review.reviewId,reviewHash:review.reviewHash}),auth);assert.equal(imported.status,'accepted');assert(await writer.document(review.documentId));assert.equal(faultPublications(root).namespaces,publications.namespaces+1);
+ await assertFaultDrained(writer,root);await writer.close();assert.equal(writer.available,false);const owner=await acquireRoot(root);owner.close();await b.unchanged();
+});
+
+test('font fixture cancellation preserves caller ownership and actual archive mismatch closes the acquired writer', {timeout:60000},async t=>{
+ const b=await smallFontFaultBaseline(t),root=await rootFor(t),{writer,auth}=await openFaultWriter(t,root),before=await sourceState(writer,b.document.id),publications=faultPublications(root),outputBefore=await sealedTree(b.output);
+ const options={direction:'import',repo:faultRepo,output:b.output,baseline:b.baseline,root,archive:b.archive,writer,auth,product:b.product},aborter=new AbortController(),reason=Error('cancel before preparation');aborter.abort(reason);
+ await assert.rejects(preparePortableFontFault({...options,signal:aborter.signal}),error=>error===reason);
+ assert.equal(writer.available,true);assert.deepEqual(await sourceState(writer,b.document.id),before);assert.deepEqual(await sealedTree(b.output),outputBefore);
+ // Both declarations agree, so bounded preflight succeeds. Hashing the real
+ // unchanged archive then discovers the false identity during owned work.
+ const declaredHash=hashBytes('not the genuine baseline archive').slice(7),baseline={...b.baseline,archive:{...b.baseline.archive,sha256:declaredHash}},archive={...b.archive,sha256:declaredHash};
+ await assert.rejects(preparePortableFontFault({...options,baseline,archive}),{code:'ERR_ASSERTION'});
+ assert.equal(writer.available,false);const owner=await acquireRoot(root);owner.close();assert.deepEqual(faultPublications(root),publications);
+ const db=new DatabaseSync(join(root,'metadata.sqlite'),{readOnly:true});try{assert.equal(db.prepare('SELECT count(*) n FROM documents').get().n,0);assert.equal(db.prepare('SELECT count(*) n FROM commands').get().n,0);assert.equal(db.prepare('SELECT count(*) n FROM queue_jobs').get().n,0);}finally{db.close();}
+ await b.unchanged();
+});
+
+test('the same unapplied alias shape without AssetRegistered copies and imports when its actual font permits embedding', {timeout:60000},async t=>{
+ const f=await setup(t);await terminal(f,f.command({}, {width:1,height:1}));const original=await fontBytes();
+ const stage=async(bytes,purpose='caption',mediaType='text/plain')=>{const staged=await upload(f,bytes,purpose,mediaType);return (await workspace(f,{type:'FinalizeStaging',stagingId:staged.stagingId,expectedSha256:staged.sha256})).event.payload.asset;};
+ const fontInput=await stage(original.bytes,'font','application/octet-stream'),license=await stage(await readFile(join(faultRepo,'vendor/text',original.font.licenseFile))),text=await stage(Buffer.from('Qualification restricted-font negative draft'));
+ const value={schemaVersion:1,bytes:fontInput.blob,faceIndex:0,format:'static-ttf',parserProfile:'sfnt-static-1-freetype-canvaskit040',fsType:0,licenseRecord:license.blob,origin:'local-file',embedding:'permitted'},font={...value,id:hashBytes(canonical(value))};
+ const alias={id:'permitted_alias_'+randomUUID(),version:'1',purpose:'font',blob:fontInput.blob,dependencies:[license.blob],safety:'safe',availability:'available',qualification:'font',measuredMediaType:'application/octet-stream',font};
+ const draftBytes=Buffer.from(canonical({schemaVersion:1,kind:'text-draft-1',textUtf8:text.blob,style:{},frame:{},fonts:[font]})),draft=await stage(draftBytes),before=await doc(f),db=await ownedFontStore(t,f);
+ const auth={clientId:f.paired.json.clientId,sessionHash:'e'.repeat(64),now:Date.now(),expires:Date.now()+1800000};db.rememberClient(auth.sessionHash,auth.clientId,auth.expires);
+ const originalEvents=db.db.prepare('SELECT seq,json FROM events_v2 ORDER BY length(seq),seq').all(),beforeQueue=db.queue.view();
+ assert.equal(db.assets.asset(alias.id),null);entity('asset',alias);
+ // The test-only projection adds the identical alias/dependency shape after
+ // rebuild, with genuine permitted bytes. It creates no accepted font event
+ // and replaces no method, inspector result, existing asset or source object.
+ db.db.exec('BEGIN IMMEDIATE');
+ try{db.db.prepare('INSERT INTO assets VALUES (?,?)').run(alias.id,canonical(alias));for(const ref of [alias.blob,...alias.dependencies]){db.objects.verify(ref);db.db.prepare('INSERT INTO asset_dependencies VALUES (?,?)').run(alias.id,ref.hash);}db.db.exec('COMMIT');}catch(error){if(db.db.isTransaction)db.db.exec('ROLLBACK');throw error;}
+ assert.deepEqual(db.db.prepare('SELECT seq,json FROM events_v2 ORDER BY length(seq),seq').all(),originalEvents);
+ assert.equal(db.db.prepare("SELECT count(*) n FROM events_v2 WHERE json_extract(json,'$.type')='AssetRegistered' AND json_extract(json,'$.payload.asset.id')=?").get(alias.id).n,0);
+ const sessionId='permitted_alias_control',ui=db.ui.read(sessionId,auth),saved=await db.ui.persist(encode({protocolVersion:1,requestId:randomUUID(),sessionId,expectedUISeq:ui.uiSeq,body:{type:'SaveDraft',draft:{id:'permitted_alias_draft',generation:'1',kind:'text',documentId:before.id,targetLayerId:null,expectedDocumentRevision:before.revision,assetId:draft.id,composing:false}}}),auth);assert.equal(saved.status,'accepted');
+ const execute=async body=>{const c=faultCommand(auth,body,body.type==='SaveCopy'?before:null);let receipt=db.portables.command(encode(c),auth);const deadline=performance.now()+30000;while(!receipt&&performance.now()<deadline){await pause();receipt=db.lookup(c.command.commandId)?.receipt;}assert(receipt);assert.equal(receipt.status,'accepted',JSON.stringify(receipt));const event=db.events(String(BigInt(receipt.fromSeq)-1n),100).events.find(event=>event.commandId===c.command.commandId);assert(event);return {receipt,event};};
+ const copied=await execute({type:'SaveCopy'}),bundle=copied.event.payload.bundle;assert.equal(bundle.complete,true);assert.equal(bundle.status,'copy-ready');
+ const archive=await readFile(db.objects.path(bundle.blob)),entries=await unpack(f.root,archive),archived=records(entries).values.find(row=>row.kind==='entity'&&row.entityType==='asset'&&row.logicalId===alias.id);assert(archived);assert.deepEqual(JSON.parse(entries.get('objects/'+archived.payloadRef.hash.slice(7))),alias);
+ assert.deepEqual(entries.get('objects/'+font.bytes.hash.slice(7)),original.bytes);assert.deepEqual(entries.get('objects/'+draft.blob.hash.slice(7)),draftBytes);
+ const stagingId=randomUUID(),expectedSha256=hashBytes(archive);db.assets.create({protocolVersion:1,stagingId,purpose:'bundle',expectedBytes:String(archive.length),sha256:expectedSha256,mediaType:'application/x-ideogram-project'},auth);
+ for(let at=0;at<archive.length;at+=1048576){const part=archive.subarray(at,at+1048576),token=db.assets.beginChunk(stagingId,String(at),part.length,auth);await db.assets.chunk(token,part,auth);}
+ const reviewed=await execute({type:'PreviewBundleImport',stagingId,expectedSha256}),review=db.portables.review(reviewed.event.payload.reviewId,auth);assert.equal(review.editable,true);
+ await execute({type:'ImportBundle',reviewId:review.reviewId,reviewHash:review.reviewHash});assert(db.document(review.documentId));assert.deepEqual(db.document(before.id),before);assert.deepEqual(db.queue.view(),beforeQueue);
+ await new Promise(resolve=>setImmediate(resolve));assert.equal(db.texts.reservedCPU,0);assert.deepEqual(db.objects.reservationInventory(),{reservedBytes:'0',activeTransfers:0});assert.equal(db.db.prepare('SELECT count(*) n FROM portable_pins').get().n,0);
+ assert.deepEqual(await readFile(db.objects.path(font.bytes)),original.bytes);
 });
