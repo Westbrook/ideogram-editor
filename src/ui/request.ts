@@ -240,6 +240,7 @@ export class RequestEditing{
       if(a.requestId&&!a.recoveryRequired)await this.inspectCandidates(job.id,a.id);
      }
     }catch(error){
+     if(!pending)throw error;
      if(pending&&error instanceof PromptReaderCleanupError){const visible=pending.current();pending.retire();if(visible)this.editor.fail(error);}
     }finally{settled();}
    },settled).catch(()=>{});
