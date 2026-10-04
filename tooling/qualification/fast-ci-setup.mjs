@@ -29,7 +29,7 @@ export const fastSelectedJobMinutes = 180;
 const setupReserveMs = 40 * 60_000, finalizationReserveMs = 15 * 60_000;
 
 // Manual dispatch admits only these reviewed current-root whole families.
-// The existing adapters configuration is Chromium-only; no engine is substituted.
+// The existing adapters and shell configurations are Chromium-only; no engine is substituted.
 // Exact files, configurations and commands still come from the maintained plan.
 export const fastBrowserFamilies = Object.freeze([
   'editor-authoring', 'editor-composition-save', 'editor-composition',
@@ -40,7 +40,7 @@ export const fastBrowserFamilies = Object.freeze([
   'editor-portable', 'editor-recovery', 'editor-recovery-copy', 'editor-storage-library',
   'editor-tool-rail', 'editor-zoom-tool', 'editor-display-image',
   'editor-candidate-comparison', 'editor-document-creation', 'editor-command-search', 'e1',
-  'request-review', 'request-v45-generation', 'request-v45-edit', 'queue', 'e2', 'e3', 'e4', 'adapters', 'text',
+  'request-review', 'request-v45-generation', 'request-v45-edit', 'queue', 'e2', 'e3', 'e4', 'adapters', 'text', 'shell',
 ]);
 const fastBrowserEngines = ['chromium', 'firefox', 'webkit'];
 
@@ -206,6 +206,7 @@ function browserDeadlineLimits(sourceFor) {
 export function fastBrowserSetupPlan(plan, {sourceFor} = {}) {
   if (plan.groups !== 'preflight' || plan.nodeFiles !== null || plan.selectedFiles.length || plan.workers !== 1 || plan.batchEditor || plan.browserGrep !== null || !fastBrowserFamilies.includes(plan.browserGroups) || !fastBrowserEngines.includes(plan.browsers)) throw Error('Choose one reviewed whole editor family and one engine, without Node selection, batching or grep');
   if (plan.browserGroups === 'adapters' && plan.browsers !== 'chromium') throw Error('The complete adapters family requires Chromium');
+  if (plan.browserGroups === 'shell' && plan.browsers !== 'chromium') throw Error('The complete shell family requires Chromium');
   if (plan.gates.some(gate => gate.files?.length || gate.freshFixtureFiles?.length || gate.browserPrerequisites || gate.completionPrerequisites)) throw Error('Browser dispatch does not provision Node or legacy packet fixtures');
   const full = createBrowserPlan({selection: plan.browsers, scope: 'features', output: plan.browserPlan?.output});
   const tests = full.steps.filter(step => step.config && step.family === plan.browserGroups);
@@ -241,6 +242,7 @@ export function fastBrowserSetupPlan(plan, {sourceFor} = {}) {
 export function selectedFastBrowserSetup(root, family, engine) {
   if (!fastBrowserFamilies.includes(family) || !fastBrowserEngines.includes(engine)) throw Error('Choose one reviewed whole editor family and one engine');
   if (family === 'adapters' && engine !== 'chromium') throw Error('The complete adapters family requires Chromium');
+  if (family === 'shell' && engine !== 'chromium') throw Error('The complete shell family requires Chromium');
   const plan = developmentPlan(root, {groups: 'preflight', browsers: engine, browserGroups: family, workers: 1, batchEditor: false, output: join(root, 'artifacts/validation/run/browser')});
   return fastBrowserSetupPlan(plan, {sourceFor: path => readFileSync(join(root, path), 'utf8')});
 }
@@ -263,6 +265,7 @@ function provisionPublicAdapterChild(root, expected, execute) {
 export function provisionFastBrowserSetup(root, plan, {execute = execFileSync, record = () => {}} = {}) {
   if (plan.kind !== 'fast-ci-browser-setup-1' || !fastBrowserFamilies.includes(plan.family) || !fastBrowserEngines.includes(plan.engine) || !same(plan.requiredBrowsers, [plan.engine]) || plan.history.length) throw Error('Reviewed browser provisioning selection required');
   if (plan.family === 'adapters' && plan.engine !== 'chromium') throw Error('The complete adapters family requires Chromium');
+  if (plan.family === 'shell' && plan.engine !== 'chromium') throw Error('The complete shell family requires Chromium');
   const owners = plan.family === 'adapters' ? createBrowserPlan({selection: 'chromium', scope: 'features', output: join(root, 'artifacts/validation/run/browser')}).steps.filter(step => step.family === 'adapters' && step.config).flatMap(step => step.files) : [];
   const expectedAdapter = owners.length ? {...publicAdapterRequirement(), owners} : null;
   if (plan.family === 'adapters' && (!owners.length || !same(plan.selectedFiles, owners)) || !same(plan.adapterFixture ?? null, expectedAdapter)) throw Error('Selected public adapter prerequisite differs from pinned input');

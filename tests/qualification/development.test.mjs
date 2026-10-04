@@ -954,9 +954,9 @@ const fastBrowserPlan = (family = 'editor-document-creation', engine = 'chromium
 });
 const browserDeadlineSource = path => readFileSync(path,'utf8');
 test('Fast browser selection preserves every reviewed whole family on exactly one pinned engine',()=>{
- assert.equal(fastBrowserFamilies.length,36);assert.equal(new Set(fastBrowserFamilies).size,36);
+ assert.equal(fastBrowserFamilies.length,37);assert.equal(new Set(fastBrowserFamilies).size,37);
  for(const engine of ['chromium','firefox','webkit'])for(const family of fastBrowserFamilies){
-  if(family==='adapters'&&engine!=='chromium'){assert.throws(()=>selectedFastBrowserSetup(process.cwd(),family,engine),/requires Chromium/);continue;}
+  if((family==='adapters'||family==='shell')&&engine!=='chromium'){assert.throws(()=>selectedFastBrowserSetup(process.cwd(),family,engine),/requires Chromium/);continue;}
   const plan=fastBrowserPlan(family,engine),setup=selectedFastBrowserSetup(process.cwd(),family,engine);
   const original=createBrowserPlan({selection:engine,scope:'features',output:plan.browserPlan.output}).steps.find(step=>step.family===family);
   assert(original);assert.deepEqual(setup.selectedFiles,original.files);
@@ -1017,7 +1017,7 @@ test('Fast request and recovery dispatch preserves the exact existing full contr
  }
 });
 test('Fast browser admission refuses mixed, partial, unknown or widened selections while preserving the Node branch',()=>{
- for(const family of ['','none','all','editor-batch','shell','editor-image-import,editor-zoom-tool','editor-image-import;echo x'])assert.throws(()=>selectedFastBrowserSetup(process.cwd(),family,'chromium'),/one reviewed whole editor family/);
+ for(const family of ['','none','all','editor-batch','editor-image-import,editor-zoom-tool','editor-image-import;echo x'])assert.throws(()=>selectedFastBrowserSetup(process.cwd(),family,'chromium'),/one reviewed whole editor family/);
  for(const engine of ['','none','all','chromium,webkit','webkit;echo x'])assert.throws(()=>selectedFastBrowserSetup(process.cwd(),'e1',engine),/one reviewed whole editor family/);
  assert.throws(()=>selectedFastDispatchSetup(process.cwd(),{SELECTED_NODE_FILES:'tests/portable/failure.test.mjs',SELECTED_BROWSER_FAMILY:'e1',SELECTED_BROWSER:'chromium'}),/either whole Node files/);
  for(const family of [undefined,'','none'])assert.deepEqual(selectedFastDispatchSetup(process.cwd(),{SELECTED_NODE_FILES:'tests/portable/failure.test.mjs',SELECTED_BROWSER_FAMILY:family}),selectedFastSetup(process.cwd(),'tests/portable/failure.test.mjs'));
@@ -1378,4 +1378,80 @@ test('Fast renderer child failure remains failure and still checks current check
   throw Error('fixed child interrupted; retained original failure');
  },record:r=>observations.push(structuredClone(r))}),/fixed child interrupted/);
  assert.equal(heads,2);assert.equal(observations.at(-1).status,'FAIL');assert.equal(observations.at(-1).rendererReceipts,null);
+});
+
+
+test('Fast shell dispatch retains the complete original Chromium suite and current-root prerequisites',()=>{
+ const root=process.cwd(),plan=fastBrowserPlan('shell','chromium'),setup=selectedFastDispatchSetup(root,{
+  SELECTED_NODE_FILES:'',SELECTED_BROWSER_FAMILY:'shell',SELECTED_BROWSER:'chromium',
+ });
+ const destination=join(plan.browserPlan.output,'shell-chromium'),[step]=plan.browserPlan.steps;
+ assert.equal(plan.browserPlan.steps.length,1);assert.equal(step.id,'shell-chromium');assert.equal(step.family,'shell');assert.equal(step.browser,'chromium');
+ assert.equal(step.config,'tests/browser/playwright.config.ts');assert.deepEqual(step.files,['tests/browser/shell.spec.ts']);assert.equal(Object.hasOwn(step,'project'),false);
+ assert.equal(step.executable,'npm');assert.deepEqual(step.args,['exec','--','playwright','test','--config','tests/browser/playwright.config.ts','tests/browser/shell.spec.ts',
+  '--forbid-only','--max-failures=1','--reporter','list,json,./tooling/qualification/developer-campaigns/browser-reporter.mjs']);
+ assert.deepEqual(step.env,{IE_SHELL_OUTPUT:destination,PLAYWRIGHT_JSON_OUTPUT_FILE:join(destination,'shell-browser.json'),QUALIFICATION_CASE_REPORT:join(destination,'cases.ndjson')});
+ assert.equal(step.outputRoot,destination);assert.equal(step.output,destination);assert.equal(step.reportFile,join(destination,'shell-browser.json'));assert.equal(step.caseReportFile,join(destination,'cases.ndjson'));
+ assert.deepEqual(step.prerequisites,[]);assert.deepEqual(step.contracts,[]);assert.equal(step.timeoutMs,1800000);
+ assert.deepEqual(plan.browserPlan.prerequisites,['build-app','build-server','raster-inputs']);
+ assert.deepEqual(setup.selectedFiles,['tests/browser/shell.spec.ts']);assert.deepEqual(plan.selectedFiles,[]);assert.equal(plan.nodeFiles,null);
+ assert.deepEqual(setup.requiredBrowsers,['chromium']);assert.deepEqual(setup.history,[]);assert.equal(setup.adapterFixture,null);assert.equal(setup.qualification,false);
+ assert.deepEqual(setup.gates,[
+  ['typecheck',300000],['preflight',60000],['completion-source',60000],['storage-environment',15000],
+  ['vendor',300000],['text-inputs',300000],['imports',60000],['raster-inputs',300000],['build-server',300000],['build-app',300000],
+ ].map(([id,timeoutMs])=>({id,timeoutMs,graceMs:5000,exitObservationMs:100})));
+ assert.deepEqual(setup.browserSteps,[{id:'shell-chromium',timeoutMs:1800000,graceMs:5000,exitObservationMs:100}]);
+ assert.deepEqual(setup.issuers,[{id:'browser-completion-issuers',timeoutMs:300000,graceMs:5000,exitObservationMs:100}]);
+ assert.equal(setup.gateBudgetMs,2046000);assert.equal(setup.browserBudgetMs,1805100);assert.equal(setup.issuerBudgetMs,305100);
+ assert.equal(setup.setupReserveMs,2400000);assert.equal(setup.finalizationReserveMs,900000);assert.equal(setup.totalBudgetMs,7456200);assert.equal(setup.jobMinutes,180);
+ const boundary=structuredClone(plan);boundary.gates[0].timeoutMs+=180*60_000-setup.totalBudgetMs;
+ assert.equal(fastBrowserSetupPlan(boundary,{sourceFor:browserDeadlineSource}).totalBudgetMs,180*60_000);
+ boundary.gates[0].timeoutMs++;assert.throws(()=>fastBrowserSetupPlan(boundary,{sourceFor:browserDeadlineSource}),/exceeds the 180-minute/);
+});
+test('Fast shell rejects non-Chromium at selection, plan and provisioning before any installation',()=>{
+ const root=process.cwd(),allowed=selectedFastBrowserSetup(root,'shell','chromium');
+ for(const engine of ['firefox','webkit']){
+  assert.throws(()=>selectedFastBrowserSetup(root,'shell',engine),/The complete shell family requires Chromium/);
+  assert.throws(()=>selectedFastDispatchSetup(root,{SELECTED_BROWSER_FAMILY:'shell',SELECTED_BROWSER:engine}),/The complete shell family requires Chromium/);
+  // The maintained shell is always Chromium. The selected engine must never be
+  // silently replaced with it, even though the shared planner can describe it.
+  const plan=fastBrowserPlan('shell',engine);let sourceReads=0;
+  assert.throws(()=>fastBrowserSetupPlan(plan,{sourceFor:()=>{sourceReads++;throw Error('must reject before source/deadline work');}}),/The complete shell family requires Chromium/);
+  assert.equal(sourceReads,0);
+  const changed=structuredClone(allowed);changed.engine=engine;changed.requiredBrowsers=[engine];let executions=0;const records=[];
+  assert.throws(()=>provisionFastBrowserSetup(root,changed,{execute:()=>{executions++;throw Error('must not install');},record:row=>records.push(row)}),/The complete shell family requires Chromium/);
+  assert.equal(executions,0);assert.deepEqual(records,[]);
+ }
+});
+test('Fast shell refuses partial, substituted or widened original-family plans',()=>{
+ const root=process.cwd(),original=fastBrowserPlan('shell','chromium');
+ for(const mutate of [
+  plan=>{plan.browserPlan.steps[0].files=['tests/editor/authoring.spec.ts'];},
+  plan=>{plan.browserPlan.steps[0].files=[];},
+  plan=>{plan.browserPlan.steps[0].config='tests/editor/integration-regression.config.ts';},
+  plan=>{plan.browserPlan.steps[0].args.push('--grep','B03');},
+  plan=>{plan.browserPlan.steps[0].project='chromium';},
+  plan=>{plan.browserPlan.steps[0].env.IE_SHELL_OUTPUT+='-other';},
+  plan=>{plan.browserPlan.steps.push(structuredClone(plan.browserPlan.steps[0]));},
+  plan=>{plan.requiredBrowsers.push('firefox');},
+  plan=>{plan.browserGrep='B03';},plan=>{plan.batchEditor=true;},plan=>{plan.workers=2;},
+  plan=>{plan.gates=plan.gates.filter(gate=>gate.id!=='completion-source');},
+  plan=>{plan.gates[0].freshFixtureFiles=['tests/portable/legacy.test.mjs'];},
+ ]){const plan=structuredClone(original);mutate(plan);assert.throws(()=>fastBrowserSetupPlan(plan,{sourceFor:browserDeadlineSource}));}
+ for(const family of ['shell,queue','shell;echo x'])assert.throws(()=>selectedFastBrowserSetup(root,family,'chromium'),/one reviewed whole editor family/);
+ assert.throws(()=>selectedFastDispatchSetup(root,{SELECTED_NODE_FILES:'tests/qualification/development.test.mjs',SELECTED_BROWSER_FAMILY:'shell',SELECTED_BROWSER:'chromium'}),/either whole Node files/);
+});
+test('Fast shell provisions only the pinned Chromium CLI and retains actual installation failure without fallback',()=>{
+ const root=process.cwd(),plan=selectedFastBrowserSetup(root,'shell','chromium'),commands=[],records=[];
+ const result=provisionFastBrowserSetup(root,plan,{execute:(command,args,options)=>{
+  commands.push([command,...args]);assert.equal(command,process.execPath);assert.equal(options.cwd,root);assert.equal(options.timeout,7*60_000);assert.equal(options.stdio,'inherit');
+  assert.deepEqual(args,[join(root,'node_modules/playwright/cli.js'),'install','--with-deps','chromium']);return Buffer.alloc(0);
+ },record:row=>records.push(structuredClone(row))});
+ assert.equal(commands.length,1);assert.equal(result.status,'PASS');assert.equal(result.qualification,false);assert.equal(result.adapterFixture,null);assert.equal(result.browser.status,'PASS');
+ assert.deepEqual(result.browser.command,commands[0]);assert.deepEqual(records.map(row=>row.status),['PENDING','PASS']);
+ const unexpected=structuredClone(plan);unexpected.adapterFixture=selectedFastBrowserSetup(root,'adapters','chromium').adapterFixture;let extraCalls=0;
+ assert.throws(()=>provisionFastBrowserSetup(root,unexpected,{execute:()=>{extraCalls++;throw Error('must not install');}}),/prerequisite differs/);assert.equal(extraCalls,0);
+ const unavailable=Error('Pinned Chromium unavailable for shell'),failedCommands=[],failures=[];
+ assert.throws(()=>provisionFastBrowserSetup(root,plan,{execute:(command,args)=>{failedCommands.push([command,...args]);throw unavailable;},record:row=>failures.push(structuredClone(row))}),error=>error===unavailable);
+ assert.deepEqual(failedCommands,commands);assert.deepEqual(failures.map(row=>row.status),['PENDING','FAIL']);assert.equal(failures.at(-1).browser,null);assert.equal(failures.at(-1).adapterFixture,null);
 });
