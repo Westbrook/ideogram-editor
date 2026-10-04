@@ -2,7 +2,7 @@
   "schema": 1,
   "product": "Ideogram Editor preview",
   "scope": "Disconnected editor UI and temporary native text demo; no local server or provider",
-  "commit": "dc962a81c3c3e6d2b074ffabe21c68211e7a2c9a",
-  "builtAt": "2026-10-04T06:57:49.651Z",
+  "commit": "c898f4c23495599fa929d695cb964c3fb23ba059",
+  "builtAt": "2026-10-04T07:54:02.565Z",
   "base": "/ideogram-editor/"
 }
