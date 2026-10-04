@@ -93,6 +93,11 @@ async function syncNativeClock(root,now){
  await writeFile(path+'.tmp',JSON.stringify({now}),{flag:'wx',mode:0o600});
  await rename(path+'.tmp',path);
 }
+// One bounded failure packet across native99's existing diagnostic routes.
+function nativeFailureReporter(report){
+ let reported=false;
+ return bytes=>{if(reported)return;reported=true;report(bytes);};
+}
 async function fixture(t,{encoded=false,failure=false,now,bounds=false,actualSize=512,acceptanceWait,passiveMemory=false}={}){
  const memoryFixture=++memoryFixtureSequence;mainMemory.sample(memoryFixture,memoryPhase.fixtureOpen);
  let close;t.after(async()=>{mainMemory.sample(memoryFixture,memoryPhase.fixtureCloseBefore);try{await close?.();mainMemory.sample(memoryFixture,memoryPhase.fixtureCloseAfter,-1,1);}catch(error){mainMemory.sample(memoryFixture,memoryPhase.fixtureCloseAfter,-1,2);throw error;}finally{if(passiveMemory)try{reportCandidateMemory(root,bytes=>t.diagnostic(bytes));}catch{}}});const root=await rootFor(t);
@@ -110,7 +115,8 @@ async function fixture(t,{encoded=false,failure=false,now,bounds=false,actualSiz
  }else server=await providerChild(root,owned=>{close=owned;},new URL('./text-treatment-process-fixture.mjs',import.meta.url));
  mainMemory.sample(memoryFixture,memoryPhase.serverReady);
  const paired=await pair(server);assert.equal(paired.status,200,paired.text);
- const f={root,server,paired,memoryFixture,nativeRequestMemory:bounds&&!encoded,...(passiveMemory?{placementFailureReport:bytes=>t.diagnostic(bytes),adoptionFailureReport:bytes=>t.diagnostic(bytes)}:{}),diagnostic:packet=>t.diagnostic(JSON.stringify(packet)),...(acceptanceWait?{acceptanceWait}:{}),...(now?{syncClock:()=>syncNativeClock(root,now())}:{}),read:path=>call(server.origin,path,{headers:readHeaders(cookieFrom(paired))}),post:(path,body)=>call(server.origin,path,{method:'POST',body,headers:mutationHeaders(server,paired)}),command:(patch={},body={})=>command(EMPTY_EXPECTED_VERSIONS,{clientId:paired.json.clientId,...patch},body),effects:async()=>{const value=JSON.parse(await readFile(join(root,'request-edits-fixture.json'),'utf8'));assert.deepEqual(value.errors,[]);return value.effects;}};
+ const nativeFailureReport=passiveMemory?nativeFailureReporter(bytes=>t.diagnostic(bytes)):undefined;
+ const f={root,server,paired,memoryFixture,nativeRequestMemory:bounds&&!encoded,...(passiveMemory?{nativeFailureReport,placementFailureReport:nativeFailureReport,adoptionFailureReport:nativeFailureReport}:{}),diagnostic:packet=>t.diagnostic(JSON.stringify(packet)),...(acceptanceWait?{acceptanceWait}:{}),...(now?{syncClock:()=>syncNativeClock(root,now())}:{}),read:path=>call(server.origin,path,{headers:readHeaders(cookieFrom(paired))}),post:(path,body)=>call(server.origin,path,{method:'POST',body,headers:mutationHeaders(server,paired)}),command:(patch={},body={})=>command(EMPTY_EXPECTED_VERSIONS,{clientId:paired.json.clientId,...patch},body),effects:async()=>{const value=JSON.parse(await readFile(join(root,'request-edits-fixture.json'),'utf8'));assert.deepEqual(value.errors,[]);return value.effects;}};
  f.reopen=async()=>{assert(!encoded&&!now&&!bounds);await close();const reopened=await providerChild(root,owned=>{close=owned;},new URL('./text-treatment-process-fixture.mjs',import.meta.url)),newPair=await pair(reopened);assert.equal(newPair.status,200,newPair.text);return clientFor({...f,server:reopened},newPair);};
  assert.equal((await terminal(f,f.command({},{width:512,height:512}))).json.receipt.status,'accepted');
  const background=(await importRaster(f,'black.png')).asset;
@@ -189,7 +195,7 @@ async function addNativeText(f,{textValue='A',layerVersion='0'}={}){
   mainMemory.sample(f.memoryFixture,memoryPhase.admissionAfter);
   try{
    const common={layerId:'native_text',candidate,draft:{sessionId,draftId,generation:'1'},admissionId},body=layerVersion==='0'?{type:'CreateTextLayer',...common,name:'Authored native lettering'}:{type:'CommitTextEdit',...common,layerVersion,reviewedDependencyHash:dependencyHash};
-   const request=f.command({sessionId,documentId,expectedDocumentRevision:current.revision,body}),result=await terminalWithDiagnostics(f,request,memoryBaseline(f,{documentId,documentRevision:current.revision,layerId:'native_text',generation:'1',admissionId,admissionBudgetBytes:budget.bytes,rendererProfile:profile.id,frame}));
+   const request=f.command({sessionId,documentId,expectedDocumentRevision:current.revision,body}),result=await terminalWithDiagnostics(f,request,memoryBaseline(f,{documentId,documentRevision:current.revision,layerId:'native_text',generation:'1',admissionId,admissionBudgetBytes:budget.bytes,rendererProfile:profile.id,frame}),undefined,f.nativeFailureReport);
    assert.equal(result.json.receipt.status,'accepted',result.text);
   }finally{mainMemory.sample(f.memoryFixture,memoryPhase.admissionReleaseBefore);assert.equal((await f.post('/api/v1/text-admission/'+admissionId+'/release',{protocolVersion:1})).status,200);mainMemory.sample(f.memoryFixture,memoryPhase.admissionReleaseAfter);}
   const layer=(await image(f)).layers.find(layer=>layer.id==='native_text');assert.equal(layer.kind,'text');return layer;
@@ -210,7 +216,7 @@ async function ninetyNineNativeAssets(f){
   try{
    // Reuse the genuine immutable renderer outputs, never a guessed hash or a
    // copied raster asset. Each new token is checked by the real native worker.
-   const request=f.command({sessionId,documentId,expectedDocumentRevision:revision,body:{type:'CreateTextLayer',layerId,candidate,draft:{sessionId,draftId,generation},admissionId,name:'A'}}),result=await terminalWithDiagnostics(f,request,memoryBaseline(f,{documentId,documentRevision:revision,layerId,generation,admissionId,admissionBudgetBytes:budget.bytes,rendererProfile:profile.id,frame}));
+   const request=f.command({sessionId,documentId,expectedDocumentRevision:revision,body:{type:'CreateTextLayer',layerId,candidate,draft:{sessionId,draftId,generation},admissionId,name:'A'}}),result=await terminalWithDiagnostics(f,request,memoryBaseline(f,{documentId,documentRevision:revision,layerId,generation,admissionId,admissionBudgetBytes:budget.bytes,rendererProfile:profile.id,frame}),undefined,f.nativeFailureReport);
    assert.equal(result.json.receipt.status,'accepted',result.text);const facts=await events(f,result.json.receipt);assert.equal(facts.at(-1).type,'ImageEdited');
    const state=JSON.parse(await retained(f,facts.at(-1).payload.history.after.state)),layer=state.layers.find(row=>row.id===layerId);assert(layer);assert.equal(layer.kind,'text');assert.deepEqual(layer.source,original.source);assert(!assetIds.has(layer.assetId),'CreateTextLayer must retain a distinct native raster asset for each actual verification');assetIds.add(layer.assetId);
    revision=result.json.receipt.documentRevision;
@@ -1347,5 +1353,55 @@ test('native99 actual accept preserves an existing acceptanceWait and its origin
   await assert.rejects(accept(f,approved),error=>error===original);
   assert.equal(posts,0);assert.equal(statusReads,opted?1:0);assert.equal(reports,0);assert.strictEqual(f.acceptanceWait,owner);assert.equal(owner.deadline,Number.MAX_SAFE_INTEGER);assert.strictEqual(owner.signal,controller.signal);
   assert.deepEqual(getEventListeners(owner.signal,'abort'),listeners);assert.equal(Object.hasOwn(f,'adoptionFailureReport'),false);assert.equal(original.message,'original owned wait abort');
+ }
+});
+
+
+// These controls exercise the fixture's shared reporter with the original wait
+// helpers. Native setup call-site joins are checked separately at source only.
+test('native99 shared reporter survives native success and retains only the first review or adoption failure',async t=>{
+ const c=await placementFailureCapture(t),ids={CreateTextLayer:c.request.command.commandId,ReviewCandidatePlacement:randomUUID(),AdoptReviewedCandidate:randomUUID()},capture=await readFile(join(c.root,'j19-diagnostic-'+c.request.command.commandId+'.json'));
+ for(const id of [ids.ReviewCandidatePlacement,ids.AdoptReviewedCandidate])await writeFile(join(c.root,'j19-diagnostic-'+id+'.json'),capture,{flag:'wx',mode:0o600});
+ const reports=[],posts=[],statusReads=[],original=Object.freeze(Error('original selected fixture failure')),success={status:200,json:{receipt:{status:'accepted'}},text:'original native terminal result'};
+ const shared=nativeFailureReporter(text=>reports.push(text)),f={root:c.root,nativeFailureReport:shared,placementFailureReport:shared,adoptionFailureReport:shared,
+  read:async path=>{if(path==='/api/v1/documents/'+documentId)return {json:{projection:{value:{revision:'47'}}}};statusReads.push(path);assert(Object.values(ids).some(id=>path==='/api/v1/commands/'+id));return {status:202,json:c.pending};},
+  command:patch=>({command:{...patch,commandId:ids[patch.body.type]}}),
+  post:async(path,request)=>{assert.equal(path,'/api/v1/commands');posts.push(request.command.body.type);if(request.command.body.type==='CreateTextLayer')return success;throw original;}};
+ const request=f.command({documentId,expectedDocumentRevision:'47',body:{type:'CreateTextLayer'}});
+ assert.strictEqual(await terminalWithDiagnostics(f,request,{},undefined,f.nativeFailureReport),success);
+ assert.equal(reports.length,0);assert.equal(statusReads.length,0);for(const key of ['nativeFailureReport','placementFailureReport','adoptionFailureReport'])assert.strictEqual(f[key],shared);
+ await assert.rejects(run(f,{type:'ReviewCandidatePlacement',preparation:'encoded-rebuild'}),error=>error===original);
+ assert.equal(reports.length,1);const retained=JSON.parse(reports[0]);assert.equal(retained.commandId,ids.ReviewCandidatePlacement);assert.equal(retained.operation,'ReviewCandidatePlacement');
+ assert.equal(Object.hasOwn(f,'placementFailureReport'),false);assert.strictEqual(f.adoptionFailureReport,shared);assert.strictEqual(f.nativeFailureReport,shared);
+ await assert.rejects(accept(f,{review:{placement:{placement:'current-document'}},body:{type:'AdoptReviewedCandidate'}}),error=>error===original);
+ assert.equal(reports.length,1);assert.equal(Object.hasOwn(f,'adoptionFailureReport'),false);assert.strictEqual(f.nativeFailureReport,shared);
+ assert.deepEqual(posts,['CreateTextLayer','ReviewCandidatePlacement','AdoptReviewedCandidate']);assert.deepEqual(statusReads,['/api/v1/commands/'+ids.ReviewCandidatePlacement,'/api/v1/commands/'+ids.AdoptReviewedCandidate]);assert.equal(original.message,'original selected fixture failure');
+});
+
+test('native99 shared reporter consumes before reentrant or throwing native failure reporting',async t=>{
+ const c=await placementFailureCapture(t),original=Object.freeze(Error('original native creation failure')),reports=[];let posts=0,shared;
+ c.request.command.body={type:'CreateTextLayer'};
+ shared=nativeFailureReporter(text=>{reports.push(text);shared('must not reenter');throw Error('fixture reporter failure');});
+ const f={...c.f,nativeFailureReport:shared,post:async()=>{posts++;throw original;}};
+ await assert.rejects(terminalWithDiagnostics(f,c.request,{},undefined,f.nativeFailureReport),error=>error===original);
+ assert.equal(posts,1);assert.equal(reports.length,1);assert.equal(JSON.parse(reports[0]).operation,'CreateTextLayer');assert.equal(JSON.parse(reports[0]).commandId,c.request.command.commandId);
+ shared('must not retry a failed sink');assert.equal(reports.length,1);assert.equal(c.reads.length,1);assert.equal(original.message,'original native creation failure');
+});
+
+test('native99 failure reporter ownership is per fixture and forwards the original string unchanged',()=>{
+ const first=[],second=[],text='{"fixture":"é","literal":"\\n"}\n',a=nativeFailureReporter(value=>first.push(value)),b=nativeFailureReporter(value=>second.push(value));
+ a(text);a('later first-fixture failure');b(text);b('later second-fixture failure');
+ assert.deepEqual(first,[text]);assert.deepEqual(second,[text]);assert.strictEqual(first[0],text);assert.strictEqual(second[0],text);
+});
+
+test('native creation waits with no fixture reporter preserve the original terminal result and failure route',async()=>{
+ for(const fails of [false,true]){
+  const original=Object.freeze(Error('original default native failure')),request={command:{commandId:'fixture-default-native',body:{type:'CreateTextLayer'}}},result={status:200,json:{receipt:{status:'accepted'}},text:'original default native result'};let posts=0,statusReads=0;
+  const f={get root(){throw Error('default nonwaiting failure cannot capture');},post:async(path,value)=>{posts++;assert.equal(path,'/api/v1/commands');assert.strictEqual(value,request);if(fails)throw original;return result;},
+   read:async path=>{statusReads++;assert.equal(path,'/api/v1/commands/fixture-default-native');return {status:202,json:{phase:'preparing'}};}};
+  assert.equal(Object.hasOwn(f,'nativeFailureReport'),false);
+  const outcome=terminalWithDiagnostics(f,request,{},undefined,f.nativeFailureReport);
+  if(fails)await assert.rejects(outcome,error=>error===original);else assert.strictEqual(await outcome,result);
+  assert.equal(posts,1);assert.equal(statusReads,fails?1:0);assert.equal(original.message,'original default native failure');
  }
 });
