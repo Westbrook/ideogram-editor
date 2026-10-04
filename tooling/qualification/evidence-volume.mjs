@@ -304,10 +304,13 @@ export async function observeVolume(allocation, sampleOptions = {}) {
   const windowStartMs = performance.now(), attempts = []; let windowEndMs = windowStartMs, previous = null;
   for (let sequence = 0; sequence < OBSERVATION_POLICY.maxAttempts; sequence++) {
     if (sequence) {
-      // Separate fully drained mutation scans without extending their original
-      // window. This referenced timer is owned by the pending observation;
-      // monitor.finish() drains it rather than abandoning an issued retry.
-      const retryAt = Math.min(attempts.at(-1).endMs + 100, windowStartMs + OBSERVATION_POLICY.maxWindowMs);
+      // Spread fully drained retries across the original window, retaining at
+      // least 100ms after the preceding scan. The same deadline still governs
+      // admission and acceptance. monitor.finish() drains this referenced timer.
+      const retryAt = Math.min(windowStartMs + OBSERVATION_POLICY.maxWindowMs, Math.max(
+        attempts.at(-1).endMs + 100,
+        windowStartMs + sequence * OBSERVATION_POLICY.maxWindowMs / OBSERVATION_POLICY.maxAttempts,
+      ));
       let remaining;
       while ((remaining = retryAt - performance.now()) > 0) await new Promise(resolve => setTimeout(resolve, remaining));
     }
