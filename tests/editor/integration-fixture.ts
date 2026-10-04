@@ -32,12 +32,18 @@ export const test=base.extend({context:async({playwright,browserName,contextOpti
  const profile=await mkdtemp(join(await realpath(tmpdir()),'p1c6-'+browserName+'-'));
  const executable=process.env.EDITOR_BROWSER_EXECUTABLE??playwright[browserName].executablePath();
  const context=await playwright[browserName].launchPersistentContext(profile,{...contextOptions,viewport,executablePath:executable,env:{...process.env,TMPDIR:process.env.TMPDIR!}});
+ try{
  const ownedProcesses=execFileSync('/bin/ps',['-axww','-o','pid=','-o','command='],{encoding:'utf8'}).split('\n').map(line=>line.match(/^\s*(\d+)\s+(.*)$/)).filter(Boolean).map(m=>({pid:Number(m![1]),command:m![2]})).filter(p=>p.command.includes(executable)&&p.command.includes(profile));
  expect(ownedProcesses.length,'Running process must identify the selected executable and fresh profile').toBeGreaterThan(0);
  const identity={engine:browserName,version:context.browser()?.version(),executable,executableSHA256:sha(await readFile(executable)),ownedProcesses,profile,temporaryDirectory:process.env.TMPDIR};
  const receipt=specReceipt(pathToFileURL(info.file).href);await mkdir(receipt,{recursive:true});await writeFile(join(receipt,'browser-'+profile.split('/').at(-1)+'.json'),JSON.stringify(identity,null,2));
- await Promise.all(context.pages().map(p=>p.close()));
- try{await use(context);}finally{await context.close();}
+ await use(context);
+ }finally{await context.close();}
+},page:async({context},use)=>{
+ // Keep the persistent context's initial page alive through handoff.
+ const page=context.pages().find(page=>!page.isClosed())??await context.newPage();
+ await Promise.all(context.pages().filter(other=>other!==page).map(other=>other.close()));
+ await use(page);
 }});
 export {expect};
 export const sha=(b:Buffer)=>createHash('sha256').update(b).digest('hex');
