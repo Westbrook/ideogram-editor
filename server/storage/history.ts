@@ -48,6 +48,7 @@ import {adapterResources} from '../observability/adapter-resources.js';
 export type HistoryBuild = { facts: (HistoryFact|AssetFact|Pick<Extract<DomainEvent,{type:'DocumentCreated'}>,'type'|'payload'>|{type:'CheckpointSaved';payload:{checkpoint:import('../../src/protocol/store.js').Checkpoint}})[]; documentChanged: boolean; exportRevision?: string };
 export type HistoryCommit = (bytes:Uint8Array,build:(document:Document,revision:string)=>HistoryBuild,creating?:Document,cancellation?:'encoded-candidate-review')=>Receipt;
 type Proof = {ref:BlobRef;token:string};
+type PlacementReviewValidation = {read(id:string,auth:AssetAuth):ImageEditReview|CandidatePlacementReview;dispose():void};
 // This one fixed receipt detail is installed before accepting HTTP work. A user
 // can cancel while both large-transfer slots are occupied without a third slot.
 export const EXPORT_CANCELLATION_JSON=canonical({kind:'fields',issues:[{path:'command.body',code:'EXPORT_CANCELED'}]});
@@ -102,12 +103,36 @@ export class Histories {
     if(row.client_id!==auth.clientId)throw new StoreError('OWNER_REQUIRED');
     const preview=JSON.parse(String(row.json));try{validatePreview(preview);}catch{throw new StoreError('CORRUPT_STORE');}return preview;
   }
-  review(id:string,auth:AssetAuth):ImageEditReview|CandidatePlacementReview {
-    if(!isId(id))throw new StoreError('MALFORMED_REQUEST');const row=this.db.prepare('SELECT * FROM image_edit_reviews WHERE id=?').get(id);if(!row)throw new StoreError('NOT_FOUND');
-    const review=JSON.parse(String(row.json)) as ImageEditReview|CandidatePlacementReview;
-    if('kind'in review){try{validatePlacementReview(review);const {reviewHash,...content}=review;if(hashBytes(canonical(content))!==reviewHash)throw new Error('REVIEW_HASH');}catch{throw new StoreError('CORRUPT_STORE');}}
+  review(id:string,auth:AssetAuth):ImageEditReview|CandidatePlacementReview {return this.readReview(id,auth);}
+  private validateReviewMetadata(review:CandidatePlacementReview):void {
+    validatePlacementReview(review);const {reviewHash,...content}=review;
+    if(hashBytes(canonical(content))!==reviewHash)throw new Error('REVIEW_HASH');
+  }
+  private readReview(id:string,auth:AssetAuth,validation?:{reuse(json:string|null):boolean;validated(json:string):void}):ImageEditReview|CandidatePlacementReview {
+    if(!isId(id))throw new StoreError('MALFORMED_REQUEST');const row=this.db.prepare('SELECT * FROM image_edit_reviews WHERE id=?').get(id);
+    const json=row?String(row.json):null,reuse=validation?.reuse(json)??false;if(!row)throw new StoreError('NOT_FOUND');
+    const review=JSON.parse(json!) as ImageEditReview|CandidatePlacementReview;
+    if('kind'in review){try{if(!reuse){this.validateReviewMetadata(review);validation?.validated(json!);}}catch{throw new StoreError('CORRUPT_STORE');}}
     if(review.targetClientId!==auth.clientId)throw new StoreError('OWNER_REQUIRED');
     if(row.session_hash!==auth.sessionHash||row.epoch!==this.epoch()||auth.now>=Date.parse(review.expiresAt))throw new StoreError('REVIEW_EXPIRED');return review;
+  }
+  private placementReviewValidation():PlacementReviewValidation {
+    // One preparation may reuse only pure validation of this exact stored row.
+    // Parsed values and all authority, placement and object checks remain fresh.
+    let json:string|null=null,disabled=false,release:(()=>void)|undefined;
+    const dispose=()=>{disabled=true;json=null;release?.();release=undefined;};
+    const validation={
+      reuse(value:string|null){if(!disabled&&(value===null||json!==null&&value!==json))dispose();return !disabled&&json!==null&&value===json;},
+      validated(value:string){
+        if(disabled||json!==null)return;
+        // Oversized legacy rows retain their original full-validation behavior.
+        if(Buffer.byteLength(value)>65536){dispose();return;}
+        // UTF-16 backing plus a fixed allowance for this owner's scalar/closure
+        // metadata. This is owned accounting, not an allocator-release claim.
+        release=adapterResources.reservation('history','placement-review-validation',value.length*2+256);json=value;
+      }
+    };
+    return {read:(id,auth)=>{try{return this.readReview(id,auth,validation);}catch(error){dispose();throw error;}},dispose};
   }
   /** Public authenticated review GET. Internal acceptance checks use review()
    * directly and cannot renew an abandoned owner's lease. acceptCommandId is an
@@ -437,10 +462,10 @@ export class Histories {
   private encodedReviewBinding(review:CandidatePlacementReview,auth:AssetAuth):EncodedReviewProofBinding {
     return {reviewId:review.reviewId,reviewHash:review.reviewHash,writerEpoch:this.epoch(),targetClientId:auth.clientId,documentId:review.documentId,sessionHash:auth.sessionHash,expiresAt:Date.parse(review.expiresAt)};
   }
-  private approvedPlacement(c:Command,encodedComposition?:EncodedCompositionInputs):{review:CandidatePlacementReview;document:Document;before:ImageState}{
+  private approvedPlacement(c:Command,encodedComposition?:EncodedCompositionInputs,validation?:PlacementReviewValidation):{review:CandidatePlacementReview;document:Document;before:ImageState}{
     const b=c.body;if(b.type!=='AdoptReviewedCandidate')throw new StoreError('UNSUPPORTED_COMMAND');
     let review:CandidatePlacementReview;
-    try{const value=this.review(b.reviewId,this.authority(c.commandId));if(!('kind'in value)||value.kind!=='candidate-placement-review-1')throw new Error();review=value;}catch(e){if(e instanceof AssetRejection)throw e;throw new AssetRejection('INVALID_INPUT','IMAGE_REVIEW_EXPIRED');}
+    try{const auth=this.authority(c.commandId),value=validation?validation.read(b.reviewId,auth):this.review(b.reviewId,auth);if(!('kind'in value)||value.kind!=='candidate-placement-review-1')throw new Error();review=value;}catch(e){if(e instanceof AssetRejection)throw e;throw new AssetRejection('INVALID_INPUT','IMAGE_REVIEW_EXPIRED');}
     const {reviewHash,...content}=review;
     if(reviewHash!==b.reviewHash||hashBytes(canonical(content))!==reviewHash)throw new AssetRejection('STALE_REVISION','CANDIDATE_REVIEW_CHANGED');
     const document=this.document(review.documentId);if(!document||document.revision!==review.documentRevision)throw new AssetRejection('STALE_REVISION','REQUEST_SOURCE_CHANGED');
@@ -625,6 +650,7 @@ export class Histories {
       }
     };
     let ownedComposition:{readonly value:EncodedCompositionInputs|undefined;release():void}|undefined;
+    let placementValidation:PlacementReviewValidation|undefined;
     let acceptedLeaseProofs:readonly EncodedReviewProof[]=[];
     let acceptedRawProofs:ReadonlyMap<string,EncodedReviewProof>|undefined;
     let heldReviewId:string|undefined,heldReviewAccepted=false,ownedAcceptanceReviewId:string|undefined;
@@ -734,7 +760,8 @@ export class Histories {
         try{const accessible=this.review(b.reviewId,this.authority(id));if('kind'in accessible&&accessible.kind==='candidate-placement-review-1'&&accessible.inputs.encodedRebuild)ownedAcceptanceReviewId=accessible.reviewId;}catch{/* approvedPlacement supplies the existing rejection semantics. */}
         let accessible:ImageEditReview|CandidatePlacementReview;try{accessible=this.review(b.reviewId,this.authority(id));}catch(error){if(error instanceof AssetRejection)throw error;throw new AssetRejection('INVALID_INPUT','IMAGE_REVIEW_EXPIRED');}
         if('kind'in accessible&&accessible.kind==='candidate-placement-review-1')ownedComposition=this.ownPlacementComposition(accessible);
-        const approved=this.approvedPlacement(c,ownedComposition?.value),review=approved.review,document=approved.document,before=approved.before;
+        placementValidation=this.placementReviewValidation();
+        const approved=this.approvedPlacement(c,ownedComposition?.value,placementValidation),review=approved.review,document=approved.document,before=approved.before;
         if(review.inputs.encodedRebuild){
           // Take before any old raw input is protected. Missing, expired, or
           // restarted lease authority requires a fresh explicit review; there
@@ -746,7 +773,7 @@ export class Histories {
         if(review.encodedCompositionRef)await protect(review.encodedCompositionRef);
         await protectVersion(review.source);
         if(review.lettering){await protect(review.lettering.intent);await protect(review.lettering.manifest);for(const assetId of [review.lettering.candidateAloneAssetId,review.lettering.nativeOffAssetId,review.lettering.nativeOnAssetId])await protectAsset(assetId);}
-        const checked=()=>{check();this.approvedPlacement(c,ownedComposition?.value);};
+        const checked=()=>{check();this.approvedPlacement(c,ownedComposition?.value,placementValidation);};
         const prepared=await this.prepareCandidatePreview({...c,documentId:document.id,body:{type:'PrepareCandidateAdoption',...review.placement}},document,before,review.source,pending.operationId,slot,checked,metadata,proofs,review.inputs,protect,review,ownedComposition?.value);
         const preview=prepared.preview,plan=this.candidatePlan(preview),after=this.versionState(preview.after);await protectLineage(plan.lineage!);
         const creating=review.placement.placement==='new-document';let created:ReturnType<typeof candidateDocument>|undefined,node:ImageHistoryNode|undefined;
@@ -1035,6 +1062,7 @@ export class Histories {
       else this.observations.add({commandId:id,operation:b.type,fullPreparationMs:performance.now()-start,error:rejection?.reason??code??'UNEXPECTED'});
       if(rejection){const creating=(b.type==='CreateDocument'||b.type==='AdoptCandidate'||b.type==='AdoptReviewedCandidate')&&c.expectedDocumentRevision===null&&c.documentId&&!this.document(c.documentId)?{id:c.documentId,revision:'0',branchId:pending.operationId,width:1,height:1,color:'sRGB' as const,depth:8 as const,orderedLayerIds:[],historyHead:pending.operationId,checkpoint:null,compositionVersion:null}:undefined;this.commit(bytes,()=>{throw rejection;},creating);}else this.pause(id);
     }finally{
+      placementValidation?.dispose();
       ownedComposition?.release();
       if(ownedAcceptanceReviewId&&this.encodedAcceptances.get(ownedAcceptanceReviewId)?.commandId===id)this.encodedAcceptances.delete(ownedAcceptanceReviewId);
       if(ownedAcceptanceReviewId)this.encodedReviewProofs.discard(ownedAcceptanceReviewId);

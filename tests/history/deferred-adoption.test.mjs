@@ -230,3 +230,95 @@ test('cold full-candidate reviews support new documents and empty current docume
   const redone=await run(f,{type:'Redo',historyNode:added.document.historyHead});assert.equal(redone.document.image.compositeAssetId,added.document.image.compositeAssetId);
   assert.deepEqual(await f.effects(),effects);
 });
+
+
+// Observe real writer preparation/commit boundaries through its existing setup
+// fixture. Only invocation 2 changes a live SQL session at the already existing
+// history-after-proofs barrier; original guards, promises and commit work run.
+import {writeFile as writeMemoFixture} from 'node:fs/promises';
+import {pathToFileURL as memoFixtureURL} from 'node:url';
+
+function memoLifecycleModule(){
+  return `
+import {setup as baseSetup} from ${JSON.stringify(new URL('../candidates/observer-fixture.mjs',import.meta.url).href)};
+import {adapterResources} from ${JSON.stringify(new URL('../../dist/local/server/observability/adapter-resources.js',import.meta.url).href)};
+import {writeFileSync} from 'node:fs';
+import {join} from 'node:path';
+export async function setup(store){
+  const close=await baseSetup(store),history=store.histories,rows=[],restores=[];
+  let active=null,serial=0,faults=0;
+  const bytes=()=>adapterResources.snapshot().groups.filter(g=>g.owner==='history'&&g.kind==='placement-review-validation').reduce((n,g)=>n+g.reservedBytes,0);
+  const write=closed=>{const text=JSON.stringify({rows,faults,closed,booked:bytes()});if(Buffer.byteLength(text)>8192)throw Error('MEMO_FIXTURE_BOUND');writeFileSync(join(store.root,'review-memo-lifecycle.json'),text,{mode:0o600});};
+  function wrap(key,make){const original=history[key],wrapped=make(original);history[key]=wrapped;restores.push(()=>{if(history[key]===wrapped)history[key]=original;else faults++;});}
+  wrap('validateReviewMetadata',original=>function(...args){if(active)active.row.pureCalls++;return Reflect.apply(original,this,args);});
+  wrap('placementReviewValidation',original=>function(...args){
+    const owner=Reflect.apply(original,this,args),scope=active;if(!scope)return owner;scope.row.factories++;
+    return {read(...values){const result=Reflect.apply(owner.read,owner,values);scope.row.bookedPeak=Math.max(scope.row.bookedPeak,bytes()-scope.baseline);return result;},dispose(){scope.row.disposals++;return Reflect.apply(owner.dispose,owner,[]);}};
+  });
+  wrap('approvedPlacement',original=>function(...args){
+    const scope=active;if(!scope)return Reflect.apply(original,this,args);
+    const row=scope.row,memo=Boolean(args[2]),first=memo&&row.memoCalls===0,before=row.pureCalls;
+    if(memo)row.memoCalls++;else row.fullCalls++;
+    try{return Reflect.apply(original,this,args);}finally{const delta=row.pureCalls-before;if(first)row.initialPureDelta=delta;else if(memo){row.guardCalls++;row.guardPureCalls+=delta;}else row.fullPureCalls+=delta;}
+  });
+  wrap('barrier',original=>function(...args){
+    const result=Reflect.apply(original,this,args);
+    if(active&&args[0]==='history-after-proofs'){
+      active.row.barriers++;
+      if(active.row.ordinal===2){const changed=store.db.prepare('UPDATE image_edit_reviews SET session_hash=? WHERE id=?').run('b'.repeat(64),active.reviewId);if(Number(changed.changes)!==1)throw Error('MEMO_FIXTURE_REVIEW_JOIN');active.row.revoked=true;}
+    }
+    return result;
+  });
+  wrap('prepare',original=>function(...args){
+    const pending=this.pending(args[0]);if(pending?.command.body.type!=='AdoptReviewedCandidate')return Reflect.apply(original,this,args);
+    if(active||serial>=3)throw Error('MEMO_FIXTURE_INVOCATION_BOUND');
+    const row={ordinal:++serial,factories:0,disposals:0,pureCalls:0,memoCalls:0,initialPureDelta:null,guardCalls:0,guardPureCalls:0,fullCalls:0,fullPureCalls:0,barriers:0,revoked:false,bookedPeak:0,finalBooked:null,settled:null};
+    const scope={row,reviewId:pending.command.body.reviewId,baseline:bytes()};active=scope;
+    const finish=settled=>{try{row.settled=settled;row.finalBooked=bytes()-scope.baseline;rows.push(row);if(active===scope)active=null;else faults++;write(false);}catch{faults++;}};
+    let result;try{result=Reflect.apply(original,this,args);}catch(error){finish('threw');throw error;}
+    // The side observation returns the exact original promise to the product.
+    // Both branches are nonthrowing; it creates no replacement await or timer.
+    result.then(()=>finish('fulfilled'),()=>finish('rejected'));return result;
+  });
+  write(false);
+  return Object.assign(async()=>{await close();},{afterStoreDrain(){try{close.afterStoreDrain?.();}finally{for(const restore of restores.reverse())restore();write(true);}}});
+}
+`;
+}
+
+async function memoLifecycleFixture(t){
+  let server;t.after(()=>server?.close());const root=await rootFor(t),module=join(root,'review-memo-lifecycle-fixture.mjs');
+  await writeMemoFixture(module,memoLifecycleModule(),{flag:'wx',mode:0o600});
+  server=await startLocalServer({root},{writer:{setupModule:memoFixtureURL(module).href}});
+  const paired=await pair(server);assert.equal(paired.status,200,paired.text);
+  const f={root,server,paired,
+    read:path=>call(server.origin,path,{headers:readHeaders(cookieFrom(paired))}),
+    post:(path,body)=>call(server.origin,path,{method:'POST',body,headers:mutationHeaders(server,paired)}),
+    command:(patch={},body={})=>command(EMPTY_EXPECTED_VERSIONS,{clientId:paired.json.clientId,...patch},body),
+    effects:async()=>{const value=JSON.parse(await readFile(join(root,'candidate-fixture.json'),'utf8'));assert.deepEqual(value.errors,[]);return value.effects;},
+    async close(){if(server){const owned=server;server=undefined;await owned.close();}},
+  };
+  assert.equal((await terminal(f,f.command({}, {width:512,height:512}))).json.receipt.status,'accepted');return f;
+}
+
+test('real deferred preparation keeps cold and final full validation, rejects live post-proof revocation, and releases each invocation memo',async t=>{
+  const f=await memoLifecycleFixture(t),sourceBefore=await document(f),{value:c}=await candidate(f),effects=await f.effects();
+  const first=await review(f,placement(c,{mode:'full-candidate',placement:'new-document',newDocumentId:'memo_first_document',newLayerId:'memo_first_layer'}));
+  const accepted=await accept(f,first);assert.equal(accepted.document.id,'memo_first_document');assert.deepEqual(await document(f),sourceBefore);
+  assert.deepEqual(await pixels(f,accepted.document.image.compositeAssetId),await pixels(f,c.preparedAssetId));
+  const denied=await review(f,placement(c,{mode:'full-candidate',placement:'new-document',newDocumentId:'memo_denied_document',newLayerId:'memo_denied_layer'}));
+  const refusal=await rejected(f,adoption(denied),'INVALID_INPUT','memo_denied_document',null);
+  assert.equal(JSON.parse(await retained(f,refusal.details)).issues[0].code,'IMAGE_REVIEW_EXPIRED');assert.equal((await f.read('/api/v1/documents/memo_denied_document')).status,404);
+  const later=await review(f,placement(c,{mode:'full-candidate',placement:'new-document',newDocumentId:'memo_later_document',newLayerId:'memo_later_layer'}));
+  const laterAccepted=await accept(f,later);assert.equal(laterAccepted.document.id,'memo_later_document');assert.deepEqual(await pixels(f,laterAccepted.document.image.compositeAssetId),await pixels(f,c.preparedAssetId));
+  assert.deepEqual(await document(f),sourceBefore);assert.deepEqual(await f.effects(),effects,'Local acceptance never repeats the provider operation');
+  await f.close();
+  const raw=await readFile(join(f.root,'review-memo-lifecycle.json'));assert(raw.length<=8192);const observed=JSON.parse(raw);
+  assert.equal(observed.closed,true);assert.equal(observed.faults,0);assert.equal(observed.booked,0);assert.equal(observed.rows.length,3);
+  for(const [index,row]of observed.rows.entries()){
+    assert.equal(row.ordinal,index+1);assert.equal(row.factories,1);assert.equal(row.disposals,1);assert.equal(row.settled,'fulfilled');
+    assert.equal(row.initialPureDelta,1,'Every real preparation bootstraps with full validation');assert(row.guardCalls>0,'Actual asynchronous preparation reaches repeated live checks');assert.equal(row.guardPureCalls,0,'Only exact unchanged pure metadata work can be reused');
+    assert.equal(row.barriers,1);assert(row.bookedPeak>0&&row.bookedPeak<=131328,'Conservative ownership is bounded; this is not an RSS measurement');assert.equal(row.finalBooked,0);
+    assert.equal(row.revoked,index===1);assert.equal(row.fullCalls,index===1?0:1);assert.equal(row.fullPureCalls,index===1?0:1,'Successful commit always reruns full original validation');
+  }
+});

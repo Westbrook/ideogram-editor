@@ -193,3 +193,161 @@ test('queued admission or a stale association cannot claim that an acceptance co
   for(const proof of active.taken)f.objects.releaseProof(proof.token);f.histories.encodedAcceptances.delete(entry.reviewId);f.histories.runningId=undefined;inventory(f,0);
  });
 });
+
+
+// Exact-row validation memo controls. These call the real Histories reader,
+// SQLite rows, schema/hash validator and producer accounting. The transparent
+// validator wrapper measures skipped work without substituting validation.
+import {adapterResources} from '../../dist/local/server/observability/adapter-resources.js';
+
+function reviewValidationProbe(t,f){
+  const original=f.histories.validateReviewMetadata;let calls=0;
+  f.histories.validateReviewMetadata=function(...args){calls++;return Reflect.apply(original,this,args);};
+  t.after(()=>{f.histories.validateReviewMetadata=original;});
+  return ()=>calls;
+}
+function reviewMemoBytes(){
+  return adapterResources.snapshot().groups.filter(group=>group.owner==='history'&&group.kind==='placement-review-validation').reduce((sum,group)=>sum+group.reservedBytes,0);
+}
+const storedReview=(f,entry)=>String(f.db.prepare('SELECT json FROM image_edit_reviews WHERE id=?').get(entry.reviewId).json);
+const replaceStoredReview=(f,entry,json)=>f.db.prepare('UPDATE image_edit_reviews SET json=? WHERE id=?').run(json,entry.reviewId);
+function pendingReviewAcceptance(f,entry,id='memo_acceptance'){
+  const request=structuredClone(entry.request);
+  Object.assign(request.command,{commandId:id,transactionId:id+'_transaction',correlationId:id+'_correlation',body:{type:'AdoptReviewedCandidate',reviewId:entry.reviewId,reviewHash:entry.review.reviewHash,draft:null}});
+  const original=canonical(request);assert.deepEqual(parseCommand(Buffer.from(original)),request);
+  f.db.prepare('INSERT INTO history_preparations VALUES (?,?,?,?,?,?,?)').run(id,hashBytes(original),original,original,id+'_operation','preparing','null');
+  f.histories.authorities.set(id,{auth:{...f.auth},started:performance.now()});
+  return request;
+}
+
+test('one exact review memo returns fresh graphs while public reads still validate and held proofs never renew',async t=>{
+  const f=await fixture(t),entry=await f.seed(),calls=reviewValidationProbe(t,f),baseline=reviewMemoBytes(),before=f.snapshot(),memo=f.histories.placementReviewValidation();
+  try{
+    assert.equal(reviewMemoBytes(),baseline);
+    const first=memo.read(entry.reviewId,f.auth);assert.deepEqual(first,entry.review);assert.equal(calls(),1);
+    const booked=storedReview(f,entry).length*2+256;assert.equal(reviewMemoBytes(),baseline+booked);
+    first.placement.name='Caller-owned mutation';first.inputs.identity.candidateVersion='99';
+    f.advance(3000);
+    const second=memo.read(entry.reviewId,f.auth);assert.deepEqual(second,entry.review);assert.notEqual(second,first);assert.notEqual(second.inputs,first.inputs);assert.equal(calls(),1);
+    assert.deepEqual(f.histories.review(entry.reviewId,f.auth),entry.review);assert.equal(calls(),2,'Public authenticated review path cannot acquire memo authority');
+    assert.equal([...f.timers][0].at,4000);inventory(f,1);live(f,entry);assert.deepEqual(f.snapshot(),before);
+    assert.equal(reviewMemoBytes(),baseline+booked);
+  }finally{memo.dispose();}
+  assert.equal(reviewMemoBytes(),baseline);memo.dispose();assert.equal(reviewMemoBytes(),baseline);
+});
+
+for(const kind of ['schema','hash','json'])test('invalid first '+kind+' review cannot arm or later rearm a memo',async t=>{
+  const f=await fixture(t),entry=await f.seed(),calls=reviewValidationProbe(t,f),baseline=reviewMemoBytes(),original=storedReview(f,entry),memo=f.histories.placementReviewValidation();
+  try{
+    const bad=structuredClone(entry.review);if(kind==='schema')bad.width=0;if(kind==='hash')bad.reviewHash='sha256:'+'0'.repeat(64);
+    replaceStoredReview(f,entry,kind==='json'?'{':canonical(bad));
+    assert.throws(()=>memo.read(entry.reviewId,f.auth),kind==='json'?SyntaxError:{code:'CORRUPT_STORE'});
+    assert.equal(reviewMemoBytes(),baseline);
+    replaceStoredReview(f,entry,original);const previous=calls();
+    assert.deepEqual(memo.read(entry.reviewId,f.auth),entry.review);assert.deepEqual(memo.read(entry.reviewId,f.auth),entry.review);
+    assert.equal(calls(),previous+2,'Repair after failed first validation must use the original full path for every read');
+    assert.equal(reviewMemoBytes(),baseline);
+  }finally{replaceStoredReview(f,entry,original);memo.dispose();}
+});
+
+for(const kind of ['changed-valid','changed-hash','different-wire','missing'])test('an observed '+kind+' review row permanently retires exact-row reuse across a real proof await',async t=>{
+  const f=await fixture(t),entry=await f.seed(),calls=reviewValidationProbe(t,f),baseline=reviewMemoBytes(),original=storedReview(f,entry),memo=f.histories.placementReviewValidation();let proof;
+  try{
+    memo.read(entry.reviewId,f.auth);assert.equal(calls(),1);assert(reviewMemoBytes()>baseline);
+    proof=await f.objects.prove(entry.proofs[0].ref,()=>{});assert.doesNotThrow(()=>f.objects.proven(entry.proofs[0].ref,proof));
+    if(kind==='missing')f.db.prepare('DELETE FROM image_edit_reviews WHERE id=?').run(entry.reviewId);
+    else if(kind==='different-wire')replaceStoredReview(f,entry,' '+original);
+    else{const changed=structuredClone(entry.review);changed.placement.name+=' changed';if(kind==='changed-valid'){const {reviewHash,...content}=changed;changed.reviewHash=hashBytes(canonical(content));}replaceStoredReview(f,entry,canonical(changed));}
+    if(kind==='missing')assert.throws(()=>memo.read(entry.reviewId,f.auth),{code:'NOT_FOUND'});
+    else if(kind==='changed-hash')assert.throws(()=>memo.read(entry.reviewId,f.auth),{code:'CORRUPT_STORE'});
+    else{const value=memo.read(entry.reviewId,f.auth);assert.equal(value.placement.name,entry.review.placement.name+(kind==='changed-valid'?' changed':''));}
+    assert.equal(reviewMemoBytes(),baseline);
+    f.db.prepare('INSERT OR REPLACE INTO image_edit_reviews VALUES (?,?,?,?)').run(entry.reviewId,original,f.auth.sessionHash,'7');
+    const previous=calls();assert.deepEqual(memo.read(entry.reviewId,f.auth),entry.review);assert.deepEqual(memo.read(entry.reviewId,f.auth),entry.review);
+    assert.equal(calls(),previous+2,'Restoring identical prior bytes does not rearm an invocation that observed a change');assert.equal(reviewMemoBytes(),baseline);
+  }finally{if(proof)f.objects.releaseProof(proof);f.db.prepare('INSERT OR REPLACE INTO image_edit_reviews VALUES (?,?,?,?)').run(entry.reviewId,original,f.auth.sessionHash,'7');memo.dispose();}
+  inventory(f,1);live(f,entry);
+});
+
+for(const kind of ['owner','session','epoch','expiry'])test('a warm exact review memo still checks live '+kind+' and releases on refusal',async t=>{
+  const f=await fixture(t),entry=await f.seed(),calls=reviewValidationProbe(t,f),baseline=reviewMemoBytes(),memo=f.histories.placementReviewValidation();
+  try{
+    memo.read(entry.reviewId,f.auth);assert.equal(calls(),1);let auth=f.auth;
+    if(kind==='owner')auth={...auth,clientId:'different_client'};
+    if(kind==='session')f.db.prepare('UPDATE image_edit_reviews SET session_hash=? WHERE id=?').run('b'.repeat(64),entry.reviewId);
+    if(kind==='epoch')f.db.prepare("UPDATE meta SET value='8' WHERE key='writerEpoch'").run();
+    if(kind==='expiry')auth={...auth,now:Date.parse(entry.review.expiresAt)};
+    assert.throws(()=>memo.read(entry.reviewId,auth),{code:kind==='owner'?'OWNER_REQUIRED':'REVIEW_EXPIRED'});
+    assert.equal(calls(),1,'A memo hit still runs the original live checks');assert.equal(reviewMemoBytes(),baseline);
+    f.db.prepare('UPDATE image_edit_reviews SET session_hash=? WHERE id=?').run(f.auth.sessionHash,entry.reviewId);f.db.prepare("UPDATE meta SET value='7' WHERE key='writerEpoch'").run();
+    memo.read(entry.reviewId,f.auth);memo.read(entry.reviewId,f.auth);assert.equal(calls(),3);assert.equal(reviewMemoBytes(),baseline);
+    inventory(f,1);live(f,entry);
+  }finally{memo.dispose();}
+});
+
+for(const kind of ['binding-deleted','binding-client','binding-expiry','authority-expiry'])test('approved placement refreshes '+kind+' before consulting an already warm memo',async t=>{
+  const f=await fixture(t),entry=await f.seed(),request=pendingReviewAcceptance(f,entry),calls=reviewValidationProbe(t,f),memo=f.histories.placementReviewValidation(),baseline=reviewMemoBytes();
+  const originalDocument=f.histories.document,afterReview=new Error('reached unchanged document boundary');let documentCalls=0;
+  // This sentinel is after real authority, SQLite review and command-hash checks.
+  // It deliberately does not stand in for successful full placement validation.
+  f.histories.document=()=>{documentCalls++;throw afterReview;};
+  try{
+    assert.throws(()=>f.histories.approvedPlacement(request.command,undefined,memo),error=>error===afterReview);
+    assert.throws(()=>f.histories.approvedPlacement(request.command,undefined,memo),error=>error===afterReview);assert.equal(calls(),1);assert.equal(documentCalls,2);
+    if(kind==='binding-deleted')f.db.prepare('DELETE FROM client_bindings WHERE cookie_hash=?').run(f.auth.sessionHash);
+    if(kind==='binding-client')f.db.prepare('UPDATE client_bindings SET client_id=? WHERE cookie_hash=?').run('other_client',f.auth.sessionHash);
+    if(kind==='binding-expiry')f.db.prepare("UPDATE client_bindings SET expires='0' WHERE cookie_hash=?").run(f.auth.sessionHash);
+    if(kind==='authority-expiry')f.histories.authorities.get(request.command.commandId).started=performance.now()-120001;
+    assert.throws(()=>f.histories.approvedPlacement(request.command,undefined,memo),{code:'INVALID_INPUT',reason:'IMAGE_REVIEW_EXPIRED'});
+    assert.equal(documentCalls,2);assert.equal(calls(),1);inventory(f,1);live(f,entry);
+  }finally{f.histories.document=originalDocument;memo.dispose();}
+  assert.equal(reviewMemoBytes(),baseline);
+});
+
+test('disposed readers and separate invocations never inherit a prior successful review validation',async t=>{
+  const f=await fixture(t),entry=await f.seed(),calls=reviewValidationProbe(t,f),baseline=reviewMemoBytes(),one=f.histories.placementReviewValidation(),two=f.histories.placementReviewValidation();
+  try{
+    one.read(entry.reviewId,f.auth);assert.equal(calls(),1);const booked=storedReview(f,entry).length*2+256;
+    two.read(entry.reviewId,f.auth);assert.equal(calls(),2);assert.equal(reviewMemoBytes(),baseline+2*booked,'Each independently live invocation owns its own bounded string');
+    one.read(entry.reviewId,f.auth);two.read(entry.reviewId,f.auth);assert.equal(calls(),2);
+    one.dispose();assert.equal(reviewMemoBytes(),baseline+booked);one.read(entry.reviewId,f.auth);one.read(entry.reviewId,f.auth);assert.equal(calls(),4);assert.equal(reviewMemoBytes(),baseline+booked);
+    two.read(entry.reviewId,f.auth);assert.equal(calls(),4);two.dispose();assert.equal(reviewMemoBytes(),baseline);
+    const three=f.histories.placementReviewValidation();try{three.read(entry.reviewId,f.auth);assert.equal(calls(),5);}finally{three.dispose();}
+  }finally{one.dispose();two.dispose();}
+  assert.equal(reviewMemoBytes(),baseline);
+});
+
+for(const bytes of [65536,65537])test('stored review wire of '+bytes+' UTF-8 bytes preserves validation and bounded memo eligibility',async t=>{
+  const f=await fixture(t),entry=await f.seed(),calls=reviewValidationProbe(t,f),baseline=reviewMemoBytes(),original=storedReview(f,entry),memo=f.histories.placementReviewValidation();
+  assert(Buffer.byteLength(original)<65536);const padded=' '.repeat(bytes-Buffer.byteLength(original))+original;assert.equal(Buffer.byteLength(padded),bytes);
+  try{
+    replaceStoredReview(f,entry,padded);assert.deepEqual(f.histories.review(entry.reviewId,f.auth),entry.review);assert.equal(calls(),1,'Existing reader accepts whitespace-bearing legacy metadata');
+    assert.deepEqual(memo.read(entry.reviewId,f.auth),entry.review);assert.deepEqual(memo.read(entry.reviewId,f.auth),entry.review);
+    assert.equal(calls(),bytes===65536?2:3);assert.equal(reviewMemoBytes(),baseline+(bytes===65536?padded.length*2+256:0));
+    if(bytes>65536){replaceStoredReview(f,entry,original);memo.read(entry.reviewId,f.auth);memo.read(entry.reviewId,f.auth);assert.equal(calls(),5,'Oversized first row does not arm after later shrink');assert.equal(reviewMemoBytes(),baseline);}
+  }finally{replaceStoredReview(f,entry,original);memo.dispose();}
+  assert.equal(reviewMemoBytes(),baseline);
+});
+
+test('review memo books conservative UTF-16 backing without retaining parsed caller graphs',async t=>{
+  const f=await fixture(t),entry=await f.seed(),baseline=reviewMemoBytes();updateReview(f,entry,review=>{review.placement.name='M\u00e9mo \ud83d\ude00';});
+  const json=storedReview(f,entry);assert.notEqual(Buffer.byteLength(json),json.length);
+  const memo=f.histories.placementReviewValidation();try{const value=memo.read(entry.reviewId,f.auth);assert.equal(reviewMemoBytes(),baseline+json.length*2+256);value.placement.name='external mutation';assert.equal(memo.read(entry.reviewId,f.auth).placement.name,entry.review.placement.name);}finally{memo.dispose();}
+  assert.equal(reviewMemoBytes(),baseline);
+});
+
+test('actual prepare failure disposes its memo before original proof-lease cleanup and never transfers it to a retry',async t=>{
+  const f=await fixture(t),entry=await f.seed(),request=pendingReviewAcceptance(f,entry),baseline=reviewMemoBytes(),factory=f.histories.placementReviewValidation,documentLookup=f.histories.document,originalCommit=f.histories.commit,originalDiscard=f.histories.encodedReviewProofs.discard;
+  let factories=0,disposals=0,documentCalls=0,cleanups=0;const created=[],rejections=[];
+  f.histories.placementReviewValidation=function(){factories++;const owner=Reflect.apply(factory,this,[]);created.push(owner);return {read:(...args)=>owner.read(...args),dispose(){disposals++;owner.dispose();}};};
+  // The original prepare reaches this live document lookup after successful
+  // metadata validation. Its original error classification and finally run.
+  f.histories.document=()=>{documentCalls++;assert(reviewMemoBytes()>baseline);throw Object.assign(new Error('missing fixture document dependency'),{code:'MISSING_OBJECT'});};
+  f.histories.commit=(_bytes,build)=>{try{build();assert.fail('Expected the original dependency rejection');}catch(error){assert.equal(error.code,'MISSING_ASSET');assert.equal(error.reason,'HISTORY_DEPENDENCY_UNAVAILABLE');rejections.push(error);}return {status:'rejected'};};
+  f.histories.encodedReviewProofs.discard=function(...args){cleanups++;assert.equal(reviewMemoBytes(),baseline,'Invocation ownership ends before the existing proof-lease drain');return Reflect.apply(originalDiscard,this,args);};
+  try{
+    await f.histories.prepare(request.command.commandId,'unused_fixture_slot');assert.equal(factories,1);assert.equal(disposals,1);assert.equal(documentCalls,1);assert.equal(rejections.length,1);assert.equal(cleanups,1);assert.equal(reviewMemoBytes(),baseline);inventory(f,0);released(f,entry);
+    await f.histories.prepare(request.command.commandId,'unused_fixture_slot');assert.equal(factories,2);assert.equal(disposals,2);assert.equal(documentCalls,2);assert.equal(rejections.length,2);assert.equal(cleanups,2);assert.equal(reviewMemoBytes(),baseline);assert.notEqual(created[0],created[1]);
+    const calls=reviewValidationProbe(t,f);for(const owner of created){owner.read(entry.reviewId,f.auth);owner.read(entry.reviewId,f.auth);}assert.equal(calls(),4,'Both disposed invocation readers remain full-validation fallbacks');assert.equal(reviewMemoBytes(),baseline);
+  }finally{f.histories.placementReviewValidation=factory;f.histories.document=documentLookup;f.histories.commit=originalCommit;f.histories.encodedReviewProofs.discard=originalDiscard;for(const owner of created)owner.dispose();}
+});
