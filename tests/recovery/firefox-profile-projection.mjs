@@ -196,7 +196,7 @@ class Profile{
    if(p.meta.version!==36)refuse('VERSION_UNSUPPORTED');
    if(!finite(p.meta.startTime)||p.categories!==26)refuse('SCHEMA_INVALID');
    // Exact requested feature set, independent of native serialization order.
-   const c=p.configuration;if(!c||c.capacity!==16777216||c.interval!==1||c.features!==7||c.threads!==1||c.activeTabID!==0)refuse('CONFIG_INVALID');
+   const c=p.configuration;if(!c||c.capacity!==16777216||c.interval!==4||c.features!==7||c.threads!==1||c.activeTabID!==0)refuse('CONFIG_INVALID');
    for(const t of p.threads){
     for(const [name,columns]of Object.entries(SCHEMAS)){const table=t.tables[name];if(!table||!table.hasData||table.schema!==(1<<columns.length)-1)refuse('SCHEMA_INVALID');}
     if(!t.hasStrings)refuse('SCHEMA_INVALID');

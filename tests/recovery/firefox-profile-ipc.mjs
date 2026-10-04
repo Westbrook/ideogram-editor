@@ -13,7 +13,7 @@ const WORKER=join(HERE,'firefox-profile-receiver.mjs');
 // parent loader/debugger arguments are inherited.
 const GUARDS=['../session/no-egress.mjs','../provider/no-egress.mjs','../store/no-network.mjs'].map(path=>resolve(HERE,path));
 export const FIREFOX_PROFILE_IPC_LIMITS=Object.freeze({setupMs:5000,closeWorkMs:14000,cancelMs:1000,lifetimeMs:130000,rawBytes:16777216,chunkBytes:16384,summaryBytes:262144});
-const SETTINGS=Object.freeze({MOZ_PROFILER_STARTUP:'1',MOZ_PROFILER_STARTUP_NO_BASE:'1',MOZ_PROFILER_STARTUP_ENTRIES:'16777216',MOZ_PROFILER_STARTUP_INTERVAL:'1',MOZ_PROFILER_STARTUP_FEATURES:'js,stackwalk,nomarkerstacks',MOZ_PROFILER_STARTUP_FILTERS:'GeckoMain'});
+const SETTINGS=Object.freeze({MOZ_PROFILER_STARTUP:'1',MOZ_PROFILER_STARTUP_NO_BASE:'1',MOZ_PROFILER_STARTUP_ENTRIES:'16777216',MOZ_PROFILER_STARTUP_INTERVAL:'4',MOZ_PROFILER_STARTUP_FEATURES:'js,stackwalk,nomarkerstacks',MOZ_PROFILER_STARTUP_FILTERS:'GeckoMain'});
 const CONTEXT_KEYS=['p4WallMs','realmTimeOriginMs','f5WallMs','f5MonotonicMs','f6WallMs','f6MonotonicMs','queueReadEntryMonotonicMs','queueReadCallbackMonotonicMs'];
 const RECEIVER_FAILURES=new Set(['PROFILE_READ_FAILED','PROFILE_RAW_LIMIT','PROFILE_CANCELLED','PROFILE_RECEIVER_FAILED']);
 const RESULT_KEYS=['type','eof','rawBytes','summary','failure'];
