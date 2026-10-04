@@ -1,6 +1,7 @@
 import { test, expect } from './fixture';
 import type { Page } from '@playwright/test';
 import axe from 'axe-core';
+import { capturePagesContrast } from './contrast-evidence';
 import { readFile, stat, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import sharp from 'sharp';
@@ -95,6 +96,7 @@ test('appearance and density persist and all nine control presentations pass axe
     await info.attach(`axe-${appearance}-${density}`, { contentType: 'application/json', path: reportPath });
     incomplete.push({ appearance, density, incomplete: result.incomplete });
     expect(result.violations).toEqual([]);
+    await capturePagesContrast(page, info, `${appearance}-${density}`, result, reportPath, 'preview');
   }
   await info.attach('manual-review-still-required', { contentType: 'application/json', body: Buffer.from(JSON.stringify({ scope: 'Automated Pages controls only; incomplete rules and manual accessibility remain unapproved', states: incomplete })) });
   await page.reload(); await expect(select(page, 'appearance')).toHaveValue('dark'); await expect(select(page, 'density')).toHaveValue('spacious');

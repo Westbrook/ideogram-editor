@@ -2,6 +2,7 @@ import { test, expect } from './fixture';
 import type { Page, TestInfo } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
 import axe from 'axe-core';
+import { capturePagesContrast } from './contrast-evidence';
 
 const tokens = JSON.parse(await readFile(new URL('../../vendor/themes/spectrum/compiled.json', import.meta.url), 'utf8'));
 const color = (mode: string, id: string) => tokens.branches[mode].tokens[id].value.replace(/rgb\((\d+) (\d+) (\d+) \/ 1\)/, 'rgb($1, $2, $3)');
@@ -30,6 +31,7 @@ async function scan(page: Page, info: TestInfo, state: string) {
   }), { flag: 'wx', mode: 0o600 });
   await info.attach(`editor-axe-${state}`, { contentType: 'application/json', path: reportPath });
   expect(result.violations).toEqual([]);
+  await capturePagesContrast(page, info, state, result, reportPath, 'editor');
 }
 async function screenshot(page: Page, info: TestInfo, name: string) {
   const bytes = await page.screenshot({ path: info.outputPath(name + '.png'), fullPage: true,
