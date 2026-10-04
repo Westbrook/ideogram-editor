@@ -4,12 +4,13 @@ import {randomUUID,createHash} from 'node:crypto';
 import {setTimeout as pause} from 'node:timers/promises';
 import {EventEmitter,getEventListeners} from 'node:events';
 import {exchange} from '../session/helpers.mjs';
-import {readFile,writeFile,rename,cp} from 'node:fs/promises';
+import {readFile,writeFile,rename,cp,link,symlink} from 'node:fs/promises';
 import {terminalWithDiagnostics} from './native-failure-diagnostics.mjs';
 import {assertCandidatePrepared,joinNativeRequestMemory} from './queue-failure-diagnostics.mjs';
 import {observeNativeRequestMain,observeNativeRequestWriter} from './native-request-memory-observation.mjs';
 import {installCandidatePreparationObservation} from './candidate-preparation-observation.mjs';
 import {createNativeMemoryRecorder,nativeMemoryPhases as memoryPhase} from './native-memory-diagnostics.mjs';
+import {observeCandidateMemory,markCandidateMemory,installCandidateMemory,readCandidateMemory,reportCandidateMemory,candidateMemoryFiles} from './native-candidate-memory-observation.mjs';
 import {join} from 'node:path';
 import {Worker} from 'node:worker_threads';
 import {DatabaseSync} from 'node:sqlite';
@@ -89,9 +90,10 @@ async function syncNativeClock(root,now){
  await writeFile(path+'.tmp',JSON.stringify({now}),{flag:'wx',mode:0o600});
  await rename(path+'.tmp',path);
 }
-async function fixture(t,{encoded=false,failure=false,now,bounds=false,actualSize=512,acceptanceWait}={}){
+async function fixture(t,{encoded=false,failure=false,now,bounds=false,actualSize=512,acceptanceWait,passiveMemory=false}={}){
  const memoryFixture=++memoryFixtureSequence;mainMemory.sample(memoryFixture,memoryPhase.fixtureOpen);
- let close;t.after(async()=>{mainMemory.sample(memoryFixture,memoryPhase.fixtureCloseBefore);try{await close?.();mainMemory.sample(memoryFixture,memoryPhase.fixtureCloseAfter,-1,1);}catch(error){mainMemory.sample(memoryFixture,memoryPhase.fixtureCloseAfter,-1,2);throw error;}});const root=await rootFor(t);
+ let close;t.after(async()=>{mainMemory.sample(memoryFixture,memoryPhase.fixtureCloseBefore);try{await close?.();mainMemory.sample(memoryFixture,memoryPhase.fixtureCloseAfter,-1,1);}catch(error){mainMemory.sample(memoryFixture,memoryPhase.fixtureCloseAfter,-1,2);throw error;}finally{if(passiveMemory)try{reportCandidateMemory(root,bytes=>t.diagnostic(bytes));}catch{}}});const root=await rootFor(t);
+ if(passiveMemory)markCandidateMemory(root);
  if(actualSize!==512){assert.equal(actualSize,256);assert(!now&&!bounds);await writeFile(join(root,'text-treatment-result-size'),String(actualSize),{flag:'wx',mode:0o600});}
  await writeFile(join(root,'j19-memory-enabled'),'1',{flag:'wx',mode:0o600});
  let server;
@@ -581,7 +583,7 @@ function savedReviews(f){const db=new DatabaseSync(join(f.root,'metadata.sqlite'
 function historyRoots(f){const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});try{return db.prepare("SELECT owner,hash,media_type FROM roots WHERE owner LIKE 'history-command:%' ORDER BY owner,hash,media_type").all();}finally{db.close();}}
 
 test('99 genuinely verified distinct native assets retain a large encoded graph behind a bounded public review; acceptance and Undo remain real',{timeout:900000},async t=>{
- const f=await fixture(t,{bounds:true}),nativeState=await ninetyNineNativeAssets(f),c=await candidate(f,{kind:'baked-lettering'}),approved=await reviewed(f,placement(c,{action:'keep-both',duplicationAcknowledgement:randomUUID(),preservation:'none'},{preparation:'encoded-rebuild'})),graph=await encodedComposition(f,approved.review);
+ const f=await fixture(t,{bounds:true,passiveMemory:true}),nativeState=await ninetyNineNativeAssets(f),c=await candidate(f,{kind:'baked-lettering'}),approved=await reviewed(f,placement(c,{action:'keep-both',duplicationAcknowledgement:randomUUID(),preservation:'none'},{preparation:'encoded-rebuild'})),graph=await encodedComposition(f,approved.review);
  assert.equal(graph.value.layers.length,100);assert.equal(graph.value.images.length,99);assert.equal(new Set(graph.value.images.map(row=>row.assetId)).size,99);assert.deepEqual(new Set(graph.value.images.map(row=>row.assetId)),new Set(nativeState.layers.map(row=>row.assetId)));
  const afterBytes=Buffer.byteLength(canonical(approved.intent.after)),intentBytes=(await retained(f,approved.review.lettering.intent)).length;
  assert(afterBytes<=65536,'The actual accepted ImageState must fit its unchanged metadata bound');assert(graph.bytes.length>65536&&graph.bytes.length<=ENCODED_COMPOSITION_BYTES);assert(intentBytes>65536&&intentBytes<=524288);assert(approved.wireBytes<=65536);
@@ -1032,4 +1034,139 @@ test('native request memory failures preserve the original candidate assertion a
   const ownedPath=join(root,'j19-diagnostic-'+trigger.commandId+'.json');await writeFile(ownedPath+'.tmp',JSON.stringify({kind:'owned-contract-sentinel',commandId:trigger.commandId}),{mode:0o600});await rename(ownedPath+'.tmp',ownedPath);
  }finally{await rejection;}
  assert.equal(reports.length,1);const packet=reports[0];assert.equal(packet.snapshot.kind,'owned-contract-sentinel');assert.equal(packet.rasterFailureObservation,'matched');assert.deepEqual(packet.rasterFailure,raster);assert.equal(packet.requestMemory.status,'unavailable');assert.equal(packet.requestMemory.reason,'main-capture-invalid');assert(Buffer.byteLength(JSON.stringify(packet))<=544768);
+});
+
+// Synthetic helper contracts only. These sentinels are never emitted as native
+// allocation evidence; the original native99 case above remains the real owner.
+function candidateMemoryContract(){
+ const f={prepareCalls:[],addCalls:[],emitted:[],sampleCalls:0,addResult:true,addError:null,prepareError:null};
+ const metrics={workerGeneration:1,workerThreadId:19};for(const prefix of ['workerStart','workerBeforeEncode','workerAfterEncode'])for(const [i,suffix]of ['RSS','HeapTotal','HeapUsed','External','ArrayBuffers'].entries())metrics[prefix+suffix]=100+i;
+ f.result={metrics,proofs:[{sentinel:'DO_NOT_RETAIN_PROOF'}]};f.work=Promise.resolve(f.result);
+ f.prepare=function(...args){f.prepareCalls.push({receiver:this,args});if(f.prepareError)throw f.prepareError;return f.work;};
+ f.add=function(...args){f.addCalls.push({receiver:this,args});if(f.addError)throw f.addError;return f.addResult;};
+ f.store={rasters:{prepareDocument:f.prepare,observations:{add:f.add},resourceOwnership:()=>({bookedCPUBytes:0,documentBusy:false,workerService:{activeJobs:0,generation:1,identity:{threadId:19},workerCount:1,idleWorkers:1,retainedJobReferences:0,completedJobs:5},compositionMemory:{loans:0,loanBytes:0,borrowers:0,borrowedBytes:0,contentReaders:0}})},texts:{resourceOwnership:()=>({verifying:false,bookedCPUBytes:0,readyLoans:0,browserAdmissions:0})},objects:{proofInventory:()=>({pending:0,retained:0,activeReaders:0,metadataBytes:0}),resourceOwnership:()=>({stages:0,slots:0,repairReads:0,repairs:0}),reservationInventory:()=>({reservedBytes:'0',activeTransfers:0})}};
+ f.options={memory:()=>{f.sampleCalls++;return {rss:200,heapTotal:100,heapUsed:50,external:20,arrayBuffers:10};},now:()=>7,emit:bytes=>f.emitted.push(bytes)};return f;
+}
+function candidateMemoryArgs(n=1){return [{type:'PrepareCandidate',assetId:'encoded_'+n},'output_'+n,'candidate-prepare:c_'+n,()=>{},undefined,'document_1'];}
+function candidateMemoryAdmission(f,n=1,overrides={}){
+ const record={phase:'resource-admission',slot:'candidate-prepare:c_'+n,processRSS:200,externalCPU:7,replacedCPU:134217728,plan:{cpuBytes:300},combinedReservedBytes:507,admitted:true,worker:{generation:1,threadId:19},...overrides};
+ return {record,result:f.store.rasters.observations.add(record)};
+}
+function candidateMemoryValue(packet,phase,ordinal,name){const row=packet.records.find(r=>r[1]===packet.phases[phase]&&r[2]===ordinal);assert(row,phase+' row');return row[packet.fields.indexOf(name)];}
+
+test('native candidate memory default and encoded fixtures install no observer or output',async t=>{
+ const root=await rootFor(t),f=candidateMemoryContract();f.store.root=root;
+ assert.equal(installCandidateMemory(f.store,false),null);assert.strictEqual(f.store.rasters.prepareDocument,f.prepare);assert.strictEqual(f.store.rasters.observations.add,f.add);
+ assert.equal(markCandidateMemory(root),true);assert.equal(markCandidateMemory(root),false,'An existing marker is not overwritten');
+ assert.equal(installCandidateMemory({get root(){throw Error('encoded fixture must not read marker');}},true),null);
+ const value=readCandidateMemory(root);assert.equal(value.observation.kind,'native99-passive-memory-unavailable-1');assert.equal(value.fixture.status,'unavailable');assert.equal(f.sampleCalls,0);
+});
+
+test('native candidate memory preserves native promises, receivers, arguments and two original admission equations',async()=>{
+ const f=candidateMemoryContract(),stop=observeCandidateMemory(f.store,f.options);
+ for(let n=1;n<=2;n++){
+  const args=candidateMemoryArgs(n),actual=f.store.rasters.prepareDocument(...args);assert.strictEqual(actual,f.work);assert.strictEqual(f.prepareCalls.at(-1).receiver,f.store.rasters);assert(f.prepareCalls.at(-1).args.every((v,i)=>v===args[i]));
+  const added=candidateMemoryAdmission(f,n);assert.equal(added.result,true);assert.strictEqual(f.addCalls.at(-1).receiver,f.store.rasters.observations);assert.strictEqual(f.addCalls.at(-1).args[0],added.record);
+  assert.strictEqual(await actual,f.result);
+  for(let i=0;i<100;i++)f.store.rasters.observations.add({phase:'unrelated',slot:'history:other',payload:'MUST_NOT_BE_RETAINED'});
+ }
+ const packet=stop();assert.equal(packet.incomplete,false);assert.equal(packet.candidates,2);assert.equal(packet.completed,2);assert(packet.records.length<=16);assert.equal(f.emitted.length,1);assert(Buffer.byteLength(f.emitted[0])<=32768);
+ assert.equal(candidateMemoryValue(packet,'admission',1,'originalCombinedBytes'),507);assert.equal(candidateMemoryValue(packet,'admission',2,'replacedPreflightCPU'),134217728);
+ assert.equal(candidateMemoryValue(packet,'workerStart',1,'rss'),100);assert.equal(candidateMemoryValue(packet,'workerAfterEncode',2,'arrayBuffers'),104);
+ assert(!f.emitted[0].includes('MUST_NOT_BE_RETAINED'));assert(!f.emitted[0].includes('DO_NOT_RETAIN_PROOF'));assert(!f.emitted[0].includes('candidate-prepare:'));
+ assert.strictEqual(f.store.rasters.prepareDocument,f.prepare);assert.strictEqual(f.store.rasters.observations.add,f.add);assert.equal(stop(),null);
+});
+
+test('native candidate memory keeps original synchronous and rejected errors without replacement',async()=>{
+ const f=candidateMemoryContract(),stop=observeCandidateMemory(f.store,f.options),sync=new Error('original synchronous sentinel');f.prepareError=sync;
+ assert.throws(()=>f.store.rasters.prepareDocument(...candidateMemoryArgs(1)),error=>error===sync);f.prepareError=null;
+ const rejectedError=new Error('original rejection sentinel');let reject;f.work=new Promise((_,no)=>{reject=no;});const work=f.store.rasters.prepareDocument(...candidateMemoryArgs(2));assert.strictEqual(work,f.work);candidateMemoryAdmission(f,2,{admitted:false});
+ const observed=assert.rejects(work,error=>error===rejectedError);reject(rejectedError);await observed;const packet=stop();assert.equal(packet.completed,2);assert.equal(candidateMemoryValue(packet,'rejected',2,'outcome'),2);assert.equal(packet.records.some(r=>r[1]===packet.phases.workerStart),false);
+});
+
+for(const rejection of [false,true])test('native candidate memory disposal invalidates a late '+(rejection?'rejection':'fulfillment')+' without retaining an observable store',async()=>{
+ const f=candidateMemoryContract();let resolve,reject;f.work=new Promise((yes,no)=>{resolve=yes;reject=no;});const stop=observeCandidateMemory(f.store,f.options),work=f.store.rasters.prepareDocument(...candidateMemoryArgs());candidateMemoryAdmission(f);
+ assert.strictEqual(work,f.work);const packet=stop(),serialized=JSON.stringify(packet),calls=f.sampleCalls,emitted=f.emitted.slice();assert.equal(packet.pendingAtClose,1);assert.equal(packet.incomplete,true);assert.equal(packet.completed,0);assert.equal(packet.disposedBeforeDrain,true);
+ const poison=()=>{throw Error('retired store accessed');};f.store.rasters.resourceOwnership=poison;f.store.texts.resourceOwnership=poison;f.store.objects.proofInventory=poison;f.options.memory=poison;
+ if(rejection){const error=new Error('late native rejection');const actual=assert.rejects(work,e=>e===error);reject(error);await actual;}
+ else{const value={get metrics(){throw Error('late result accessed');}};resolve(value);assert.strictEqual(await work,value);}
+ await Promise.resolve();assert.equal(f.sampleCalls,calls);assert.deepEqual(f.emitted,emitted);assert.equal(JSON.stringify(packet),serialized);assert.equal(stop(),null);
+});
+
+test('native candidate memory overlap, duplicate and third cohorts stay explicitly incomplete and bounded',async()=>{
+ for(const mode of ['overlap','duplicate','third']){
+  const f=candidateMemoryContract(),stop=observeCandidateMemory(f.store,f.options);let resolve;
+  if(mode==='overlap')f.work=new Promise(yes=>{resolve=yes;});
+  const first=f.store.rasters.prepareDocument(...candidateMemoryArgs());candidateMemoryAdmission(f);
+  if(mode!=='overlap')await first;
+  if(mode==='third'){const second=f.store.rasters.prepareDocument(...candidateMemoryArgs(2));candidateMemoryAdmission(f,2);await second;}
+  const extra=f.store.rasters.prepareDocument(...candidateMemoryArgs(mode==='duplicate'?1:mode==='third'?3:2));
+  if(resolve)resolve(f.result);await extra;await first;
+  for(let i=0;i<100;i++)f.store.rasters.observations.add({phase:'resource-admission',slot:'candidate-prepare:unrelated',plan:{cpuBytes:1}});
+  const packet=stop();assert.equal(packet.incomplete,true);assert.equal(packet.untrackedCohorts,true);assert(packet.dropped>0);assert(packet.candidates<=2);assert(packet.records.length<=16);assert(Buffer.byteLength(f.emitted[0])<=32768);
+ }
+});
+
+test('native candidate memory does not borrow another receiver or another admission slot',async()=>{
+ const f=candidateMemoryContract(),stop=observeCandidateMemory(f.store,f.options),other={sentinel:true};
+ const work=f.store.rasters.prepareDocument(...candidateMemoryArgs());const unrelated={phase:'resource-admission',slot:'candidate-prepare:other',plan:{cpuBytes:999}};assert.equal(f.store.rasters.observations.add(unrelated),true);
+ const record={phase:'resource-admission',slot:'candidate-prepare:c_1',plan:{cpuBytes:999}};assert.equal(f.store.rasters.observations.add.call(other,record),true);assert.strictEqual(f.addCalls.at(-1).receiver,other);
+ candidateMemoryAdmission(f);await work;
+ const borrowed=f.store.rasters.prepareDocument.call(other,...candidateMemoryArgs(2));assert.strictEqual(borrowed,f.work);assert.strictEqual(f.prepareCalls.at(-1).receiver,other);await borrowed;
+ const packet=stop();assert.equal(packet.incomplete,true);assert.equal(packet.candidates,1);assert.equal(packet.records.filter(r=>r[1]===packet.phases.admission).length,1);assert.equal(candidateMemoryValue(packet,'admission',1,'planCPUBytes'),300);
+});
+
+test('native candidate memory keeps original diagnostic add false and throw identities',async()=>{
+ for(const throws of [false,true]){
+  const f=candidateMemoryContract(),stop=observeCandidateMemory(f.store,f.options),work=f.store.rasters.prepareDocument(...candidateMemoryArgs()),error=new Error('original add sentinel');
+  if(throws){f.addError=error;assert.throws(()=>candidateMemoryAdmission(f),e=>e===error);f.addError=null;}else{f.addResult=false;assert.equal(candidateMemoryAdmission(f).result,false);}
+  await work;const packet=stop();assert.equal(packet.incomplete,true);assert(packet.faults>0);
+  if(!throws)assert.equal(candidateMemoryValue(packet,'admission',1,'originalAddAccepted'),0);
+ }
+});
+
+test('native candidate memory records a refused preflight without inventing an admission or worker result',async()=>{
+ const f=candidateMemoryContract();let reject;f.work=new Promise((_,no)=>{reject=no;});const stop=observeCandidateMemory(f.store,f.options),work=f.store.rasters.prepareDocument(...candidateMemoryArgs());
+ f.store.rasters.observations.add({phase:'resource-preflight',slot:'candidate-prepare:c_1',processRSS:400,externalCPU:5,preflightCPU:128,combinedReservedBytes:533,admitted:false});
+ const error=new Error('original capacity'),settled=assert.rejects(work,e=>e===error);reject(error);await settled;const packet=stop();assert.equal(candidateMemoryValue(packet,'preflight',1,'originalCombinedBytes'),533);assert.equal(candidateMemoryValue(packet,'preflight',1,'admissionWorkerThreadId'),-1);assert.equal(packet.records.some(r=>r[1]===packet.phases.admission||r[1]===packet.phases.workerStart),false);
+});
+
+test('native candidate memory rejects getters and invalid numeric projections without exposing payloads',async()=>{
+ const f=candidateMemoryContract();let getters=0;f.options.memory=()=>({get rss(){getters++;return 'SECRET_PAYLOAD';},heapTotal:Infinity,heapUsed:NaN,external:Number.MAX_SAFE_INTEGER+1,arrayBuffers:0});f.options.now=()=>{throw Error('sample clock private string');};
+ f.result={get metrics(){getters++;return 'SECRET_PAYLOAD';}};f.work=Promise.resolve(f.result);const stop=observeCandidateMemory(f.store,f.options),work=f.store.rasters.prepareDocument(...candidateMemoryArgs());candidateMemoryAdmission(f);await work;const packet=stop();assert.equal(getters,0);assert(packet.faults>0);assert.equal(packet.incomplete,true);assert(!f.emitted[0].includes('SECRET_PAYLOAD'));assert(!f.emitted[0].includes('private string'));assert(packet.records.every(r=>r.every(Number.isFinite)));
+});
+
+test('native candidate memory disposal survives sample and output faults and preserves foreign replacements',async()=>{
+ const f=candidateMemoryContract();f.options.memory=()=>{throw Error('private sampling error');};f.options.emit=()=>{throw Error('private IO error');};const stop=observeCandidateMemory(f.store,f.options),work=f.store.rasters.prepareDocument(...candidateMemoryArgs());candidateMemoryAdmission(f);await work;
+ const foreign=()=>73;f.store.rasters.prepareDocument=foreign;const packet=stop();assert.equal(packet.incomplete,true);assert.strictEqual(f.store.rasters.prepareDocument,foreign);assert.strictEqual(f.store.rasters.observations.add,f.add);assert.equal(stop(),null);
+});
+
+test('native candidate memory final readback retains bounded scalars and declared fixture view lengths only',async t=>{
+ const root=await rootFor(t),f=candidateMemoryContract();f.store.root=root;assert.equal(markCandidateMemory(root),true);const stop=installCandidateMemory(f.store,false);assert.equal(typeof stop,'function');const work=f.store.rasters.prepareDocument(...candidateMemoryArgs());candidateMemoryAdmission(f);await work;stop();
+ await writeFile(join(root,candidateMemoryFiles.fixture),JSON.stringify({uploads:[{id:'upload_1',bytes:11,secret:'PRIVATE'},{id:'upload_2',bytes:13},{id:'upload_3',bytes:17},{id:'upload_4',bytes:19}],submissions:[{sourceUploadId:'upload_1',maskUploadId:'upload_2'},{sourceUploadId:'upload_4',maskUploadId:'upload_3'}],result:{bytes:23},prompt:'PRIVATE'}));
+ const value=readCandidateMemory(root);assert.equal(value.observation.kind,'native99-passive-memory-1');assert.equal(value.fixture.status,'declared-view-lengths');assert.deepEqual(value.fixture.uploadPrefixBytes,[24,60]);assert.equal(value.fixture.totalUploadViewBytes,60);assert.equal(value.fixture.resultPNGViewBytes,23);assert.equal(value.fixture.physicalBytes,null);assert.equal(value.fixture.livenessAfterExit,false);assert(!JSON.stringify(value).includes('PRIVATE'));assert(!JSON.stringify(value).includes('upload_'));
+ await writeFile(join(root,candidateMemoryFiles.fixture),JSON.stringify({uploads:[{id:'upload_1',bytes:11},{id:'upload_2',bytes:13}],submissions:[{sourceUploadId:'upload_1',maskUploadId:'upload_1'}],result:{bytes:23}}));assert.equal(readCandidateMemory(root).fixture.status,'unavailable');assert.equal(readCandidateMemory(root).observation.kind,'native99-passive-memory-1');
+ const reports=[];reportCandidateMemory(root,bytes=>reports.push(bytes));assert.equal(reports.length,1);assert(Buffer.byteLength(reports[0])<=32768);assert.doesNotThrow(()=>reportCandidateMemory(root,()=>{throw Error('original reporter failure');}));
+});
+
+test('native candidate memory final readback refuses oversized bodies, aliases and forged numeric claims',async t=>{
+ const root=await rootFor(t),f=candidateMemoryContract(),stop=observeCandidateMemory(f.store,f.options);stop();const path=join(root,candidateMemoryFiles.sidecar),good=f.emitted[0];await writeFile(path,good);
+ assert.equal(readCandidateMemory(root).observation.kind,'native99-passive-memory-1');
+ const bad=JSON.parse(good);bad.records[0][8]='DO_NOT_EXPORT';await writeFile(path,JSON.stringify(bad));assert.equal(readCandidateMemory(root).observation.kind,'native99-passive-memory-unavailable-1');assert(!JSON.stringify(readCandidateMemory(root)).includes('DO_NOT_EXPORT'));
+ await writeFile(path,'x'.repeat(32769));assert.equal(readCandidateMemory(root).observation.kind,'native99-passive-memory-unavailable-1');
+ await writeFile(path,good);await link(path,path+'.alias');assert.equal(readCandidateMemory(root).observation.kind,'native99-passive-memory-unavailable-1');
+ const other=await rootFor(t),target=join(other,candidateMemoryFiles.sidecar);await writeFile(target+'.target',good);await symlink(target+'.target',target);assert.equal(readCandidateMemory(other).observation.kind,'native99-passive-memory-unavailable-1');
+ await writeFile(join(other,candidateMemoryFiles.fixture),'x'.repeat(65537));assert.equal(readCandidateMemory(other).fixture.status,'unavailable');
+});
+
+
+test('native candidate memory clean cohorts disclose foreign observation ownership at disposal',async()=>{
+ for(const key of ['prepareDocument','add']){
+  const f=candidateMemoryContract(),stop=observeCandidateMemory(f.store,f.options);
+  for(let n=1;n<=2;n++){const work=f.store.rasters.prepareDocument(...candidateMemoryArgs(n));candidateMemoryAdmission(f,n);assert.strictEqual(await work,f.result);}
+  const owner=key==='prepareDocument'?f.store.rasters:f.store.rasters.observations,foreign=()=>73;owner[key]=foreign;
+  const packet=stop();assert.equal(packet.candidates,2);assert.equal(packet.completed,2);assert.equal(packet.pendingAtClose,0);assert.equal(packet.dropped,0);assert.equal(packet.untrackedCohorts,false);assert.equal(packet.faults,1,'Only the foreign replacement causes this fault');assert.equal(packet.incomplete,true);assert.strictEqual(owner[key],foreign);
+  assert.deepEqual(JSON.parse(f.emitted[0]),packet);assert(Buffer.byteLength(f.emitted[0])<=32768);
+  if(key==='prepareDocument')assert.strictEqual(f.store.rasters.observations.add,f.add);else assert.strictEqual(f.store.rasters.prepareDocument,f.prepare);
+ }
 });

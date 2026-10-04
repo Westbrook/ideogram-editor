@@ -28,8 +28,9 @@ function boundsSetupModule(encoded){
   import {setup as baseSetup} from ${JSON.stringify(setupURL)};
   import {writeFileSync,renameSync} from 'node:fs';
   import {join} from 'node:path';
+  import {installCandidateMemory} from ${JSON.stringify(new URL('./native-candidate-memory-observation.mjs',import.meta.url).href)};
   export async function setup(store){
-   const close=await baseSetup(store),prepare=store.histories.prepare;
+   const close=await baseSetup(store),prepare=store.histories.prepare,stopCandidateMemory=installCandidateMemory(store,${encoded});
    store.histories.prepare=async function(id,...args){
     try{return await prepare.call(this,id,...args);}finally{
      const row=store.db.prepare('SELECT receipt FROM commands WHERE id=?').get(id);
@@ -39,7 +40,7 @@ function boundsSetupModule(encoded){
      }
     }
    };
-   return Object.assign(async()=>{store.histories.prepare=prepare;await close();},{afterStoreDrain:()=>close.afterStoreDrain()});
+   return Object.assign(async()=>{stopCandidateMemory?.();store.histories.prepare=prepare;await close();},{afterStoreDrain:()=>close.afterStoreDrain()});
   }
  `;
  return 'data:text/javascript;base64,'+Buffer.from(source).toString('base64');
