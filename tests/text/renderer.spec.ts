@@ -1,4 +1,4 @@
-import { test as base, expect } from '@playwright/test';
+import { test as base, expect, type Browser, type BrowserContext } from '@playwright/test';
 import { mkdtemp, realpath, rm } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -325,17 +325,20 @@ test('shared reservations reject oversized work before worker allocation and pre
 
 test('stock native storage reset requires observed closure of every actual text worker',async({playwright,browserName},info)=>{
   const profile=browserName==='webkit'?await mkdtemp(resolve(await realpath(tmpdir()),'ie-text-worker-')):undefined;
-  const browser=profile?undefined:await playwright[browserName].launch();
-  const context=profile?await playwright.webkit.launchPersistentContext(profile):await browser!.newContext();
-  await Promise.all(context.pages().map(p=>p.close()));
-  const storage=await ownedOPFS(context,profile??browserName+' ephemeral');
-  const page=await context.newPage(),workers:{url:string;closed:boolean}[]=[],errors:string[]=[];
-  page.on('pageerror',e=>errors.push(e.message));
-  page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
-  page.on('worker',w=>{const entry={url:w.url(),closed:false};workers.push(entry);w.on('close',()=>entry.closed=true);});
+  let browser:Browser|undefined,context:BrowserContext|undefined,storage:Awaited<ReturnType<typeof ownedOPFS>>|undefined;
+  const workers:{url:string;closed:boolean}[]=[],errors:string[]=[];
   let outcome='incomplete',error:string|null=null;
   const marker='text-worker-'+randomUUID();
   try{
+    browser=profile?undefined:await playwright[browserName].launch();
+    context=profile?await playwright.webkit.launchPersistentContext(profile):await browser!.newContext();
+    storage=await ownedOPFS(context,profile??browserName+' ephemeral');
+    // Keep the persistent context's initial page alive through handoff.
+    const page=context.pages().find(page=>!page.isClosed())??await context.newPage();
+    await Promise.all(context.pages().filter(other=>other!==page).map(other=>other.close()));
+    page.on('pageerror',e=>errors.push(e.message));
+    page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
+    page.on('worker',w=>{const entry={url:w.url(),closed:false};workers.push(entry);w.on('close',()=>entry.closed=true);});
     await storage.admit(page,origin);await page.goto(origin);await page.waitForFunction(()=>!!(window as any).textFixture);
     await page.evaluate(async name=>{
       const root=await navigator.storage.getDirectory(),file=await root.getFileHandle(name,{create:true}),writer=await file.createWritable();
@@ -364,9 +367,12 @@ test('stock native storage reset requires observed closure of every actual text 
       info.annotations.push({type:'cleanup-incomplete',description:error+'; no reset; owned marker absence unclaimed'});
     }
     expect(errors).toEqual([]);
-  }finally{
-    await info.attach('native-worker-cleanup',{body:JSON.stringify({browserName,origin,marker,outcome,error,workers,errors,ledger:storage.ledger},null,2),contentType:'application/json'});
-    await context.close();await browser?.close();
-    if(profile&&outcome==='clean')await rm(profile,{recursive:true});
+  }catch(e){error??=String(e);throw e;}finally{
+    try{
+      await info.attach('native-worker-cleanup',{body:JSON.stringify({browserName,origin,marker,outcome,error,workers,errors,ledger:storage?.ledger??[]},null,2),contentType:'application/json'});
+    }finally{
+      try{await context?.close();}finally{await browser?.close();}
+    }
+    if(profile&&outcome==='clean'&&error===null)await rm(profile,{recursive:true});
   }
 });
