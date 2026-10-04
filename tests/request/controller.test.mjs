@@ -1235,3 +1235,59 @@ test('pending enqueue native unlock failure stops observation and retains cleanu
   allowUnlock=true;await f.instance.dispose();await flush();assert.equal(body.locked,false);assert.equal(f.instance.inspectMemory().navigation.controls.cleanupFailures,0);assert.equal(f.instance.observationTasks.size,0);assertReleasedRequestStatus(f);await f.advance(600);assert.equal(reads,1);
  }finally{allowUnlock=true;proof.resolve([]);lease?.release();f.editor.ownedJSON=originalOwnedJSON;await Promise.allSettled([commandResult,firstRelease].filter(Boolean));try{await f.instance.dispose();await flush();}finally{restoreReader?.();delete body.getReader;}assertReleasedRequestStatus(f);}
 });
+
+// Shared poll ownership must transfer only after the actual older work settles.
+// These schedules preserve the passing pending-observation controls above and
+// exercise successor phases without assigning synthetic action/read tokens.
+test('retired pending reader settlement cannot cancel a newer enqueue observation phase',async t=>{
+ const f=await paginationFixture(t),firstProof=previewDeferred(),secondProof=previewDeferred(),old=previewDeferred(),next=previewDeferred();let commands=0,reads=0,secondSaved=0,second;
+ const firstFinal=queuePage('first-final',null),newStatus=queuePage('second-status',null);
+ f.editor.command=()=>++commands===1?firstProof.promise:secondProof.promise;
+ f.setReader(()=>{reads++;return reads===1?old.promise:reads===2?firstFinal:reads===3?next.promise:newStatus;});
+ const first=f.instance.queueCommand(e4QueueBody());
+ try{
+  await f.advance(150);assert.equal(reads,1);firstProof.resolve([{type:'JobQueued',payload:{}}]);await first;await flush();assert.equal(reads,2);assert.equal(f.instance.queue.jobs[0].id,'first-final');assert.equal(f.instance.queueBusy,false);assert.equal(f.instance.inspectMemory().navigation.controls.reads,1,'The retired status reader is still actually owned');
+  second=f.instance.queueCommand(e4QueueBody(),()=>secondSaved++);await flush();assert.equal(commands,2);assert.equal(f.instance.queueBusy,true);assert.equal(f.instance.message,'Saving request…');
+  old.resolve(queuePage('old-phase-late',null));await flush();assert.equal(f.instance.queue.jobs[0].id,'first-final','Old status cannot publish into the successor phase');
+  await f.advance(150);assert.equal(reads,3,'Old settlement leaves the current phase able to issue its one observation');next.resolve(newStatus);await flush();assert.equal(f.instance.queue.jobs[0].id,'second-status');assert.equal(f.instance.queueBusy,true);assert.equal(secondSaved,0);assert.equal(f.instance.message,'Saving request…');assert.deepEqual(f.focus,[]);
+  secondProof.resolve([{type:'JobQueued',payload:{}}]);await second;assert.equal(reads,4);assert.equal(secondSaved,1);assert.equal(f.instance.queueBusy,false);
+ }finally{old.resolve(firstFinal);next.resolve(newStatus);firstProof.resolve([]);secondProof.resolve([]);f.setReader(null);await Promise.allSettled([first,second].filter(Boolean));await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
+});
+
+test('a stale-entry ordinary poll cannot strand the current enqueue observation after it settles',async t=>{
+ const f=await paginationFixture(t),old=previewDeferred(),proof=previewDeferred(),next=previewDeferred();let reads=0,candidates=0;
+ const initial=f.instance.queue,priorView=structuredClone(f.pages.get(''));priorView.jobs[0].attempts[0].requestId='old-provider-request';const currentView=queuePage('current-enqueue-status',null);
+ const json=f.editor.json.bind(f.editor);f.editor.json=(path,...args)=>path.includes('/candidates')?(candidates++,candidateObservation()):json(path,...args);
+ f.setReader(()=>{reads++;return reads===1?old.promise:reads===2?next.promise:currentView;});
+ await f.advance(150);assert.equal(f.instance.polling,true);assert.equal(reads,1);const oldOwns=f.instance.owns(false);
+ f.instance.operationChanged('Generate with Fast');await flush();assert.equal(oldOwns(),false,'The real operation/entry replacement invalidated the earlier poll owner');assert.equal(f.instance.owns()(),true);
+ f.editor.command=()=>proof.promise;const command=f.instance.queueCommand(e4QueueBody());
+ try{
+  await f.advance(300);assert.equal(reads,1,'The current phase still waits for the actual older reader');old.resolve(priorView);await flush();assert.strictEqual(f.instance.queue,initial);assert.equal(candidates,0);
+  await f.advance(150);assert.equal(reads,2,'Current enqueue observation is scheduled even though the old entry no longer owns the view');next.resolve(currentView);await flush();assert.equal(f.instance.queue.jobs[0].id,'current-enqueue-status');assert.equal(candidates,0);assert.equal(f.instance.queueBusy,true);assert.equal(f.instance.message,'Saving request…');assert.deepEqual(f.focus,[]);
+  proof.resolve([]);await command;assert.equal(reads,3);assert.equal(f.instance.queueBusy,false);
+ }finally{old.resolve(priorView);next.resolve(currentView);proof.resolve([]);f.setReader(null);await Promise.allSettled([command]);await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
+});
+
+
+test('an idle normal poll timer cannot become a pending read for a replacement session',async t=>{
+ const f=await paginationFixture(t),proof=previewDeferred(),observedOwners=[],initial=f.instance.queue,currentView=queuePage('replacement-session-status',null);
+ assert.notEqual(f.instance.pollTimer,null,'An actual normal refresh left its150ms timer scheduled');await f.advance(149);
+ f.editor.sessionId='replacement-session';f.editor.command=()=>proof.promise;f.setReader(()=>{observedOwners.push(f.editor.sessionId);return currentView;});const command=f.instance.queueCommand(e4QueueBody());
+ try{
+  await f.advance(1);assert.deepEqual(observedOwners,[],'The earlier normal deadline cannot be promoted into a different phase');assert.strictEqual(f.instance.queue,initial);assert.equal(f.instance.queueBusy,true);
+  await f.advance(149);assert.deepEqual(observedOwners,['replacement-session'],'The new phase owns its full original cadence and authority');assert.equal(f.instance.queue.jobs[0].id,'replacement-session-status');assert.equal(f.instance.message,'Saving request…');assert.equal(f.instance.queueBusy,true);assert.deepEqual(f.focus,[]);
+  proof.resolve([]);await command;assert.deepEqual(observedOwners,['replacement-session','replacement-session']);assert.equal(f.instance.queueBusy,false);
+ }finally{proof.resolve([]);f.setReader(null);await Promise.allSettled([command]);await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
+});
+
+
+test('ordinary polling keeps its original activation-time entry ownership after an idle operation change',async t=>{
+ const f=await paginationFixture(t),before=f.reads.length,oldOwns=f.instance.owns(false);
+ try{
+  assert.notEqual(f.instance.pollTimer,null);await f.advance(149);assert.equal(f.reads.length,before);assert.equal(oldOwns(),true);
+  f.instance.operationChanged('Generate with Fast');await flush();assert.equal(oldOwns(),false,'The real same-session operation/entry change invalidates the previously captured owner');assert.equal(f.instance.owns(false)(),true);assert.deepEqual(f.commands,[]);assert.equal(f.instance.queueBusy,false);
+  await f.advance(1);assert.equal(f.reads.length,before+1,'The original normal timer captures its current entry when activated; no enqueue is needed to restart it');assert.equal(f.reads.at(-1),'/api/v1/queue');assert.notEqual(f.instance.pollTimer,null);assert.equal(f.instance.polling,false);assert.deepEqual(f.commands,[]);
+  await f.advance(149);assert.equal(f.reads.length,before+1);await f.advance(1);assert.equal(f.reads.length,before+2,'Ordinary polling continues at its unchanged cadence');assert.deepEqual(f.commands,[]);assert.deepEqual(f.focus,[]);assert.equal(f.instance.queueBusy,false);
+ }finally{await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
+});

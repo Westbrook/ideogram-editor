@@ -310,6 +310,7 @@ test('D11 product integration verifies actual finalized invocation provenance an
   // or a completed performance qualification.
   const bound = measureD11StartupBuildBound(result);
   assert.equal(bound.status, 'PASS', JSON.stringify({ missing: bound.missing, failures: bound.failures,
+    bounds: bound.bounds, limitsExclusive: bound.limitsExclusive,
     artifactBuildBudgets: bound.artifactBuildBudgets, artifactBuildViolations: bound.artifactBuildViolations }));
 });
 
