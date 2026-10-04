@@ -12,7 +12,7 @@ import {REVIEWED_RENDERER_OWNERSHIP} from './campaigns/renderer-ownership.mjs';
 export const rendererReceiptOwner = 'tests/campaigns/renderer-ownership-approved.test.mjs';
 const descriptorURL = new URL('./r18-ci-inputs.json', import.meta.url);
 const remote = 'https://github.com/Westbrook/ideogram-editor.git';
-const reviewId = 'ie-r18-6d08921-20261004';
+const reviewId = 'ie-r18-39ac936-20261004';
 const maximumBytes = 32 * 1024 * 1024;
 const digest = value => createHash('sha256').update(value).digest('hex');
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);

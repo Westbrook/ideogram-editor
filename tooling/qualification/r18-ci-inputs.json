@@ -2,44 +2,44 @@
   "kind": "r18-ci-receipt-inputs-1",
   "qualification": false,
   "repository": "https://github.com/Westbrook/ideogram-editor.git",
-  "reviewId": "ie-r18-6d08921-20261004",
-  "commit": "4ff143f3f12c5334b3f45f72ecd01dd4d27232dc",
-  "tree": "df810b9599d9405ef46d8b9faaf32c26e800a496",
+  "reviewId": "ie-r18-39ac936-20261004",
+  "commit": "cf515298b3bd1be6b311b0a6e361b390b2aaff62",
+  "tree": "47d92bc46ab92585af15c3048ff448bffc05dde4",
   "files": [
     {
-      "path": "artifacts/integration-corrections/r18-current-refresh-prerequisites-01/final-subject-six-origins-candidate-01/origins/native-text-chromium/receipt.json",
-      "bytes": 893670,
-      "sha256": "17f0d75698312abacca2ed6f133dcfa0b3b78cb869edb552e367cf63811dbabd"
+      "path": "artifacts/integration-corrections/r18-final-source-39ac936-acquisition-01/successor-assembly-pending-01/origins/document-lifecycle/receipt.json",
+      "bytes": 880828,
+      "sha256": "f7c020c5daa93d1ac1da84c99d0476b2ebb787069ba7e8f4dd126bdef8cbb521"
     },
     {
-      "path": "artifacts/integration-corrections/r18-current-refresh-prerequisites-01/final-subject-six-origins-candidate-01/origins/native-text-firefox/receipt.json",
-      "bytes": 893866,
-      "sha256": "c40e8fa368854d5d335c92543f2717dd5f92cb9a33d8d9bf3cd37e8c78e6c854"
+      "path": "artifacts/integration-corrections/r18-final-source-39ac936-acquisition-01/successor-assembly-pending-01/origins/editor-native-text-chromium/receipt.json",
+      "bytes": 900141,
+      "sha256": "61478300e91dd945b4da046e4a626e90588e1681340dc257e30022157393dbe8"
     },
     {
-      "path": "artifacts/integration-corrections/r18-current-refresh-prerequisites-01/final-subject-six-origins-candidate-01/origins/native-text-webkit-macos/receipt.json",
-      "bytes": 894210,
-      "sha256": "f11e357eac062be164f44673c634e76fbc70e3909775199d55f68c28e892c65a"
+      "path": "artifacts/integration-corrections/r18-final-source-39ac936-acquisition-01/successor-assembly-pending-01/origins/editor-native-text-firefox/receipt.json",
+      "bytes": 900322,
+      "sha256": "b327c28975867684f1376aed510228761921ee384c372680093bda2ce660a091"
     },
     {
-      "path": "artifacts/integration-corrections/r18-current-refresh-prerequisites-01/final-subject-six-origins-candidate-01/origins/text-chromium/receipt.json",
-      "bytes": 901123,
-      "sha256": "b0a2d4a28ff1e3b6bafc63c673e89f1d3ae1775e9bc4a32d4f3f458bcae8ec91"
+      "path": "artifacts/integration-corrections/r18-final-source-39ac936-acquisition-01/successor-assembly-pending-01/origins/editor-native-text-webkit/receipt.json",
+      "bytes": 900687,
+      "sha256": "bb56f467d75db33e67aae6a3c625164d3c05e459528e6c80ce785cc1d5a220f3"
     },
     {
-      "path": "artifacts/integration-corrections/r18-current-refresh-prerequisites-01/final-subject-six-origins-candidate-01/origins/text-firefox/receipt.json",
-      "bytes": 901271,
-      "sha256": "6e08862a339c7b78a03700b4969a48f99f47ea4bd33aa0dcb22e91ee21c65054"
+      "path": "artifacts/integration-corrections/r18-final-source-39ac936-acquisition-01/successor-assembly-pending-01/origins/text-chromium/receipt.json",
+      "bytes": 907597,
+      "sha256": "93eaa8d245a73f82d5601c63b1d3b67723ff7be4f906fe1a523f0cd39559bb64"
     },
     {
-      "path": "artifacts/integration-corrections/r18-current-refresh-prerequisites-01/final-subject-six-origins-candidate-01/origins/text-webkit-macos/receipt.json",
-      "bytes": 902734,
-      "sha256": "852942f4c03f01585bb142d0663bace10e7178e30d70e843385549c440f21b66"
+      "path": "artifacts/integration-corrections/r18-final-source-39ac936-acquisition-01/successor-assembly-pending-01/origins/text-firefox/receipt.json",
+      "bytes": 907757,
+      "sha256": "0d710a08a343e9e1ec76fdcc0c78d4357a5fddb38175dc8027f37c6d8f13f90f"
     },
     {
-      "path": "artifacts/integration-corrections/r18-current-refresh-prerequisites-01/node-components-6d08921-01/hosted-document-lifecycle-origin/run/receipt.json",
-      "bytes": 875383,
-      "sha256": "2eeb94da1ee7f6b9dbb73da92c04888573b7dc3e3e7a5c71aad7254a8c4bc67c"
+      "path": "artifacts/integration-corrections/r18-final-source-39ac936-acquisition-01/successor-assembly-pending-01/origins/text-webkit/receipt.json",
+      "bytes": 908078,
+      "sha256": "a6b081ea0841870df8014c7b3638532b0df59a9d8785daac7b804b238a531f2e"
     },
     {
       "path": "artifacts/integration-corrections/renderer-ownership-approval-preparation-01/component-original-receipts-cache-01/run-202-receipt.json",
@@ -67,5 +67,5 @@
       "sha256": "ef1a494f83a2b9c9e379207318c504191dabc22ae3bd044a3775946c77c64b42"
     }
   ],
-  "totalBytes": 10446829
+  "totalBytes": 10489982
 }

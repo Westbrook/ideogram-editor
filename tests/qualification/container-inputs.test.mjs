@@ -170,7 +170,7 @@ test('closure pins every current migration snapshot, seven baseline fixtures and
 
 function receiptDescriptorFixture() {
   const files = Array.from({length: 12}, (_, index) => ({path: `artifacts/receipts/${index}.json`, bytes: 2, sha256: sha256('{}')}));
-  const descriptor = {kind: 'r18-ci-receipt-inputs-1', qualification: false, repository: 'https://github.com/Westbrook/ideogram-editor.git', reviewId: 'ie-r18-6d08921-20261004', commit: 'a'.repeat(40), tree: 'b'.repeat(40), files, totalBytes: 24};
+  const descriptor = {kind: 'r18-ci-receipt-inputs-1', qualification: false, repository: 'https://github.com/Westbrook/ideogram-editor.git', reviewId: 'ie-r18-39ac936-20261004', commit: 'a'.repeat(40), tree: 'b'.repeat(40), files, totalBytes: 24};
   const reviews = [{id: descriptor.reviewId, appAllocation: {runtimeInputs: files.map(row => ({...row, role: 'correctness-receipt', sha256: 'sha256:' + row.sha256}))}}];
   return {descriptor, reviews, files};
 }

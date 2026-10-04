@@ -62,6 +62,13 @@ export const fixtureRequirements = [
   ["artifacts/integration-corrections/renderer-ownership-approval-preparation-01/component-original-receipts-cache-01/run-250-receipt.json", 843682, "e2d138ffee348f727c06dea4cea29e57c3ca3125ccc2aa06a6f86d82e1bb949e"],
   ["artifacts/integration-corrections/renderer-ownership-approval-preparation-01/component-original-receipts-cache-01/run-286-receipt.json", 837447, "f0472713943729f55a64aaad045b7b42e807eebb4dbbe8bbf1be4a9237f924f0"],
   ["artifacts/integration-corrections/renderer-ownership-approval-preparation-01/component-original-receipts-cache-01/run-298-receipt.json", 840623, "ef1a494f83a2b9c9e379207318c504191dabc22ae3bd044a3775946c77c64b42"],
+  ["artifacts/integration-corrections/r18-final-source-39ac936-acquisition-01/successor-assembly-pending-01/origins/document-lifecycle/receipt.json", 880828, "f7c020c5daa93d1ac1da84c99d0476b2ebb787069ba7e8f4dd126bdef8cbb521"],
+  ["artifacts/integration-corrections/r18-final-source-39ac936-acquisition-01/successor-assembly-pending-01/origins/editor-native-text-chromium/receipt.json", 900141, "61478300e91dd945b4da046e4a626e90588e1681340dc257e30022157393dbe8"],
+  ["artifacts/integration-corrections/r18-final-source-39ac936-acquisition-01/successor-assembly-pending-01/origins/editor-native-text-firefox/receipt.json", 900322, "b327c28975867684f1376aed510228761921ee384c372680093bda2ce660a091"],
+  ["artifacts/integration-corrections/r18-final-source-39ac936-acquisition-01/successor-assembly-pending-01/origins/editor-native-text-webkit/receipt.json", 900687, "bb56f467d75db33e67aae6a3c625164d3c05e459528e6c80ce785cc1d5a220f3"],
+  ["artifacts/integration-corrections/r18-final-source-39ac936-acquisition-01/successor-assembly-pending-01/origins/text-chromium/receipt.json", 907597, "93eaa8d245a73f82d5601c63b1d3b67723ff7be4f906fe1a523f0cd39559bb64"],
+  ["artifacts/integration-corrections/r18-final-source-39ac936-acquisition-01/successor-assembly-pending-01/origins/text-firefox/receipt.json", 907757, "0d710a08a343e9e1ec76fdcc0c78d4357a5fddb38175dc8027f37c6d8f13f90f"],
+  ["artifacts/integration-corrections/r18-final-source-39ac936-acquisition-01/successor-assembly-pending-01/origins/text-webkit/receipt.json", 908078, "a6b081ea0841870df8014c7b3638532b0df59a9d8785daac7b804b238a531f2e"],
 ].map(([path, bytes, sha256]) => ({ path, bytes, sha256 }));
 export const defaultPacket = 'artifacts/qualification-container-inputs';
 export const adapterSourceURL = 'https://v3b.fal.media/files/b/0a9dc89d/NkZw9CyYSB3ojbDx2a2s5_ideogram_v4_lora.safetensors';
