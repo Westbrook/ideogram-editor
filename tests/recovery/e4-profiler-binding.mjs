@@ -21,7 +21,8 @@ function endpoint(row, origin, path, attemptId) {
 export function e4ProfilerRequested(environment, browserName, platform, architecture) {
  const value = environment.IE_E4_FIREFOX_PROFILER;
  if (value === undefined) return false;
- if (value !== '1' || browserName !== 'firefox' || platform !== 'linux' || architecture !== 'x64') throw Error('E4_PROFILER_SELECTION');
+ const supported = (platform === 'linux' && architecture === 'x64') || (platform === 'darwin' && architecture === 'arm64');
+ if (value !== '1' || browserName !== 'firefox' || !supported) throw Error('E4_PROFILER_SELECTION');
  return true;
 }
 export function bindE4ProfilerContext({authority,deliveries,phaseSnapshots,states,jobId,attemptId,deliveryErrors,phaseErrors}) {

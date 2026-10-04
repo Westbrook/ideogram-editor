@@ -1190,8 +1190,12 @@ test('profiler binding refuses missing semantic clocks and ambiguous or changed 
 
 
 import {e4ProfilerRequested} from './e4-profiler-binding.mjs';
-test('E4 native profiler requires explicit exact opt-in on the selected Linux Firefox fixture',()=>{
- for(const browser of ['chromium','firefox','webkit'])assert.equal(e4ProfilerRequested({},browser,'darwin','arm64'),false);
- assert.equal(e4ProfilerRequested({IE_E4_FIREFOX_PROFILER:'1'},'firefox','linux','x64'),true);
- for(const [value,browser,platform,architecture] of [['true','firefox','linux','x64'],['0','firefox','linux','x64'],['','firefox','linux','x64'],[true,'firefox','linux','x64'],['1','chromium','linux','x64'],['1','webkit','linux','x64'],['1','firefox','darwin','arm64'],['1','firefox','linux','arm64']])assert.throws(()=>e4ProfilerRequested({IE_E4_FIREFOX_PROFILER:value},browser,platform,architecture),/^Error: E4_PROFILER_SELECTION$/);
+test('E4 native profiler requires exact opt-in on Linux x64 or Darwin arm64 Firefox',()=>{
+ for(const browser of ['chromium','firefox','webkit'])for(const [platform,architecture] of [['linux','x64'],['darwin','arm64'],['win32','x64'],['unknown','unknown']])assert.equal(e4ProfilerRequested({},browser,platform,architecture),false);
+ for(const [platform,architecture] of [['linux','x64'],['darwin','arm64']]){
+  assert.equal(e4ProfilerRequested({IE_E4_FIREFOX_PROFILER:'1'},'firefox',platform,architecture),true);
+  for(const value of ['true','0','',true])assert.throws(()=>e4ProfilerRequested({IE_E4_FIREFOX_PROFILER:value},'firefox',platform,architecture),/^Error: E4_PROFILER_SELECTION$/);
+  for(const browser of ['chromium','webkit'])assert.throws(()=>e4ProfilerRequested({IE_E4_FIREFOX_PROFILER:'1'},browser,platform,architecture),/^Error: E4_PROFILER_SELECTION$/);
+ }
+ for(const [platform,architecture] of [['linux','arm64'],['darwin','x64'],['win32','x64'],['win32','arm64'],['unknown','arm64'],['darwin','unknown']])assert.throws(()=>e4ProfilerRequested({IE_E4_FIREFOX_PROFILER:'1'},'firefox',platform,architecture),/^Error: E4_PROFILER_SELECTION$/);
 });
