@@ -430,3 +430,97 @@ test('profiler FIFO accepts only sanitized projection after real EOF, helper exi
   assert.ok(Buffer.byteLength(serialized)<=FIREFOX_PROFILE_IPC_LIMITS.summaryBytes);
  }finally{await f.cleanup();}
 });
+
+// Diagnostic provenance only: use the real guarded receiver and real FIFO.
+// These synthetic writers are never a claim about native browser closure.
+import profileChildProcess from 'node:child_process';
+import {syncBuiltinESMExports as profileSyncBuiltinESMExports} from 'node:module';
+async function profileAwaitClosed(f){
+ const deadline=performance.now()+5000;
+ while(!f.handle.snapshot().helperClosed&&performance.now()<deadline)await profileTurn();
+ assert.equal(f.handle.snapshot().helperClosed,true,'guarded receiver must close while the synthetic writer remains open');
+}
+async function profileEarlyRefusal(f){
+ const writer=await profileOpen(f.fifo,profileFS.O_WRONLY|profileFS.O_NONBLOCK|profileFS.O_NOFOLLOW);
+ try{
+  // The threads object is refused immediately where an array is required.
+  // Holding this writer open makes actual read EOF impossible before refusal.
+  await profileWriteAll(writer,Buffer.from('{"threads":{},"private":"synthetic-private-profile-value"}'));
+  await profileAwaitClosed(f);
+ }finally{await writer.close();}
+}
+
+test('profiler refusal retains a fixed early parser reason with false EOF and actual helper closure',async()=>{
+ const f=await profileFixture();try{
+  const result=await f.handle.finish({remainingMs:()=>15000,context:profileSyntheticContext,excludedRoots:f.roots,closeBrowser:()=>profileEarlyRefusal(f)});
+  assert.equal(result.status,'refused');assert.equal(result.code,'SCHEMA_INVALID');assert.equal(result.parserRefusal,'SCHEMA_INVALID');assert.equal(result.receiverFailure,null);assert.equal(result.eofObserved,false);assert.equal(result.summary,null);
+  assert.equal(result.helperClosed,true);assert.equal(result.helperExitCode,0);assert.equal(result.browserClosed,true);assert.equal(result.ipcRemoved,true);assert.equal(result.qualification,false);
+  const text=JSON.stringify(result);assert.equal(text.includes('synthetic-private-profile-value'),false);assert.equal(text.includes(f.fifo),false);assert.ok(Buffer.byteLength(text)<1024);
+ }finally{await f.cleanup();}
+});
+
+test('profiler refusal distinguishes full EOF context rejection from early parser refusal',async()=>{
+ const f=await profileFixture();try{
+  const bytes=Buffer.from(JSON.stringify(profileSyntheticValue));
+  const result=await f.handle.finish({remainingMs:()=>15000,context:{...profileSyntheticContext,p4WallMs:-1},excludedRoots:f.roots,closeBrowser:()=>profileWriteOnce(f,bytes)});
+  assert.equal(result.status,'refused');assert.equal(result.code,'CONTEXT_INVALID');assert.equal(result.parserRefusal,'CONTEXT_INVALID');assert.equal(result.receiverFailure,null);assert.equal(result.eofObserved,true);assert.equal(result.rawBytes,bytes.length);assert.equal(result.summary,null);
+  assert.equal(result.helperClosed,true);assert.equal(result.helperExitCode,0);assert.equal(result.browserClosed,true);assert.equal(result.ipcRemoved,true);assert.equal(result.qualification,false);
+ }finally{await f.cleanup();}
+});
+
+test('profiler receiver raw limit remains receiver failure rather than parser INPUT_FAILURE',async()=>{
+ const f=await profileFixture();try{
+  const result=await f.handle.finish({remainingMs:()=>15000,context:null,excludedRoots:f.roots,closeBrowser:async()=>{
+   const writer=await profileOpen(f.fifo,profileFS.O_WRONLY|profileFS.O_NONBLOCK|profileFS.O_NOFOLLOW);
+   try{
+    const block=Buffer.alloc(FIREFOX_PROFILE_IPC_LIMITS.chunkBytes,0x20);
+    for(let sent=0;sent<FIREFOX_PROFILE_IPC_LIMITS.rawBytes;sent+=block.length)await profileWriteAll(writer,block);
+    await profileWriteAll(writer,Buffer.from(' '));
+   }catch(error){if(error.code!=='EPIPE')throw error;}finally{await writer.close();}
+  }});
+  assert.equal(result.status,'unavailable');assert.equal(result.code,'PROFILE_FINALIZATION_UNAVAILABLE');assert.equal(result.eofObserved,false);assert.equal(result.receiverFailure,'PROFILE_RAW_LIMIT');assert.equal(result.parserRefusal,null);assert.equal(result.summary,null);assert.equal(result.rawBytes,FIREFOX_PROFILE_IPC_LIMITS.rawBytes);
+  assert.equal(result.helperClosed,true);assert.equal(result.helperExitCode,0);assert.equal(result.browserClosed,true);assert.equal(result.ipcRemoved,true);assert.equal(JSON.stringify(result).includes('INPUT_FAILURE'),false);
+ }finally{await f.cleanup();}
+});
+
+test('profiler cancellation clears incomplete parser provenance without inventing EOF',async()=>{
+ const f=await profileFixture();let writer;
+ try{
+  writer=await profileOpen(f.fifo,profileFS.O_WRONLY|profileFS.O_NONBLOCK|profileFS.O_NOFOLLOW);await profileWriteAll(writer,Buffer.from('{'));
+  const result=await f.handle.cancel();
+  assert.equal(result.code,'PROFILE_CANCELLED');assert.equal(result.status,'unavailable');assert.equal(result.eofObserved,null);assert.equal(result.parserRefusal,null);assert.equal(result.receiverFailure,null);assert.equal(result.summary,null);assert.equal(result.helperClosed,true);assert.equal(result.browserClosed,false);assert.equal(result.ipcRemoved,false);
+ }finally{await writer?.close();await f.cleanup();}
+});
+
+test('profiler early refusal does not replace an original browser-close error or claim its closure',async()=>{
+ const f=await profileFixture(),original=Error('synthetic original close rejection');
+ try{
+  await assert.rejects(f.handle.finish({remainingMs:()=>15000,context:profileSyntheticContext,excludedRoots:f.roots,closeBrowser:async()=>{await profileEarlyRefusal(f);throw original;}}),error=>error===original);
+  const result=f.handle.snapshot();assert.equal(result.status,'unavailable');assert.equal(result.code,'PROFILE_FINALIZATION_UNAVAILABLE');assert.equal(result.parserRefusal,'SCHEMA_INVALID');assert.equal(result.eofObserved,false);assert.equal(result.summary,null);assert.equal(result.helperClosed,true);assert.equal(result.browserClosed,false);assert.equal(result.ipcRemoved,false);
+ }finally{await f.cleanup();}
+});
+
+// Intercept the actual child IPC event ahead of the production listener. The
+// child still executes its real FIFO/parser/exit path; only the admitted message
+// is adversarial here. Restore the builtin binding before fixture cleanup.
+for(const [label,alter]of [
+ ['extra private key',message=>({...message,privatePayload:'synthetic-protocol-private'})],
+ ['projected samples without EOF',message=>({...message,eof:false})],
+ ['arbitrary receiver error text',message=>({...message,summary:null,failure:'synthetic-protocol-private'})]
+])test(`profiler receiver protocol refuses ${label} without retaining content`,async t=>{
+ const originalSpawn=profileChildProcess.spawn;let injected=false,interceptions=0,f;
+ const mocked=t.mock.method(profileChildProcess,'spawn',function(...args){
+  const child=Reflect.apply(originalSpawn,this,args);
+  if(args[1]?.some(value=>typeof value==='string'&&value.endsWith('/firefox-profile-receiver.mjs')))child.on('message',message=>{
+   if(message?.type==='result'&&!injected){injected=true;interceptions++;child.emit('message',alter(structuredClone(message)));}
+  });
+  return child;
+ });
+ profileSyncBuiltinESMExports();
+ try{
+  f=await profileFixture();
+  const result=await f.handle.finish({remainingMs:()=>15000,context:profileSyntheticContext,excludedRoots:f.roots,closeBrowser:()=>profileWriteOnce(f,Buffer.from(JSON.stringify(profileSyntheticValue)))});
+  assert.equal(interceptions,1);assert.equal(result.code,'PROFILE_RECEIVER_PROTOCOL');assert.equal(result.status,'unavailable');assert.equal(result.eofObserved,null);assert.equal(result.parserRefusal,null);assert.equal(result.receiverFailure,null);assert.equal(result.summary,null);
+  assert.equal(result.helperClosed,true);assert.equal(result.helperExitCode,0);assert.equal(result.browserClosed,true);assert.equal(result.ipcRemoved,true);assert.equal(JSON.stringify(result).includes('synthetic-protocol-private'),false);assert.equal(JSON.stringify(result).includes('synthetic function'),false);
+ }finally{mocked.mock.restore();profileSyncBuiltinESMExports();await f?.cleanup();}
+});

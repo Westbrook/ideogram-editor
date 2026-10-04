@@ -15,6 +15,8 @@ const GUARDS=['../session/no-egress.mjs','../provider/no-egress.mjs','../store/n
 export const FIREFOX_PROFILE_IPC_LIMITS=Object.freeze({setupMs:5000,closeWorkMs:14000,cancelMs:1000,lifetimeMs:130000,rawBytes:16777216,chunkBytes:16384,summaryBytes:262144});
 const SETTINGS=Object.freeze({MOZ_PROFILER_STARTUP:'1',MOZ_PROFILER_STARTUP_NO_BASE:'1',MOZ_PROFILER_STARTUP_ENTRIES:'16777216',MOZ_PROFILER_STARTUP_INTERVAL:'1',MOZ_PROFILER_STARTUP_FEATURES:'js,stackwalk,nomarkerstacks',MOZ_PROFILER_STARTUP_FILTERS:'GeckoMain'});
 const CONTEXT_KEYS=['p4WallMs','realmTimeOriginMs','f5WallMs','f5MonotonicMs','f6WallMs','f6MonotonicMs','queueReadEntryMonotonicMs','queueReadCallbackMonotonicMs'];
+const RECEIVER_FAILURES=new Set(['PROFILE_READ_FAILED','PROFILE_RAW_LIMIT','PROFILE_CANCELLED','PROFILE_RECEIVER_FAILED']);
+const RESULT_KEYS=['type','eof','rawBytes','summary','failure'];
 const fail=code=>Object.assign(Error(code),{code});
 const within=(root,path)=>{const r=relative(root,path);return r===''||(!r.startsWith('..'+ '/')&&r!=='..'&&!isAbsolute(r));};
 const identity=s=>({dev:String(s.dev),ino:String(s.ino),uid:String(s.uid),gid:String(s.gid),mode:Number(s.mode)&0o777});
@@ -56,7 +58,7 @@ export async function prepareFirefoxProfileDiagnostic({excludedRoots}){
  if(!['linux','darwin'].includes(process.platform)||typeof process.getuid!=='function')throw fail('PROFILE_PLATFORM_UNAVAILABLE');
  const started=performance.now(),uid=String(process.getuid()),gid=String(process.getgid());
  const parent=await realpath(tmpdir());let leaf,fifo,leafIdentity,fifoIdentity,maker,receiver,watchdog;
- const state={schema:1,status:'unavailable',code:'PROFILE_PREPARING',summary:null,rawBytes:null,helperClosed:false,helperExitCode:null,helperSignal:null,browserClosed:false,ipcRemoved:false,writerMayOpen:true,regularFileObserved:false,qualification:false};
+ const state={schema:1,status:'unavailable',code:'PROFILE_PREPARING',summary:null,rawBytes:null,eofObserved:null,parserRefusal:null,receiverFailure:null,helperClosed:false,helperExitCode:null,helperSignal:null,browserClosed:false,ipcRemoved:false,writerMayOpen:true,regularFileObserved:false,qualification:false};
  let finishing,stopping,finished=false,received=null,ready=false,tainted=false;
  const readySignal=deferred(),issuedEnvironments=new WeakSet();
  const snapshot=()=>{if(Buffer.byteLength(JSON.stringify(state))>FIREFOX_PROFILE_IPC_LIMITS.summaryBytes){state.status='unavailable';state.code='PROFILE_OUTPUT_LIMIT';state.summary=null;}return structuredClone(state);};
@@ -74,7 +76,7 @@ export async function prepareFirefoxProfileDiagnostic({excludedRoots}){
  }
  async function stop(code,budgetMs=900){
   if(finished)return snapshot();
-  if(!tainted)state.code=code;tainted=true;state.status='unavailable';state.summary=null;
+  if(!tainted)state.code=code;tainted=true;state.status='unavailable';state.summary=null;state.eofObserved=null;state.parserRefusal=null;state.receiverFailure=null;
   const budget=Math.max(0,Math.min(900,Number.isFinite(budgetMs)?budgetMs:0));
   if(budget===0&&!receiver?.ended)receiver?.child.kill('SIGKILL');
   if(!stopping)stopping=(async()=>{if(receiver?.child.connected)receiver.child.send({type:'cancel'},()=>{});await stopChild(receiver,budget);state.helperClosed=Boolean(receiver?.ended);if(receiver?.exit){state.helperExitCode=receiver.exit.code;state.helperSignal=receiver.exit.signal;}})();
@@ -98,8 +100,9 @@ export async function prepareFirefoxProfileDiagnostic({excludedRoots}){
    if(message.type==='ready'&&message.noNetworkGuard===true&&!ready){ready=true;readySignal.resolve(true);return;}
    if(message.type==='result'&&!received){
     const encoded=JSON.stringify(message);
-    if(Buffer.byteLength(encoded)>FIREFOX_PROFILE_IPC_LIMITS.summaryBytes+2048||typeof message.rawBytes!=='number'||!Number.isInteger(message.rawBytes)||message.rawBytes<0||message.rawBytes>FIREFOX_PROFILE_IPC_LIMITS.rawBytes||typeof message.eof!=='boolean'||(message.failure!==null&&message.failure!=='PROFILE_RECEIVER_FAILED')||(message.failure===null&&!isFirefoxProfileProjection(message.summary))||(message.failure!==null&&message.summary!==null)){tainted=true;state.code='PROFILE_RECEIVER_PROTOCOL';return;}
+    if(Object.keys(message).length!==RESULT_KEYS.length||RESULT_KEYS.some(key=>!Object.hasOwn(message,key))||Buffer.byteLength(encoded)>FIREFOX_PROFILE_IPC_LIMITS.summaryBytes+2048||typeof message.rawBytes!=='number'||!Number.isInteger(message.rawBytes)||message.rawBytes<0||message.rawBytes>FIREFOX_PROFILE_IPC_LIMITS.rawBytes||typeof message.eof!=='boolean'||(message.failure!==null&&!RECEIVER_FAILURES.has(message.failure))||(message.failure===null&&(!isFirefoxProfileProjection(message.summary)||message.summary.rawBytes!==message.rawBytes||(!message.eof&&message.summary.status!=='refused')))||(message.failure!==null&&message.summary!==null)){tainted=true;state.status='unavailable';state.code='PROFILE_RECEIVER_PROTOCOL';state.summary=null;state.eofObserved=null;state.parserRefusal=null;state.receiverFailure=null;return;}
     received=message;state.rawBytes=message.rawBytes;
+    if(!tainted){state.eofObserved=message.eof;state.receiverFailure=message.failure;state.parserRefusal=message.failure===null&&message.summary.status==='refused'?message.summary.reason:null;}
    }
   });
   receiver.child.send({type:'prepare',fifo,leaf,leafIdentity,fifoIdentity},()=>{});
@@ -152,7 +155,7 @@ export async function prepareFirefoxProfileDiagnostic({excludedRoots}){
     clearTimeout(finishWatchdog);
     if(!complete)await stop('PROFILE_CLOSE_DEADLINE',remaining());
     if(state.helperClosed)clearTimeout(watchdog);
-    if(!tainted&&received&&received.failure===null&&received.eof&&receiver.exit?.code===0&&!receiver.exit.spawnError&&state.browserClosed){state.status=received.summary.status;state.code=received.summary.reason;state.summary=received.summary.status==='refused'?null:received.summary;state.rawBytes=received.rawBytes;}
+    if(!tainted&&received&&received.failure===null&&(received.eof||received.summary.status==='refused')&&receiver.exit?.code===0&&!receiver.exit.spawnError&&state.browserClosed){state.status=received.summary.status;state.code=received.summary.reason;state.summary=received.summary.status==='refused'?null:received.summary;state.rawBytes=received.rawBytes;}
     else if(!tainted){state.status='unavailable';state.code=closeSettled?'PROFILE_FINALIZATION_UNAVAILABLE':'PROFILE_BROWSER_CLOSURE_UNKNOWN';}
     if(state.helperClosed&&state.browserClosed&&remaining()>0){try{await removeClosedIPC();}catch{state.status='unavailable';state.code='PROFILE_IPC_CUSTODY_FAILURE';state.summary=null;}}
     finished=true;
