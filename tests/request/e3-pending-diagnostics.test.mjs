@@ -460,3 +460,217 @@ test('ownership loss audited before admission keeps the next selected cohort inc
  assert.equal(f.store.objects.prove,foreign);assert.equal(foreignCalls,1);
  const final=observer.dispose();assert.equal(final.incomplete,true);assert.equal(f.store.objects.prove,foreign);
 });
+
+
+// Optional placement cost observations. These controls retain the original
+// operation-owner tests above and use only owned deferreds and a scalar clock.
+import {PLACEMENT_COST_LIMITS} from '../request-edits/pending-operation-observer.mjs';
+const placementCostMethods=[
+ ['history.readReview','histories','readReview'],
+ ['history.state','histories','state'],
+ ['candidates.checkAdoption','candidates','checkAdoption'],
+ ['history.reviewedPlacementState','histories','reviewedPlacementState'],
+];
+function placementCostFixture(t){
+ const f=opFixture(t),costOriginals=new Map();let clock=0;
+ for(const [method,owner,key]of placementCostMethods){
+  const original=function(...args){f.calls.push({method,receiver:this,args});const body=f.bodies.get(method);return body?Reflect.apply(body,this,args):0;};
+  f.store[owner][key]=original;costOriginals.set(method,original);
+ }
+ return {...f,costOriginals,now:()=>clock,tick:n=>{clock+=n;},setClock:n=>{clock=n;},
+  costInvoke:(method,...args)=>{const row=placementCostMethods.find(x=>x[0]===method);return Reflect.apply(f.store[row[1]][row[2]],f.store[row[1]],args);}};
+}
+const costRow=(value,method)=>value.placementCosts.aggregate.find(row=>row.method===method);
+function assertCostBounds(snapshot){
+ assert.equal(snapshot.backingBytes,10880);assert.equal(snapshot.placementCosts.backingBytes,656);assert.equal(snapshot.placementCosts.scalarAllowanceBytes,1024);
+ assert.equal(snapshot.placementCosts.aggregate.length,4);assert.equal(snapshot.placementCosts.qualification,false);
+ assert(Buffer.byteLength(JSON.stringify(snapshot.placementCosts))<=2048);assert(Buffer.byteLength(JSON.stringify(snapshot))<=32768);
+}
+
+test('placement costs are absent by default and explicit false leaves child descriptors and original observation shape unchanged',async t=>{
+ const values=[];
+ for(const options of [{enabled:true},{enabled:true,placementCosts:false}]){
+  const f=placementCostFixture(t),before=placementCostMethods.map(([,owner,key])=>Object.getOwnPropertyDescriptor(f.store[owner],key)),held=opDeferred();
+  f.bodies.set('history.approvedPlacement',()=>f.costInvoke('history.state'));f.bodies.set('history.prepare',()=>{f.invoke('history.approvedPlacement');return held.promise;});
+  const observer=installPendingOperationObserver(f.store,{...options,now:f.now});
+  try{assert.deepEqual(placementCostMethods.map(([,owner,key])=>Object.getOwnPropertyDescriptor(f.store[owner],key)),before);assert.equal(f.start(),held.promise);held.resolve();await held.promise;const value=observer.snapshot(commandId);assert.equal(Object.hasOwn(value,'placementCosts'),false);values.push(value);assert.equal(f.resourceReads(),0);}finally{assert.equal(Object.hasOwn(observer.dispose(),'placementCosts'),false);}
+ }
+ assert.deepEqual(values[0],values[1]);
+ const f=placementCostFixture(t),before=placementCostMethods.map(([,owner,key])=>Object.getOwnPropertyDescriptor(f.store[owner],key)),observer=installPendingOperationObserver(f.store,{placementCosts:true});
+ assert.deepEqual(placementCostMethods.map(([,owner,key])=>Object.getOwnPropertyDescriptor(f.store[owner],key)),before);assert.equal(observer.snapshot(commandId).available,false);assert.equal(Object.hasOwn(observer.dispose(),'placementCosts'),false);
+});
+
+test('four direct child costs partition a controlled synchronous schedule without counting nested state twice',async t=>{
+ const f=placementCostFixture(t),held=opDeferred(),values=placementCostMethods.map(([method])=>Object.freeze({method}));
+ f.bodies.set('history.readReview',()=>{f.tick(2);return values[0];});
+ let stateCalls=0;f.bodies.set('history.state',()=>{f.tick(++stateCalls===1?3:11);return values[1];});
+ f.bodies.set('candidates.checkAdoption',()=>{f.tick(5);return values[2];});
+ f.bodies.set('history.reviewedPlacementState',()=>{f.tick(7);assert.equal(f.costInvoke('history.state'),values[1]);f.tick(13);return values[3];});
+ f.bodies.set('history.approvedPlacement',()=>{for(const [i,[method]]of placementCostMethods.entries())assert.equal(f.costInvoke(method),values[i]);return values[3];});
+ f.bodies.set('history.prepare',()=>{assert.equal(f.invoke('history.approvedPlacement'),values[3]);return held.promise;});
+ const observer=installPendingOperationObserver(f.store,{enabled:true,placementCosts:true,now:f.now});t.after(()=>observer.dispose());assert.equal(f.start(),held.promise);
+ const snapshot=observer.snapshot(commandId);assert.equal(snapshot.placementCosts.complete,true);assert.equal(snapshot.placementCosts.faults,0);assertCostBounds(snapshot);
+ for(const [index,[method]]of placementCostMethods.entries())assert.deepEqual(costRow(snapshot,method),{method,calls:1,returned:1,threw:0,totalMs:[2,3,5,31][index],maxMs:[2,3,5,31][index]});
+ assert.equal(stateCalls,2);assert.equal(opAggregate(snapshot,'history.approvedPlacement').totalMs,41);assert.equal(snapshot.transitions.some(row=>placementCostMethods.some(([method])=>row.method===method)),false,'No child transition rows are introduced');
+ held.resolve();await held.promise;
+});
+
+for(const [method,owner]of placementCostMethods)test('direct '+method+' preserves its exact receiver arguments and opaque return',async t=>{
+ const f=placementCostFixture(t),held=opDeferred(),result=Object.create(null),argument=Object.create(null);let inspections=0,invocations=0;
+ for(const value of [result,argument])Object.defineProperty(value,'secret',{get(){inspections++;throw Error('opaque field read');}});
+ const check=()=>assert.fail('A passive observer cannot invoke a product check'),args=[argument,check,result];let returned;
+ f.bodies.set(method,function(...received){invocations++;assert.equal(this,f.store[owner]);assert.equal(received.length,args.length);received.forEach((value,index)=>assert.equal(value,args[index]));f.tick(4);return result;});
+ f.bodies.set('history.approvedPlacement',()=>{returned=f.costInvoke(method,...args);return 1;});f.bodies.set('history.prepare',()=>{f.invoke('history.approvedPlacement');return held.promise;});
+ const observer=installPendingOperationObserver(f.store,{enabled:true,placementCosts:true,now:f.now});t.after(()=>observer.dispose());assert.equal(f.start(),held.promise);assert.equal(returned,result);assert.equal(invocations,1);assert.equal(inspections,0);
+ const value=observer.snapshot(commandId);assert.equal(value.placementCosts.complete,true);assert.deepEqual(costRow(value,method),{method,calls:1,returned:1,threw:0,totalMs:4,maxMs:4});assert.equal(inspections,0);held.resolve();await held.promise;
+});
+
+for(const [method]of placementCostMethods)test('direct '+method+' preserves synchronous error identity and records one throw',async t=>{
+ const f=placementCostFixture(t),held=opDeferred(),error=Object.create(null);let inspections=0;
+ Object.defineProperty(error,'message',{get(){inspections++;throw Error('error payload read');}});
+ f.bodies.set(method,()=>{f.tick(6);throw error;});f.bodies.set('history.approvedPlacement',()=>f.costInvoke(method));f.bodies.set('history.prepare',()=>{assert.throws(()=>f.invoke('history.approvedPlacement'),value=>value===error);return held.promise;});
+ const observer=installPendingOperationObserver(f.store,{enabled:true,placementCosts:true,now:f.now});t.after(()=>observer.dispose());f.start();const value=observer.snapshot(commandId);
+ assert.deepEqual(costRow(value,method),{method,calls:1,returned:0,threw:1,totalMs:6,maxMs:6});assert.equal(value.placementCosts.complete,true);assert.equal(inspections,0);assert.equal(opAggregate(value,'history.approvedPlacement').rejected,1);held.resolve();await held.promise;
+});
+
+for(const boundary of ['child','approval'])test('opaque Proxy return at '+boundary+' never invokes its prototype trap or replaces original return',async t=>{
+ const f=placementCostFixture(t),held=opDeferred();let inspected=0,returned;
+ const result=new Proxy(Object.create(null),{getPrototypeOf(){inspected++;throw Error('PRIVATE_RESULT_PROTOTYPE');},get(){inspected++;throw Error('PRIVATE_RESULT_PROPERTY');}});
+ f.bodies.set('history.readReview',()=>result);f.bodies.set('history.approvedPlacement',()=>boundary==='child'?(returned=f.costInvoke('history.readReview'),1):result);
+ f.bodies.set('history.prepare',()=>{const value=f.invoke('history.approvedPlacement');if(boundary==='approval')returned=value;return held.promise;});
+ const observer=installPendingOperationObserver(f.store,{enabled:true,placementCosts:true,now:f.now});t.after(()=>observer.dispose());assert.equal(f.start(),held.promise);assert.equal(returned,result);assert.equal(inspected,0);
+ const value=observer.snapshot(commandId);assert.equal(value.placementCosts.complete,true);assert.equal(inspected,0);held.resolve();await held.promise;
+});
+
+for(const boundary of ['child','approval'])for(const outcome of ['resolve','reject'])test('unexpected native Promise from '+boundary+' is unchanged, incomplete and gains no settlement subscription on '+outcome,async t=>{
+ const f=placementCostFixture(t),held=opDeferred(),child=opDeferred(),error=Object.freeze({private:'failure'});let probes=0,returned;
+ // Own the eventual rejection before installing the constructor probe. A native
+ // then subscription would consult this constructor; brand classification must not.
+ const caught=Promise.prototype.then.call(child.promise,value=>value,failure=>failure);
+ Object.defineProperty(child.promise,'constructor',{get(){probes++;return Promise;},configurable:true});
+ f.bodies.set('history.readReview',()=>child.promise);f.bodies.set('history.approvedPlacement',()=>boundary==='child'?(returned=f.costInvoke('history.readReview'),1):child.promise);
+ f.bodies.set('history.prepare',()=>{const value=f.invoke('history.approvedPlacement');if(boundary==='approval')returned=value;return held.promise;});
+ const observer=installPendingOperationObserver(f.store,{enabled:true,placementCosts:true,now:f.now});t.after(()=>observer.dispose());assert.equal(f.start(),held.promise);assert.equal(returned,child.promise);assert.equal(probes,0);
+ const before=observer.snapshot(commandId).placementCosts;assert.equal(before.complete,false);assert(before.faults>0);
+ if(outcome==='resolve')child.resolve(17);else child.reject(error);assert.equal(await caught,outcome==='resolve'?17:error);assert.equal(probes,0);
+ assert.deepEqual(observer.snapshot(commandId).placementCosts,before,'Later native settlement supplies no fabricated child timing');held.resolve();await held.promise;
+});
+
+test('only direct children of selected approved placement count; other operation parents and nested unselected roots do not',async t=>{
+ const f=placementCostFixture(t),held=opDeferred();f.seed(otherId,'CreateDocument');let calls=0;
+ f.bodies.set('history.state',()=>++calls);f.bodies.set('history.prepareCandidatePreview',()=>{f.costInvoke('history.state');return Promise.resolve();});
+ f.bodies.set('history.approvedPlacement',()=>{f.costInvoke('history.readReview');f.invoke('history.prepareCandidatePreview');f.start(otherId);return 8;});
+ f.bodies.set('history.prepare',id=>{if(id===otherId){f.costInvoke('history.state');return Promise.resolve();}f.costInvoke('history.state');f.invoke('history.approvedPlacement');return held.promise;});
+ const observer=installPendingOperationObserver(f.store,{enabled:true,placementCosts:true,now:f.now});t.after(()=>observer.dispose());f.start();const value=observer.snapshot(commandId);
+ assert.equal(calls,3);assert.equal(costRow(value,'history.state').calls,0);assert.equal(costRow(value,'history.readReview').calls,1);assert.equal(value.placementCosts.complete,true);assert.equal(observer.snapshot(otherId).available,false);held.resolve();await held.promise;
+});
+
+test('interleaved selected roots retain separate direct-child timing and unrelated async work remains unselected',async t=>{
+ const f=placementCostFixture(t),a=opDeferred(),b=opDeferred(),outside=opDeferred();f.seed(otherId);
+ f.bodies.set('history.state',duration=>{f.tick(duration);return duration;});f.bodies.set('history.approvedPlacement',duration=>f.costInvoke('history.state',duration));
+ const unrelated=outside.promise.then(()=>f.invoke('history.approvedPlacement',99));
+ f.bodies.set('history.prepare',id=>(id===commandId?a.promise:b.promise).then(()=>f.invoke('history.approvedPlacement',id===commandId?3:7)));
+ const observer=installPendingOperationObserver(f.store,{enabled:true,placementCosts:true,now:f.now});t.after(()=>observer.dispose());const first=f.start(),second=f.start(otherId);outside.resolve();assert.equal(await unrelated,99);
+ b.resolve();assert.equal(await second,7);assert.equal(costRow(observer.snapshot(otherId),'history.state').totalMs,7);assert.equal(costRow(observer.snapshot(commandId),'history.state').calls,0);
+ a.resolve();assert.equal(await first,3);assert.equal(costRow(observer.snapshot(commandId),'history.state').totalMs,3);assert.equal(costRow(observer.snapshot(otherId),'history.state').calls,1);
+});
+
+test('in-progress direct child is explicitly incomplete until its original synchronous return',async t=>{
+ const f=placementCostFixture(t),held=opDeferred();let observer,during;
+ f.bodies.set('history.state',()=>{f.tick(4);during=observer.snapshot(commandId);f.tick(2);return 9;});f.bodies.set('history.approvedPlacement',()=>f.costInvoke('history.state'));f.bodies.set('history.prepare',()=>{assert.equal(f.invoke('history.approvedPlacement'),9);return held.promise;});
+ observer=installPendingOperationObserver(f.store,{enabled:true,placementCosts:true,now:f.now});t.after(()=>observer.dispose());f.start();assert.equal(during.placementCosts.complete,false);assert.equal(costRow(during,'history.state').calls,1);assert.equal(costRow(during,'history.state').returned,0);
+ const after=observer.snapshot(commandId);assert.equal(after.placementCosts.complete,true);assert.equal(costRow(after,'history.state').totalMs,6);assert.equal(costRow(during,'history.state').returned,0,'Snapshots remain detached');held.resolve();await held.promise;
+});
+
+for(const mode of ['throw','negative','nan','infinite','backward'])test('direct child '+mode+' clock observation is incomplete without changing the original work',async t=>{
+ const f=placementCostFixture(t),held=opDeferred();let bad=false;
+ const now=()=>{if(!bad)return f.now();bad=false;if(mode==='throw')throw Error('PRIVATE_COST_CLOCK');return mode==='negative'?-1:mode==='nan'?NaN:mode==='infinite'?Infinity:10;};
+ f.setClock(20);f.bodies.set('history.state',()=>{if(mode==='backward')f.setClock(0);return 23;});f.bodies.set('history.approvedPlacement',()=>{bad=mode!=='backward';return f.costInvoke('history.state');});f.bodies.set('history.prepare',()=>{assert.equal(f.invoke('history.approvedPlacement'),23);return held.promise;});
+ const observer=installPendingOperationObserver(f.store,{enabled:true,placementCosts:true,now});t.after(()=>observer.dispose());f.start();const value=observer.snapshot(commandId);assert.equal(value.placementCosts.complete,false);assert(value.placementCosts.faults>0);assert.equal(costRow(value,'history.state').returned,1);assert(!JSON.stringify(value).includes('PRIVATE_COST_CLOCK'));held.resolve();await held.promise;
+});
+
+test('frequent guards preserve fixed cost backing and bounds independently of truncated operation chronology',async t=>{
+ const f=placementCostFixture(t),held=opDeferred(),iterations=OPERATION_LIMITS.transitionRows+1;let called=0;
+ f.bodies.set('history.state',()=>{f.tick(++called%2?3:5);return called;});f.bodies.set('objects.putMetadataInSlot',()=>0);f.bodies.set('history.approvedPlacement',()=>f.costInvoke('history.state'));
+ f.bodies.set('history.prepare',()=>{for(let i=0;i<iterations;i++){f.invoke('history.approvedPlacement');f.invoke('objects.putMetadataInSlot');}return held.promise;});
+ const observer=installPendingOperationObserver(f.store,{enabled:true,placementCosts:true,now:f.now});t.after(()=>observer.dispose());f.start();const value=observer.snapshot(commandId),row=costRow(value,'history.state');
+ assert.equal(called,iterations);assert.equal(row.calls,iterations);assert.equal(row.returned,iterations);assert.equal(row.totalMs,Math.ceil(iterations/2)*3+Math.floor(iterations/2)*5);assert.equal(row.maxMs,5);assert.equal(value.traceComplete,false);assert.equal(value.activeComplete,true);assert.equal(value.aggregateComplete,true);assert.equal(value.placementCosts.complete,true);assertCostBounds(value);assert.equal(value.transitions.length,128);held.resolve();await held.promise;
+});
+
+test('actual active-table exhaustion cannot report complete zero direct-child costs for unobserved approved placement',async t=>{
+ const f=placementCostFixture(t),held=opDeferred(),proofs=Array.from({length:OPERATION_LIMITS.activeCalls-1},opDeferred);let at=0,children=0;
+ f.bodies.set('objects.prove',()=>proofs[at++].promise);f.bodies.set('history.state',()=>++children);f.bodies.set('history.approvedPlacement',()=>f.costInvoke('history.state'));
+ f.bodies.set('history.prepare',()=>{for(const proof of proofs)f.invoke('objects.prove');assert.equal(f.invoke('history.approvedPlacement'),1);return held.promise;});
+ const observer=installPendingOperationObserver(f.store,{enabled:true,placementCosts:true,now:f.now});t.after(()=>observer.dispose());assert.equal(f.start(),held.promise);const value=observer.snapshot(commandId);
+ assert.equal(at,31);assert.equal(children,1);assert.equal(value.activeComplete,false);assert.equal(value.aggregateComplete,false);assert.equal(costRow(value,'history.state').calls,0);assert.equal(value.placementCosts.complete,false,'Incomplete zero is never absence of original work');assertCostBounds(value);proofs.forEach(proof=>proof.resolve());await Promise.all(proofs.map(proof=>proof.promise));held.resolve();await held.promise;
+});
+
+for(const lost of ['child-method','outer-approval'])test('pre-admission audited '+lost+' ownership loss remains incomplete in later cohorts and preserves foreign replacement',async t=>{
+ const f=placementCostFixture(t),held=opDeferred();let calls=0;
+ f.bodies.set('history.approvedPlacement',()=>f.costInvoke('history.readReview'));f.bodies.set('history.prepare',()=>{assert.equal(f.invoke('history.approvedPlacement'),37);return held.promise;});
+ const observer=installPendingOperationObserver(f.store,{enabled:true,placementCosts:true,now:f.now});
+ const owner=f.store.histories,key=lost==='child-method'?'readReview':'approvedPlacement',foreign=function(){calls++;assert.equal(this,owner);return 37;};owner[key]=foreign;
+ assert.equal(observer.snapshot(otherId).available,false);assert.equal(f.start(),held.promise);assert.equal(calls,1);const value=observer.snapshot(commandId);assert.equal(value.placementCosts.complete,false);assert.equal(costRow(value,'history.readReview').calls,0);
+ held.resolve();await held.promise;assert.equal(observer.snapshot(commandId).placementCosts.complete,false);const final=observer.dispose();assert.equal(final.placementCosts.incomplete,true);assert.equal(final.placementCosts.liveBackingBytes,0);assert.equal(owner[key],foreign);
+});
+
+test('borrowed direct-child receiver retains original call identity but has no timing authority',async t=>{
+ const f=placementCostFixture(t),held=opDeferred(),foreignReceiver={private:true},value=Object.freeze({ok:true});let calls=0;
+ f.bodies.set('history.state',function(arg){calls++;assert.equal(this,foreignReceiver);assert.equal(arg,value);return value;});f.bodies.set('history.approvedPlacement',()=>f.store.histories.state.call(foreignReceiver,value));f.bodies.set('history.prepare',()=>{assert.equal(f.invoke('history.approvedPlacement'),value);return held.promise;});
+ const observer=installPendingOperationObserver(f.store,{enabled:true,placementCosts:true,now:f.now});t.after(()=>observer.dispose());f.start();const snapshot=observer.snapshot(commandId);assert.equal(calls,1);assert.equal(costRow(snapshot,'history.state').calls,0);assert.equal(snapshot.placementCosts.complete,false);assert(snapshot.placementCosts.faults>0);held.resolve();await held.promise;
+});
+
+test('partial cost installation restores acquired child descriptors while the existing operation observer keeps working',async t=>{
+ const f=placementCostFixture(t),held=opDeferred();Object.defineProperty(f.store.histories,'reviewedPlacementState',{value:f.costOriginals.get('history.reviewedPlacementState'),configurable:false,writable:false});
+ const before=placementCostMethods.map(([,owner,key])=>Object.getOwnPropertyDescriptor(f.store[owner],key));f.bodies.set('history.approvedPlacement',()=>f.costInvoke('history.state'));f.bodies.set('history.prepare',()=>{f.invoke('history.approvedPlacement');return held.promise;});
+ const observer=installPendingOperationObserver(f.store,{enabled:true,placementCosts:true,now:f.now});assert.deepEqual(placementCostMethods.map(([,owner,key])=>Object.getOwnPropertyDescriptor(f.store[owner],key)),before);assert.equal(f.start(),held.promise);
+ const value=observer.snapshot(commandId);assert.equal(value.available,true);assert.equal(opAggregate(value,'history.approvedPlacement').calls,1);assert.equal(value.placementCosts.available,false);assert.equal(value.placementCosts.reason,'cost-install-refused');held.resolve();await held.promise;const final=observer.dispose();assert.equal(final.placementCosts.incomplete,true);assert.equal(final.placementCosts.liveBackingBytes,0);
+});
+
+test('synchronous disposal inside a child preserves its result, clears backing and leaves all later work unobserved',async t=>{
+ const f=placementCostFixture(t),held=opDeferred(),late=opDeferred();let observer,summary,detached;
+ f.bodies.set('history.state',()=>{summary=observer.dispose();return 41;});f.bodies.set('history.approvedPlacement',()=>f.costInvoke('history.state'));
+ f.bodies.set('history.prepare',()=>{detached=late.promise.then(()=>f.costInvoke('history.readReview'));assert.equal(f.invoke('history.approvedPlacement'),41);return held.promise;});
+ observer=installPendingOperationObserver(f.store,{enabled:true,placementCosts:true,now:f.now});assert.equal(f.start(),held.promise);assert.equal(summary.placementCosts.incomplete,true);assert.equal(summary.placementCosts.liveBackingBytes,0);
+ for(const [method,owner,key]of placementCostMethods)assert.equal(f.store[owner][key],f.costOriginals.get(method));
+ const before=JSON.stringify(summary);held.resolve();await held.promise;late.resolve();assert.equal(await detached,0);assert.equal(JSON.stringify(summary),before);assert.equal(observer.dispose(),summary);assert.equal(observer.snapshot(commandId).available,false);assert.equal(f.resourceReads(),0);
+});
+
+test('retired async context cannot restart direct-child attribution after selected root settles',async t=>{
+ const f=placementCostFixture(t),late=opDeferred();let detached;f.bodies.set('history.approvedPlacement',()=>f.costInvoke('history.state'));f.bodies.set('history.prepare',()=>{detached=late.promise.then(()=>f.invoke('history.approvedPlacement'));return Promise.resolve();});
+ const observer=installPendingOperationObserver(f.store,{enabled:true,placementCosts:true,now:f.now});t.after(()=>observer.dispose());await f.start();const before=observer.snapshot(commandId);late.resolve();await detached;assert.deepEqual(observer.snapshot(commandId),before);assert.equal(f.calls.filter(row=>row.method==='history.state').length,1);
+});
+
+test('cost observations pass the original exact durable join without changing the retained owned packet or output ceiling',async t=>{
+ const f=placementCostFixture(t),held=opDeferred();f.bodies.set('history.state',()=>{f.tick(3);return 8;});f.bodies.set('history.approvedPlacement',()=>f.costInvoke('history.state'));f.bodies.set('history.prepare',()=>{f.invoke('history.approvedPlacement');return held.promise;});
+ const observer=installPendingOperationObserver(f.store,{enabled:true,placementCosts:true,now:f.now});t.after(()=>observer.dispose());f.start();const original=opDiagnosticPacket(t),captured=opDiagnosticPacket(t,observer);
+ assert.deepEqual(opWithoutOptional(captured.value),original.value);assert.deepEqual(captured.value.operationObservation.placementCosts,observer.snapshot(commandId).placementCosts);assert(captured.bytes.byteLength<=DIAGNOSTIC_LIMIT);assert.equal(captured.value.operationObservation.placementCosts.qualification,false);
+ let reads=0;const refused=opDiagnosticPacket(t,{snapshot(){reads++;return observer.snapshot(commandId);},resources(){reads++;return observer.resources();}},{valid:false});assert.equal(reads,0);assert.equal(refused.value.reason,'capture-refused');held.resolve();await held.promise;
+});
+
+
+test('four cost cohorts remain bounded and an unadmitted fifth root still executes without fabricated cost authority',async t=>{
+ const f=placementCostFixture(t),ids=[commandId,otherId,'33333333-3333-4333-8333-333333333333','44444444-4444-4444-8444-444444444444','55555555-5555-4555-8555-555555555555'],held=ids.map(opDeferred);let children=0;
+ ids.slice(1).forEach(id=>f.seed(id));f.bodies.set('history.state',()=>++children);f.bodies.set('history.approvedPlacement',()=>f.costInvoke('history.state'));f.bodies.set('history.prepare',id=>{f.invoke('history.approvedPlacement');return held[ids.indexOf(id)].promise;});
+ const observer=installPendingOperationObserver(f.store,{enabled:true,placementCosts:true,now:f.now});t.after(()=>observer.dispose());
+ for(let i=0;i<4;i++){assert.equal(f.start(ids[i]),held[i].promise);const value=observer.snapshot(ids[i]);assert.equal(value.placementCosts.complete,true);assert.equal(costRow(value,'history.state').calls,1);assertCostBounds(value);}
+ assert.equal(f.start(ids[4]),held[4].promise);assert.equal(children,5);assert.equal(observer.snapshot(ids[4]).available,false);assert.equal(Object.hasOwn(observer.snapshot(ids[4]),'placementCosts'),false);
+ for(const id of ids.slice(0,4))assert.equal(observer.snapshot(id).placementCosts.complete,false,'Outer cohort overflow invalidates the independent complete claim');held.forEach(value=>value.resolve());await Promise.all(held.map(value=>value.promise));
+});
+
+test('replacement of a cost owner stays untouched and cannot report complete missing child observations',async t=>{
+ const f=placementCostFixture(t),held=opDeferred(),originalOwner=f.store.candidates;let calls=0;
+ f.bodies.set('history.approvedPlacement',()=>f.costInvoke('candidates.checkAdoption'));f.bodies.set('history.prepare',()=>{assert.equal(f.invoke('history.approvedPlacement'),53);return held.promise;});
+ const observer=installPendingOperationObserver(f.store,{enabled:true,placementCosts:true,now:f.now});
+ const replacement={...originalOwner,checkAdoption(){calls++;assert.equal(this,replacement);return 53;}};f.store.candidates=replacement;
+ assert.equal(observer.snapshot(otherId).available,false);assert.equal(f.start(),held.promise);assert.equal(calls,1);assert.equal(observer.snapshot(commandId).placementCosts.complete,false);
+ held.resolve();await held.promise;const summary=observer.dispose();assert.equal(summary.placementCosts.incomplete,true);assert.equal(summary.placementCosts.liveBackingBytes,0);assert.equal(f.store.candidates,replacement);assert.equal(replacement.checkAdoption(),53);assert.equal(calls,2);
+});
+
+test('cost disposal restores inherited child methods by removing only its own shadow descriptor',async t=>{
+ const f=placementCostFixture(t),held=opDeferred(),original=f.costOriginals.get('history.state'),prior=Object.getPrototypeOf(f.store.histories),prototype=Object.create(prior);
+ Object.defineProperty(prototype,'state',{value:original,configurable:true,writable:true});delete f.store.histories.state;Object.setPrototypeOf(f.store.histories,prototype);
+ f.bodies.set('history.state',()=>61);f.bodies.set('history.approvedPlacement',()=>f.costInvoke('history.state'));f.bodies.set('history.prepare',()=>{assert.equal(f.invoke('history.approvedPlacement'),61);return held.promise;});
+ const observer=installPendingOperationObserver(f.store,{enabled:true,placementCosts:true,now:f.now});assert.equal(Object.hasOwn(f.store.histories,'state'),true);assert.equal(f.start(),held.promise);held.resolve();await held.promise;assert.equal(observer.snapshot(commandId).placementCosts.complete,true);
+ const summary=observer.dispose();assert.equal(summary.placementCosts.incomplete,false);assert.equal(summary.placementCosts.liveBackingBytes,0);assert.equal(Object.hasOwn(f.store.histories,'state'),false);assert.equal(Object.getPrototypeOf(f.store.histories),prototype);assert.equal(f.store.histories.state,original);
+});

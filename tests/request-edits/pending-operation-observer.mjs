@@ -1,7 +1,16 @@
 // Opt-in fixture diagnostics only. Original calls, promises and errors retain authority.
 import {AsyncLocalStorage} from 'node:async_hooks';
+import {isPromise} from 'node:util/types';
 
 export const OPERATION_LIMITS=Object.freeze({cohorts:4,activeCalls:32,transitionRows:128,methods:12,backingBytes:10880,serializedBytes:32768});
+// Optional fixed diagnostic backing; logical wrapper allowance is not measured heap.
+export const PLACEMENT_COST_LIMITS=Object.freeze({cohorts:4,methods:4,statsBytes:640,faultBytes:16,backingBytes:656,scalarAllowanceBytes:1024,serializedBytes:2048});
+const placementMethods=Object.freeze([
+ ['histories','readReview','history.readReview'],
+ ['histories','state','history.state'],
+ ['candidates','checkAdoption','candidates.checkAdoption'],
+ ['histories','reviewedPlacementState','history.reviewedPlacementState'],
+]);
 const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
 const countLimit=2147483647;
 const methods=Object.freeze([
@@ -66,11 +75,104 @@ function observedCall(s,c,index,original,receiver,args){
  // No additional context or settlement closure when the fixed pending-call table is full.
  if(slot<0){fault(s,c,false,true);return Reflect.apply(original,receiver,args);}
  let result;
- try{result=s.als.run({cohort:c,parent:call},()=>Reflect.apply(original,receiver,args));}
+ try{result=s.als.run({cohort:c,parent:call},()=>index===11&&s.costs?costScope(s,c,original,receiver,args):Reflect.apply(original,receiver,args));}
  catch(error){try{settle(s,c,index,call,parent,slot,start,2);}catch{fault(s,c);}throw error;}
  if(methods[index][3])watch(s,c,index,call,parent,slot,start,result);
  else try{settle(s,c,index,call,parent,slot,start,1);}catch{fault(s,c);}
  return result;
+}
+// Only direct synchronous child calls are timed. Nested state reads belong to
+// their outer placement category; no argument, result, promise or path is retained.
+function costFault(costs,c){
+ if(!costs?.faults)return;
+ for(let i=0;i<4;i++)if(c===undefined||c===i)costs.faults[i]=Math.min(countLimit,costs.faults[i]+1);
+}
+function costClock(s,c){try{const n=s.now();if(Number.isFinite(n)&&n>=0&&n<=Number.MAX_SAFE_INTEGER)return n;}catch{}costFault(s.costs,c);return -1;}
+function costScope(s,c,original,receiver,args){
+ const costs=s.costs;
+ if(!costs?.enabled||!costs.stats)return Reflect.apply(original,receiver,args);
+ if(costs.cohort!==-1){costFault(costs,c);costFault(costs,costs.cohort);return Reflect.apply(original,receiver,args);}
+ costs.cohort=c;costs.parent=s.als.getStore()?.parent??0;
+ try{const result=Reflect.apply(original,receiver,args);if(isPromise(result))costFault(costs,c);return result;}
+ finally{costs.cohort=-1;costs.active=-1;costs.parent=0;}
+}
+function costCall(s,index,original,receiver,args){
+ const costs=s.costs,c=costs?.cohort;
+ if(s.closed||!costs?.enabled||!costs.stats||c<0||costs.active!==-1)return Reflect.apply(original,receiver,args);
+ const context=s.als?.getStore();if(context?.cohort!==c||context.parent!==costs.parent)return Reflect.apply(original,receiver,args);
+ if(receiver!==costs.restores[index]?.owner){costFault(costs,c);return Reflect.apply(original,receiver,args);}
+ const at=(c*4+index)*5,record=costs.stats[at]<countLimit;
+ if(record)costs.stats[at]++;else costFault(costs,c);
+ costs.active=index;const start=record?costClock(s,c):-1;let outcome=1;
+ try{
+  const result=Reflect.apply(original,receiver,args);
+  if(isPromise(result))costFault(costs,c); // Never attach a settlement callback.
+  return result;
+ }catch(error){outcome=2;throw error;}
+ finally{
+  if(!s.closed&&s.costs===costs&&costs.stats){
+   if(record){
+    const end=costClock(s,c);
+    if(costs.stats[at+outcome]>=countLimit)costFault(costs,c);else costs.stats[at+outcome]++;
+    if(start>=0&&end>=start){const elapsed=end-start,total=costs.stats[at+3]+elapsed;if(Number.isSafeInteger(Math.ceil(total))){costs.stats[at+3]=total;costs.stats[at+4]=Math.max(costs.stats[at+4],elapsed);}else costFault(costs,c);}
+    else costFault(costs,c);
+   }
+   costs.active=-1;
+  }
+ }
+}
+function costAudit(s){
+ const costs=s.costs;if(!costs?.enabled)return;
+ for(const item of costs.restores){
+  const descriptor=Object.getOwnPropertyDescriptor(item.owner,item.key);
+  if(s.store?.[item.group]!==item.owner||descriptor?.value!==item.wrapped){costs.ownershipLost=true;if(!item.faulted){item.faulted=true;costFault(costs);}}
+ }
+}
+function costRestore(costs){
+ for(let i=costs.restores.length-1;i>=0;i--){const item=costs.restores[i];try{
+  const descriptor=Object.getOwnPropertyDescriptor(item.owner,item.key);
+  if(descriptor?.value!==item.wrapped){costs.ownershipLost=true;if(!item.faulted){item.faulted=true;costFault(costs);}continue;}
+  if(item.before)Object.defineProperty(item.owner,item.key,item.before);else delete item.owner[item.key];
+ }catch{costFault(costs);}}
+ costs.restores.length=0;
+}
+function costDispose(s){
+ const costs=s.costs;if(!costs)return;
+ try{costAudit(s);}catch{costFault(costs);}
+ costRestore(costs);
+ let faults=0;for(const n of costs.faults??[])faults=Math.min(countLimit,faults+n);
+ costs.disposed=Object.freeze({disposed:true,incomplete:!costs.enabled||costs.ownershipLost||s.ownershipLost||s.faults>0||faults>0||costs.active!==-1,faults,backingBytes:PLACEMENT_COST_LIMITS.backingBytes,scalarAllowanceBytes:PLACEMENT_COST_LIMITS.scalarAllowanceBytes,liveBackingBytes:0,qualification:false});
+ costs.enabled=false;costs.stats=null;costs.faults=null;costs.cohort=-1;costs.active=-1;costs.parent=0;
+}
+function costSnapshot(s,c){
+ const costs=s.costs;
+ if(!costs?.enabled||!costs.stats)return {available:false,reason:'cost-install-refused'};
+ const aggregate=placementMethods.map((row,index)=>{const at=(c*4+index)*5;return {method:row[2],calls:costs.stats[at],returned:costs.stats[at+1],threw:costs.stats[at+2],totalMs:costs.stats[at+3],maxMs:costs.stats[at+4]};});
+ const result={kind:'e3-placement-cost-observation-1',available:true,complete:!costs.ownershipLost&&!s.ownershipLost&&!!s.meta[c*8+3]&&!!s.meta[c*8+4]&&costs.faults[c]===0&&aggregate.every(row=>row.calls===row.returned+row.threw),faults:costs.faults[c],aggregate,backingBytes:PLACEMENT_COST_LIMITS.backingBytes,scalarAllowanceBytes:PLACEMENT_COST_LIMITS.scalarAllowanceBytes,qualification:false};
+ return Buffer.byteLength(JSON.stringify(result))<=PLACEMENT_COST_LIMITS.serializedBytes?result:{available:false,reason:'cost-snapshot-bound'};
+}
+function withCosts(s,c,result){
+ if(!s.costs)return result;
+ let placementCosts;try{placementCosts=costSnapshot(s,c);}catch{costFault(s.costs,c);placementCosts={available:false,reason:'cost-snapshot-refused'};}
+ const proposed={...result,placementCosts};
+ if(Buffer.byteLength(JSON.stringify(proposed))<=OPERATION_LIMITS.serializedBytes)return proposed;
+ const refused={...result,placementCosts:{available:false,reason:'cost-packet-bound'}};
+ return Buffer.byteLength(JSON.stringify(refused))<=OPERATION_LIMITS.serializedBytes?refused:result;
+}
+function installCosts(s){
+ const costs=s.costs={enabled:false,stats:null,faults:null,restores:[],cohort:-1,active:-1,parent:0,ownershipLost:false,disposed:null};
+ try{
+  costs.stats=new Float64Array(4*4*5);costs.faults=new Uint32Array(4);
+  if(costs.stats.byteLength+costs.faults.byteLength!==PLACEMENT_COST_LIMITS.backingBytes)throw Error('COST_BACKING');
+  for(const [index,[group,key]] of placementMethods.entries()){
+   const owner=s.store[group],original=owner?.[key];if(typeof original!=='function')throw Error('COST_METHOD');const before=Object.getOwnPropertyDescriptor(owner,key);
+   if(before&&(!('value'in before)||!before.configurable&&!before.writable))throw Error('COST_DESCRIPTOR');
+   const wrapped=function(...args){return costCall(s,index,original,this,args);};
+   Object.defineProperty(owner,key,before?{...before,value:wrapped}:{value:wrapped,writable:true,configurable:true,enumerable:false});
+   costs.restores.push({group,key,owner,before,wrapped,faulted:false});
+  }
+  costs.enabled=true;
+ }catch{costFault(costs);costRestore(costs);costs.stats=null;costs.faults=null;}
 }
 function untracked(s,original,receiver,args){
  return s.als?.getStore()?s.als.run(undefined,()=>Reflect.apply(original,receiver,args)):Reflect.apply(original,receiver,args);
@@ -101,6 +203,7 @@ function wrapper(s,index,original){
  };
 }
 function audit(s){
+ try{costAudit(s);}catch{costFault(s.costs);}
  for(const item of s.restores){
   const descriptor=Object.getOwnPropertyDescriptor(item.owner,item.key);
   if(s.store?.[item.group]!==item.owner||descriptor?.value!==item.wrapped){s.ownershipLost=true;if(!item.faulted){item.faulted=true;fault(s);}}
@@ -124,7 +227,7 @@ function dispose(s){
  if(s.closed)return s.disposed;
  try{audit(s);}catch{fault(s);}s.closed=true;
  try{s.als?.disable();}catch{fault(s);}
- restore(s);s.disposed=Object.freeze(summary(s));
+ costDispose(s);restore(s);const result=summary(s);if(s.costs)result.placementCosts=s.costs.disposed;s.disposed=Object.freeze(result);
  s.store=null;s.now=null;s.als=null;s.ids=null;
  s.rows=null;s.active=null;s.stats=null;s.meta=null;
  return s.disposed;
@@ -137,7 +240,7 @@ function snapshot(s,id){
   const active=[];for(let i=0;i<32;i++){const at=i*6;if(s.active[at]===c+1)active.push({method:methods[s.active[at+2]-1][2],call:s.active[at+1],parent:s.active[at+3],enteredMs:s.active[at+4]});}
   const transitions=[];for(let i=0;i<128;i++){const at=i*7;if(s.rows[at+1]===c+1)transitions.push({sequence:s.rows[at],cohort:c+1,method:methods[s.rows[at+2]-1][2],event:['entry','fulfilled','rejected'][s.rows[at+3]-1],call:s.rows[at+4],parent:s.rows[at+5],atMs:s.rows[at+6]});}transitions.sort((a,b)=>a.sequence-b.sequence);
   const m=c*8,result={kind:'e3-operation-observation-1',available:true,cohort:c+1,rootPending:!!s.meta[m],aggregate,active,transitions,traceComplete:!!s.meta[m+5],activeComplete:!!s.meta[m+3],aggregateComplete:!!s.meta[m+4],incomplete:!!s.meta[m+1]||!s.meta[m+3]||!s.meta[m+4]||!s.meta[m+5],dropped:s.meta[m+2],faults:s.meta[m+1],backingBytes:OPERATION_LIMITS.backingBytes,qualification:false};
-  return Buffer.byteLength(JSON.stringify(result))<=OPERATION_LIMITS.serializedBytes?result:missing('snapshot-bound');
+  return Buffer.byteLength(JSON.stringify(result))<=OPERATION_LIMITS.serializedBytes?withCosts(s,c,result):missing('snapshot-bound');
  }catch{fault(s);return missing('snapshot-refused');}
 }
 function select(source,keys,booleans=[]){
@@ -156,8 +259,8 @@ function resources(s){
   return {kind:'e3-resource-observation-1',available:true,objects,proofs,raster,composition};
  }catch{return resourceMissing('inventory-unavailable');}
 }
-export function installPendingOperationObserver(store,{enabled=false,now=()=>performance.now()}={}){
- const s={store:null,now:null,als:null,enabled:false,closed:false,installFailed:false,ids:null,rows:null,active:null,stats:null,meta:null,restores:[],calls:0,sequence:0,faults:0,ownershipLost:false,cohortOverflow:false,disposed:null};
+export function installPendingOperationObserver(store,{enabled=false,placementCosts=false,now=()=>performance.now()}={}){
+ const s={store:null,now:null,als:null,enabled:false,closed:false,installFailed:false,ids:null,rows:null,active:null,stats:null,meta:null,restores:[],calls:0,sequence:0,faults:0,ownershipLost:false,cohortOverflow:false,disposed:null,costs:null};
  const api=Object.freeze({snapshot:id=>snapshot(s,id),resources:()=>resources(s),dispose:()=>dispose(s)});
  if(!enabled)return api;
  try{
@@ -170,7 +273,7 @@ export function installPendingOperationObserver(store,{enabled=false,now=()=>per
    const wrapped=wrapper(s,index,original);Object.defineProperty(owner,key,before?{...before,value:wrapped}:{value:wrapped,writable:true,configurable:true,enumerable:false});
    s.restores.push({group,key,owner,before,wrapped,faulted:false});
   }
-  s.enabled=true;
+  s.enabled=true;if(placementCosts)installCosts(s);
  }catch{
   fault(s);s.installFailed=true;restore(s);try{s.als?.disable();}catch{}s.store=null;s.now=null;s.als=null;s.ids=null;s.rows=null;s.active=null;s.stats=null;s.meta=null;
  }

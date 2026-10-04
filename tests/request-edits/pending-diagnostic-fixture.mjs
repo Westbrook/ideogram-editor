@@ -8,7 +8,7 @@ const original=new URL('./observer-fixture.mjs',import.meta.url);
 original.search=new URL(import.meta.url).search;
 const {setup:baseSetup}=await import(original.href);
 export async function setup(store){
- const close=await baseSetup(store),observer=installPendingOperationObserver(store,{enabled:true});
+ const close=await baseSetup(store),observer=installPendingOperationObserver(store,{enabled:true,placementCosts:true});
  const disposalPath=join(store.root,'e3-operation-observer-close.json');
  let observe=pendingDiagnosticObserver(store,captureOwnedDiagnostics,observer);
  const timer=setInterval(()=>{try{observe?.();}catch{/* A refused snapshot remains unavailable; it cannot replace the original failure. */}},25);
