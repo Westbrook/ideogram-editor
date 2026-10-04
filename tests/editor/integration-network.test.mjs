@@ -254,3 +254,102 @@ test('actual observer retains direct-body cancel attempts even when pending or t
   await after.realm.__validationDisplayObserver.flush();assert.equal(after.verdict(),false);assert.equal(after.calls.at(-1).receiver,foreign);assert.equal(after.calls.at(-1).args[0],reason);assert.equal(after.observed.at(-1).kind,'asset-cancel-call');assert.equal(after.observed.at(-1).reader,0);
  }
 });
+
+
+const savedPromptReason='exact-original-saved-prompt-response-eof';
+const savedPromptPath='/api/v1/ui/ui_10000000-0000-4000-8000-000000000001/request?draftId=20000000-0000-4000-8000-000000000001&generation=1&content=1';
+function savedPromptRead(engine='chromium'){
+ const x=workflowRead('GET',savedPromptPath,200,engine);x.rows[0].hasSignal=true;x.rows[3].bytes=31;x.rows[3].originalReader=true;x.rows.push({...x.rows[0],kind:'abort',at:130,aborted:true});
+ Object.assign(x.event.response,{contentType:'text/plain; charset=utf-8',contentLength:'31',etag:'"sha256:'+'a'.repeat(64)+'"'});return x;
+}
+const promptClass=(x,requests=[x.native],errors=[])=>withWorkflow(x.event,'chromium',displayReadProofs(x.rows,requests,errors));
+test('saved prompt classification retains exact original EOF and raw native failure without granting domain or native success',()=>{
+ for(const engine of ['chromium','firefox','webkit']){
+  const x=savedPromptRead(engine),before=structuredClone(x),proofs=displayReadProofs(x.rows,[x.native]);assert.equal(proofs.length,1);
+  assert.equal(withWorkflow(x.event,engine,proofs),savedPromptReason);assert.equal(withWorkflow(x.event,engine,[]),false);assert.deepEqual(x,before);
+  assert.equal(proofs[0].bytes,31);assert.equal(proofs[0].bodyComplete,true);assert.equal(proofs[0].bodyCanceled,false);assert.equal(proofs[0].signalAborted,true);assert.equal(Object.hasOwn(proofs[0],'sha256'),false);assert.equal(Object.hasOwn(proofs[0],'transportSuccess'),false);
+  assert.equal(classify(x.event,origin,engine,[],[],proofs),false,'A font slot cannot supply a prompt proof');
+ }
+});
+test('saved prompt completion requires the exact session draft generation and content route with no extra authority',()=>{
+ const paths=[savedPromptPath.replace('/ui_10000000-0000-4000-8000-000000000001/','//'),savedPromptPath.replace('/ui_10000000-0000-4000-8000-000000000001/','/'+ 'x'.repeat(129)+'/'),savedPromptPath.replace('draftId=20000000-0000-4000-8000-000000000001','draftId='),savedPromptPath.replace('draftId=20000000-0000-4000-8000-000000000001','draftId='+ 'x'.repeat(129)),savedPromptPath.replace('generation=1','generation=01'),savedPromptPath.replace('generation=1','generation=-1'),savedPromptPath.replace('generation=1','generation='),savedPromptPath.replace('&generation=1',''),savedPromptPath.replace('&content=1',''),savedPromptPath.replace('content=1','content=0'),savedPromptPath+'&content=1',savedPromptPath+'&other=1',savedPromptPath+'#fragment',savedPromptPath.replace('/request?','/text?'),savedPromptPath.replace('draftId=','draftId=%20')];
+ for(const [i,path]of paths.entries()){
+  const x=savedPromptRead(),url=origin+path;x.event.url=x.event.response.url=x.native.url=x.native.response.url=url;for(const row of x.rows){row.url=url;if(row.responseURL)row.responseURL=url;}
+  assert.equal(promptClass(x),false,'route '+i);
+ }
+ for(const target of ['http://127.0.0.1:54322'+savedPromptPath,'http://user:pass@127.0.0.1:54321'+savedPromptPath]){
+  const x=savedPromptRead();x.event.url=x.event.response.url=x.native.url=x.native.response.url=target;for(const row of x.rows){row.url=target;if(row.responseURL)row.responseURL=target;}assert.equal(promptClass(x),false);
+ }
+ // A valid different generation is a distinct response; old proof cannot stand in.
+ for(const change of [u=>u.replace('generation=1','generation=2'),u=>u.replace('ui_10000000','ui_30000000'),u=>u.replace('draftId=20000000','draftId=30000000')]){
+  const x=savedPromptRead(),proofs=displayReadProofs(x.rows,[x.native]);x.event.url=x.event.response.url=change(x.event.url);assert.equal(withWorkflow(x.event,'chromium',proofs),false);
+ }
+});
+test('saved prompt completion requires exact public framing method status and literal native terminal',()=>{
+ const x=savedPromptRead(),proofs=displayReadProofs(x.rows,[x.native]);
+ const edits=[e=>e.channel='response',e=>e.resourceType='other',e=>e.failure.errorText='net::ERR_FAILED',e=>e.method=e.response.method='POST',e=>e.response.requestId++,e=>e.response.url+='&other=1',e=>e.response.method='HEAD',e=>e.response.status=206,e=>e.response.status=404,e=>e.response.contentType='text/plain',e=>e.response.contentType='application/octet-stream',e=>delete e.response.contentLength,e=>e.response.contentLength='031',e=>e.response.contentLength='0',e=>e.response.contentLength='30',e=>e.response.contentLength=31,e=>delete e.response.etag,e=>e.response.etag='sha256:'+'a'.repeat(64),e=>e.response.etag='W/"sha256:'+'a'.repeat(64)+'"'];
+ for(const [i,edit]of edits.entries()){const e=structuredClone(x.event);edit(e);assert.equal(withWorkflow(e,'chromium',proofs),false,'framing '+i);}
+ const tooLarge=savedPromptRead();tooLarge.rows[3].bytes=16*1024**2+1;tooLarge.event.response.contentLength=String(tooLarge.rows[3].bytes);assert.equal(promptClass(tooLarge),false,'Cannot exceed actual prompt reader bound');
+});
+test('saved prompt EOF cannot be supplied by missing truncated cloned teed canceled or failed original reads',()=>{
+ const mutations=[x=>x.rows.splice(0,1),x=>x.rows.splice(1,1),x=>x.rows.splice(2,1),x=>x.rows.splice(3,1),x=>x.rows.splice(4,1),x=>x.rows[3].bytes--,x=>x.rows[3].reader=2,x=>x.rows[3].bytes=0,x=>x.rows[3].bytes=Number.MAX_SAFE_INTEGER+1,x=>x.rows.splice(3,0,{...x.rows[2],reader:2}),x=>x.rows.push({...x.rows[3]}),...['clone','tee','observer-error','read-rejected','cancel-rejected','cancel'].map(kind=>x=>x.rows.splice(3,0,{...x.rows[2],kind,at:115,errorName:'AbortError'}))];
+ for(const [i,edit]of mutations.entries()){const x=savedPromptRead();edit(x);assert.equal(promptClass(x),false,'body '+i);}
+ const x=savedPromptRead();assert.equal(promptClass(x,[x.native],['lost original binding']),false);
+ assert.equal(withWorkflow(x.event,'chromium',displayReadProofs(Array.from({length:DISPLAY_OBSERVATION_LIMIT},()=>x.rows[0]),[x.native])),false);
+ assert.equal(promptClass(x,Array.from({length:DISPLAY_REQUEST_LIMIT},()=>x.native)),false);
+});
+test('saved prompt completion rejects ambiguous cross-frame redirected and unavailable native associations',()=>{
+ const edits=[n=>n.frameId++,n=>n.startTime=0,n=>n.startTime=NaN,n=>n.startTime=113,n=>n.resourceType='other',n=>n.method='POST',n=>n.redirected=true,n=>delete n.response,n=>n.response.url+='&other=1',n=>n.response.status=500,n=>n.response.fromServiceWorker=true];
+ for(const [i,edit]of edits.entries()){const x=savedPromptRead();edit(x.native);assert.equal(promptClass(x),false,'native '+i);}
+ const x=savedPromptRead();assert.equal(promptClass(x,[]),false);assert.equal(promptClass(x,[x.native,{...x.native,requestId:20}]),false);
+ assert.equal(promptClass({...x,rows:[...x.rows,...x.rows.map(row=>({...row,operation:2}))]},[x.native,{...x.native,requestId:20}]),false);
+});
+test('saved prompt completion refuses mismatched duplicate or inferred retained certificates',()=>{
+ const x=savedPromptRead(),[proof]=displayReadProofs(x.rows,[x.native]);
+ const edits=[p=>p.requestId++,p=>p.frameId++,p=>p.requestFrame++,p=>p.document='-'.repeat(36),p=>p.operation=0,p=>p.url+='&other=1',p=>p.method='POST',p=>p.status=201,p=>p.bodyComplete=false,p=>p.bodyCanceled=true,p=>p.signalAborted=false,p=>p.bytes--,p=>p.exactOccurrence=false,p=>p.eligibleRequests.push(20),p=>p.eligibleRequests=[20],p=>p.concurrentOperations.push(2),p=>p.association='url-only',p=>p.association='unique-frame-time-bijection',p=>p.bijection={},p=>p.inferredAssociation=false,p=>p.requestTiming='observed',p=>p.requestStartRaw=101,p=>p.requestStart=0,p=>p.requestStart=NaN,p=>p.requestStart=97,p=>p.requestStart=123,p=>p.start=NaN,p=>p.end=99];
+ for(const [i,edit]of edits.entries()){const p=structuredClone(proof);edit(p);assert.equal(withWorkflow(x.event,'chromium',[p]),false,'certificate '+i);}
+ for(const proofs of [[],[proof,structuredClone(proof)]])assert.equal(withWorkflow(x.event,'chromium',proofs),false);
+ // Existing classifier admission rejects malformed containers before this branch.
+ for(const proofs of [[proof,null],[null]])assert.throws(()=>withWorkflow(x.event,'chromium',proofs),TypeError);
+});
+
+
+test('saved prompt EOF refuses historical generic counts and borrowed receiver witnesses',()=>{
+ for(const originalReader of [undefined,false]){
+  const x=savedPromptRead();if(originalReader===undefined)delete x.rows[3].originalReader;else x.rows[3].originalReader=originalReader;
+  const proofs=displayReadProofs(x.rows,[x.native]);assert.equal(proofs.length,1);assert.equal(proofs[0].bodyComplete,true,'Generic historical observation remains intact');assert.equal(Object.hasOwn(proofs[0],'savedPromptBodyEOF'),false);assert.equal(withWorkflow(x.event,'chromium',proofs),false);
+ }
+ const x=savedPromptRead(),[proof]=displayReadProofs(x.rows,[x.native]);assert.deepEqual(proof.savedPromptBodyEOF,{kind:'original-saved-prompt-body-eof-1',frameId:1,document:x.rows[0].document,operation:1,url:x.event.url,method:'GET',start:100,responseAt:110,readerAt:111,completedAt:120,signalAbortAt:130,reader:1,originalReader:true,bytes:31,observedRows:5});
+ const edits=[p=>delete p.savedPromptBodyEOF,p=>p.savedPromptBodyEOF.kind='generic-eof',p=>p.savedPromptBodyEOF.frameId++,p=>p.savedPromptBodyEOF.document='other',p=>p.savedPromptBodyEOF.operation++,p=>p.savedPromptBodyEOF.url+='&other=1',p=>p.savedPromptBodyEOF.method='POST',p=>p.savedPromptBodyEOF.start++,p=>p.savedPromptBodyEOF.reader=2,p=>p.savedPromptBodyEOF.originalReader=false,p=>p.savedPromptBodyEOF.bytes--,p=>p.savedPromptBodyEOF.completedAt++,p=>p.savedPromptBodyEOF.responseAt=99,p=>p.savedPromptBodyEOF.readerAt=121,p=>p.savedPromptBodyEOF.signalAbortAt=120,p=>p.savedPromptBodyEOF.signalAbortAt=null,p=>p.savedPromptBodyEOF.observedRows=4];
+ for(const [i,edit]of edits.entries()){const p=structuredClone(proof);edit(p);assert.equal(withWorkflow(x.event,'chromium',[p]),false,'receiver witness '+i);}
+});
+test('saved prompt witness retains exact ordered rows and refuses hidden extra activity',()=>{
+ const edits=[x=>x.rows[4].at=119,x=>x.rows[4].at=120,x=>x.rows[4].aborted=false,x=>x.rows[0].hasSignal=false,x=>x.rows[2].at=109,x=>x.rows[3].at=110,x=>[x.rows[2],x.rows[3]]=[x.rows[3],x.rows[2]],x=>x.rows.push({...x.rows[2],kind:'unknown-observation',at:140}),x=>x.rows.push({...x.rows[4],at:140})];
+ for(const [i,edit]of edits.entries()){const x=savedPromptRead();edit(x);assert.equal(promptClass(x),false,'ordered witness '+i);}
+ const x=savedPromptRead();assert.equal(promptClass(x,[x.native,{...x.native,frameId:2,url:origin+'/api/v1/queue'}]),false,'Duplicate native request identity cannot hide outside matched URL/frame');
+});
+test('actual saved-prompt observer preserves original receiver promise result and argument identities and refuses borrowed body or reader',async()=>{
+ for(const borrow of ['none','body','reader']){
+  const x=savedPromptRead(),url=x.event.url,observed=[],calls=[],part={done:false,value:new Uint8Array(31)},eof={done:true,value:undefined},partPromise=Promise.resolve(part),eofPromise=Promise.resolve(eof);let reads=0,clock=0;
+  const reader={read:function(...args){calls.push({kind:'read',receiver:this,args});return ++reads===1?partPromise:eofPromise;},cancel(){throw Error('No extra cancel');}};
+  const body={getReader:function(...args){calls.push({kind:'getReader',receiver:this,args});return reader;},cancel(){throw Error('No extra cancel');},tee(){throw Error('No extra tee');}};
+  const response={body,status:200,url,redirected:false,clone(){throw Error('No extra clone');}},fetchPromise=Promise.resolve(response),controller=new AbortController();
+  const realm=createContext({URL,Request,Promise,crypto:webcrypto,performance:{timeOrigin:1000,now:()=>++clock},location:{protocol:'http:',origin,href:origin+'/'}});realm.window=realm;realm.fetch=function(...args){calls.push({kind:'fetch',receiver:this,args});return fetchPromise;};realm.__validationDisplayAbort=event=>{observed.push(event);return Promise.resolve();};
+  runInContext('('+installDisplayReadObserver.toString()+')()',realm);
+  const fetchThis={},foreignBody={},foreignReader={},init={signal:controller.signal};assert.equal(realm.fetch.call(fetchThis,url,init),fetchPromise);assert.equal(await fetchPromise,response);
+  assert.equal(body.getReader.call(borrow==='body'?foreignBody:body,'option'),reader);
+  assert.equal(reader.read.call(borrow==='reader'?foreignReader:reader,'part'),partPromise);assert.equal(await partPromise,part);
+  assert.equal(reader.read.call(reader,'eof'),eofPromise);assert.equal(await eofPromise,eof);controller.abort();await realm.__validationDisplayObserver.flush();
+  assert.equal(calls.length,4);assert.equal(calls[0].receiver,fetchThis);assert.equal(calls[0].args[1],init);assert.equal(calls[1].receiver,borrow==='body'?foreignBody:body);assert.deepEqual(calls[1].args,['option']);assert.equal(calls[2].receiver,borrow==='reader'?foreignReader:reader);assert.deepEqual(calls[2].args,['part']);assert.equal(calls[3].receiver,reader);assert.deepEqual(calls[3].args,['eof']);
+  assert.deepEqual(observed.map(e=>e.kind),['start','response','reader','complete','abort']);assert.equal(observed[3].originalReader,borrow==='none');assert.equal(observed[3].bytes,31);
+  const rows=observed.map(e=>({...e,frameId:1})),native={...x.native,startTime:rows[0].start};assert.equal(withWorkflow(x.event,'chromium',displayReadProofs(rows,[native])),borrow==='none'?savedPromptReason:false);
+ }
+});
+test('saved prompt witness leaves generic default consumers unchanged outside the exact content route',async()=>{
+ for(const path of ['/api/v1/queue',savedPromptPath.replace('&content=1',''),savedPromptPath.replace('generation=1','generation=01'),savedPromptPath+'&extra=1']){
+  const url=origin+path,observed=[],eofPromise=Promise.resolve({done:true,value:undefined}),reader={read(){return eofPromise;},cancel(){throw Error('No extra cancel');}},body={getReader(){return reader;},cancel(){throw Error('No extra cancel');},tee(){throw Error('No extra tee');}},response={body,status:200,url,redirected:false,clone(){throw Error('No extra clone');}},fetchPromise=Promise.resolve(response);let clock=0;
+  const realm=createContext({URL,Request,Promise,crypto:webcrypto,performance:{timeOrigin:1000,now:()=>++clock},location:{protocol:'http:',origin,href:origin+'/'}});realm.window=realm;realm.fetch=()=>fetchPromise;realm.__validationDisplayAbort=event=>{observed.push(event);return Promise.resolve();};runInContext('('+installDisplayReadObserver.toString()+')()',realm);assert.equal(realm.fetch(url),fetchPromise);await fetchPromise;assert.equal(body.getReader(),reader);assert.equal(reader.read(),eofPromise);await eofPromise;await realm.__validationDisplayObserver.flush();
+  assert.deepEqual(observed.map(e=>e.kind),['start','response','reader','complete']);assert.equal(Object.hasOwn(observed.at(-1),'originalReader'),false);assert.equal(observed.at(-1).bytes,0);
+  const rows=observed.map(e=>({...e,frameId:1})),native={requestId:19,frameId:1,url,method:'GET',resourceType:'fetch',startTime:rows[0].start,redirected:false,response:{url,status:200,fromServiceWorker:false}},[proof]=displayReadProofs(rows,[native]);assert.equal(proof.bodyComplete,true);assert.equal(Object.hasOwn(proof,'savedPromptBodyEOF'),false);
+ }
+});

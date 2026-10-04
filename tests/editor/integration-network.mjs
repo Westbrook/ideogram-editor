@@ -11,6 +11,7 @@ export function integrationCancellation(e,origin,engine,downloads=[],faults=[],f
  if(originalRecoveryCompletion(e,recovery.proofs??[]))return 'abort-with-proven-original-recovery-body';
  if(originalAssetBodyEOF(e,origin,workflowProofs))return 'exact-original-asset-response-eof';
  if(originalRejectedAssetCancellation(e,origin,faults,workflowProofs))return 'own-rejected-asset-original-reader-cancellation';
+ if(originalSavedPromptEOF(e,origin,workflowProofs))return 'exact-original-saved-prompt-response-eof';
  if(u.search)return false;
  // server/storage/portable.ts localId creates this exact imported namespace.
  // The document HEAD endpoint ends after the authoritative entity version.
@@ -73,4 +74,17 @@ export function originalRejectedAssetCancellation(e,origin,faults,proofs){
  if(p.association!=='unique-frame-time-window'||p.exactOccurrence!==true||p.bijection!==undefined||p.inferredAssociation!==undefined||p.requestTiming!==undefined||p.requestStartRaw!==undefined||p.url!==e.url||p.method!=='GET'||p.status!==404||!positive(p.requestId)||!positive(p.frameId)||p.frameId!==p.requestFrame||!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(p.document??'')||!positive(p.operation)||!Array.isArray(p.eligibleRequests)||p.eligibleRequests.length!==1||p.eligibleRequests[0]!==e.requestId||!Array.isArray(p.concurrentOperations)||p.concurrentOperations.length!==0||p.bodyComplete!==false||p.bodyCanceled!==true||p.bytes!==undefined||p.assetBodyEOF!==undefined)return false;
  if(!w||w.kind!=='original-asset-rejection-cancel-1'||w.frameId!==p.frameId||w.document!==p.document||w.operation!==p.operation||w.url!==p.url||w.method!==p.method||w.start!==p.start||w.cancelFulfilledAt!==p.end||w.reader!==1||w.originalReader!==true||w.readCalls!==0||w.bytes!==0||![w.start,w.responseAt,w.readerAt,w.cancelCalledAt,w.cancelFulfilledAt,p.requestStart].every(time)||!(w.start<=w.responseAt&&w.responseAt<=w.readerAt&&w.readerAt<=w.cancelCalledAt&&w.cancelCalledAt<=w.cancelFulfilledAt&&p.requestStart>=w.start-2&&p.requestStart<=w.responseAt+2))return false;
  return w.signalAbortAt===null?w.observedRows===5&&p.signalAborted===false:w.observedRows===6&&p.signalAborted===true&&time(w.signalAbortAt)&&w.signalAbortAt>=w.cancelFulfilledAt;
+}
+
+// Restoring a saved request reads this exact generation's text through the
+// bounded original prompt reader. Completion cleanup may abort its signal.
+// This disposition proves EOF only, not an abort cause, body digest, native
+// transport success, owner currency or cleanup. All public assertions remain.
+function originalSavedPromptEOF(e,origin,proofs){
+ const r=e.response,u=new URL(e.url);
+ if(e.method!=='GET'||r.status!==200||u.origin!==origin||u.username||u.password||u.hash||!/^\/api\/v1\/ui\/[A-Za-z0-9_-]{1,128}\/request$/.test(u.pathname)||!/^\?draftId=[A-Za-z0-9_-]{1,128}&generation=(0|[1-9][0-9]*)&content=1$/.test(u.search)||r.contentType!=='text/plain; charset=utf-8'||!/^[1-9][0-9]*$/.test(r.contentLength??'')||!/^"sha256:[a-f0-9]{64}"$/.test(r.etag??''))return false;
+ if(!Array.isArray(proofs)||proofs.some(p=>!p||typeof p!=='object'))return false;
+ const matches=proofs.filter(p=>p.requestId===e.requestId);if(matches.length!==1)return false;
+ const p=matches[0],w=p.savedPromptBodyEOF,positive=n=>Number.isSafeInteger(n)&&n>0,time=n=>Number.isFinite(n)&&n>0;
+ return p.association==='unique-frame-time-window'&&p.exactOccurrence===true&&p.bijection===undefined&&p.inferredAssociation===undefined&&p.requestTiming===undefined&&p.requestStartRaw===undefined&&positive(p.requestId)&&positive(p.frameId)&&p.frameId===p.requestFrame&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(p.document??'')&&positive(p.operation)&&p.url===e.url&&p.method==='GET'&&p.status===200&&Array.isArray(p.eligibleRequests)&&p.eligibleRequests.length===1&&p.eligibleRequests[0]===e.requestId&&Array.isArray(p.concurrentOperations)&&p.concurrentOperations.length===0&&p.bodyComplete===true&&p.bodyCanceled===false&&p.signalAborted===true&&positive(p.bytes)&&p.bytes<=16*1024**2&&String(p.bytes)===r.contentLength&&[p.start,p.end,p.requestStart].every(time)&&p.end>=p.start&&p.requestStart>=p.start-2&&p.requestStart<=p.end+2&&!!w&&w.kind==='original-saved-prompt-body-eof-1'&&w.frameId===p.frameId&&w.document===p.document&&w.operation===p.operation&&w.url===p.url&&w.method===p.method&&w.start===p.start&&w.completedAt===p.end&&w.reader===1&&w.originalReader===true&&w.bytes===p.bytes&&w.observedRows===5&&[w.responseAt,w.readerAt,w.completedAt,w.signalAbortAt].every(time)&&w.start<=w.responseAt&&w.responseAt<=w.readerAt&&w.readerAt<=w.completedAt&&w.completedAt<w.signalAbortAt&&p.requestStart<=w.responseAt+2;
 }

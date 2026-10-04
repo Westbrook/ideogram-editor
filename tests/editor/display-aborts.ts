@@ -36,6 +36,16 @@ export function displayReadProofs(events:readonly Observation[],requests:readonl
   if(!(s.at<=r.at&&r.at<=reader.at&&reader.at<=done.at)||abort&&(s.hasSignal!==true||abort.aborted!==true||abort.at<=done.at))return null;
   return {kind:'original-asset-body-eof-1' as const,frameId:s.frameId,document:s.document,operation:s.operation,url:s.url,method:s.method,start:s.start,responseAt:r.at,readerAt:reader.at,completedAt:done.at,signalAbortAt:abort?.at??null,reader:1,originalReader:true as const,bytes:done.bytes!,observedRows:op.rows.length};
  };
+ // Saved request text needs its own receiver witness. Historical generic EOF
+ // scalars do not certify the original response body/reader receivers.
+ const savedPromptEOF=(op:Candidate,q:OriginalRequest)=>{
+  const [s,r,reader,done,abort]=op.rows;
+  if(op.rows.length!==5||s?.kind!=='start'||r?.kind!=='response'||reader?.kind!=='reader'||done?.kind!=='complete'||abort?.kind!=='abort')return null;
+  const u=new URL(s.url);
+  if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(s.document)||s.method!=='GET'||u.username||u.password||u.hash||!/^\/api\/v1\/ui\/[A-Za-z0-9_-]{1,128}\/request$/.test(u.pathname)||!/^\?draftId=[A-Za-z0-9_-]{1,128}&generation=(0|[1-9][0-9]*)&content=1$/.test(u.search)||s.hasSignal!==true||r.status!==200||reader.reader!==1||done.reader!==1||done.originalReader!==true||!Number.isSafeInteger(done.bytes)||done.bytes!<=0||done.bytes!>16*1024**2||q.redirected!==false||q.response?.fromServiceWorker!==false||requests.filter(other=>other.requestId===q.requestId).length!==1)return null;
+  if(!(s.at<=r.at&&r.at<=reader.at&&reader.at<=done.at&&done.at<abort.at)||abort.aborted!==true)return null;
+  return {kind:'original-saved-prompt-body-eof-1' as const,frameId:s.frameId,document:s.document,operation:s.operation,url:s.url,method:s.method,start:s.start,responseAt:r.at,readerAt:reader.at,completedAt:done.at,signalAbortAt:abort.at,reader:1,originalReader:true as const,bytes:done.bytes!,observedRows:5 as const};
+ };
  // Rejection cancellation is separate from EOF: the original reader's cancel
  // fulfilled without any read call. Call rows also retain later/pending calls,
  // so a terminal scalar snapshot cannot hide subsequent reads or cancels.
@@ -68,8 +78,8 @@ export function displayReadProofs(events:readonly Observation[],requests:readonl
   const bodyComplete=!!r&&readers.length===1&&completed.length===1&&!readFailed;
   const bodyCanceled=!!r&&canceled.some(e=>e.reader===0||e.reader===1&&readers.length===1);
   if(!signalAborted&&!bodyCanceled&&!bodyComplete)return null;
-  const assetBodyEOF=bodyComplete?assetEOF(op,q):null,assetRejectionCancellation=bodyCanceled?assetRejectionCancel(op,q):null;
-  return {...assetBodyEOF?{assetBodyEOF}:{},...assetRejectionCancellation?{assetRejectionCancellation}:{},requestId:q.requestId,url:s.url,method:s.method,signalAborted,bodyCanceled,bodyComplete,...bodyComplete?{bytes:completed[0].bytes}:{},...r?{status:r.status}:{},exactOccurrence:true as const,association:'unique-frame-time-window' as const,frameId:s.frameId,requestFrame:q.frameId,document:s.document,operation:s.operation,start:s.start,end:Number.isFinite(op.end)?op.end:null,requestStart:q.startTime,eligibleRequests:[q.requestId],concurrentOperations:[]};
+  const assetBodyEOF=bodyComplete?assetEOF(op,q):null,savedPromptBodyEOF=bodyComplete?savedPromptEOF(op,q):null,assetRejectionCancellation=bodyCanceled?assetRejectionCancel(op,q):null;
+  return {...assetBodyEOF?{assetBodyEOF}:{},...savedPromptBodyEOF?{savedPromptBodyEOF}:{},...assetRejectionCancellation?{assetRejectionCancellation}:{},requestId:q.requestId,url:s.url,method:s.method,signalAborted,bodyCanceled,bodyComplete,...bodyComplete?{bytes:completed[0].bytes}:{},...r?{status:r.status}:{},exactOccurrence:true as const,association:'unique-frame-time-window' as const,frameId:s.frameId,requestFrame:q.frameId,document:s.document,operation:s.operation,start:s.start,end:Number.isFinite(op.end)?op.end:null,requestStart:q.startTime,eligibleRequests:[q.requestId],concurrentOperations:[]};
  };
  // Buckets include every raw row group and native entry before validation.
  // A corrupt/startless group cannot be filtered away to manufacture uniqueness.
@@ -199,6 +209,7 @@ export function installDisplayReadObserver(profilePath?:string){
    const clone=response.clone;response.clone=function(this:Response,...args:[]){emit('clone');return Reflect.apply(clone,this,args);};
    const body=response.body;if(!body)return;
    const assetBody=/^\/api\/v1\/assets\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/content$/.test(url.pathname)&&!url.search&&!url.hash;
+   const savedPromptBody=method==='GET'&&!url.username&&!url.password&&!url.hash&&/^\/api\/v1\/ui\/[A-Za-z0-9_-]{1,128}\/request$/.test(url.pathname)&&/^\?draftId=[A-Za-z0-9_-]{1,128}&generation=(0|[1-9][0-9]*)&content=1$/.test(url.search);
    const rejectedAssetBody=assetBody&&response.status===404;
    const getReader=body.getReader,cancel=body.cancel,tee=body.tee;let readers=0;
    body.tee=function(this:ReadableStream<Uint8Array>,...args:[]){emit('tee');return Reflect.apply(tee,this,args);};
@@ -206,7 +217,7 @@ export function installDisplayReadObserver(profilePath?:string){
    body.getReader=function(this:ReadableStream<Uint8Array>,...args:any[]){
     const originalBody=this===body,reader=Reflect.apply(getReader,this,args),read=reader.read,cancelReader:ReadableStreamGenericReader['cancel']=reader.cancel,number=++readers;let bytes=0,readCalls=0,originalReader=originalBody;
     try{emit('reader',{reader:number});
-    reader.read=function(this:ReadableStreamDefaultReader<Uint8Array>,...args:any[]){originalReader&&=this===reader;if(rejectedAssetBody||profileRead)emit(profileRead?'profile-read-call':'asset-read-call',{reader:number,originalReader,readCalls:++readCalls});const p=Reflect.apply(read,this,args) as Promise<ReadableStreamReadResult<Uint8Array>>;watch(p,part=>{if(part.done)emit('complete',{reader:number,bytes,...assetBody||profileRead?{originalReader}:{},...profileRead?{readCalls}:{}});else{bytes+=part.value.byteLength;if(!Number.isSafeInteger(bytes))emit('observer-error');}},e=>emit('read-rejected',{reader:number,errorName:e?.name}));return p;};
+    reader.read=function(this:ReadableStreamDefaultReader<Uint8Array>,...args:any[]){originalReader&&=this===reader;if(rejectedAssetBody||profileRead)emit(profileRead?'profile-read-call':'asset-read-call',{reader:number,originalReader,readCalls:++readCalls});const p=Reflect.apply(read,this,args) as Promise<ReadableStreamReadResult<Uint8Array>>;watch(p,part=>{if(part.done)emit('complete',{reader:number,bytes,...assetBody||profileRead||savedPromptBody?{originalReader}:{},...profileRead?{readCalls}:{}});else{bytes+=part.value.byteLength;if(!Number.isSafeInteger(bytes))emit('observer-error');}},e=>emit('read-rejected',{reader:number,errorName:e?.name}));return p;};
     reader.cancel=function(this:ReadableStreamDefaultReader<Uint8Array>,...args:any[]){const originalCancelReader=originalReader&&this===reader;if(rejectedAssetBody||profileRead)emit(profileRead?'profile-cancel-call':'asset-cancel-call',{reader:number,originalReader:originalCancelReader,readCalls,bytes});const p=Reflect.apply(cancelReader,this,args);watch(p,()=>emit('cancel',{reader:number,...rejectedAssetBody||profileRead?{originalReader:originalCancelReader,readCalls,bytes}:{}}),e=>emit('cancel-rejected',{reader:number,errorName:e?.name}));return p;};
     }catch(error){fail(error);}
     return reader;
