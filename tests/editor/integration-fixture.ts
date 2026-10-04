@@ -31,7 +31,8 @@ import {acquireOwnedSetup} from './completion/setup-owned.mjs';
 export const test=base.extend({context:async({playwright,browserName,contextOptions,viewport},use,info)=>{
  const profile=await mkdtemp(join(await realpath(tmpdir()),'p1c6-'+browserName+'-'));
  const executable=process.env.EDITOR_BROWSER_EXECUTABLE??playwright[browserName].executablePath();
- const context=await playwright[browserName].launchPersistentContext(profile,{...contextOptions,viewport,executablePath:executable,env:{...process.env,TMPDIR:process.env.TMPDIR!}});
+ // Let Firefox open the public storage-reset probe after all owned pages close.
+ const context=await playwright[browserName].launchPersistentContext(profile,{...contextOptions,viewport,...(browserName==='firefox'?{args:['-silent']}:{}),executablePath:executable,env:{...process.env,TMPDIR:process.env.TMPDIR!}});
  try{
  const ownedProcesses=execFileSync('/bin/ps',['-axww','-o','pid=','-o','command='],{encoding:'utf8'}).split('\n').map(line=>line.match(/^\s*(\d+)\s+(.*)$/)).filter(Boolean).map(m=>({pid:Number(m![1]),command:m![2]})).filter(p=>p.command.includes(executable)&&p.command.includes(profile));
  expect(ownedProcesses.length,'Running process must identify the selected executable and fresh profile').toBeGreaterThan(0);

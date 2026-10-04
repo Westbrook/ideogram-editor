@@ -15,7 +15,8 @@ test('explicit incomplete recovery consent, actual download, and inspection-only
  const errors:string[]=[],commands:any[]=[],external:string[]=[],problems:{phase:string;error:unknown}[]=[];
  try{
   const server=ownedServer=await serverProcess(join(directory,'private'));
-  const context=ownedContext=await playwright[browserName].launchPersistentContext(profile,{viewport:{width:1440,height:1000}});
+  // Let Firefox open the public storage-reset probe after all owned pages close.
+  const context=ownedContext=await playwright[browserName].launchPersistentContext(profile,{...(browserName==='firefox'?{args:['-silent']}:{}),viewport:{width:1440,height:1000}});
   const guard=ownedGuard=await ownedOPFS(context,profile);
   // Keep the persistent context's initial page alive through handoff.
   const page=context.pages().find(page=>!page.isClosed())??await context.newPage();
