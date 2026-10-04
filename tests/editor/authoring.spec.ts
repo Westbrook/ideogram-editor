@@ -88,6 +88,7 @@ test('P1c3 retained attached mask bounds and reviewed baseline Cancel/Apply',asy
  const guard=await ownedOPFS(context,'p1c3-retained-'+info.project.name),errors=await recordDOMErrors(context),consoleErrors:string[]=[],bodies:any[]=[];
  page.on('pageerror',e=>consoleErrors.push(e.message));page.on('console',m=>{if(m.type()==='error')consoleErrors.push(m.text());});page.on('request',r=>{if(r.method()==='POST'&&new URL(r.url()).pathname==='/api/v1/commands')bodies.push(JSON.parse(r.postData()!).command.body);});
  const dir=await mkdtemp(join(await realpath(tmpdir()),'ie-p1c3-retained-')),server=await serverProcess(join(dir,'private'));await mkdir(receipt,{recursive:true});
+ const failures:unknown[]=[];
  try{
   await guard.admit(page,server.origin);await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await importImage(page);
   await click(page,'Select');await field(page,'Selection X','1');await field(page,'Selection Y','0');await field(page,'Selection width','1');await field(page,'Selection height','2');await click(page,'Apply selection');await click(page,'Use selection as mask');await click(page,'Preview mask');await expect(page.getByRole('button',{name:'Apply layer mask',exact:true})).toBeEnabled();await click(page,'Apply layer mask');await expect(page.getByText('SetLayerProperties accepted and saved locally.',{exact:true})).toBeVisible();
@@ -98,5 +99,12 @@ test('P1c3 retained attached mask bounds and reviewed baseline Cancel/Apply',asy
   await click(page,'Canvas bounds…');await field(page,'Width (px)','4');await field(page,'Height (px)','3');await field(page,'X offset / crop origin (px)','1');await field(page,'Y offset / crop origin (px)','1');await click(page,'Apply bounds');await expect(page.locator('.document-name')).toContainText('4 × 3');
   expect(consoleErrors).toEqual([]);expect(errors).toEqual([]);expect(Object.values(await server.effects()).every(n=>n===0)).toBe(true);
   await writeFile(join(receipt,'retained-bounds-'+browserName+'.json'),JSON.stringify({bodies,consoleErrors,errors},null,2));
- }finally{await guard.cleanup();guard.verify();await writeFile(join(receipt,'retained-ownership-'+browserName+'.json'),JSON.stringify(guard.ledger,null,2));await server.close();}
+ }catch(error){failures.push(error);}finally{
+  // Retain the refusal and close the owned writer even when cleanup fails.
+  try{await guard.cleanup();guard.verify();}catch(error){failures.push(error);}
+  try{await writeFile(join(receipt,'retained-ownership-'+browserName+'.json'),JSON.stringify(guard.ledger,null,2));}catch(error){failures.push(error);}
+  try{await server.close();}catch(error){failures.push(error);}
+ }
+ if(failures.length===1)throw failures[0];
+ if(failures.length)throw new AggregateError(failures,'Required authoring body or cleanup failed');
 });
