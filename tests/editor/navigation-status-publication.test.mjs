@@ -435,8 +435,8 @@ test('explicit retry of an uncertain background finalization keeps original wire
  assert.equal(f.journal.rows.get('command:'+row.command.commandId).wire,row.wire);assert.equal(f.client.view.message,'FinalizeStaging accepted and saved locally.');assert.equal(f.client.view.recovery,'');assert.equal(io.owner.drafts.get('feedback_draft').savedGeneration,null);assert.deepEqual(io.uiRequests,[]);result.release();await f.close();
 });
 
-for(const replacement of ['sessionIdentity','documentGeneration'])test('background staging stays fenced after '+replacement+' replacement',async t=>{
+for(const [replacement,expectedError]of Object.entries({sessionIdentity:'PROMPT_READ_STALE',documentGeneration:'PROMPT_READ_STALE'}))test('background staging stays fenced after '+replacement+' replacement',async t=>{
  const f=await fixture(t),io=draftFeedbackIO(f);io.state.holdReceipt=f.gate();io.draft('inspector',draftFeedbackValues.inspector);
  const task=f.track(f.client.flushDrafts());await io.state.receiptEntered.promise;invalidateOpen[replacement](f);f.client.patch({message:'Replacement owner result'});io.state.holdReceipt.resolve();
- await assert.rejects(task,/owner changed|superseded|abort/i);assert.equal(f.client.view.message,'Replacement owner result');assert.deepEqual(io.uiRequests,[]);assert.deepEqual(io.events,[]);assert.equal(io.commands.length,1);assert.equal(f.journal.rows.get('command:'+io.commands[0].command.commandId).wire,io.commands[0].wire);await f.close();
+ await assert.rejects(task,{name:'Error',message:expectedError});assert.equal(f.client.view.message,'Replacement owner result');assert.deepEqual(io.uiRequests,[]);assert.deepEqual(io.events,[]);assert.equal(io.commands.length,1);assert.equal(f.journal.rows.get('command:'+io.commands[0].command.commandId).wire,io.commands[0].wire);await f.close();
 });
