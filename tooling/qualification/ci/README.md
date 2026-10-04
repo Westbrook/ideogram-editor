@@ -1,9 +1,10 @@
-# CI qualification planner
+# Local qualification planner
 
 The planner builds and verifies a schedule; `execute.mjs` runs its stages and joins
 retained evidence on physical PERF C and H runners. This code neither enables
 provider calls nor claims release qualification.
-Hosted Linux/macOS runners cannot substitute for those profiles.
+GitHub Actions workflows have been removed. Invoke this CLI explicitly on eligible
+hosts; hosted Linux/macOS VMs cannot substitute for those profiles.
 
 `plan.mjs` exports `selectAffectedQ3`, `createCiPlan`, `validateCiPlan`,
 `workflowExport` and `executionState`. Paths unknown to the risk policy select
@@ -59,16 +60,16 @@ Export contains a `stages` object, `matrix.include`, dependency `layers`, and P-
 dependencies, node IDs and argument arrays. Execute argv directly; do not join
 untrusted values into shell command text. Checkout/build/artifact transfer and
 native dependency installation belong to their declared developer handlers and
-workflow setup. Never copy C's `node_modules` to H.
+explicit host setup. Never copy C's `node_modules` to H.
 
-The stage controller resolves the control harness from the protected dispatched default-branch revision
+The stage controller resolves the control harness from an explicitly reviewed immutable control revision
 and passes the exact subject worktree with `--repo`. Both hosts' sealed input
 files must be provisioned at the same absolute paths on the verification host.
 Imported plans are rechecked against the immutable commit trees, source bytes
 and actual Git diff before execution and final verification; a self-consistent
 plan digest cannot conceal changed paths.
 
-The executable join reads the `stage-*` directories retained by Actions. It
+The executable join reads the locally retained `stage-*` directories. It
 rereads actual `perf-runtime-campaign-1` receipts, reproduces their verdicts and
 evidence hashes, compares exact job/cell selection, source/control identities,
 runtime argv, sealed input hashes and physical-host checks. It also verifies
@@ -76,7 +77,7 @@ outer stage status, exact node membership/order, controller completion and log
 seals. Runtime receipts must include the exact consumed input identities.
 Missing identities block verification; arbitrary outer PASS fields do not pass.
 The lower-level `run.mjs verify --receipts` route accepts direct canonical node
-invocations only; use the stage join for workflow-derived configurations.
+invocations only; use the stage join for stage-derived configurations.
 
 `executionState` is a pure sequencing ledger over those verified observations;
 it is not an independent byte verifier. Its result stays `qualification:false`.
@@ -86,33 +87,15 @@ provisioning/configuration receipts; sums of command durations do not establish
 D08. Manual accessibility/native input and full release acceptance remain
 separate. No weekly schedule is activated by this helper.
 
-## Workflow execution
+## Explicit stage execution
 
-`qualification.yml` runs a hosted notice on pull requests. Physical qualification
-requires a maintainer-reviewed dispatch from the protected default branch, a
-full base SHA for comparison, and an explicit maintainer-reviewed candidate SHA (blank selects the dispatched revision). The `container` dispatch mode remains separate. No `schedule` event
-is installed. Every implementation activates A, independent of changed paths;
-unknown/shared changes conservatively select the complete active Q3 inventory.
-
-Provision exactly one runner labelled `ideogram-perf-C` and one labelled
-`ideogram-perf-H`, with the PERF hardware/OS/affinity/display requirements and
-public controlled-network fixtures. Set the repository variable
-`QUALIFICATION_INPUTS_PATH` to the canonical inputs JSON. Both physical hosts
-must have the same sealed metadata paths (including the other host's public
-attestation and evidence), their own native controlled registry/browser fixture,
-and a base configuration containing `developerStateRoot`, `developerInstall`,
-and any required input/archive recipe paths. Do not put credentials, private
-fonts, provider keys or unrelated private logs in these inputs. Host eligibility
-is probed for every execution, not inferred from a GitHub runner label.
-
-The workflow's global concurrency group reserves this physical pair across dispatches.
-Its dependency layers permit only the specified C/H overlap: C0–C2 first, then
-remaining serial C and serial H work. Both base sides finish before candidate.
-Both core revisions finish before base A, then candidate A. Full base affected
-Q3 finishes before candidate Q3. A missing stage blocks successors and final
-verification; a skipped workflow branch is never a passing receipt. There are
-18 graph layers in the current full paired inventory; 24 static workflow slots are available. Expansion beyond 24
-fails planning until the workflow capacity is explicitly updated.
+No workflow dispatch, runner-label provisioning or automatic artifact transfer is
+configured. A reviewed operator must provision the sealed inputs on eligible
+physical C/H hosts, reserve the pair, and execute the planner's dependency graph.
+Use the CLI examples above. Keep both hosts exclusive while their campaign runs,
+transfer only sealed stage artifacts, and stop dependent stages on failure.
+The existing graph export remains a planning format for compatibility; exporting
+it does not schedule or execute anything.
 
 `execute.mjs` creates one exact Git worktree per revision on each physical host,
 without copied installs. The canonical plan binds control and candidate independently. C/H developer state gets a separate namespace for each
@@ -129,7 +112,7 @@ backend readiness check; Linux `node_modules` never crosses hosts. Each browser
 cell owns its actual server/context lifecycle. The CI verifier rereads each raw
 campaign receipt, reproduces its verdict, checks source/control identities,
 allowed argv/config derivation, input hashes and predecessor order. Custom outer
-PASS fields or GitHub exit zero cannot substitute.
+PASS fields or a process exit zero cannot substitute.
 
 Ordinary P records the complete core pair (100 minutes normal / 120 minutes cold ceiling) and adapter pair (15 minutes ceiling). I0 records two separate same-C-host monotonic intervals. Each begins immediately
 before C0 and ends at the first C callback that has received and verified both
@@ -141,21 +124,11 @@ separately; an automated command result does not assert those observations,
 manual/native accessibility, live-provider readiness or release acceptance.
 Target misses also retain their separate owner/disposition obligation.
 
-Actions retain first failures and successful evidence for 90 days. Private test
-roots and installed dependencies are not uploaded. Worktrees and failed roots
-are retained on owned runners for review; this implementation does not delete
-unrelated or failed state. Run receipts, not this workflow code or planner tests,
-are required before making a CI/performance qualification claim.
-
-Physical runners must be restricted outside candidate-controlled YAML: configure
-the runner group's selected-workflow policy to allow only the directly defined
-physical jobs in `qualification.yml` and `qualification-stage.yml` at the
-protected default-branch ref, and restrict dispatch/branch-write permissions to
-reviewed maintainers. Do not attach these hosts to an unrestricted runner group.
-The workflow guard is defense in depth; pull requests can change their own
-workflow definitions. Hosts must be dedicated and contain only public controlled
-fixtures, no provider credentials or unrelated private workspace/logs. No runner
-policy has been created or verified by this implementation.
+Retain first failures, successful evidence, worktrees and failed roots on owned
+hosts under the evidence policy. Private test roots and installed dependencies
+are not automatically uploaded. Restrict physical-host access to reviewed
+operators and public controlled fixtures, with no provider credentials or
+unrelated private data. No host access policy is configured by this CLI.
 
 The controller forwards SIGINT/SIGTERM to owned process trees and waits for
 bounded TERM/KILL cleanup. The final verifier includes outer stage membership,
@@ -171,28 +144,19 @@ baseline, target-miss reviews and manual/external acceptance explicitly.
 
 ## Initial baseline and reviewed candidates
 
-Dispatch `purpose=initial-baseline` without a base SHA to execute the candidate's
-entire implemented Q3 inventory once. I0 expands its real normal/cold two-host
-core graphs. This path has no standalone paired P graph and claims no historical
-relative comparison; NOT_APPLICABLE is allowed only for that canonical purpose.
-Every absolute child/controller and pipeline gate still must pass. Comparison
+Select `--purpose initial-baseline` without a base SHA to plan the candidate's
+entire implemented Q3 inventory. I0 expands its normal/cold two-host core graphs.
+This path has no standalone paired P graph or historical relative comparison.
+Every absolute child/controller and pipeline gate must still pass. Comparison
 purpose retains distinct fresh base and candidate revisions, P+A and affected Q3.
 
-`candidate_sha` is an explicit immutable revision reviewed by the dispatching
-maintainer. The workflow always runs its controller from the protected default
-branch. The plan separately seals `control` and candidate source identities;
-stages fetch only the selected immutable Git revisions and verify their bytes.
-Reusable stages accept only the dispatched control SHA. This enables reviewed
-pre-merge candidates without letting a PR supply its own physical-runner workflow.
-The external selected-workflow/ref runner policy and review authority remain
-required; adding YAML does not configure those policies.
+Select immutable reviewed control and candidate revisions explicitly. The plan
+seals their identities independently and verifies selected Git bytes. Planning
+never grants physical-host access or establishes a successful execution.
 
 ## Approved-main evidence
 
-A comparison also requires the latest approved-main cohort. The protected
-controller supplies `QUALIFICATION_APPROVED_MAIN_PATH`,
-`QUALIFICATION_APPROVED_MAIN_SHA256`, and `QUALIFICATION_APPROVED_MAIN_REVISION`
-repository variables, or the CLI supplies `--approved-main`,
+A comparison also requires the latest approved-main cohort. The CLI requires `--approved-main`,
 `--approved-main-sha256`, and `--approved-main-revision` together. These become
 `spec.approvedMain={packet:{path,sha256},source:{commit,tree,digest}}`. The external
 maintainer selection establishes approval/latestness; packet flags or a prior

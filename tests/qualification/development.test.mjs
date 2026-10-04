@@ -1190,21 +1190,6 @@ test('Fast browser provisioning installs only the selected locked CLI engine and
   assert.equal(failedCommands.length,1);assert.deepEqual(failures.map(row=>row.status),['PENDING','FAIL']);assert.equal(failures.at(-1).browser,null);
  }
 });
-test('Fast workflow offers the reviewed single-family choices and preserves quoted serial runner and existing default commands',()=>{
- const workflow=readFileSync('.github/workflows/validation.yml','utf8');
- const block=workflow.split('      browser_family:\n')[1].split('      browser:\n')[0];
- assert.deepEqual([...block.matchAll(/^          - (.+)$/gm)].map(match=>match[1]),['none',...fastBrowserFamilies]);
- assert(workflow.includes('npm run validate -- run --groups preflight --browsers "$SELECTED_BROWSER" --browser-groups "$SELECTED_BROWSER_FAMILY" --workers 1 --fresh --serial-browser --output "$IE_VALIDATION_OUTPUT"'));
- assert(workflow.includes('npm run validate -- run --groups all --node-files "$SELECTED_NODE_FILES" --browsers none --workers 1 --fresh --output "$IE_VALIDATION_OUTPUT"'));
- assert(workflow.includes('npm run validate -- run --groups tooling --browsers none --workers 1 --fresh --output "$IE_VALIDATION_OUTPUT"'));
- assert(workflow.includes("SELECTED_BROWSER_FAMILY: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_family || 'none' }}"));
- assert(workflow.includes('retention-days: 90'));assert(workflow.includes('contents: read'));
- const uploads=workflow.split('      - name: Retain failure and success receipts\n');assert.equal(uploads.length,2);
- const uploadWith=uploads[1].split('        with:\n')[1].split('\n#')[0];
- assert.deepEqual([...uploadWith.matchAll(/^          (path|include-hidden-files): (.+)$/gm)].map(match=>[match[1],match[2]]),[['path','artifacts/validation'],['include-hidden-files','true']]);
- assert.equal((workflow.match(/^          include-hidden-files:/gm)||[]).length,1);
- assert.equal((workflow.match(/--browser-grep|--batch-browser/g)||[]).length,0);
-});
 
 
 const publicAdapterPath = 'artifacts/p27-evidence/fal-public-lora-example/provider-example.safetensors';
@@ -1567,26 +1552,4 @@ test('Fast shell provisions only the pinned Chromium CLI and retains actual inst
  const unavailable=Error('Pinned Chromium unavailable for shell'),failedCommands=[],failures=[];
  assert.throws(()=>provisionFastBrowserSetup(root,plan,{execute:(command,args)=>{failedCommands.push([command,...args]);throw unavailable;},record:row=>failures.push(structuredClone(row))}),error=>error===unavailable);
  assert.deepEqual(failedCommands,commands);assert.deepEqual(failures.map(row=>row.status),['PENDING','FAIL']);assert.equal(failures.at(-1).browser,null);assert.equal(failures.at(-1).adapterFixture,null);
-});
-
-
-test('Fast native profiler boolean executes its actual workflow selection guard before provisioning',t=>{
- const workflow=readFileSync('.github/workflows/validation.yml','utf8');
- const input=workflow.split('      e4_firefox_profiler:\n')[1].split('      host:\n')[0];
- assert.match(input,/^        type: boolean$/m);assert.match(input,/^        default: false$/m);
- const step=workflow.split('      - name: Validate optional E4 native profiler selection\n')[1].split('      - name: Select pinned toolchain')[0];
- const script=step.split('        run: |\n')[1].split('\n').map(line=>line.startsWith('          ')?line.slice(10):line).join('\n');
- assert(step.includes("SELECTED_E4_FIREFOX_PROFILER: ${{ github.event_name == 'workflow_dispatch' && inputs.e4_firefox_profiler && 'true' || 'false' }}"));
- const directory=mkdtempSync(join(tmpdir(),'e4-profiler-selection-'));t.after(()=>rmSync(directory,{recursive:true,force:true}));
- let sequence=0;
- const check=(changes,accepted,forwarded)=>{
-  const path=join(directory,'environment-'+sequence++);writeFileSync(path,'');
-  const env={PATH:process.env.PATH,GITHUB_ENV:path,SELECTED_E4_FIREFOX_PROFILER:'true',SELECTED_NODE_FILES:'',SELECTED_BROWSER_FAMILY:'e4',SELECTED_BROWSER:'firefox',SELECTED_HOST:'ubuntu-24.04',...changes};
-  if(accepted)assert.doesNotThrow(()=>execFileSync('/bin/sh',['-c',script],{env,stdio:'pipe',timeout:1000}));
-  else assert.throws(()=>execFileSync('/bin/sh',['-c',script],{env,stdio:'pipe',timeout:1000}),error=>error.status===1&&error.stderr.toString()==='E4_PROFILER_SELECTION\n');
-  assert.equal(readFileSync(path,'utf8'),forwarded?'IE_E4_FIREFOX_PROFILER=1\n':'');
- };
- check({},true,true);
- check({SELECTED_E4_FIREFOX_PROFILER:'false',SELECTED_BROWSER_FAMILY:'none',SELECTED_BROWSER:'chromium',SELECTED_HOST:'macos-15'},true,false);
- for(const changes of [{SELECTED_BROWSER_FAMILY:'e3'},{SELECTED_BROWSER:'chromium'},{SELECTED_BROWSER:'webkit'},{SELECTED_HOST:'macos-15'},{SELECTED_HOST:'ubuntu-latest'},{SELECTED_NODE_FILES:'tests/session/store.test.mjs'},{SELECTED_E4_FIREFOX_PROFILER:'1'},{SELECTED_E4_FIREFOX_PROFILER:'private'}])check(changes,false,false);
 });

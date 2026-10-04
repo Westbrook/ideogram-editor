@@ -41,15 +41,14 @@ manifest as historical provenance. This preserves its bytes while preventing
 collection from reopening its original Mac archive path. Other live references
 remain mandatory. No executable authority or historical-source identity changes.
 
-## Manual hosted production
+## Retained hosted producer implementation
 
-Dispatch **Hosted native prerequisites** (`.github/workflows/hosted-native.yml`)
-on the reviewed control revision. This manual-only Ubuntu 24.04 route runs
-`inputs → toolchain → build16 → build17 → build18 → verify16 → verify17 → verify18`
-serially and stops at the first failed or refused phase. Later phases require an
-actual successful finalized predecessor; an interrupted producer tree is not a
-resume point. Changes to selected control sources require updating
-`hosted-sources.json` and the workflow's manifest hash together.
+The GitHub Actions native-prerequisite and freezer-probe workflows have been
+removed. There is no hosted dispatch route. The source-sealed helpers, admission
+tests and receipts remain for provenance and offline verification; their presence
+does not authorize or provision a new hosted run. The descriptions below document
+the retained implementation and its limits. Any future execution route requires
+its own reviewed setup and exact source identities.
 
 Fixed marker, control and export roots live below `/var/lib`, alongside the
 separate data/evidence root. The first marker write and later root creation

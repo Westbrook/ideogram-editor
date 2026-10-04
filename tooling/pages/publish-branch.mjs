@@ -169,7 +169,7 @@ export async function publicationArtifact(root, options) {
   };
 }
 
-/** The workflow supplies the exact manifest hash from its successful validation job. */
+/** The caller supplies the exact manifest hash from its successful validation run. */
 export async function publishBranch(options, { request, artifact = publicationArtifact, root = process.cwd() } = {}) {
   const signal = AbortSignal.timeout(10 * 60_000);
   // All local validation precedes even a remote read or token-dependent request.

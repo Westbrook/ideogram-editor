@@ -24,10 +24,7 @@
 docs/**
 !docs/spec/
 !docs/spec/**
-!.github/
 .github/**
-!.github/workflows/
-!.github/workflows/**
 # Explicitly prepared and verified test prerequisite packet only. Never admit
 # the rest of artifacts/, evidence/, or an existing .git checkout.
 !artifacts/

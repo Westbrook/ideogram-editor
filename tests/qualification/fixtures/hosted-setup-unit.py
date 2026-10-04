@@ -1,6 +1,5 @@
 """Pure setup admission and real filesystem refusals; never invokes setup."""
 import copy
-import ast
 import base64
 import contextlib
 import importlib.util
@@ -14,19 +13,11 @@ import stat
 import struct
 import tempfile
 import types
-import textwrap
 import unittest
 from unittest import mock
 
 spec = importlib.util.spec_from_file_location('hosted_setup_test_subject', sys.argv.pop())
 subject = importlib.util.module_from_spec(spec); spec.loader.exec_module(subject)
-workflow = (Path(__file__).resolve().parents[3]/'.github/workflows/hosted-native.yml').read_text()
-first_step = ast.parse(textwrap.dedent(workflow.split("<<'PY'\n",1)[1].split('\n          PY',1)[0]))
-marker_guard = next(node for node in first_step.body if isinstance(node,ast.FunctionDef) and node.name=='require_marker_parent')
-marker_namespace = {'json':json,'stat':stat}
-# Exercise only the actual guard function, never the marker-writing workflow.
-exec(compile(ast.Module(body=[marker_guard],type_ignores=[]),'workflow-marker-guard','exec'),marker_namespace)
-require_marker_parent = marker_namespace['require_marker_parent']
 def load_host_module(name, path):
     spec=importlib.util.spec_from_file_location(name,path)
     module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module);return module
@@ -209,7 +200,7 @@ class Boundaries(unittest.TestCase):
         self.assertNotIn('private secondary text',output.getvalue())
         self.assertIsNone(host_diagnostics.elf_failure_context(sealed_host,original))
 
-    def test_marker_and_setup_directory_guards_refuse_unsafe_ancestors(self):
+    def test_setup_directory_guard_refuses_unsafe_ancestors(self):
         class Member:
             def __init__(self,name):
                 self.name=name;self.parents=[];self.info=types.SimpleNamespace(st_uid=0,st_gid=0,st_mode=stat.S_IFDIR|0o755)
@@ -219,7 +210,7 @@ class Boundaries(unittest.TestCase):
             def lstat(self):return self.info
         root,var,leaf=(Member(name) for name in ('/','/var','/var/lib'));leaf.parents=[var,root]
         with mock.patch.object(subject,'canonical',return_value=leaf):
-            for guard in (require_marker_parent,subject.require_immutable_directory):
+            for guard in (subject.require_immutable_directory,):
                 guard(leaf)
                 for member in (leaf,var,root):
                     original=member.info
@@ -229,20 +220,7 @@ class Boundaries(unittest.TestCase):
                     member.info=original
         with tempfile.TemporaryDirectory() as raw:
             parent=Path(raw).resolve();alias=parent/'alias';alias.symlink_to(parent,target_is_directory=True)
-            with self.assertRaisesRegex(ValueError,'Canonical native marker parent'):require_marker_parent(alias)
             with self.assertRaisesRegex(ValueError,'Path alias'):subject.require_immutable_directory(alias)
-
-    def test_first_marker_write_is_preceded_by_actual_ancestry_admission(self):
-        calls=[]
-        for index,node in enumerate(first_step.body):
-            if isinstance(node,ast.FunctionDef):continue
-            for child in ast.walk(node):
-                if isinstance(child,ast.Call):calls.append((index,ast.unparse(child.func),child))
-        guards=[(index,call) for index,name,call in calls if name=='require_marker_parent']
-        writes=[index for index,name,call in calls if name=='os.open']
-        self.assertEqual(len(guards),1);self.assertEqual(len(writes),1)
-        self.assertLess(guards[0][0],writes[0]);self.assertEqual(ast.unparse(guards[0][1].args[0]),'path.parent')
-        self.assertIn("path = Path('/var/lib')",workflow)
 
     def test_fresh_root_refusal_occurs_before_creation_without_ancestor_repair(self):
         root=Path('/var/lib/ideogram-native-control-123-2')
@@ -483,15 +461,6 @@ class Boundaries(unittest.TestCase):
             with self.assertRaises(ValueError):subject.retain_phase_diagnostics(args)
             read.assert_not_called()
 
-    def test_workflow_retains_selector_failure_and_keeps_strict_export_separate(self):
-        body=workflow.split('      - name: Export only actually closed phases without changing originals',1)[1].split('      - name: Retain bounded completed export or partial export diagnostics',1)[0]
-        self.assertIn('if through="$(sudo',body);self.assertIn('export-phase',body)
-        closed_branch,failure_branch=body.split('          else\n',1)
-        self.assertIn('--export "$through"',closed_branch);self.assertNotIn('failure-diagnostics',closed_branch)
-        self.assertIn('export_status=$?',failure_branch);self.assertIn('failure-diagnostics',failure_branch);self.assertIn('exit "$export_status"',failure_branch)
-        self.assertNotIn('--export',failure_branch);self.assertNotIn('--grant',failure_branch)
-        for forbidden in ('rm ','chmod ','kill ','--phase ','continue','|| true'):self.assertNotIn(forbidden,failure_branch)
-
     def test_observation_diagnostic_projects_actual_failed_child_and_worker_errno_without_authority(self):
         with tempfile.TemporaryDirectory() as raw, diagnostic_files_as_controller():
             config,directory,receipt,final,rows,worker,commit,save=observation_fixture(Path(raw).resolve())
@@ -606,10 +575,8 @@ class Boundaries(unittest.TestCase):
             commit(rows+[watchdog]);value=subject.phase_diagnostic(config,'toolchain','c'*64,{'bytes':0})['accounting']['journal']
             self.assertEqual((value['records'],value['observationCommands'],value['eligibleObservations'],value['retainedObservations'],value['omittedObservations']),(2,1,0,0,0));self.assertFalse(value['rawStorageVerified'])
 
-    def test_observation_workflow_admits_exact_source_manifest_and_projector_bytes(self):
+    def test_observation_source_manifest_admits_exact_projector_bytes(self):
         source_path=producer_root/'hosted-sources.json';raw=source_path.read_bytes()
-        declarations=[line.split(':',1)[1].strip().strip('"\'') for line in workflow.splitlines() if line.strip().startswith('IE_SOURCE_SELECTION_SHA256:')]
-        self.assertEqual(declarations,[hashlib.sha256(raw).hexdigest()])
         selected=json.loads(raw)['files'];pins=[row for row in selected if row['path']=='tooling/rollback-producer/hosted-setup.py']
         self.assertEqual(len(pins),1);projector=Path(subject.__file__).read_bytes()
         self.assertEqual((pins[0]['bytes'],pins[0]['sha256']),(len(projector),hashlib.sha256(projector).hexdigest()))

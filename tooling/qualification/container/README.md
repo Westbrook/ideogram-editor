@@ -18,13 +18,11 @@ that the file manifest equals that revision.
 ## Feedback and reuse
 
 For ordinary development, use `npm run validate` and `docs/testing/VALIDATION.md`.
-The supplemental `validation.yml` PR job supplies source/tooling feedback on an
-ephemeral runner; it does not supply container or physical qualification. Its
-selected tests retain their actual compiled prerequisites. The Dockerfile keeps
-locked dependency/browser inputs ahead of mutable source. Cheap types/inventory
-checks precede historical packet installation; vendor/package/profile changes
-invalidate the corresponding layers. These source changes are not evidence that
-the reconciled image or hosted workflow has run successfully.
+GitHub Actions workflows have been removed; validation runs through the local
+shared runner. The Dockerfile keeps locked dependency/browser inputs ahead of
+mutable source. Cheap types/inventory checks precede historical packet
+installation; vendor/package/profile changes invalidate the corresponding
+layers. Source changes alone do not establish successful container execution.
 
 The managed source inventory retains 23 Node groups and 56 browser inventory files:
 54 direct specs and two negative harness specs owned by Node parents. The
@@ -44,14 +42,9 @@ and intermediate authority checks. Do not run packet-dependent container gates
 until the correct platform packet is prepared. Ordinary shared compilation reuse
 does not replace this requirement; formal container preparation remains fresh.
 
-The hosted `qualification.yml` container dispatch currently stops immediately
-following checkout with `prerequisite-unavailable`, before toolchain provisioning,
-fixture downloads or image building. Its existing evidence upload retains
-`artifacts/qualification-ci/prerequisite-status.txt`. No hosted packet transport
-has been defined. Enabling that job requires a separately reviewed provisioning
-contract for the genuine platform-matching packet and its complete sealed closure;
-a caller-selected path or archive does not establish that authority. The local
-invocation below remains available when its actual prerequisites are satisfied.
+No hosted packet transport is configured. The local invocation below remains
+available when its actual prerequisites are satisfied. A caller-selected path or
+archive alone does not establish genuine platform-matching packet authority.
 
 ## Local execution
 
@@ -183,32 +176,17 @@ fails the receipt and retains both manifests. Existing browser fixtures retain
 their own observations and cleanup dispositions. Actual case counts are retained; the WD sizing envelope is not a coverage quota.
 Exceeding its budget needs explicit disposition rather than deleting cases.
 
-The container workflow remains an explicit `workflow_dispatch` mode. Choose
-`container`, supply the immutable image digest, and select browser/scope; it
-currently stops at the provisioning refusal described above. Its retained
-preparation sequence becomes usable only after separately reviewed hosted
-schema18 provisioning is implemented. That sequence prepares an exact packet:
-17 selected historical commits, six retained review ZIPs, and the exact public
-adapter fixture. Preparation verifies every identity. Selected Git tree metadata
-includes historical filenames/object IDs needed by archive path selection;
-unrelated historical blob contents and local Git configuration/remotes stay out.
-The retained download step selects only the pinned public fixture URL.
-Local callers can supply an already sealed fixture with `--adapter-fixture`.
-Input weights and the input packet are excluded from uploaded run artifacts.
+There is no GitHub Actions dispatch or automatic artifact upload. Use the local
+container commands above with an explicitly prepared input packet and sealed
+adapter fixture. Preparation still verifies every historical commit, review
+archive and fixture identity. Input weights and the input packet remain private
+inputs rather than public run artifacts.
 
-The same workflow has a separate physical qualification path for trusted manual
-paired runs from the protected default branch; pull requests receive a hosted notice only. See [CI orchestration](../ci/README.md) for the
-one-C/one-H graph, sealed host configuration, fresh base/candidate source,
-mandatory adapter branches and affected Q3 selection. Container functionality
-is never substituted for physical timing. Workflow files are implementation,
-not evidence of a successful run. No weekly schedule, deployment or paid call
-is enabled.
-
-Raw receipts are retained for 90 days. Repository retention policy must allow
-that duration; 365-day aggregate and release-lifetime evidence retention remains
-an external archival obligation. Failed private `/tmp` fixture roots are not
-uploaded automatically. Preserve a needed failed fixture before disposing of
-its container or physical runner workspace.
+Physical qualification uses the separate [CLI orchestration](../ci/README.md)
+on eligible C/H hosts. Container functionality never substitutes for physical
+timing. Retain first failures and successful receipts under the existing evidence
+policy, including external archival obligations. Preserve needed failed private
+fixture roots before disposing of their container or physical host workspace.
 
 No container or hosted-runner result establishes the plan's bare-metal PERF C/H
 profiles, physical display timing, assistive-technology checks, resource campaign,
