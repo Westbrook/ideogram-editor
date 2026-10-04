@@ -714,3 +714,248 @@ test('E4 missing native transaction API remains an explicit incomplete diagnosti
   runInContext(`(${installE4TransactionTiming.toString()})()`,context);
   const snapshot=plain(context.__p25TransactionTiming.snapshot());assert.deepEqual(snapshot.errors,['E4_IDB_TIMING_UNAVAILABLE']);assert.deepEqual(snapshot.phases.errors,['E4_PHASE_TIMING_UNAVAILABLE']);context.__p25TransactionTiming.dispose();
 });
+
+// Opt-in E4 phase diagnostics use the original consumer and its existing side
+// branch only. These clocks describe callback observation, not network EOF or
+// the instant at which the native promise settled.
+test('phase diagnostics require true and an omitted profile before patching the realm', async t => {
+  for (const phaseDiagnostics of [false, null, 0, 'true', {}]) await t.test(String(phaseDiagnostics), t => {
+    assert.throws(() => fixture(t, {phaseDiagnostics}), /E4_OBSERVER_PHASE_PROFILE/);
+  });
+  for (const profile of ['v45-post', 'queue-ui', 'portable-review']) await t.test(profile, t => {
+    assert.throws(() => fixture(t, {profile, phaseDiagnostics: true}), /E4_OBSERVER_PHASE_PROFILE/);
+  });
+});
+
+test('omitted diagnostics preserve every profile snapshot and the original single publication clock read', async t => {
+  for (const profile of [undefined, 'v45-post', 'queue-ui', 'portable-review']) await t.test(profile ?? 'E4', async t => {
+    const f = fixture(t, profile ? {profile} : {}), text = queueText();
+    let clockReads = 0;
+    Object.defineProperty(f.clock, 'monotonic', {get() { clockReads++; return 20; }});
+    const path = profile === 'portable-review' ? '/api/v1/bundle-reviews/review-1' : profile === 'queue-ui' ? '/api/v1/ui/action-1' : profile === 'v45-post' ? '/api/v1/commands' : '/api/v1/queue';
+    const init = ['v45-post', 'queue-ui'].includes(profile) ? runInContext('({method:"POST"})', f.context) : undefined;
+    const r = f.response(text, {path}); await f.consume(r, [encode(text)], init);
+    assert.equal(clockReads, 0, 'default reader observation adds no phase clock calls');
+    const value = f.parse(text);
+    assert.equal(value, f.context.__parseCalls.find(call => call.args[0] === text).value);
+    assert.equal(clockReads, 1); assert.equal(f.rows().length, 1);
+    assert.deepEqual(Object.keys(f.observer.snapshot()).sort(), ['pending', 'ownedMethods', 'retainedBytes', 'recordBytes', 'rows', 'errors', 'droppedErrors', 'operations', 'disabled', 'disposed'].sort());
+    assert.deepEqual(plain(f.rows()[0].value), profile ? JSON.parse(text) : {jobs: [{id: 'job-1', version: '2'}]});
+    assert.equal(f.observer.snapshot().rows, 1);
+    assert.equal(f.observer.snapshot().recordBytes, JSON.stringify(f.rows()[0]).length * 2);
+    assert.deepEqual(r.calls.forbidden, []); assert.equal(r.calls.read.length, 2); assert.equal(f.errors().length, 0);
+  });
+});
+
+test('phase times surround the original methods and uniquely matched parser with exact read ordinals', async t => {
+  const f = fixture(t, {phaseDiagnostics: true}), text = queueText(), r = f.response(text), original = r.response.body.getReader;
+  r.response.body.getReader = function (...args) {
+    const reader = Reflect.apply(original, this, args), release = reader.releaseLock;
+    reader.releaseLock = function (...args) { const value = Reflect.apply(release, this, args); f.clock.monotonic = 81; return value; };
+    f.clock.monotonic = 11; return reader;
+  };
+  await f.fetchResponse(r); f.clock.monotonic = 10;
+  const options = {}, reader = r.response.body.getReader(options);
+  assert.equal(r.calls.getReader[0].receiver, r.response.body); assert.equal(r.calls.getReader[0].args[0], options);
+  const bytes = encode(text), chunks = [bytes.subarray(0, 7), bytes.subarray(7)];
+  for (let index = 0; index < chunks.length; index++) {
+    f.clock.monotonic = 20 + index * 20; const argument = {index}, promise = reader.read(argument);
+    assert.equal(promise, r.calls.read.at(-1).promise); assert.equal(r.calls.read.at(-1).args[0], argument);
+    assert.equal(r.calls.read.at(-1).receiver, reader); f.clock.monotonic = 30 + index * 20;
+    r.controller.enqueue(chunks[index]); assert.equal((await promise).value, chunks[index]);
+  }
+  f.clock.monotonic = 60; const done = reader.read(); assert.equal(done, r.calls.read.at(-1).promise);
+  f.clock.monotonic = 70; r.controller.close(); assert.equal((await done).done, true);
+  f.clock.monotonic = 80; assert.equal(reader.releaseLock(), undefined);
+  const calls = f.context.__parseCalls, push = calls.push;
+  calls.push = function (call) { f.clock.monotonic = 91; return Reflect.apply(push, this, [call]); };
+  f.clock.monotonic = 90; const receiver = {}, parsed = Reflect.apply(f.json.parse, receiver, [text]);
+  assert.equal(parsed, calls.at(-1).value); assert.equal(calls.at(-1).receiver, receiver);
+  const snapshot = f.observer.snapshot(), diagnostic = plain(snapshot.phaseDiagnostics), row = diagnostic.records[0];
+  assert.equal(row.operation, f.rows()[0].operation);
+  assert.deepEqual([row.getReaderEntry, row.getReaderReturn, row.getReaderOutcome], [10, 11, 'returned']);
+  assert.deepEqual([row.readCalls, row.readCallbacks, row.firstReadOrdinal, row.firstReadEntry, row.lastReadOrdinal, row.lastReadEntry], [3, 3, 1, 20, 3, 60]);
+  assert.deepEqual([row.firstCallbackReadOrdinal, row.firstReadCallback, row.firstReadOutcome, row.lastCallbackReadOrdinal, row.lastReadCallback, row.lastReadOutcome], [1, 30, 'fulfilled', 3, 70, 'fulfilled']);
+  assert.deepEqual([row.doneReadOrdinal, row.doneReadEntry, row.doneCallback, row.nativeEOF], [3, 60, 70, null]);
+  assert.deepEqual([row.releaseLockEntry, row.releaseLockReturn, row.releaseLockOutcome], [80, 81, 'returned']);
+  assert.deepEqual([row.parseEntry, row.parseReturn, row.parseOutcome], [90, 91, 'returned']);
+  assert.deepEqual([row.responseJsonEntry, row.responseJsonCallback, row.responseJsonOutcome], [null, null, null]);
+  assert.equal(row.retired, true); assert.equal(row.retirement, 'delivered');
+  assert.equal(f.rows()[0].monotonic, 91); assert.equal(snapshot.rows, 2);
+  assert.equal(snapshot.recordBytes, diagnostic.reservedBytes + JSON.stringify(f.rows()[0]).length * 2);
+  assert.equal(diagnostic.reservedBytes, 4096); assert.equal(snapshot.pending, 0); assert.equal(snapshot.retainedBytes, 0);
+  assert.equal(r.calls.read.length, 3); assert.deepEqual(r.calls.forbidden, []); assert.equal(f.errors().length, 0);
+});
+
+test('overlapping native reads attribute the first done callback to its own entry rather than the latest read', async t => {
+  const f = fixture(t, {phaseDiagnostics: true}), text = queueText(), r = f.response(text); await f.fetchResponse(r);
+  const reader = r.response.body.getReader(), promises = [];
+  for (const at of [10, 20, 30]) { f.clock.monotonic = at; const promise = reader.read(); assert.equal(promise, r.calls.read.at(-1).promise); promises.push(promise); }
+  f.clock.monotonic = 40; r.controller.enqueue(encode(text)); await promises[0];
+  f.clock.monotonic = 60; r.controller.close(); const results = await Promise.all(promises.slice(1));
+  assert.equal(results.every(result => result.done === true), true); reader.releaseLock(); f.parse(text);
+  const row = f.observer.snapshot().phaseDiagnostics.records[0];
+  assert.deepEqual([row.readCalls, row.readCallbacks, row.lastReadOrdinal, row.lastReadEntry], [3, 3, 3, 30]);
+  assert.deepEqual([row.doneReadOrdinal, row.doneReadEntry, row.doneCallback], [2, 20, 60]);
+  assert.equal(row.lastCallbackReadOrdinal, 3); assert.equal(row.nativeEOF, null); assert.equal(f.rows().length, 1); assert.equal(f.errors().length, 0);
+});
+
+test('phase parser association refuses incomplete locked unmatched coerced and reviver calls', async t => {
+  for (const mode of ['incomplete', 'locked', 'unmatched', 'coerced', 'reviver']) await t.test(mode, async t => {
+    const f = fixture(t, {phaseDiagnostics: true}), text = queueText(), r = f.response(text);
+    if (mode === 'incomplete' || mode === 'locked') {
+      await f.fetchResponse(r); const reader = r.response.body.getReader(); r.controller.enqueue(encode(text)); await reader.read();
+      if (mode === 'locked') { r.controller.close(); await reader.read(); }
+    } else await f.consume(r);
+    const result = mode === 'reviver' ? f.parse(text, (key, value) => key === 'id' ? 'changed' : value)
+      : mode === 'coerced' ? f.parse({toString: () => text}) : f.parse(mode === 'unmatched' ? ' ' + text : text);
+    assert.equal(result, f.context.__parseCalls.at(-1).value);
+    const row = f.observer.snapshot().phaseDiagnostics.records[0];
+    assert.deepEqual([row.parseEntry, row.parseReturn, row.parseOutcome], [null, null, null]);
+    assert.equal(f.rows().length, 0); assert.equal(f.errors().length, 0);
+    if (mode === 'reviver') { assert.equal(result.jobs[0].id, 'changed'); assert.equal(row.retired, true); }
+  });
+});
+
+test('ambiguous completed bodies retain refusal and no diagnostic parser attribution', async t => {
+  const f = fixture(t, {phaseDiagnostics: true}), text = queueText();
+  await f.consume(f.response(text)); await f.consume(f.response(text, {path: '/api/v1/jobs/job-1/candidates'}));
+  assert.equal(f.parse(text).jobs[0].id, 'job-1');
+  const snapshot = f.observer.snapshot(); assert.equal(snapshot.disabled, true); assert.equal(snapshot.pending, 0);
+  assert.equal(snapshot.phaseDiagnostics.records.length, 2);
+  for (const row of snapshot.phaseDiagnostics.records) { assert.equal(row.parseEntry, null); assert.equal(row.parseReturn, null); assert.equal(row.retired, true); assert.equal(row.retirement, 'observer-failure'); }
+  assert.equal(f.rows().length, 0); assert.ok(f.errors().some(error => error.code === 'E4_OBSERVER_AMBIGUOUS_BODY'));
+});
+
+test('native Response.json phases retain original promise result and rejection without claiming hidden parse or EOF', async t => {
+  for (const mode of ['fulfilled', 'rejected']) await t.test(mode, async t => {
+    const f = fixture(t, {phaseDiagnostics: true}), text = queueText(), r = f.response(text); await f.fetchResponse(r);
+    f.clock.monotonic = 10; const argument = {}, promise = r.response.json(argument), call = r.calls.json.at(-1);
+    assert.equal(promise, call.promise); assert.equal(call.receiver, r.response); assert.equal(call.args[0], argument);
+    f.clock.monotonic = 50; const error = Error('private response failure');
+    if (mode === 'fulfilled') { r.controller.enqueue(encode(text)); r.controller.close(); assert.equal(await promise, await call.promise); }
+    else { r.controller.error(error); await assert.rejects(promise, value => value === error); }
+    const row = f.observer.snapshot().phaseDiagnostics.records[0];
+    assert.deepEqual([row.responseJsonEntry, row.responseJsonCallback, row.responseJsonOutcome], [10, 50, mode]);
+    for (const key of ['getReaderEntry', 'getReaderReturn', 'firstReadEntry', 'doneReadOrdinal', 'doneCallback', 'nativeEOF', 'releaseLockEntry', 'parseEntry', 'parseReturn']) assert.equal(row[key], null, key);
+    assert.equal(row.readCalls, 0); assert.equal(row.readCallbacks, 0); assert.equal(row.retired, true);
+    assert.equal(f.rows().length, mode === 'fulfilled' ? 1 : 0); assert.equal(f.errors().length, 0); assert.deepEqual(r.calls.forbidden, []);
+    assert.equal(JSON.stringify(row).includes('private response failure'), false);
+  });
+});
+
+test('phase observation preserves original synchronous getReader read releaseLock and json errors', async t => {
+  for (const method of ['getReader', 'read', 'releaseLock', 'json']) await t.test(method, async t => {
+    const f = fixture(t, {phaseDiagnostics: true}), r = f.response(queueText()), error = Error('private native error');
+    const throwing = function () { throw error; };
+    if (method === 'json') r.response.json = throwing;
+    else if (method === 'getReader') r.response.body.getReader = throwing;
+    else {
+      const original = r.response.body.getReader;
+      r.response.body.getReader = function (...args) { const reader = Reflect.apply(original, this, args); reader[method] = throwing; return reader; };
+    }
+    await f.fetchResponse(r); f.clock.monotonic = 10;
+    if (method === 'json') assert.throws(() => r.response.json(), value => value === error);
+    else if (method === 'getReader') assert.throws(() => r.response.body.getReader(), value => value === error);
+    else { const reader = r.response.body.getReader(); assert.throws(() => reader[method](), value => value === error); }
+    const snapshot = f.observer.snapshot(), row = snapshot.phaseDiagnostics.records[0];
+    assert.equal(snapshot.pending, 0); assert.equal(snapshot.retainedBytes, 0); assert.equal(row.retired, true);
+    if (method === 'getReader') assert.deepEqual([row.getReaderEntry, row.getReaderReturn, row.getReaderOutcome], [10, null, 'threw']);
+    if (method === 'releaseLock') assert.deepEqual([row.releaseLockEntry, row.releaseLockReturn, row.releaseLockOutcome], [10, null, 'threw']);
+    if (method === 'json') assert.deepEqual([row.responseJsonEntry, row.responseJsonCallback, row.responseJsonOutcome], [10, null, 'threw']);
+    if (method === 'read') { assert.equal(row.readCalls, 1); assert.equal(row.readCallbacks, 0); assert.equal(row.doneCallback, null); }
+    assert.equal(f.rows().length, 0); assert.equal(f.errors().length, 0); assert.equal(JSON.stringify(row).includes('private native error'), false);
+  });
+});
+
+test('matched original parser errors are preserved and recorded as throws without a fabricated return', async t => {
+  const f = fixture(t, {phaseDiagnostics: true}), text = '{"jobs":['; await f.consume(f.response(text));
+  f.clock.monotonic = 70; assert.throws(() => f.parse(text), value => value === f.context.__parseCalls.at(-1).error);
+  const row = f.observer.snapshot().phaseDiagnostics.records[0];
+  assert.deepEqual([row.parseEntry, row.parseReturn, row.parseOutcome], [70, null, 'threw']);
+  assert.equal(row.retired, true); assert.equal(f.observer.snapshot().retainedBytes, 0); assert.equal(f.rows().length, 0); assert.equal(f.errors().length, 0);
+});
+
+test('original cancellation and rejected read callback retire diagnostics without changing their promises', async t => {
+  for (const mode of ['cancel', 'reject']) await t.test(mode, async t => {
+    const f = fixture(t, {phaseDiagnostics: true}), r = f.response(queueText()); await f.fetchResponse(r);
+    const reader = r.response.body.getReader(), error = Error('private failure'); f.clock.monotonic = 10;
+    const promise = reader.read(); assert.equal(promise, r.calls.read.at(-1).promise); f.clock.monotonic = 30;
+    if (mode === 'cancel') { const cancel = reader.cancel(error); assert.equal(cancel, r.calls.cancel.at(-1).promise); await cancel; assert.equal((await promise).done, true); }
+    else { r.controller.error(error); await assert.rejects(promise, value => value === error); }
+    const row = f.observer.snapshot().phaseDiagnostics.records[0];
+    assert.equal(row.retired, true); assert.equal(row.doneCallback, null); assert.equal(row.parseEntry, null);
+    assert.equal(row.readCallbacks, mode === 'reject' ? 1 : 0);
+    assert.equal(row.firstReadOutcome, mode === 'reject' ? 'rejected' : null);
+    assert.equal(f.observer.snapshot().pending, 0); assert.equal(f.observer.snapshot().retainedBytes, 0); assert.equal(f.errors().length, 0);
+  });
+});
+
+test('dispose freezes the retained phase history while pending original reader and json promises still settle', async t => {
+  for (const mode of ['reader', 'json']) await t.test(mode, async t => {
+    const f = fixture(t, {phaseDiagnostics: true}), text = queueText(), r = f.response(text); await f.fetchResponse(r);
+    const promise = mode === 'reader' ? r.response.body.getReader().read() : r.response.json();
+    f.observer.dispose(); const sealed = plain(f.observer.snapshot().phaseDiagnostics);
+    assert.equal(sealed.records[0].retirement, 'disposed'); assert.equal(sealed.records[0].retired, true);
+    r.controller.enqueue(encode(text)); r.controller.close(); await promise;
+    assert.deepEqual(plain(f.observer.snapshot().phaseDiagnostics), sealed);
+    assert.equal(f.observer.snapshot().ownedMethods, 0); assert.equal(f.observer.snapshot().retainedBytes, 0); assert.equal(f.rows().length, 0); assert.equal(f.errors().length, 0);
+  });
+});
+
+test('phase snapshots expose immutable detached scalar history and never body or error references', async t => {
+  const f = fixture(t, {phaseDiagnostics: true}), text = queueText(), r = f.response(text); await f.fetchResponse(r);
+  const first = f.observer.snapshot().phaseDiagnostics, row = first.records[0];
+  assert.equal(Object.isFrozen(first), true); assert.equal(Object.isFrozen(first.records), true); assert.equal(Object.isFrozen(row), true);
+  assert.throws(() => { row.operation = 99; }, TypeError);
+  const reader = r.response.body.getReader(); r.controller.enqueue(encode(text)); await reader.read(); r.controller.close(); await reader.read(); reader.releaseLock(); f.parse(text);
+  const last = f.observer.snapshot().phaseDiagnostics;
+  assert.notEqual(last, first); assert.notEqual(last.records[0], row); assert.equal(row.getReaderEntry, null); assert.equal(row.retired, false);
+  assert.equal(last.records[0].retired, true);
+  for (const value of Object.values(last.records[0])) assert.ok(value === null || ['number', 'string', 'boolean'].includes(typeof value));
+  for (const privateText of [text, 'not retained', 'job-1', '/api/', origin]) assert.equal(JSON.stringify(last).includes(privateText), false);
+});
+
+test('diagnostic rows and byte reservations share the existing lifetime caps without resetting on drains', async t => {
+  await t.test('row cap', async t => {
+    const f = fixture(t, {phaseDiagnostics: true, limits: {rows: 1}}), text = queueText(); await f.consume(f.response(text));
+    assert.equal(f.parse(text).jobs[0].id, 'job-1'); assert.equal(f.rows().length, 0);
+    assert.ok(f.errors().some(error => error.code === 'E4_OBSERVER_ROW_LIMIT')); assert.equal(f.observer.snapshot().rows, 1);
+    assert.equal(f.observer.snapshot().phaseDiagnostics.records[0].retirement, 'observer-failure');
+    f.rows().length = 0; f.errors().length = 0;
+    assert.equal(f.observer.snapshot().rows, 1); assert.equal(f.observer.snapshot().recordBytes, 4096);
+  });
+  await t.test('phase reservation', async t => {
+    const f = fixture(t, {phaseDiagnostics: true, limits: {totalBytes: 4095}}), text = queueText(), r = f.response(text);
+    await f.consume(r); assert.equal(f.parse(text).jobs[0].id, 'job-1');
+    assert.equal(f.observer.snapshot().phaseDiagnostics.records.length, 0); assert.equal(f.observer.snapshot().recordBytes, 0);
+    assert.ok(f.errors().some(error => error.code === 'E4_OBSERVER_PHASE_LIMIT')); assert.equal(f.rows().length, 0);
+  });
+  await t.test('original body reservation still counts', async t => {
+    const text = queueText(), f = fixture(t, {phaseDiagnostics: true, limits: {totalBytes: 4096 + encode(text).length * 3 - 1}}), r = f.response(text);
+    await f.consume(r); assert.equal(f.parse(text).jobs[0].id, 'job-1');
+    assert.ok(f.errors().some(error => error.code === 'E4_OBSERVER_TOTAL_LIMIT')); assert.equal(f.observer.snapshot().retainedBytes, 0);
+    assert.equal(f.observer.snapshot().recordBytes, 4096); assert.equal(f.rows().length, 0);
+  });
+});
+
+test('an invalid diagnostic clock disables only observation and still returns the original reader', async t => {
+  const f = fixture(t, {phaseDiagnostics: true}), r = f.response(queueText()); await f.fetchResponse(r);
+  f.clock.monotonic = NaN; const reader = r.response.body.getReader();
+  assert.equal(reader, r.calls.getReader.at(-1).reader); assert.equal(f.observer.snapshot().disabled, true);
+  assert.equal(f.observer.snapshot().phaseDiagnostics.records[0].retirement, 'observer-failure');
+  assert.ok(f.errors().some(error => error.code === 'E4_OBSERVER_PHASE_CLOCK')); assert.equal(f.rows().length, 0);
+  assert.equal(f.observer.snapshot().pending, 0); assert.equal(f.observer.snapshot().retainedBytes, 0);
+  r.controller.enqueue(encode(r.text)); const promise = reader.read(); assert.equal(promise, r.calls.read.at(-1).promise); assert.equal((await promise).done, false);
+});
+
+test('a repeated locked getReader attempt records a fresh thrown pair without borrowing the prior return', async t => {
+  const f = fixture(t, {phaseDiagnostics: true}), r = f.response(queueText()); await f.fetchResponse(r);
+  f.clock.monotonic = 10; const reader = r.response.body.getReader();
+  assert.equal(reader, r.calls.getReader[0].reader); f.clock.monotonic = 30;
+  assert.throws(() => r.response.body.getReader(), error => error === r.calls.getReader.at(-1).error);
+  const row = f.observer.snapshot().phaseDiagnostics.records[0];
+  assert.deepEqual([row.getReaderEntry, row.getReaderReturn, row.getReaderOutcome], [30, null, 'threw']);
+  assert.equal(row.retired, true); assert.equal(row.parseEntry, null); assert.equal(f.observer.snapshot().retainedBytes, 0);
+  assert.equal(f.errors().length, 0); assert.equal(f.rows().length, 0);
+});

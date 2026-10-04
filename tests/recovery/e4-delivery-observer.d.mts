@@ -1,7 +1,9 @@
 export type DeliveryObserverOptions = {
-  profile?: 'v45-post' | 'queue-ui' | 'portable-review';
   limits?: Partial<Record<'bodyBytes' | 'totalBytes' | 'pending' | 'rows' | 'errors', number>>;
-};
+} & (
+  | { profile?: undefined; /** E4 only; original consumer callback diagnostics. */ phaseDiagnostics?: true }
+  | { profile: 'v45-post' | 'queue-ui' | 'portable-review'; phaseDiagnostics?: never }
+);
 /** Serialized fixture installation; does not consume or replace native results. */
 export function installE4DeliveryObserver(options?: DeliveryObserverOptions): void;
 /** Runtime validation checks all identities before exposing a joined pair. The

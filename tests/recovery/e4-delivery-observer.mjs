@@ -6,9 +6,11 @@ export function installE4DeliveryObserver(options) {
   if (options === undefined) options = {};
   const realm = window;
   const ceilings = { bodyBytes: 65536, totalBytes: 1048576, pending: 32, rows: 4096, errors: 64 };
-  if (!options || typeof options !== 'object' || Array.isArray(options) || Object.prototype.toString.call(options) !== '[object Object]' || Object.keys(options).some(key => key !== 'limits' && key !== 'profile')) throw Error('E4_OBSERVER_LIMITS');
+  if (!options || typeof options !== 'object' || Array.isArray(options) || Object.prototype.toString.call(options) !== '[object Object]' || Object.keys(options).some(key => key !== 'limits' && key !== 'profile' && key !== 'phaseDiagnostics')) throw Error('E4_OBSERVER_LIMITS');
   if (options.limits !== undefined && (!options.limits || typeof options.limits !== 'object' || Array.isArray(options.limits) || Object.prototype.toString.call(options.limits) !== '[object Object]')) throw Error('E4_OBSERVER_LIMITS');
   if (options.profile !== undefined && !['v45-post', 'queue-ui', 'portable-review'].includes(options.profile)) throw Error('E4_OBSERVER_PROFILE');
+  if (options.phaseDiagnostics !== undefined && (options.phaseDiagnostics !== true || options.profile !== undefined)) throw Error('E4_OBSERVER_PHASE_PROFILE');
+  const phaseDiagnostics = options.phaseDiagnostics === true;
   const v45 = options.profile === 'v45-post', queueUI = options.profile === 'queue-ui', portableReview = options.profile === 'portable-review';
   const limits = { ...ceilings, ...(options.limits ?? {}) };
   if (Object.keys(limits).some(key => !Object.hasOwn(ceilings, key)) || Object.entries(limits).some(([key, value]) => !Number.isSafeInteger(value) || value < 1 || value > ceilings[key])) throw Error('E4_OBSERVER_LIMITS');
@@ -16,13 +18,36 @@ export function installE4DeliveryObserver(options) {
   const nativeFetch = realm.fetch, nativeParse = JSON.parse;
   const nativeStringify = JSON.stringify, nativeNow = Date.now.bind(Date), nativeMonotonic = performance.now.bind(performance);
   const deliveries = [], errors = [], active = new Set(), flights = new Set(), restores = [], wrappedResponses = new WeakSet();
+  // Opt-in scalar records share the existing lifetime row/byte limits. A fixed
+  // reservation bounds every record, including unknown and retired phases.
+  const phaseRecords = [], phaseRecordBytes = 4096;
   let retainedBytes = 0, recordBytes = 0, rows = 0, errorCount = 0, droppedErrors = 0, operations = 0, disabled = false, disposed = false;
   realm.__p25OriginalFetch = nativeFetch.bind(realm);
   realm.__p25Deliveries = deliveries;
   realm.__p25DeliveryErrors = errors;
 
-  function discard(record) {
+  function phase(record, update) {
+    if (!phaseDiagnostics || !record.live || !record.phase) return;
+    observe(() => {
+      const at = nativeMonotonic();
+      if (!Number.isFinite(at) || at < 0) { fail('E4_OBSERVER_PHASE_CLOCK'); return; }
+      update(record.phase, at);
+    });
+  }
+  function beginPhases(record) {
+    if (rows >= limits.rows || recordBytes + retainedBytes + phaseRecordBytes > limits.totalBytes) { fail('E4_OBSERVER_PHASE_LIMIT'); return; }
+    const value = { operation: record.operation, getReaderEntry: null, getReaderReturn: null, getReaderOutcome: null,
+      readCalls: 0, readCallbacks: 0, firstReadOrdinal: null, firstReadEntry: null, lastReadOrdinal: null, lastReadEntry: null,
+      firstCallbackReadOrdinal: null, firstReadCallback: null, firstReadOutcome: null, lastCallbackReadOrdinal: null, lastReadCallback: null, lastReadOutcome: null,
+      doneReadOrdinal: null, doneReadEntry: null, doneCallback: null, nativeEOF: null,
+      releaseLockEntry: null, releaseLockReturn: null, releaseLockOutcome: null,
+      parseEntry: null, parseReturn: null, parseOutcome: null,
+      responseJsonEntry: null, responseJsonCallback: null, responseJsonOutcome: null, retired: false, retirement: null };
+    record.phase = value; phaseRecords.push(value); rows++; recordBytes += phaseRecordBytes;
+  }
+  function discard(record, retirement = 'discarded') {
     if (!record.live) return;
+    if (record.phase) { record.phase.retired = true; record.phase.retirement = retirement; }
     record.live = false; active.delete(record); retainedBytes -= record.held;
     record.held = 0; record.buffer = null; record.text = null;
     const retired = record.restores; record.restores = [];
@@ -35,7 +60,7 @@ export function installE4DeliveryObserver(options) {
     if (errorCount <= limits.errors) errors.push(Object.freeze({ code, at: nativeNow() }));
     else droppedErrors++;
     disabled = true; flights.clear();
-    for (const record of active) discard(record);
+    for (const record of active) discard(record, 'observer-failure');
   }
   function observe(run) {
     if (disposed || disabled) return;
@@ -103,7 +128,7 @@ export function installE4DeliveryObserver(options) {
       scope: 'original-response-parse-delivery', value: projection });
     const bytes = nativeStringify(row).length * 2;
     if (rows >= limits.rows || recordBytes + retainedBytes + bytes > limits.totalBytes) { fail('E4_OBSERVER_ROW_LIMIT'); return; }
-    rows++; recordBytes += bytes; deliveries.push(row); discard(record);
+    rows++; recordBytes += bytes; deliveries.push(row); discard(record, 'delivered');
   }
   function complete(record) {
     if (!record.live) return;
@@ -132,6 +157,7 @@ export function installE4DeliveryObserver(options) {
     const record = { live: true, path: returned.pathname, url: returned.href, origin: returned.origin, status: response.status, method, operation, expected, held: 0, count: 0,
       buffer: null, text: null, complete: false, readers: 0, json: false, unlocked: false, restores: [] };
     active.add(record);
+    if (phaseDiagnostics) { beginPhases(record); if (!record.live) return; }
     const body = response.body, getReader = body.getReader, json = response.json;
     replace(response, 'json', function (...args) {
       const owned = this === response;
@@ -140,10 +166,17 @@ export function installE4DeliveryObserver(options) {
         if (record.json || record.readers) { discard(record); fail('E4_OBSERVER_MULTIPLE_CONSUMERS'); return; }
         record.json = true;
       });
+      if (owned) phase(record, (row, at) => { row.responseJsonEntry = at; });
       let promise;
       try { promise = Reflect.apply(json, this, args); }
-      catch (error) { if (owned) observe(() => discard(record)); throw error; }
-      if (owned && record.live) tap(promise, value => publish(record, value, 'original-response-json'), () => discard(record));
+      catch (error) { if (owned) observe(() => { if (record.phase) record.phase.responseJsonOutcome = 'threw'; discard(record); }); throw error; }
+      if (owned && record.live) tap(promise, value => {
+        phase(record, (row, at) => { row.responseJsonCallback = at; row.responseJsonOutcome = 'fulfilled'; });
+        publish(record, value, 'original-response-json');
+      }, () => {
+        phase(record, (row, at) => { row.responseJsonCallback = at; row.responseJsonOutcome = 'rejected'; });
+        discard(record);
+      });
       return promise;
     }, record);
     for (const [target, key] of [[response, 'clone'], [body, 'tee'], [body, 'cancel']]) {
@@ -156,9 +189,12 @@ export function installE4DeliveryObserver(options) {
       }, record);
     }
     replace(body, 'getReader', function (...args) {
+      const diagnosticReader = this === body && !record.json;
+      if (diagnosticReader) phase(record, (row, at) => { row.getReaderEntry = at; row.getReaderReturn = null; row.getReaderOutcome = null; });
       let reader;
       try { reader = Reflect.apply(getReader, this, args); }
-      catch (error) { if (this === body) observe(() => discard(record)); throw error; }
+      catch (error) { if (this === body) observe(() => { if (record.phase && diagnosticReader) record.phase.getReaderOutcome = 'threw'; discard(record); }); throw error; }
+      if (diagnosticReader) phase(record, (row, at) => { row.getReaderReturn = at; row.getReaderOutcome = 'returned'; });
       if (this !== body) return reader;
       observe(() => {
         // A native Response.json implementation may obtain its reader through
@@ -172,22 +208,41 @@ export function installE4DeliveryObserver(options) {
         record.buffer = new Uint8Array(expected); record.held = reservation; retainedBytes += reservation;
         const read = reader.read, cancel = reader.cancel, releaseLock = reader.releaseLock;
         replace(reader, 'read', function (...args) {
+          let ordinal, entered;
+          if (this === reader) phase(record, (row, at) => {
+            if (!Number.isSafeInteger(row.readCalls + 1)) { fail('E4_OBSERVER_PHASE_LIMIT'); return; }
+            ordinal = ++row.readCalls; entered = at;
+            if (row.firstReadOrdinal === null) { row.firstReadOrdinal = ordinal; row.firstReadEntry = at; }
+            row.lastReadOrdinal = ordinal; row.lastReadEntry = at;
+          });
           let promise;
           try { promise = Reflect.apply(read, this, args); }
           catch (error) { if (this === reader) observe(() => discard(record)); throw error; }
           if (this !== reader) return promise;
+          const callback = outcome => phase(record, (row, at) => {
+            row.readCallbacks++;
+            if (row.firstCallbackReadOrdinal === null) { row.firstCallbackReadOrdinal = ordinal; row.firstReadCallback = at; row.firstReadOutcome = outcome; }
+            row.lastCallbackReadOrdinal = ordinal; row.lastReadCallback = at; row.lastReadOutcome = outcome;
+          });
           tap(promise, result => {
+            callback('fulfilled');
             if (!record.live || record.complete) return;
-            if (result.done) { complete(record); return; }
+            const done = result.done;
+            if (done) {
+              if (done === true) phase(record, row => { row.doneReadOrdinal = ordinal; row.doneReadEntry = entered; row.doneCallback = row.lastReadCallback; });
+              complete(record); return;
+            }
             if (!(result.value instanceof Uint8Array) || record.count + result.value.byteLength > record.expected) { discard(record); fail('E4_OBSERVER_LENGTH'); return; }
             record.buffer.set(result.value, record.count); record.count += result.value.byteLength;
-          }, () => discard(record));
+          }, () => { callback('rejected'); discard(record); });
           return promise;
         }, record);
         replace(reader, 'releaseLock', function (...args) {
+          if (this === reader) phase(record, (row, at) => { row.releaseLockEntry = at; row.releaseLockReturn = null; row.releaseLockOutcome = null; });
           let result;
           try { result = Reflect.apply(releaseLock, this, args); }
-          catch (error) { if (this === reader) observe(() => discard(record)); throw error; }
+          catch (error) { if (this === reader) observe(() => { if (record.phase) record.phase.releaseLockOutcome = 'threw'; discard(record); }); throw error; }
+          if (this === reader) phase(record, (row, at) => { row.releaseLockReturn = at; row.releaseLockOutcome = 'returned'; });
           if (this === reader) observe(() => { if (record.live) record.unlocked = true; });
           return result;
         }, record);
@@ -203,12 +258,23 @@ export function installE4DeliveryObserver(options) {
     }, record);
   }
   const parsed = function (...args) {
+    let diagnosticRecord;
+    if (phaseDiagnostics) observe(() => {
+      if (args.length !== 1 || typeof args[0] !== 'string') return;
+      const matches = [...active].filter(record => record.complete && record.unlocked && record.text === args[0]);
+      if (matches.length === 1) diagnosticRecord = matches[0];
+    });
+    if (diagnosticRecord) phase(diagnosticRecord, (row, at) => { row.parseEntry = at; });
     let value;
     try { value = Reflect.apply(nativeParse, this, args); }
     catch (error) {
-      observe(() => { if (typeof args[0] === 'string') for (const record of active) if (record.complete && record.text === args[0]) discard(record); });
+      observe(() => {
+        if (diagnosticRecord?.phase) diagnosticRecord.phase.parseOutcome = 'threw';
+        if (typeof args[0] === 'string') for (const record of active) if (record.complete && record.text === args[0]) discard(record);
+      });
       throw error;
     }
+    if (diagnosticRecord) phase(diagnosticRecord, (row, at) => { row.parseReturn = at; row.parseOutcome = 'returned'; });
     observe(() => {
       if (typeof args[0] !== 'string') return;
       const matches = [...active].filter(record => record.complete && record.text === args[0]);
@@ -244,11 +310,12 @@ export function installE4DeliveryObserver(options) {
   replace(JSON, 'parse', parsed);
   replace(realm, 'fetch', fetched);
   realm.__p25DeliveryObserver = Object.freeze({
-    snapshot() { return Object.freeze({ pending: active.size + flights.size, ownedMethods: [...active].reduce((count, record) => count + record.restores.length, 0), retainedBytes, recordBytes, rows, errors: errorCount, droppedErrors, operations, disabled, disposed }); },
+    snapshot() { return Object.freeze({ pending: active.size + flights.size, ownedMethods: [...active].reduce((count, record) => count + record.restores.length, 0), retainedBytes, recordBytes, rows, errors: errorCount, droppedErrors, operations, disabled, disposed,
+      ...(phaseDiagnostics ? { phaseDiagnostics: Object.freeze({ kind: 'e4-original-consumer-phases-1', clock: 'browser-monotonic-ms', scope: 'Original method entry/return and observer callback times; no native Promise-settlement, parser internals, network EOF, adoption or paint claim.', reservedBytes: phaseRecords.length * phaseRecordBytes, records: Object.freeze(phaseRecords.map(row => Object.freeze({ ...row }))) }) } : {}) }); },
     dispose() {
       if (disposed) return;
       disposed = true; flights.clear();
-      for (const record of active) discard(record);
+      for (const record of active) discard(record, 'disposed');
       for (let index = restores.length - 1; index >= 0; index--) {
         try { restores[index](); } catch { fail('E4_OBSERVER_RESTORE_FAILURE'); }
       }
