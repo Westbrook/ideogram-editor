@@ -10,6 +10,7 @@ import { emulator, fixtureProfile, SENTINEL_KEY, SENTINEL_COOKIE } from '../prov
 import { egressAttempts } from '../provider/no-egress.mjs';
 import { QueueDispatcher } from '../../dist/local/server/provider/dispatcher.js';
 import { ResultObserver } from '../../dist/local/server/provider/observer.js';
+import { fixtureClosureResources, assertFixtureClosure } from './fixture-closure.mjs';
 
 const endpoint = 'ideogram/v4/inpaint';
 const profile = fixtureProfile({ id: 'local-fixture-inpaint-v1', endpoint });
@@ -183,7 +184,7 @@ export async function setup(store) {
     }).finally(() => { pending = undefined; });
   }, 100);
   write({ closed: false });
-  return async () => {
+  const close = async () => {
     closing = true;
     clearInterval(timer);
     observer.close();
@@ -192,21 +193,16 @@ export async function setup(store) {
     const closed = new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
     for (const socket of sockets) socket.destroy();
     await Promise.all([closed, ...socketClosures]);
-    const rasterRead = store.rasters.readDiagnostics();
-    try {
-    const resources = {
-      objects: store.objects.reservationInventory(), raster: rasterRead.value,
-      text: { reservedCPU: store.texts.reservedCPU, externalBytes: store.texts.externalBytes() },
-      fixture: { listening: server.listening, sockets: sockets.size, pending: Boolean(pending) },
-    };
-    write({ closed: true, resources });
-    assert.deepEqual(errors, []);
-    assert.deepEqual(egressAttempts(), []);
-    assert.equal(resources.objects.activeTransfers, 0);
-    assert.equal(resources.objects.reservedBytes, '0');
-    assert.equal(resources.raster.activeWorkers, 0);
-    assert.equal(resources.raster.reservedCPU, 0);
-    assert.deepEqual(resources.fixture, { listening: false, sockets: 0, pending: false });
-    } finally { rasterRead.release(); }
+    write({ closed: false, fixtureStopped: true });
   };
+  // The storage worker calls this only after its existing real owner drains.
+  // Raster observation rings are disposed then; read live ownership scalars,
+  // not a stale pre-drain diagnostic or invented empty observation arrays.
+  close.afterStoreDrain = () => {
+    const resources = fixtureClosureResources(store, { listening: server.listening, sockets: sockets.size, pending: Boolean(pending) });
+    write({ closed: false, fixtureStopped: true, resources });
+    assertFixtureClosure(resources, errors, egressAttempts());
+    write({ closed: true, fixtureStopped: true, resources });
+  };
+  return close;
 }

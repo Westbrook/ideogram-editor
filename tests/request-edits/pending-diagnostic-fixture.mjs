@@ -7,5 +7,5 @@ const {setup:baseSetup}=await import(original.href);
 export async function setup(store){
  const close=await baseSetup(store),observe=pendingDiagnosticObserver(store,captureOwnedDiagnostics);
  const timer=setInterval(()=>{try{observe();}catch{/* A refused snapshot remains unavailable; it cannot replace the original failure. */}},25);
- return async()=>{clearInterval(timer);await close();};
+ return Object.assign(async()=>{clearInterval(timer);await close();},{afterStoreDrain:()=>close.afterStoreDrain()});
 }

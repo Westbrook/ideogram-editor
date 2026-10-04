@@ -42,6 +42,21 @@ export function redactOwnedDiagnostics(value){
  return {value:walk(value),redacted};
 }
 
+// Identify only the owner family of the actual pending raster job. The native
+// owner retains a job through result delivery until its idle acknowledgement;
+// this projection does not claim an executing phase or a cause of delay.
+export function pendingRasterOwner(owned,commandId){
+ const unavailable=()=>({kind:'e3-raster-pending-owner-unavailable-1'});
+ if(typeof commandId!=='string'||!uuid.test(commandId)||owned?.kind!=='j19-owned-diagnostics-1')return unavailable();
+ const raster=owned.raster,worker=raster?.workerService;
+ if(!worker||![0,1].includes(worker.activeJobs)||raster.activeWorkers!==worker.activeJobs||worker.retainedJobReferences!==worker.activeJobs)return unavailable();
+ if(worker.activeJobs===0){if(worker.slot!==null)return unavailable();return {kind:'e3-raster-pending-owner-1',pending:false,family:null,selectedHistoryCommand:false};}
+ if(typeof worker.slot!=='string')return unavailable();
+ const match=/^(history|raster|display|candidate-prepare|queue|portable):[A-Za-z0-9_-]{1,128}$/.exec(worker.slot);
+ if(!match)return unavailable();
+ return {kind:'e3-raster-pending-owner-1',pending:true,family:match[1],selectedHistoryCommand:worker.slot==='history:'+commandId};
+}
+
 export function writerFailureDiagnostic(value){
  return {code:codes.has(value?.code)?value.code:null,sqliteCode:Number.isSafeInteger(value?.sqliteCode)?value.sqliteCode:null};
 }
@@ -73,7 +88,7 @@ export function pendingDiagnosticObserver(store,capture){
    if(!row||row.commandId!==commandId||row.operation!==operation||pending&&!['preparing','waiting-for-resources'].includes(row.phase)||terminal&&!['accepted','rejected'].includes(row.status))throw Error('E3_DIAGNOSTIC_OPERATION');
    const raw=capture(store,commandId);if(!Buffer.isBuffer(raw)||raw.length>262144)throw Error('E3_DIAGNOSTIC_BOUND');
    const owned=JSON.parse(raw);if(owned.commandId!==commandId||!['j19-owned-diagnostics-1','j19-diagnostic-unavailable-1'].includes(owned.kind))throw Error('E3_DIAGNOSTIC_IDENTITY');
-   packet={kind:'e3-pending-diagnostic-1',commandId,operation,phase:pending?row.phase:null,terminalStatus:terminal?row.status:null,ownership:redactOwnedDiagnostics(store.histories.resourceOwnership()),owned:redactOwnedDiagnostics(owned)};
+   packet={kind:'e3-pending-diagnostic-1',commandId,operation,phase:pending?row.phase:null,terminalStatus:terminal?row.status:null,rasterOwner:pendingRasterOwner(owned,commandId),ownership:redactOwnedDiagnostics(store.histories.resourceOwnership()),owned:redactOwnedDiagnostics(owned)};
   }catch{packet=unavailable('capture-refused',commandId);}
   const bytes=Buffer.from(JSON.stringify(packet));if(bytes.length>DIAGNOSTIC_LIMIT)throw Error('E3_DIAGNOSTIC_BOUND');
   const output=join(store.root,'e3-pending-'+commandId+'.json'),temporary=output+'.tmp';

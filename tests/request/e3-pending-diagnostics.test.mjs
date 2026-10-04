@@ -65,3 +65,36 @@ test('parent capture preserves prior trigger on collision and does not overwrite
 test('parent capture reports its finite deadline when the original observer never supplies evidence',async t=>{const f=fixture(t),before=JSON.stringify(command);const result=await capturePendingDiagnostic(f.root,command);assert.equal(result.reason,'capture-deadline');assert.equal(result.commandId,commandId);assert.equal(existsSync(f.output),false);assert.equal(JSON.stringify(command),before);});
 
 test('writer failure projection keeps actual allowlisted code and integer SQLite code only',()=>{const input={code:'ERR_ASSERTION',sqliteCode:13,message:'private',stack:'private'};assert.deepEqual(writerFailureDiagnostic(input),{code:'ERR_ASSERTION',sqliteCode:13});assert.deepEqual(writerFailureDiagnostic({code:'SECRET_TOKEN',sqliteCode:Infinity}),{code:null,sqliteCode:null});assert.equal(input.message,'private');});
+
+
+import {pendingRasterOwner} from '../request-edits/pending-diagnostics.mjs';
+const pendingOwner=(slot='history:'+commandId)=>({kind:'j19-owned-diagnostics-1',raster:{activeWorkers:1,workerService:{activeJobs:1,retainedJobReferences:1,slot}}});
+test('pending raster projection binds the selected history command without retaining its identifier or altering the capture',()=>{
+ const input=pendingOwner(),before=JSON.stringify(input),result=pendingRasterOwner(input,commandId);
+ assert.deepEqual(result,{kind:'e3-raster-pending-owner-1',pending:true,family:'history',selectedHistoryCommand:true});assert.equal(JSON.stringify(input),before);assert(!JSON.stringify(result).includes(commandId));
+});
+for(const family of ['history','raster','display','candidate-prepare','queue','portable'])test('pending raster projection distinguishes other '+family+' ownership from selected history authority',()=>{
+ const result=pendingRasterOwner(pendingOwner(family+':'+otherId),commandId);
+ assert.deepEqual(result,{kind:'e3-raster-pending-owner-1',pending:true,family,selectedHistoryCommand:false});assert(!JSON.stringify(result).includes(otherId));
+});
+test('matching identifier in another raster family never grants selected history ownership',()=>{assert.equal(pendingRasterOwner(pendingOwner('display:'+commandId),commandId).selectedHistoryCommand,false);});
+test('an actual empty raster owner is distinct from unavailable diagnostics',()=>{
+ assert.deepEqual(pendingRasterOwner({kind:'j19-owned-diagnostics-1',raster:{activeWorkers:0,workerService:{activeJobs:0,retainedJobReferences:0,slot:null}}},commandId),{kind:'e3-raster-pending-owner-1',pending:false,family:null,selectedHistoryCommand:false});
+});
+for(const [name,change]of [
+ ['missing worker',value=>delete value.raster.workerService],['invalid active count',value=>value.raster.workerService.activeJobs=2],
+ ['mismatched worker count',value=>value.raster.activeWorkers=0],['mismatched retained references',value=>value.raster.workerService.retainedJobReferences=0],
+ ['missing slot',value=>delete value.raster.workerService.slot],['unknown family',value=>value.raster.workerService.slot='secret:'+commandId],
+ ['path-like slot',value=>value.raster.workerService.slot='history:/private/grant'],['oversized identity',value=>value.raster.workerService.slot='history:'+'a'.repeat(129)],
+ ['unavailable capture',value=>value.kind='j19-diagnostic-unavailable-1'],
+])test('pending raster projection keeps '+name+' explicitly unavailable',()=>{const input=pendingOwner();change(input);assert.deepEqual(pendingRasterOwner(input,commandId),{kind:'e3-raster-pending-owner-unavailable-1'});});
+test('inconsistent empty raster slot and invalid selected identity cannot manufacture attribution',()=>{
+ const value=pendingOwner();value.raster.activeWorkers=0;value.raster.workerService.activeJobs=0;value.raster.workerService.retainedJobReferences=0;
+ assert.deepEqual(pendingRasterOwner(value,commandId),{kind:'e3-raster-pending-owner-unavailable-1'});assert.deepEqual(pendingRasterOwner(pendingOwner(),'private-grant'),{kind:'e3-raster-pending-owner-unavailable-1'});
+});
+test('actual pending observer projects the captured original owner only after its exact durable command join',t=>{
+ const f=fixture(t);f.pending();f.trigger();const original=pendingOwner();original.commandId=commandId;
+ pendingDiagnosticObserver(f.store,()=>Buffer.from(JSON.stringify(original)))();const result=readBoundedJSON(f.output);
+ assert.equal(result.commandId,commandId);assert.equal(result.phase,'preparing');assert.deepEqual(result.rasterOwner,{kind:'e3-raster-pending-owner-1',pending:true,family:'history',selectedHistoryCommand:true});
+ assert.equal(result.owned.value.raster.workerService.slot,'[redacted]');assert(readFileSync(f.output).byteLength<=DIAGNOSTIC_LIMIT);
+});

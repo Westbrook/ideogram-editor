@@ -61,10 +61,10 @@ export async function setup(store){
  };
  store.histories.liveReview=function(...args){const result=original.liveReview.apply(this,args);if(armed){if(config.hold){liveReadCount++;heldSnapshot();}save();}return result;};
  store.histories.prepare=async function(id,...args){try{return await original.prepare.call(this,id,...args);}finally{if(armed&&id===current){const row=store.db.prepare('SELECT receipt FROM commands WHERE id=?').get(id);commands.push({commandId:id,receipt:row?JSON.parse(row.receipt):null,proofs:proofs(),leases:store.histories.encodedReviewProofInventory()});save();}}};
- return async()=>{
+ return Object.assign(async()=>{
   stopDiagnostics();
   store.histories.command=original.command;store.histories.prepare=original.prepare;store.histories.liveReview=original.liveReview;store.rasters.compute=original.compute;store.rasters.prepareEncodedPreservation=original.preserve;store.candidates.retainedPreservation=original.retained;
   for(const key of ['prove','verify','readRange'])store.objects[key]=original[key];
   await closeProvider();if(armed)save();
- };
+ },{afterStoreDrain:()=>closeProvider.afterStoreDrain()});
 }

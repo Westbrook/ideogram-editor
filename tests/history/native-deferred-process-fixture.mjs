@@ -39,7 +39,7 @@ function boundsSetupModule(encoded){
      }
     }
    };
-   return async()=>{store.histories.prepare=prepare;await close();};
+   return Object.assign(async()=>{store.histories.prepare=prepare;await close();},{afterStoreDrain:()=>close.afterStoreDrain()});
   }
  `;
  return 'data:text/javascript;base64,'+Buffer.from(source).toString('base64');

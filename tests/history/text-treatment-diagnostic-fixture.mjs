@@ -16,5 +16,5 @@ export async function setup(store){
  try{const fd=openSync(join(store.root,'native-fixture-config.json'),'r');try{const stat=fstatSync(fd);if(stat.isFile()&&stat.size>0&&stat.size<=128){const config=JSON.parse(readFileSync(fd,'utf8'));observeRequests=config.version===1&&config.bounds===true&&config.encoded===false;}}finally{closeSync(fd);}}catch{}
  const closeObserver=await setupObserver(store),stopDiagnostics=installFailureDiagnostics(store),requestMemory=observeRequests?observeNativeRequestWriter(store):null;
  const stopCandidateObservation=installCandidatePreparationObservation(store,captureOwnedDiagnostics,requestMemory?{requestMemory:invocation=>requestMemory.snapshotForFailure(invocation.outputAssetId,{documentId:invocation.documentId})}:{});
- return async()=>{stopCandidateObservation();requestMemory?.close();stopDiagnostics();await closeObserver();};
+ return Object.assign(async()=>{stopCandidateObservation();requestMemory?.close();stopDiagnostics();await closeObserver();},{afterStoreDrain:()=>closeObserver.afterStoreDrain()});
 }

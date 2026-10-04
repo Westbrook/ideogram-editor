@@ -24,7 +24,9 @@ const barrier = (phase: string) => {
 };
 let store: StoreDatabase;
 let provider:ProviderRuntime|undefined;
-let closeFixture:(()=>Promise<void>)|undefined;
+// Internal setupModule fixtures may verify global resources only after the
+// real owners drain. Neither hook is selected by product configuration.
+let closeFixture:((()=>Promise<void>)&{afterStoreDrain?:()=>void|Promise<void>})|undefined;
 const activeMethods=new Map<string,number>();
 // This finite contract covers adapter import/selection and its scalar metadata
 // RPCs. Other synchronous producers invalidate interval coverage even if their
@@ -105,7 +107,7 @@ port.on('message', async message => {
     if ((method==='submit'||method==='assetCommand'||method==='adapterCommand'||method==='rasterCommand'||method==='historyCommand'||method==='portableCommand'||method==='queueCommand')&&store.recovery.needsSnapshot()) await store.recovery.settle(true);
     else if (['close','capture','diagnostics'].includes(method)) await store.recovery.settle();
     if(method==='textAdmission'){result=args.release?store.texts.releaseAdmission(args.id,args.auth):store.texts.admission(args.id,args.auth);}
-    else if (method === 'close') { await provider?.close(); await closeFixture?.(); await store.storageRepairs.close(); store.storageLibrary.close(); store.storageMemory.close(); await store.displays.close(); await store.candidates.close(); await store.queue.close(); await store.portables.close(); await store.histories.close(); await store.rasters.close(); await store.assets.close(); await store.recovery.settle(); store.close(); result = null; }
+    else if (method === 'close') { await provider?.close(); await closeFixture?.(); await store.storageRepairs.close(); store.storageLibrary.close(); store.storageMemory.close(); await store.displays.close(); await store.candidates.close(); await store.queue.close(); await store.portables.close(); await store.histories.close(); await store.rasters.close(); await store.assets.close(); await store.recovery.settle(); await closeFixture?.afterStoreDrain?.(); store.close(); result = null; }
     else {
       store.fence(args.epoch);
       switch (method) {
