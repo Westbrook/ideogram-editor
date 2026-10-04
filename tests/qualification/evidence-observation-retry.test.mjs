@@ -485,3 +485,26 @@ test('finish retains the pending retry timer and then drains the issued filesyst
   if(cleanupFailures.length)throw new AggregateError(originalFailure?[originalFailure,...cleanupFailures]:cleanupFailures,'Retry-drain fixture cleanup failed');
  }
 });
+
+// These real traversal/journal controls use the existing deterministic clock.
+// Describing a refusal never supplies timing evidence or repairs an unknown.
+for(const mutations of [1,3])test('retained comparison diagnostics preserve '+mutations+' failed attempts and the original audit decision',async t=>{
+ let scan;const f=await retain(t,{sampleOptions:(fixture,time)=>{scan=traversal(fixture.volume,{mutations,onEnd:()=>time.advance(10)});return scan.sampleOptions;},atFinish:mutations===1?120:230});
+ const first=f.records[0].observation;verifyAttemptChain(first);assert.equal(first.maxAttempts,3);assert.equal(first.maxWindowMs,1000);
+ assert.equal(first.attempts.length,mutations===1?2:3);assert.equal(first.selectedAttempt,mutations===1?1:null);
+ for(const [index,attempt]of first.attempts.entries()){
+  if(index<mutations){
+   assert.equal(attempt.sample.completeTraversal,false);assert.equal(attempt.sample.failures[0].code,'EVIDENCE_MUTATION');
+   const match=/; mutation-v1=([0-7][0-9a-f]); kinds=directory>directory$/.exec(attempt.sample.failures[0].message);assert(match);
+   const bits=parseInt(match[1],16);assert.equal(bits&15,0);assert(bits&32,'The fixture explicitly changes mtime');assert(Buffer.byteLength(match[0])<=80);
+  }
+ }
+ assert.equal(f.audit.failedAttempts,mutations);assert.equal(f.audit.attempts,mutations===1?3:4);assert.equal(f.audit.unknownSamples,mutations===1?0:1);
+ assert.equal(f.audit.coverageComplete,mutations===1);assert.equal(f.audit.status,mutations===1?'PASS':'INCONCLUSIVE');
+ assert.equal(first.windowEndMs-first.windowStartMs,mutations===1?120:230);assert.equal(f.records[1].sample.completeTraversal,true);
+ assert.equal((await verifyEvidenceAudit(f.monitor.reference,f.receiptPath)).status,f.audit.status);await assertClosed(scan.handles);
+ // An annotation cannot be edited in a retained attempt without invalidating
+ // its existing authenticated chain; no new annotation-specific schema exists.
+ const changed=structuredClone(first),failure=changed.attempts[0].sample.failures[0];failure.message=failure.message.replace(/mutation-v1=[0-7][0-9a-f]/,'mutation-v1=00');
+ assert.throws(()=>validateEvidenceObservation(changed));
+});

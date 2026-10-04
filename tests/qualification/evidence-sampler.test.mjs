@@ -355,3 +355,93 @@ test('a real observed gap beyond two intervals stays inconclusive through retain
   await retainEvidenceAudit(monitor.reference,f.output);assert.equal((await verifyEvidenceAudit(monitor.reference,receiptPath)).status,'INCONCLUSIVE');assert.equal(time.timers.size,0);await assert.rejects(descriptor.stat(),/closed|EBADF/);
  }finally{if(finished)await finished;else if(monitor)await monitor.finish();}
 });
+
+// Synthetic post-stat deltas exercise refusal diagnostics, not a new scan policy
+// or a measured explanation for any historical filesystem mutation.
+for(const kind of ['file','directory'])for(const [field,mask]of [['size','10'],['mtimeNs','20'],['ctimeNs','40']])test('comparison diagnostic isolates '+kind+' '+field+' without changing admission',async t=>{
+ const f=await fixture(t,1),target=kind==='file'?join(f.volume,'entry-0'):f.volume,dirs=directories(),visits=new Map();
+ const result=await sampleVolume(f.allocation,{openDirectory:dirs.openDirectory,async statEntry(path,options){
+  const value=await lstat(path,options),count=(visits.get(path)??0)+1;visits.set(path,count);
+  if(path===target&&count===2){assert.equal(typeof value[field],'bigint');value[field]+=1n;}
+  return value;
+ }});
+ assert.equal(result.entries,2);assert.equal(result.uniqueFiles,1);assert.equal(result.observedLogicalBytes,1);assert.equal(result.concurrentChanges,1);
+ assert.equal(result.completeTraversal,kind==='file');assert.equal(visits.size,2);for(const count of visits.values())assert.equal(count,2);
+ if(kind==='file')assert.deepEqual(result.failures,[]);
+ else assert.deepEqual(result.failures,[{code:'EVIDENCE_MUTATION',message:'Evidence observation unavailable; phase=identity; code=EVIDENCE_MUTATION; member=.; mutation-v1='+mask+'; kinds=directory>directory'}]);
+ await closed(dirs.handles);
+});
+
+for(const [field,mask]of [['dev','01'],['ino','02']])test('comparison diagnostic preserves exact '+field+' identity above Number precision',async t=>{
+ const f=await fixture(t,1),target=join(f.volume,'entry-0'),dirs=directories(),visits=new Map(),large=1n<<80n;
+ const result=await sampleVolume(f.allocation,{openDirectory:dirs.openDirectory,async statEntry(path,options){
+  const value=await lstat(path,options),count=(visits.get(path)??0)+1;visits.set(path,count);
+  if(path===target)value[field]=large+(count===2?1n:0n);
+  return value;
+ }});
+ assert.equal(result.completeTraversal,false);assert.equal(result.concurrentChanges,0);assert.equal(result.uniqueFiles,1);assert.equal(result.observedLogicalBytes,1);
+ assert.deepEqual(result.failures,[{code:'EVIDENCE_MUTATION',message:'Evidence observation unavailable; phase=identity; code=EVIDENCE_MUTATION; member=entry-0; mutation-v1='+mask+'; kinds=file>file'}]);
+ assert.equal(visits.get(target),2);assert(!JSON.stringify(result).includes(String(large)));await closed(dirs.handles);
+});
+
+for(const kind of ['file','directory'])test('comparison diagnostic distinguishes '+kind+' type replacement at the original identity refusal',async t=>{
+ const f=await fixture(t,1),target=kind==='file'?join(f.volume,'entry-0'):join(f.volume,'child'),dirs=directories(),visits=new Map();
+ if(kind==='directory')await mkdir(target);
+ const result=await sampleVolume(f.allocation,{openDirectory:dirs.openDirectory,async statEntry(path,options){
+  const value=await lstat(path,options),count=(visits.get(path)??0)+1;visits.set(path,count);
+  if(path===target&&count===2){value.isDirectory=()=>kind==='file';value.isFile=()=>kind==='directory';}
+  return value;
+ }});
+ assert.equal(result.completeTraversal,false);assert.equal(result.concurrentChanges,0);assert.equal(result.failures.length,1);assert.equal(result.failures[0].code,'EVIDENCE_MUTATION');
+ assert(result.failures[0].message.endsWith('; mutation-v1=0c; kinds='+kind+'>'+(kind==='file'?'directory':'file')));
+ assert.equal(visits.get(target),2);await closed(dirs.handles);
+});
+
+test('all seven comparison bits coexist without exposing native tuple values',async t=>{
+ const f=await fixture(t,1),target=join(f.volume,'entry-0'),dirs=directories(),visits=new Map(),large=1n<<100n;
+ const result=await sampleVolume(f.allocation,{openDirectory:dirs.openDirectory,async statEntry(path,options){
+  const value=await lstat(path,options),count=(visits.get(path)??0)+1;visits.set(path,count);
+  if(path===target){value.dev=large;value.ino=large+2n;if(count===2){for(const field of ['dev','ino','size','mtimeNs','ctimeNs'])value[field]+=1n;value.isDirectory=()=>true;value.isFile=()=>false;}}
+  return value;
+ }});
+ assert.equal(result.completeTraversal,false);assert.equal(result.concurrentChanges,0,'Identity refusal still precedes metadata accounting');
+ assert.deepEqual(result.failures,[{code:'EVIDENCE_MUTATION',message:'Evidence observation unavailable; phase=identity; code=EVIDENCE_MUTATION; member=entry-0; mutation-v1=7f; kinds=file>directory'}]);
+ assert(!JSON.stringify(result).includes(String(large)));assert.equal(visits.get(target),2);await closed(dirs.handles);
+});
+
+for(const lateError of [false,true])test('comparison diagnostic drains a held sibling and preserves '+(lateError?'non-mutation priority':'the original mutation'),async t=>{
+ const f=await fixture(t,12),held=gate(),entered=gate(),compared=gate(),dirs=directories(),visits=new Map();let first,second,active=0,settled=false;
+ const pending=sampleVolume(f.allocation,{openDirectory:dirs.openDirectory,async statEntry(path,options){
+  const value=await lstat(path,options),count=(visits.get(path)??0)+1;visits.set(path,count);
+  if(value.isFile()&&count===1){
+   if(!first){first=path;active++;entered.resolve();try{await held.promise;if(lateError)throw Object.assign(Error('private sibling detail'),{code:'EIO'});}finally{active--;}}
+   else if(!second)second=path;
+  }
+  if(path===second&&count===2){value.ino+=1n;compared.resolve();}
+  return value;
+ }}).then(value=>{settled=true;return value;});
+ // Attach a rejection handler before any assertion can leave the barrier held.
+ const drained=pending.then(value=>({value}),error=>({error}));
+ try{
+  await within(Promise.all([entered.promise,compared.promise]));await Promise.resolve();assert.equal(settled,false);assert.equal(active,1);
+  held.resolve();const outcome=await drained;if(outcome.error)throw outcome.error;const result=outcome.value;
+  assert.equal(active,0);assert.equal(result.completeTraversal,false);assert.equal(result.failures.length,1);
+  assert.equal(result.failures[0].code,lateError?'EIO':'EVIDENCE_MUTATION');assert(!result.failures[0].message.includes('private sibling detail'));
+  if(lateError)assert(!result.failures[0].message.includes('mutation-v1'));
+  else assert(result.failures[0].message.endsWith('; mutation-v1=02; kinds=file>file'));
+  await closed(dirs.handles);
+ }finally{held.resolve();await drained;}
+});
+
+test('an unavailable injected comparison description cannot mask the original mutation',async t=>{
+ const f=await fixture(t,1),target=join(f.volume,'entry-0'),dirs=directories();let visits=0;
+ const result=await sampleVolume(f.allocation,{openDirectory:dirs.openDirectory,async statEntry(path,options){
+  const value=await lstat(path,options);
+  if(path===target&&++visits===2){value.dev+=1n;value.isDirectory=()=>{throw Error('private injected kind detail');};}
+  return value;
+ }});
+ // isFile() admits the post-stat type and dev short-circuits the existing
+ // identity guard. Only the optional description encounters the throwing hook.
+ assert.deepEqual(result.failures,[{code:'EVIDENCE_MUTATION',message:'Evidence observation unavailable; phase=identity; code=EVIDENCE_MUTATION; member=entry-0'}]);
+ assert.equal(result.completeTraversal,false);assert.equal(result.concurrentChanges,0);assert.equal(visits,2);await closed(dirs.handles);
+});

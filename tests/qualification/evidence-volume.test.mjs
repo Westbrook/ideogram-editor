@@ -179,3 +179,28 @@ test('fresh functional checkout supports external allocated output and keeps exc
 });
 
 test('counter rejects an unbounded caller limit', async t => { const f = await fixture(t); await assert.rejects(sampleVolume(f.allocation, { maxEntries: Infinity }), /bounded/); await assert.rejects(sampleVolume(f.allocation, { maxEntries: 100001 }), /bounded/); });
+
+// Message-only diagnostics retain the public sample/alarm schema and opaque
+// error boundary. The supplied metadata deltas are deterministic unit controls.
+test('bounded mutation comparison preserves unknown alarm and sanitized member context',async t=>{
+ const {lstat}=await import('node:fs/promises'),f=await fixture(t),name='"'+'x'.repeat(178)+'z',target=join(f.volume,name);await writeFile(target,'x');let visits=0;
+ const result=await sampleVolume(f.allocation,{async statEntry(path,options){const value=await lstat(path,options);if(path===target&&++visits===2)value.ino+=1n;return value;}});
+ const prefix='Evidence observation unavailable; phase=identity; code=EVIDENCE_MUTATION; member='+name.replace(/[\\"]/g,'?').slice(0,160),suffix='; mutation-v1=02; kinds=file>file';
+ assert.deepEqual(result.failures,[{code:'EVIDENCE_MUTATION',message:prefix+suffix}]);assert.deepEqual(Object.keys(result.failures[0]).sort(),['code','message']);
+ assert(Buffer.byteLength(suffix)<=80);assert(!result.failures[0].message.includes(f.root));assert.equal(result.entries,2);assert.equal(result.uniqueFiles,1);assert.equal(result.observedLogicalBytes,1);
+ assert.deepEqual(volumeAlarm(result,f.allocation.capacityBytes),{status:'INCONCLUSIVE',level:'unknown',percent:null});assert.equal(result.consistency,'non-atomic-observation-window');
+});
+
+for(const kind of ['root-identity','unsupported-entry','injected-mutation'])test(kind+' does not acquire a comparison diagnostic or a different refusal',async t=>{
+ const {lstat}=await import('node:fs/promises'),f=await fixture(t),target=kind==='root-identity'?f.volume:join(f.volume,'entry');if(target!==f.volume)await writeFile(target,'x');let visits=0;
+ const result=await sampleVolume(f.allocation,{async statEntry(path,options){
+  const value=await lstat(path,options);
+  if(path===target){visits++;if(kind==='injected-mutation')throw Object.assign(Error('untrusted mutation-v1=7f /private/secret'),{code:'EVIDENCE_MUTATION',comparison:'forged'});
+   if(visits===2){if(kind==='root-identity')value.ino+=1n;else value.isSymbolicLink=()=>true;}}
+  return value;
+ }});
+ const expected=kind==='root-identity'?'EVIDENCE_ROOT':kind==='unsupported-entry'?'EVIDENCE_ENTRY':'EVIDENCE_MUTATION';
+ assert.equal(result.completeTraversal,false);assert.equal(result.failures.length,1);assert.equal(result.failures[0].code,expected);
+ assert.deepEqual(Object.keys(result.failures[0]).sort(),['code','message']);assert(!result.failures[0].message.includes('mutation-v1'));assert(!result.failures[0].message.includes('private'));assert(!result.failures[0].message.includes('forged'));
+ assert.equal(volumeAlarm(result,f.allocation.capacityBytes).status,'INCONCLUSIVE');assert.equal(visits,kind==='injected-mutation'?1:2);
+});

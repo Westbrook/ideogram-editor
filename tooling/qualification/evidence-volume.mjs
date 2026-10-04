@@ -11,6 +11,18 @@ const id = value => typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9._-]{0,1
 const utc = value => typeof value === 'string' && Number.isFinite(Date.parse(value)) && new Date(value).toISOString() === value;
 const stamp = value => [value.dev, value.ino, value.size, value.mtimeNs, value.ctimeNs].map(String).join(':');
 const observationDiagnostics = new WeakMap();
+const mutationComparisons = new WeakMap();
+// Diagnostic only: seven exact metadata comparisons, never raw values or paths.
+// The original rejection wins even if an injected stat object cannot be described.
+function comparedMutation(message, code, before, after) {
+  const failure = Object.assign(Error(message), { code });
+  if (code === 'EVIDENCE_MUTATION') try {
+    const bd = before.isDirectory(), ad = after.isDirectory(), bf = before.isFile(), af = after.isFile();
+    const bits = (before.dev !== after.dev ? 1 : 0) | (before.ino !== after.ino ? 2 : 0) | (bd !== ad ? 4 : 0) | (bf !== af ? 8 : 0) | (before.size !== after.size ? 16 : 0) | (before.mtimeNs !== after.mtimeNs ? 32 : 0) | (before.ctimeNs !== after.ctimeNs ? 64 : 0);
+    mutationComparisons.set(failure, `; mutation-v1=${bits.toString(16).padStart(2, '0')}; kinds=${bd ? 'directory' : bf ? 'file' : 'other'}>${ad ? 'directory' : af ? 'file' : 'other'}`);
+  } catch { /* Never replace the original refusal with a diagnostic failure. */ }
+  return failure;
+}
 const opaqueError = error => ({ code: typeof error?.code === 'string' ? error.code : 'EVIDENCE_IO', message: observationDiagnostics.get(error) ?? 'Evidence observation unavailable; inspect protected controller diagnostics.' });
 // Only sampler-owned context is retained; never filesystem error messages or
 // absolute/error-supplied paths. Keep the historical failure schema unchanged.
@@ -21,7 +33,7 @@ function observationError(error, root, path, phase, originalCode = error?.code) 
   const owned = path === root ? '.' : relative(root, path);
   const member = (owned === '..' || owned.startsWith('../') || isAbsolute(owned) ? '<outside>' : owned).replace(/[^\x20-\x7e]|[\\"]/g, '?').slice(0, 160);
   const failure = Object.assign(Error('Evidence observation unavailable'), { code });
-  observationDiagnostics.set(failure, `Evidence observation unavailable; phase=${phase}; code=${rawCode}; member=${member}`);
+  observationDiagnostics.set(failure, `Evidence observation unavailable; phase=${phase}; code=${rawCode}; member=${member}${mutationComparisons.get(error) ?? ''}`);
   return failure;
 }
 
@@ -248,8 +260,8 @@ export async function sampleVolume(allocation, { maxEntries = LIMIT, statEntry, 
     phase = 'stat-after'; const after = await statEntry(path, { bigint: true });
     phase = 'identity';
     if (after.isSymbolicLink() || !after.isFile() && !after.isDirectory()) throw Object.assign(Error('Unsupported evidence entry'), { code: 'EVIDENCE_ENTRY' });
-    if (before.dev !== after.dev || before.ino !== after.ino || before.isDirectory() !== after.isDirectory() || before.isFile() !== after.isFile()) throw Object.assign(Error('Evidence identity changed during sample'), { code: depth === 0 ? 'EVIDENCE_ROOT' : 'EVIDENCE_MUTATION' });
-    if (before.size !== after.size || before.mtimeNs !== after.mtimeNs || before.ctimeNs !== after.ctimeNs) { concurrentChanges++; if (before.isDirectory()) throw Object.assign(Error('Evidence membership changed during sample'), { code: 'EVIDENCE_MUTATION' }); }
+    if (before.dev !== after.dev || before.ino !== after.ino || before.isDirectory() !== after.isDirectory() || before.isFile() !== after.isFile()) throw comparedMutation('Evidence identity changed during sample', depth === 0 ? 'EVIDENCE_ROOT' : 'EVIDENCE_MUTATION', before, after);
+    if (before.size !== after.size || before.mtimeNs !== after.mtimeNs || before.ctimeNs !== after.ctimeNs) { concurrentChanges++; if (before.isDirectory()) throw comparedMutation('Evidence membership changed during sample', 'EVIDENCE_MUTATION', before, after); }
     } catch (error) {
       let failure = error;
       if (!observationDiagnostics.has(error)) {
