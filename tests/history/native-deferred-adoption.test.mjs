@@ -67,7 +67,10 @@ async function events(f,receipt){
  }finally{const released=await f.post('/api/v1/recovery/'+recoveryId+'/release',{protocolVersion:1});assert.equal(released.status,204,released.text);}
 }
 async function run(f,body){
- const before=await document(f),request=f.command({documentId,expectedDocumentRevision:before.revision,body}),result=await terminal(f,request);
+ const before=await document(f),request=f.command({documentId,expectedDocumentRevision:before.revision,body});
+ const report=body.type==='ReviewCandidatePlacement'&&body.preparation==='encoded-rebuild'?f.placementFailureReport:undefined;
+ if(report)delete f.placementFailureReport;
+ const result=report?await terminalWithDiagnostics(f,request,{documentId,documentRevision:before.revision,phase:'native99-first-placement'},undefined,report):await terminal(f,request);
  assert.equal(result.json.receipt.status,'accepted',result.text);return {request,receipt:result.json.receipt,events:await events(f,result.json.receipt),document:await document(f)};
 }
 async function properties(f,id,value){const l=(await image(f)).layers.find(l=>l.id===id);return run(f,{type:'SetLayerProperties',layerId:id,layerVersion:l.version,properties:value,draft:null});}
@@ -107,7 +110,7 @@ async function fixture(t,{encoded=false,failure=false,now,bounds=false,actualSiz
  }else server=await providerChild(root,owned=>{close=owned;},new URL('./text-treatment-process-fixture.mjs',import.meta.url));
  mainMemory.sample(memoryFixture,memoryPhase.serverReady);
  const paired=await pair(server);assert.equal(paired.status,200,paired.text);
- const f={root,server,paired,memoryFixture,nativeRequestMemory:bounds&&!encoded,diagnostic:packet=>t.diagnostic(JSON.stringify(packet)),...(acceptanceWait?{acceptanceWait}:{}),...(now?{syncClock:()=>syncNativeClock(root,now())}:{}),read:path=>call(server.origin,path,{headers:readHeaders(cookieFrom(paired))}),post:(path,body)=>call(server.origin,path,{method:'POST',body,headers:mutationHeaders(server,paired)}),command:(patch={},body={})=>command(EMPTY_EXPECTED_VERSIONS,{clientId:paired.json.clientId,...patch},body),effects:async()=>{const value=JSON.parse(await readFile(join(root,'request-edits-fixture.json'),'utf8'));assert.deepEqual(value.errors,[]);return value.effects;}};
+ const f={root,server,paired,memoryFixture,nativeRequestMemory:bounds&&!encoded,...(passiveMemory?{placementFailureReport:bytes=>t.diagnostic(bytes)}:{}),diagnostic:packet=>t.diagnostic(JSON.stringify(packet)),...(acceptanceWait?{acceptanceWait}:{}),...(now?{syncClock:()=>syncNativeClock(root,now())}:{}),read:path=>call(server.origin,path,{headers:readHeaders(cookieFrom(paired))}),post:(path,body)=>call(server.origin,path,{method:'POST',body,headers:mutationHeaders(server,paired)}),command:(patch={},body={})=>command(EMPTY_EXPECTED_VERSIONS,{clientId:paired.json.clientId,...patch},body),effects:async()=>{const value=JSON.parse(await readFile(join(root,'request-edits-fixture.json'),'utf8'));assert.deepEqual(value.errors,[]);return value.effects;}};
  f.reopen=async()=>{assert(!encoded&&!now&&!bounds);await close();const reopened=await providerChild(root,owned=>{close=owned;},new URL('./text-treatment-process-fixture.mjs',import.meta.url)),newPair=await pair(reopened);assert.equal(newPair.status,200,newPair.text);return clientFor({...f,server:reopened},newPair);};
  assert.equal((await terminal(f,f.command({},{width:512,height:512}))).json.receipt.status,'accepted');
  const background=(await importRaster(f,'black.png')).asset;
@@ -1168,5 +1171,112 @@ test('native candidate memory clean cohorts disclose foreign observation ownersh
   const packet=stop();assert.equal(packet.candidates,2);assert.equal(packet.completed,2);assert.equal(packet.pendingAtClose,0);assert.equal(packet.dropped,0);assert.equal(packet.untrackedCohorts,false);assert.equal(packet.faults,1,'Only the foreign replacement causes this fault');assert.equal(packet.incomplete,true);assert.strictEqual(owner[key],foreign);
   assert.deepEqual(JSON.parse(f.emitted[0]),packet);assert(Buffer.byteLength(f.emitted[0])<=32768);
   if(key==='prepareDocument')assert.strictEqual(f.store.rasters.observations.add,f.add);else assert.strictEqual(f.store.rasters.prepareDocument,f.prepare);
+ }
+});
+
+
+// Failure-only retention controls use real bounded capture files and controlled
+// terminal/status responses. They do not execute or retry the native campaign.
+async function placementFailureCapture(t,body=JSON.stringify({kind:'fixture-original-observation-1',rows:[{code:'fixture-code'}],label:'é'})){
+ const root=await rootFor(t),commandId=randomUUID(),request={command:{commandId,body:{type:'ReviewCandidatePlacement',preparation:'encoded-rebuild'}}},pending={phase:'waiting-for-resources',operationId:'fixture-operation'},reads=[];
+ await writeFile(join(root,'j19-diagnostic-'+commandId+'.json'),body,{flag:'wx',mode:0o600});
+ const f={root,read:async path=>{reads.push(path);assert.equal(path,'/api/v1/commands/'+commandId);return {status:202,json:pending};}};
+ return {root,request,pending,reads,f};
+}
+
+test('native99 failure reporting leaves successful terminal results and diagnostic inputs untouched',async()=>{
+ for(const enabled of [false,true]){
+  const value={receipt:'original-success'},request={command:{commandId:'fixture-success'}},baseline={};let runs=0,reads=0,reports=0;
+  const f={read:async()=>{reads++;throw Error('unexpected diagnostic status read');},get root(){throw Error('unexpected diagnostic root read');}};
+  Object.defineProperty(baseline,'value',{enumerable:true,get(){throw Error('unexpected baseline serialization');}});
+  const invoke=()=>{runs++;return Promise.resolve(value);},report=()=>{reports++;throw Error('unexpected reporter');};
+  assert.strictEqual(await terminalWithDiagnostics(f,request,baseline,invoke,enabled?report:undefined),value);
+  assert.equal(runs,1);assert.equal(reads,0);assert.equal(reports,0);
+ }
+});
+
+test('native99 failure reporting keeps unrelated terminal failures and failed status reads original',async()=>{
+ for(const outcome of [{status:200,json:{phase:'waiting-for-resources'}},{status:202,json:{phase:'preparing'}},{status:202,json:{}},null]){
+  const original=Object.freeze(Error('original terminal failure')),request={command:{commandId:'fixture-ineligible'}},paths=[];let roots=0,reports=0,runs=0;
+  const f={get root(){roots++;throw Error('capture must remain ineligible');},read:async path=>{paths.push(path);if(outcome===null)throw Error('status unavailable');return outcome;}};
+  await assert.rejects(terminalWithDiagnostics(f,request,{},()=>{runs++;throw original;},()=>{reports++;}),error=>error===original);
+  assert.equal(runs,1);assert.deepEqual(paths,['/api/v1/commands/fixture-ineligible']);assert.equal(roots,0);assert.equal(reports,0);assert.equal(original.message,'original terminal failure');
+ }
+});
+
+test('native99 failure reporting retains the once-serialized original bounded UTF-8 packet',async t=>{
+ const c=await placementFailureCapture(t),original=Object.freeze(Error('original retained failure')),reports=[];let baselineReads=0,runs=0;
+ const baseline={documentId,documentRevision:'17',get label(){baselineReads++;return 'é';}};
+ await assert.rejects(terminalWithDiagnostics(c.f,c.request,baseline,()=>{runs++;throw original;},text=>{assert.equal(typeof text,'string');reports.push(text);}),error=>error===original);
+ const snapshot=JSON.parse(await readFile(join(c.root,'j19-diagnostic-'+c.request.command.commandId+'.json'),'utf8'));
+ const expected={kind:'j19-waiting-diagnostic-1',commandId:c.request.command.commandId,operation:'ReviewCandidatePlacement',pending:c.pending,baseline:{documentId,documentRevision:'17',label:'é'},snapshot};
+ assert.deepEqual(reports,[JSON.stringify(expected)]);assert.equal(baselineReads,1);assert.equal(runs,1);assert.equal(c.reads.length,1);
+ assert.deepEqual(JSON.parse(await readFile(join(c.root,'j19-diagnostic-request.json'),'utf8')),{commandId:c.request.command.commandId});
+ assert(Buffer.byteLength(reports[0],'utf8')<=270336);assert(Buffer.byteLength(reports[0],'utf8')>reports[0].length);assert.equal(original.message,'original retained failure');
+});
+
+test('native99 failure reporting cannot replace the original error when the synchronous reporter throws',async t=>{
+ const c=await placementFailureCapture(t),original=Object.freeze(Error('original failure')),reportError=Error('reporter failure');let reports=0;
+ await assert.rejects(terminalWithDiagnostics(c.f,c.request,{},()=>{throw original;},text=>{reports++;assert.equal(JSON.parse(text).commandId,c.request.command.commandId);throw reportError;}),error=>error===original);
+ assert.equal(reports,1);assert.equal(c.reads.length,1);assert.equal(original.message,'original failure');
+});
+
+for(const [name,body,reason] of [['malformed','{','SyntaxError'],['oversized','x'.repeat(262145),'ERR_ASSERTION']])test('native99 failure reporting retains bounded unavailable evidence for '+name+' captures',async t=>{
+ const c=await placementFailureCapture(t,body),original=Object.freeze(Error('original capture failure')),reports=[];
+ await assert.rejects(terminalWithDiagnostics(c.f,c.request,{},()=>{throw original;},text=>reports.push(text)),error=>error===original);
+ assert.equal(reports.length,1);const packet=JSON.parse(reports[0]);
+ assert.deepEqual(packet.snapshot,{kind:'j19-diagnostic-unavailable-1',reason});assert.equal(packet.commandId,c.request.command.commandId);assert.deepEqual(packet.pending,c.pending);
+ assert(Buffer.byteLength(reports[0],'utf8')<=270336);assert.equal(original.message,'original capture failure');
+});
+
+test('native99 failure reporting admits the exact UTF-8 packet ceiling and refuses one byte more',async t=>{
+ for(const excess of [0,1]){
+  const c=await placementFailureCapture(t),original=Object.freeze(Error('original output limit failure')),snapshot=JSON.parse(await readFile(join(c.root,'j19-diagnostic-'+c.request.command.commandId+'.json'),'utf8')),reports=[];
+  const baseline={label:'é',padding:''},packet={kind:'j19-waiting-diagnostic-1',commandId:c.request.command.commandId,operation:'ReviewCandidatePlacement',pending:c.pending,baseline,snapshot};
+  baseline.padding='x'.repeat(270336-Buffer.byteLength(JSON.stringify(packet),'utf8')+excess);
+  const expected=JSON.stringify(packet);assert.equal(Buffer.byteLength(expected,'utf8'),270336+excess);assert(expected.length<Buffer.byteLength(expected,'utf8'));
+  await assert.rejects(terminalWithDiagnostics(c.f,c.request,baseline,()=>{throw original;},text=>reports.push(text)),error=>error===original);
+  assert.deepEqual(reports,excess?[]:[expected]);assert.equal(c.reads.length,1);assert.equal(original.message,'original output limit failure');
+ }
+});
+
+test('native99 failure reporting preserves the original error when baseline serialization fails',async t=>{
+ const c=await placementFailureCapture(t),original=Object.freeze(Error('original serialization failure'));let baselineReads=0,reports=0;
+ const baseline={get value(){baselineReads++;throw Error('baseline inaccessible');}};
+ await assert.rejects(terminalWithDiagnostics(c.f,c.request,baseline,()=>{throw original;},()=>{reports++;}),error=>error===original);
+ assert.equal(baselineReads,1);assert.equal(reports,0);assert.equal(original.message,'original serialization failure');
+});
+
+test('native99 failure reporting does not inspect or await the synchronous reporter return value',async t=>{
+ const c=await placementFailureCapture(t),original=Object.freeze(Error('original nonawaited failure'));let reports=0,thenReads=0;
+ const returned={get then(){thenReads++;throw Error('report return must remain opaque');}};
+ await assert.rejects(terminalWithDiagnostics(c.f,c.request,{},()=>{throw original;},()=>{reports++;return returned;}),error=>error===original);
+ assert.equal(reports,1);assert.equal(thenReads,0);assert.equal(original.message,'original nonawaited failure');
+});
+
+test('native99 actual run selects and consumes the first encoded placement diagnostic without reposting',async t=>{
+ const c=await placementFailureCapture(t),original=Object.freeze(Error('original post failure')),reports=[],posts=[],commands=[];let documents=0;
+ const reporter=text=>reports.push(text),f={...c.f,placementFailureReport:reporter,
+  read:async path=>{if(path==='/api/v1/documents/'+documentId){documents++;return {json:{projection:{value:{revision:'23'}}}};}return c.f.read(path);},
+  command:patch=>{commands.push(patch);return {command:{...patch,commandId:c.request.command.commandId}};},
+  post:async(path,request)=>{posts.push({path,request});throw original;}};
+ const body={type:'ReviewCandidatePlacement',preparation:'encoded-rebuild'};
+ await assert.rejects(run(f,body),error=>error===original);
+ assert.equal(reports.length,1);assert.deepEqual(JSON.parse(reports[0]).baseline,{documentId,documentRevision:'23',phase:'native99-first-placement'});
+ assert.equal(Object.hasOwn(f,'placementFailureReport'),false);assert.equal(c.reads.length,1);assert.equal(posts.length,1);assert.equal(posts[0].path,'/api/v1/commands');assert.strictEqual(posts[0].request.command.body,body);
+ await assert.rejects(run(f,body),error=>error===original);
+ assert.equal(reports.length,1);assert.equal(c.reads.length,1);assert.equal(posts.length,2);assert.equal(documents,2);assert.equal(commands.length,2);
+ for(const patch of commands){assert.equal(patch.documentId,documentId);assert.equal(patch.expectedDocumentRevision,'23');assert.strictEqual(patch.body,body);}
+ assert.equal(original.message,'original post failure');
+});
+
+test('native99 actual run keeps ordinary reviews, other commands and fixtures without the opt-in unchanged',async()=>{
+ for(const [body,opted] of [[{type:'ReviewCandidatePlacement',preparation:'ordinary'},true],[{type:'AdoptReviewedCandidate',preparation:'encoded-rebuild'},true],[{type:'ReviewCandidatePlacement',preparation:'encoded-rebuild'},false]]){
+  const original=Object.freeze(Error('original unselected post failure'));let posts=0,statusReads=0,reports=0;
+  const reporter=()=>{reports++;},f={...(opted?{placementFailureReport:reporter}:{}),
+   read:async path=>{if(path==='/api/v1/documents/'+documentId)return {json:{projection:{value:{revision:'29'}}}};statusReads++;throw Error('unselected diagnostic status read');},
+   command:patch=>({command:{...patch,commandId:'fixture-unselected'}}),post:async(path,request)=>{posts++;assert.equal(path,'/api/v1/commands');assert.strictEqual(request.command.body,body);throw original;}};
+  await assert.rejects(run(f,body),error=>error===original);
+  assert.equal(posts,1);assert.equal(statusReads,0);assert.equal(reports,0);assert.equal(Object.hasOwn(f,'placementFailureReport'),opted);if(opted)assert.strictEqual(f.placementFailureReport,reporter);
  }
 });
