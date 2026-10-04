@@ -111,7 +111,7 @@ test('E3 keyboard mask and native overlay survive safe adoption history and stal
   const evidence:Record<string,unknown>={};
   const state:RunState={failures:[],roots:[dir],writerClosed:false,contextClosed:false,browserClosed:false,retention:[],receipt,prefix:'e3-'};
   runs.set(context,state);
-  const responseMetadata=postResponseMetadata(page,state,()=>server?.origin);
+  const responseMetadata=postResponseMetadata(page,state,()=>server?.origin,2048);
   state.observe=()=>({errors,csp,external,consoleErrors,commands,uiRequests,responseMetadata:responseMetadata.snapshot(),effects,closed,evidence,process:server?.lifecycle,requestLifecycle:guard.requests,cleanup:guard.ledger});
   state.finalCheck=async()=>{try{
     guard.verify();expect(guard.ledger.filter(entry=>entry.phase==='refused')).toEqual([]);
