@@ -1,0 +1,36 @@
+name: Hosted freezer capability probe
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: hosted-freezer-capability-probe
+  cancel-in-progress: false
+jobs:
+  capability-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Observe a private sacrificial freezer lifecycle
+        id: probe
+        timeout-minutes: 2
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n /usr/bin/python3 -I -S -B tooling/rollback-producer/hosted-freezer-probe.py \
+            --run "$GITHUB_RUN_ID" --attempt "$GITHUB_RUN_ATTEMPT" --head "$GITHUB_SHA" \
+            --source-sha256 8f65e3caa1efa4e8fe16dde12bdcb42fbb592b17806fd000b6aadb2084274510 >> "$GITHUB_OUTPUT"
+      - name: Retain bounded capability result without native campaign credit
+        if: ${{ always() && steps.probe.outputs.safe_output != '' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: freezer-capability-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ steps.probe.outputs.safe_output }}
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 90
