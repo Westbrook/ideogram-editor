@@ -959,3 +959,239 @@ test('a repeated locked getReader attempt records a fresh thrown pair without bo
   assert.equal(row.retired, true); assert.equal(row.parseEntry, null); assert.equal(f.observer.snapshot().retainedBytes, 0);
   assert.equal(f.errors().length, 0); assert.equal(f.rows().length, 0);
 });
+
+// Append to the existing tests/recovery/e4-delivery-observer.test.mjs owner.
+// This fragment deliberately uses its native Response/ReadableStream fixture;
+// it creates no separate test inventory entry and performs no browser campaign.
+import {bindE4ProfilerContext} from './e4-profiler-binding.mjs';
+
+const profilerContextKeys = ['p4WallMs', 'realmTimeOriginMs', 'f5WallMs', 'f5MonotonicMs',
+  'f6WallMs', 'f6MonotonicMs', 'queueReadEntryMonotonicMs', 'queueReadCallbackMonotonicMs'];
+
+async function profilerBindingFixture(t) {
+  const f = fixture(t, {phaseDiagnostics: true}), timeOrigin = 1000;
+  const jobId = 'job-profiler-private', attemptId = 'attempt-profiler-private';
+  const candidate = {id: 'candidate-profiler-private', version: '4', preparedAssetId: 'asset-profiler-private',
+    state: 'prepared', jobId, attemptId, documentId: 'document-profiler-private'};
+  async function originalRead(text, path, timing) {
+    const r = f.response(text, {path}); await f.fetchResponse(r);
+    f.clock.monotonic = timing.getReader; const reader = r.response.body.getReader();
+    const bytes = encode(text), chunks = timing.reads.length === 1 ? [bytes] : [bytes.subarray(0, 7), bytes.subarray(7)];
+    for (let index = 0; index < chunks.length; index++) {
+      f.clock.monotonic = timing.reads[index][0]; const pending = reader.read();
+      assert.equal(pending, r.calls.read.at(-1).promise);
+      f.clock.monotonic = timing.reads[index][1]; r.controller.enqueue(chunks[index]);
+      assert.equal((await pending).value, chunks[index]);
+    }
+    f.clock.monotonic = timing.done[0]; const done = reader.read();
+    f.clock.monotonic = timing.done[1]; r.controller.close(); assert.equal((await done).done, true);
+    f.clock.monotonic = timing.unlock; reader.releaseLock();
+    f.clock.monotonic = timing.parse; f.clock.wall = timeOrigin + timing.parse; f.parse(text);
+    assert.deepEqual(r.calls.forbidden, []);
+    return r;
+  }
+  const queue = await originalRead(JSON.stringify({jobs: [{id: jobId, version: '7', attempts: [{id: attemptId}]}]}),
+    '/api/v1/queue', {getReader: 340, reads: [[350, 675], [676, 679]], done: [680, 681], unlock: 682, parse: 683});
+  const prepared = await originalRead(JSON.stringify({jobId, documentId: candidate.documentId, items: [candidate]}),
+    '/api/v1/jobs/' + jobId + '/candidates?attempt=' + attemptId + '&after=',
+    {getReader: 684, reads: [[685, 690]], done: [691, 692], unlock: 693, parse: 694});
+  assert.deepEqual(plain(f.errors()), []); assert.equal(f.observer.snapshot().pending, 0);
+  const realm = {origin, timeOrigin};
+  const input = {
+    authority: [{phase: 'P3', clock: 'writer-wall-ms', at: 1280, jobId, attemptId},
+      {phase: 'P4', clock: 'writer-wall-ms', at: 1400, monotonic: 80, jobId, attemptId, candidate}],
+    deliveries: plain(f.rows()).map(row => ({...row, application: true, profilerCollection: 2})),
+    phaseSnapshots: [{run: {family: 'e4', browser: 'firefox'}, collection: 2, realm,
+      diagnostics: plain(f.observer.snapshot().phaseDiagnostics)}],
+    states: [{name: 'F1'}, {name: 'F2'}, {name: 'F3'}, {name: 'F4'},
+      {name: 'F5', publication: 'P3', text: 'Late result available; retrieving and verifying owned image bytes.',
+        at: 1300, monotonic: 300, jobId, attemptId, profilerRealm: {...realm}},
+      {name: 'F6', publication: 'P4', text: 'Output 1: prepared',
+        at: 1710, monotonic: 710, jobId, attemptId, profilerRealm: {...realm}}],
+    jobId, attemptId, deliveryErrors: [], phaseErrors: [],
+  };
+  return {input, f, queue, prepared};
+}
+
+function assertProfilerUnknown(input) {
+  const result = bindE4ProfilerContext(input);
+  assert.equal(result.status, 'unknown'); assert.equal(result.context, null);
+  assert.equal(result.diagnosticOnly, true); assert.equal(result.qualification, false);
+  assert.deepEqual(Object.keys(result).sort(), ['diagnosticOnly', 'qualification', 'status', 'reason', 'context'].sort());
+  assert.match(result.reason, /^[A-Z_]+$/); assert.equal(Object.isFrozen(result), true);
+  return result;
+}
+
+test('profiler binding joins actual original reader phases and retains a failing P4 interval without qualification', async t => {
+  const {input, queue, prepared} = await profilerBindingFixture(t), before = structuredClone(input);
+  // An inspector read is retained alongside application observations in E4.
+  // It can occur earlier but cannot establish this binding.
+  input.deliveries.unshift({at: 1401, path: input.deliveries[1].path, value: structuredClone(input.deliveries[1].value)});
+  const result = bindE4ProfilerContext(input);
+  assert.equal(result.status, 'bound'); assert.equal(result.reason, 'SAME_RUN_ORIGINAL_READ');
+  assert.equal(result.diagnosticOnly, true); assert.equal(result.qualification, false);
+  assert.equal(result.deliveryIntervalMs, 294); assert.ok(result.deliveryIntervalMs > 250);
+  assert.deepEqual(Object.keys(result.context).sort(), [...profilerContextKeys].sort());
+  assert.deepEqual(result.context, {p4WallMs: 1400, realmTimeOriginMs: 1000, f5WallMs: 1300, f5MonotonicMs: 300,
+    f6WallMs: 1710, f6MonotonicMs: 710, queueReadEntryMonotonicMs: 350, queueReadCallbackMonotonicMs: 675});
+  assert.ok(Object.values(result.context).every(value => typeof value === 'number' && Number.isFinite(value)));
+  assert.equal(result.collection, 2); assert.equal(result.queueOperation, 1); assert.equal(result.candidateOperation, 2);
+  assert.equal(result.clockToleranceMs, 5); assert.equal(result.wallClockUnitMs, 1); assert.equal(result.clockUncertaintyMs, null); assert.equal(Object.hasOwn(result, 'observedClockResolutionMs'), false);
+  assert.equal(result.f5ClockResidualMs, 0); assert.equal(result.f6ClockResidualMs, 0);
+  assert.equal(Object.isFrozen(result), true); assert.equal(Object.isFrozen(result.context), true);
+  assert.equal(JSON.stringify(result).includes('profiler-private'), false);
+  assert.equal(JSON.stringify(result).includes(origin), false);
+  assert.equal(JSON.stringify(result).includes('retrieving'), false);
+  assert.deepEqual(input.authority, before.authority); assert.deepEqual(input.phaseSnapshots, before.phaseSnapshots);
+  assert.deepEqual(input.states, before.states); assert.equal(input.publications, undefined, 'P4 assertion can fail before a publication row exists');
+  assert.equal(queue.calls.read.length, 3); assert.equal(prepared.calls.read.length, 2);
+  assert.equal(result.context.queueReadCallbackMonotonicMs, input.phaseSnapshots[0].diagnostics.records[0].firstReadCallback);
+  assert.notEqual(result.context.queueReadCallbackMonotonicMs, input.phaseSnapshots[0].diagnostics.records[0].doneCallback);
+});
+
+test('profiler binding tolerates cumulative phase snapshots without substituting a different collection', async t => {
+  const {input} = await profilerBindingFixture(t), old = structuredClone(input.phaseSnapshots[0]);
+  old.collection = 1; input.phaseSnapshots.unshift(old);
+  assert.equal(bindE4ProfilerContext(input).status, 'bound');
+  input.phaseSnapshots[1].diagnostics.records = input.phaseSnapshots[1].diagnostics.records.filter(row => row.operation !== 2);
+  assertProfilerUnknown(input);
+});
+
+test('profiler binding never replaces the first matching original candidate with a later healthier read', async t => {
+  const {input} = await profilerBindingFixture(t), later = structuredClone(input.deliveries[1]);
+  later.operation = 4; later.at += 20; later.monotonic += 20;
+  input.deliveries.push(later);
+  const phases = input.phaseSnapshots[0].diagnostics.records;
+  const laterPhase = (row, operation) => {
+    const copy = structuredClone(row); copy.operation = operation;
+    for (const key of ['getReaderEntry', 'getReaderReturn', 'firstReadEntry', 'lastReadEntry', 'firstReadCallback',
+      'lastReadCallback', 'doneReadEntry', 'doneCallback', 'releaseLockEntry', 'releaseLockReturn', 'parseEntry', 'parseReturn']) copy[key] += 20;
+    return copy;
+  };
+  phases.push(laterPhase(phases[0], 3), laterPhase(phases[1], 4));
+  input.deliveries.push({...structuredClone(input.deliveries[0]), operation: 3, at: 1703, monotonic: 703});
+  input.states[5].monotonic = 730; input.states[5].at = 1730;
+  const alternateOnly = structuredClone(input); alternateOnly.deliveries = alternateOnly.deliveries.filter(row => row.operation >= 3);
+  assert.equal(bindE4ProfilerContext(alternateOnly).status, 'bound', 'later read is independently complete; it still cannot replace the first matching original');
+  input.deliveries[1].source = 'original-response-json';
+  assertProfilerUnknown(input);
+});
+
+test('profiler binding refuses missing conflicting and unoriginal candidate or authority evidence', async t => {
+  const {input} = await profilerBindingFixture(t);
+  const mutations = [
+    ['missing P4', x => {x.authority.pop();}],
+    ['duplicate P4', x => {x.authority.push(structuredClone(x.authority[1]));}],
+    ['different authority job', x => {x.authority[1].jobId = 'job-other';}],
+    ['different authority attempt', x => {x.authority[1].attemptId = 'attempt-other';}],
+    ['wrong authority clock', x => {x.authority[1].clock = 'browser-wall-ms';}],
+    ['missing authority prepared asset', x => {delete x.authority[1].candidate.preparedAssetId;}],
+    ['authority not prepared', x => {x.authority[1].candidate.state = 'retrieving';}],
+    ['conflicting full candidate job', x => {x.authority[1].candidate.jobId = 'job-other';}],
+    ['conflicting full candidate attempt', x => {x.authority[1].candidate.attemptId = 'attempt-other';}],
+    ['missing full candidate job', x => {delete x.authority[1].candidate.jobId;}],
+    ['missing full candidate attempt', x => {delete x.authority[1].candidate.attemptId;}],
+    ['inspector-only candidate', x => {delete x.deliveries[1].application;}],
+    ['native response json candidate', x => {x.deliveries[1].source = 'original-response-json';}],
+    ['different candidate version', x => {x.deliveries[1].value.items[0].version = '5';}],
+    ['different candidate asset', x => {x.deliveries[1].value.items[0].preparedAssetId = 'asset-other';}],
+    ['duplicate matching candidate item', x => {x.deliveries[1].value.items.push(structuredClone(x.deliveries[1].value.items[0]));}],
+    ['candidate before authority', x => {x.deliveries[1].at = 1399;}],
+    ['uncollected candidate', x => {delete x.deliveries[1].profilerCollection;}],
+    ['duplicate candidate operation', x => {x.deliveries.push(structuredClone(x.deliveries[1]));}],
+    ['document history endpoint', x => {const d = x.deliveries[1]; d.path = '/api/v1/documents/document-profiler-private/candidates'; d.url = origin + d.path + '?attempt=' + x.attemptId + '&after=';}],
+    ['different URL attempt', x => {x.deliveries[1].url = x.deliveries[1].url.replace(x.attemptId, 'attempt-other');}],
+    ['later candidate page', x => {x.deliveries[1].url += 'next-page';}],
+    ['extra candidate query', x => {x.deliveries[1].url += '&prompt=requested';}],
+    ['missing empty after query', x => {x.deliveries[1].url = x.deliveries[1].url.replace('&after=', '');}],
+    ['different candidate origin', x => {x.deliveries[1].url = x.deliveries[1].url.replace('4381', '4382');}],
+    ['candidate redirect status', x => {x.deliveries[1].status = 302;}],
+  ];
+  for (const [name, mutate] of mutations) await t.test(name, () => {const value = structuredClone(input); mutate(value); assertProfilerUnknown(value);});
+});
+
+test('profiler binding requires the preceding queue and completed exact original phase records', async t => {
+  const {input} = await profilerBindingFixture(t);
+  const mutations = [
+    ['queue absent', x => {x.deliveries.shift();}],
+    ['queue not adjacent operation', x => {x.deliveries[0].operation = 3;}],
+    ['queue from another collection', x => {x.deliveries[0].profilerCollection = 1;}],
+    ['queue duplicate operation', x => {x.deliveries.push(structuredClone(x.deliveries[0]));}],
+    ['queue without target job', x => {x.deliveries[0].value.jobs[0].id = 'job-other';}],
+    ['queue with duplicate target job', x => {x.deliveries[0].value.jobs.push(structuredClone(x.deliveries[0].value.jobs[0]));}],
+    ['queue page cursor', x => {x.deliveries[0].url += '?after=next';}],
+    ['queue inspector read', x => {delete x.deliveries[0].application;}],
+    ['queue native json', x => {x.deliveries[0].source = 'original-response-json';}],
+    ['queue publication after candidate reader', x => {x.deliveries[0].monotonic = 685; x.deliveries[0].at = 1685;}],
+    ['missing candidate phase', x => {x.phaseSnapshots[0].diagnostics.records.pop();}],
+    ['missing queue phase', x => {x.phaseSnapshots[0].diagnostics.records.shift();}],
+    ['ambiguous candidate phase', x => {x.phaseSnapshots[0].diagnostics.records.push(structuredClone(x.phaseSnapshots[0].diagnostics.records[1]));}],
+    ['ambiguous queue phase', x => {x.phaseSnapshots[0].diagnostics.records.push(structuredClone(x.phaseSnapshots[0].diagnostics.records[0]));}],
+  ];
+  for (const [name, mutate] of mutations) await t.test(name, () => {const value = structuredClone(input); mutate(value); assertProfilerUnknown(value);});
+  const phaseMutations = [
+    ['read still pending', row => {row.readCallbacks--;}],
+    ['reader still live', row => {row.retired = false;}],
+    ['discarded reader', row => {row.retirement = 'disposed';}],
+    ['getReader threw', row => {row.getReaderOutcome = 'threw';}],
+    ['missing first read entry', row => {row.firstReadEntry = null;}],
+    ['first callback belongs to read two', row => {row.firstCallbackReadOrdinal = 2;}],
+    ['first read rejected', row => {row.firstReadOutcome = 'rejected';}],
+    ['missing first callback', row => {row.firstReadCallback = null;}],
+    ['EOF never observed', row => {row.doneCallback = null;}],
+    ['overlapping later read unfinished', row => {row.doneReadOrdinal--;}],
+    ['native EOF invented', row => {row.nativeEOF = row.doneCallback;}],
+    ['release lock threw', row => {row.releaseLockOutcome = 'threw';}],
+    ['parser threw', row => {row.parseOutcome = 'threw';}],
+    ['response json mixed with reader', row => {row.responseJsonEntry = row.getReaderEntry;}],
+    ['parse before unlock', row => {row.parseEntry = row.releaseLockEntry - 1;}],
+    ['first callback before entry', row => {row.firstReadCallback = row.firstReadEntry - 1;}],
+  ];
+  for (const index of [0, 1]) for (const [name, mutate] of phaseMutations) await t.test((index ? 'candidate ' : 'queue ') + name, () => {
+    const value = structuredClone(input); mutate(value.phaseSnapshots[0].diagnostics.records[index]); assertProfilerUnknown(value);
+  });
+});
+
+test('profiler binding refuses missing semantic clocks and ambiguous or changed realms', async t => {
+  const {input} = await profilerBindingFixture(t);
+  const mutations = [
+    ['missing F5', x => {x.states.splice(4, 1);}],
+    ['missing F6', x => {x.states.pop();}],
+    ['duplicate F5', x => {x.states[3] = structuredClone(x.states[4]);}],
+    ['wrong F5 publication', x => {x.states[4].publication = 'P4';}],
+    ['different F6 job', x => {x.states[5].jobId = 'job-other';}],
+    ['different F6 attempt', x => {x.states[5].attemptId = 'attempt-other';}],
+    ['missing F5 realm', x => {delete x.states[4].profilerRealm;}],
+    ['missing F6 realm', x => {delete x.states[5].profilerRealm;}],
+    ['F5 same origin different reload', x => {x.states[4].profilerRealm.timeOrigin += 1;}],
+    ['F6 same origin different reload', x => {x.states[5].profilerRealm.timeOrigin += 1;}],
+    ['F5 different server realm', x => {x.states[4].profilerRealm.origin = 'http://127.0.0.1:4382';}],
+    ['F6 different server realm', x => {x.states[5].profilerRealm.origin = 'http://127.0.0.1:4382';}],
+    ['F5 after queue start', x => {x.states[4].monotonic = 351; x.states[4].at = 1351;}],
+    ['F6 before original delivery', x => {x.states[5].monotonic = 693; x.states[5].at = 1693;}],
+    ['F6 before authority', x => {x.states[5].at = 1399;}],
+    ['F5 wall clock drift', x => {x.states[4].at += 6;}],
+    ['F6 wall clock drift', x => {x.states[5].at += 6;}],
+    ['candidate wall clock drift', x => {x.deliveries[1].at += 6;}],
+    ['queue wall clock drift', x => {x.deliveries[0].at += 6;}],
+    ['candidate parser-publication gap', x => {x.deliveries[1].at += 6; x.deliveries[1].monotonic += 6;}],
+    ['unknown browser realm', x => {x.phaseSnapshots[0].run.browser = 'chromium';}],
+    ['missing snapshot', x => {x.phaseSnapshots = [];}],
+    ['duplicate selected snapshot', x => {x.phaseSnapshots.push(structuredClone(x.phaseSnapshots[0]));}],
+    ['missing time origin', x => {delete x.phaseSnapshots[0].realm.timeOrigin;}],
+    ['wrong phase kind', x => {x.phaseSnapshots[0].diagnostics.kind = 'legacy-timing';}],
+    ['wrong phase clock', x => {x.phaseSnapshots[0].diagnostics.clock = 'browser-wall-ms';}],
+    ['delivery observer error', x => {x.deliveryErrors.push({code: 'E4_OBSERVER_LENGTH'});}],
+    ['phase observer error', x => {x.phaseErrors.push('E4_DELIVERY_PHASE_SNAPSHOTS');}],
+    ['non-finite semantic time', x => {x.states[5].monotonic = Infinity;}],
+  ];
+  for (const [name, mutate] of mutations) await t.test(name, () => {const value = structuredClone(input); mutate(value); assertProfilerUnknown(value);});
+});
+
+
+import {e4ProfilerRequested} from './e4-profiler-binding.mjs';
+test('E4 native profiler requires explicit exact opt-in on the selected Linux Firefox fixture',()=>{
+ for(const browser of ['chromium','firefox','webkit'])assert.equal(e4ProfilerRequested({},browser,'darwin','arm64'),false);
+ assert.equal(e4ProfilerRequested({IE_E4_FIREFOX_PROFILER:'1'},'firefox','linux','x64'),true);
+ for(const [value,browser,platform,architecture] of [['true','firefox','linux','x64'],['0','firefox','linux','x64'],['','firefox','linux','x64'],[true,'firefox','linux','x64'],['1','chromium','linux','x64'],['1','webkit','linux','x64'],['1','firefox','darwin','arm64'],['1','firefox','linux','arm64']])assert.throws(()=>e4ProfilerRequested({IE_E4_FIREFOX_PROFILER:value},browser,platform,architecture),/^Error: E4_PROFILER_SELECTION$/);
+});

@@ -61,6 +61,11 @@ on:
           - chromium
           - firefox
           - webkit
+      e4_firefox_profiler:
+        description: Diagnostic-only native sampling for whole E4 on Firefox and Ubuntu; never timing or resource qualification
+        required: false
+        type: boolean
+        default: false
       host:
         description: Supplemental correctness host; neither option supplies physical qualification
         required: false
@@ -83,6 +88,22 @@ jobs:
         with:
           persist-credentials: false
         timeout-minutes: ${{ github.event_name == 'workflow_dispatch' && (inputs.node_files != '' || inputs.browser_family != '' && inputs.browser_family != 'none') && 5 || 20 }}
+      - name: Validate optional E4 native profiler selection
+        env:
+          SELECTED_E4_FIREFOX_PROFILER: ${{ github.event_name == 'workflow_dispatch' && inputs.e4_firefox_profiler && 'true' || 'false' }}
+          SELECTED_NODE_FILES: ${{ inputs.node_files || '' }}
+          SELECTED_BROWSER_FAMILY: ${{ inputs.browser_family || 'none' }}
+          SELECTED_BROWSER: ${{ inputs.browser || 'chromium' }}
+          SELECTED_HOST: ${{ inputs.host || 'ubuntu-24.04' }}
+        run: |
+          if [ "$SELECTED_E4_FIREFOX_PROFILER" = 'false' ]; then
+            exit 0
+          fi
+          if [ "$SELECTED_E4_FIREFOX_PROFILER" != 'true' ] || [ -n "$SELECTED_NODE_FILES" ] || [ "$SELECTED_BROWSER_FAMILY" != 'e4' ] || [ "$SELECTED_BROWSER" != 'firefox' ] || [ "$SELECTED_HOST" != 'ubuntu-24.04' ]; then
+            echo 'E4_PROFILER_SELECTION' >&2
+            exit 1
+          fi
+          echo 'IE_E4_FIREFOX_PROFILER=1' >> "$GITHUB_ENV"
       - name: Select pinned toolchain and verify inputs before install
         timeout-minutes: ${{ github.event_name == 'workflow_dispatch' && (inputs.node_files != '' || inputs.browser_family != '' && inputs.browser_family != 'none') && 5 || 20 }}
         env:

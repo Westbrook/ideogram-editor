@@ -667,3 +667,13 @@ test('developer campaign discovery agrees with the exact warm guard override and
   assert.equal(nodeGuardForFile('campaigns',sameBasename),'tests/session/no-egress.mjs');
   assert.equal(nodeClassification(sameBasename).guard,'tests/session/no-egress.mjs');
 });
+
+
+test('E4 profiler forwards one exact diagnostic flag and strips every native profiler override', () => {
+ const inherited={IE_E4_FIREFOX_PROFILER:'1',MOZ_PROFILER_STARTUP:'1',MOZ_PROFILER_STARTUP_FEATURES_BITFIELD:'private',MOZ_PROFILER_SHUTDOWN:'/private/raw.json',MOZ_LOG:'private',MOZ_PROFILER_SYMBOLICATE:'1',MOZ_USE_PERFORMANCE_MARKER_FILE:'/private/markers'};
+ const clean=executionEnvironment(inherited,'/pinned','/receipt');
+ assert.equal(clean.IE_E4_FIREFOX_PROFILER,'1');
+ for(const name of Object.keys(inherited).filter(name=>name!=='IE_E4_FIREFOX_PROFILER'))assert.equal(Object.hasOwn(clean,name),false);
+ assert.equal(Object.hasOwn(executionEnvironment({},'/pinned','/receipt'),'IE_E4_FIREFOX_PROFILER'),false);
+ for(const value of ['', '0', 'false', 'true', '2', true, 1])assert.throws(()=>executionEnvironment({IE_E4_FIREFOX_PROFILER:value},'/pinned','/receipt'),/^Error: E4_PROFILER_SELECTION$/);
+});

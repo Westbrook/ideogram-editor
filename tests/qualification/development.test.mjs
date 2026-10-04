@@ -1455,3 +1455,25 @@ test('Fast shell provisions only the pinned Chromium CLI and retains actual inst
  assert.throws(()=>provisionFastBrowserSetup(root,plan,{execute:(command,args)=>{failedCommands.push([command,...args]);throw unavailable;},record:row=>failures.push(structuredClone(row))}),error=>error===unavailable);
  assert.deepEqual(failedCommands,commands);assert.deepEqual(failures.map(row=>row.status),['PENDING','FAIL']);assert.equal(failures.at(-1).browser,null);assert.equal(failures.at(-1).adapterFixture,null);
 });
+
+
+test('Fast native profiler boolean executes its actual workflow selection guard before provisioning',t=>{
+ const workflow=readFileSync('.github/workflows/validation.yml','utf8');
+ const input=workflow.split('      e4_firefox_profiler:\n')[1].split('      host:\n')[0];
+ assert.match(input,/^        type: boolean$/m);assert.match(input,/^        default: false$/m);
+ const step=workflow.split('      - name: Validate optional E4 native profiler selection\n')[1].split('      - name: Select pinned toolchain')[0];
+ const script=step.split('        run: |\n')[1].split('\n').map(line=>line.startsWith('          ')?line.slice(10):line).join('\n');
+ assert(step.includes("SELECTED_E4_FIREFOX_PROFILER: ${{ github.event_name == 'workflow_dispatch' && inputs.e4_firefox_profiler && 'true' || 'false' }}"));
+ const directory=mkdtempSync(join(tmpdir(),'e4-profiler-selection-'));t.after(()=>rmSync(directory,{recursive:true,force:true}));
+ let sequence=0;
+ const check=(changes,accepted,forwarded)=>{
+  const path=join(directory,'environment-'+sequence++);writeFileSync(path,'');
+  const env={PATH:process.env.PATH,GITHUB_ENV:path,SELECTED_E4_FIREFOX_PROFILER:'true',SELECTED_NODE_FILES:'',SELECTED_BROWSER_FAMILY:'e4',SELECTED_BROWSER:'firefox',SELECTED_HOST:'ubuntu-24.04',...changes};
+  if(accepted)assert.doesNotThrow(()=>execFileSync('/bin/sh',['-c',script],{env,stdio:'pipe',timeout:1000}));
+  else assert.throws(()=>execFileSync('/bin/sh',['-c',script],{env,stdio:'pipe',timeout:1000}),error=>error.status===1&&error.stderr.toString()==='E4_PROFILER_SELECTION\n');
+  assert.equal(readFileSync(path,'utf8'),forwarded?'IE_E4_FIREFOX_PROFILER=1\n':'');
+ };
+ check({},true,true);
+ check({SELECTED_E4_FIREFOX_PROFILER:'false',SELECTED_BROWSER_FAMILY:'none',SELECTED_BROWSER:'chromium',SELECTED_HOST:'macos-15'},true,false);
+ for(const changes of [{SELECTED_BROWSER_FAMILY:'e3'},{SELECTED_BROWSER:'chromium'},{SELECTED_BROWSER:'webkit'},{SELECTED_HOST:'macos-15'},{SELECTED_HOST:'ubuntu-latest'},{SELECTED_NODE_FILES:'tests/session/store.test.mjs'},{SELECTED_E4_FIREFOX_PROFILER:'1'},{SELECTED_E4_FIREFOX_PROFILER:'private'}])check(changes,false,false);
+});

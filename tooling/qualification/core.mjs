@@ -58,6 +58,8 @@ export async function sourceIdentityAsync(root) {
 export function executionEnvironment(environment, pinnedBin, receiptDirectory) {
   const allowed = ['HOME', 'TMPDIR', 'TMP', 'TEMP', 'SystemRoot', 'WINDIR', 'COMSPEC', 'PATHEXT', 'LANG', 'LC_ALL', 'DISPLAY', 'XAUTHORITY', 'WAYLAND_DISPLAY', 'XDG_RUNTIME_DIR', 'PLAYWRIGHT_BROWSERS_PATH', 'IE_EVIDENCE_ALLOCATION', 'IE_SCHEMA18_EXECUTABLE_PACKET', 'IE_PORTABLE_MAX12_RECEIPT', 'IE_PORTABLE_MAX12_RECEIPT_SHA256', 'IE_PORTABLE_MAX12_FINALIZATION', 'IE_PORTABLE_MAX12_FINALIZATION_SHA256', 'IE_D11_NPM_CACHE'];
   const clean = Object.fromEntries(allowed.filter(key => environment[key] !== undefined).map(key => [key, environment[key]]));
+  if (environment.IE_E4_FIREFOX_PROFILER !== undefined && environment.IE_E4_FIREFOX_PROFILER !== '1') throw Error('E4_PROFILER_SELECTION');
+  if (environment.IE_E4_FIREFOX_PROFILER === '1') clean.IE_E4_FIREFOX_PROFILER = '1';
   return { ...clean, PATH: `${pinnedBin}:${environment.PATH ?? '/usr/bin:/bin'}`, NO_COLOR: '1', CI: '1', QUEUE_EVIDENCE: `${receiptDirectory}/queue`, CANDIDATE_EVIDENCE: `${receiptDirectory}/candidates`, ADAPTER_EVIDENCE: `${receiptDirectory}/adapters`, TEXT_STATE_EVIDENCE: `${receiptDirectory}/text-state`, EDITOR_RECEIPT: `${receiptDirectory}/editor`, IE_RASTER_OUTPUT: `${receiptDirectory}/raster`, IE_HISTORY_OUTPUT: `${receiptDirectory}/history`, IE_RECOVERY_OUTPUT: `${receiptDirectory}/recovery`, TEXT_RECEIPT: `${receiptDirectory}/text`, SPECTRUM_OUTPUT: `${receiptDirectory}/spectrum`, QUALIFICATION_OUTPUT: receiptDirectory };
 }
 
