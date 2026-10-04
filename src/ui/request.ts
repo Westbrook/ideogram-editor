@@ -124,7 +124,7 @@ export class RequestEditing{
  private releaseRequest(){
   if(this.requestRelease)return this.requestRelease;
   this.observationBarrier=null;this.observationGeneration++;
-  this.queueEditLifetime++;this.preferredQueuedOwner=undefined;this.queueEditReview=null;this.entryRestoreFailure=null;this.requestReleasing=true;this.entryReleasing=true;this.cancelEntryReads();this.epoch++;this.intent++;this.adapter.invalidate();this.capDraftAdapter.invalidate();
+  this.pendingQueueObservation?.();this.queueEditLifetime++;this.preferredQueuedOwner=undefined;this.queueEditReview=null;this.entryRestoreFailure=null;this.requestReleasing=true;this.entryReleasing=true;this.cancelEntryReads();this.epoch++;this.intent++;this.adapter.invalidate();this.capDraftAdapter.invalidate();
   const pending:Promise<unknown>[]=[],errors:unknown[]=[];
   const start=(release:()=>unknown)=>{try{pending.push(Promise.resolve(release()));}catch(error){errors.push(error);}};
   this.cancelPromptReads();this.cancelPreviewReads();
@@ -173,7 +173,7 @@ export class RequestEditing{
  pauseDocumentObservation(documentId:string){
   if(this.disposed||this.requestReleasing||this.editor.view.document?.id!==documentId)throw Error('Deletion request observation owner changed.');
   if(this.observationBlocked())throw Error('Document deletion is already coordinating request observation.');
-  const barrier:DeletionObservationBarrier={owner:this.observationOwner(),accepted:false};this.observationBarrier=barrier;this.observationGeneration++;
+  const barrier:DeletionObservationBarrier={owner:this.observationOwner(),accepted:false};this.observationBarrier=barrier;this.observationGeneration++;this.pendingQueueObservation?.();
   if(this.pollTimer)clearTimeout(this.pollTimer);this.pollTimer=null;
   const drain=(async()=>{
    // New work is fenced synchronously above. Drain every actual older promise,
@@ -195,6 +195,49 @@ export class RequestEditing{
  }
  private pollTimer:ReturnType<typeof setTimeout>|null=null;
  private polling=false;private pollAction:object|null=null;
+ private queueRefreshes=0;
+ private pendingQueueObservation:(()=>void)|null=null;
+ /** Status observation is not command acknowledgement. It keeps the original
+  * queue page responsive while accepted-command recovery/checkpoint proof runs. */
+ private beginPendingQueueObservation(continuing:()=>boolean):()=>void{
+  this.pendingQueueObservation?.();
+  const owner=this.observationOwner(),generation=this.observationGeneration,epoch=this.epoch,cursor=this.queueCursor,navigation=this.queueNavigation;
+  let payload:ReturnType<RequestNavigationMemory['controls']['temporary']>,unpin:()=>void;
+  try{payload=this.navigation.controls.temporary(128+2*(cursor.length+(owner.identity?.length??0)+owner.sessionId.length+(owner.documentId?.length??0)));try{unpin=this.navigation.controls.hold();}catch(error){payload.release();throw error;}}
+  catch{return ()=>{};} // Status admission never replaces the command's proof.
+  let active=true,reading=false,released=false,timer:ReturnType<typeof setTimeout>|null=null;
+  const current=()=>active&&continuing()&&!this.disposed&&!this.requestReleasing&&this.epoch===epoch&&this.sameObservationOwner(owner)&&this.observationGeneration===generation&&!this.observationBlocked()&&this.queueCursor===cursor&&this.queueNavigation===navigation&&!this.queueNavigating;
+  const release=()=>{if(!released&&!active&&!reading){released=true;try{payload.release();}finally{unpin();}}};
+  const retire=()=>{active=false;if(timer)clearTimeout(timer);timer=null;if(this.pendingQueueObservation===retire)this.pendingQueueObservation=null;release();};
+  const schedule=()=>{
+   if(!current()||this.navigation.controls.lifecycle.cleanupFailures){retire();return;}
+   timer=setTimeout(()=>{
+    timer=null;if(!current()||this.navigation.controls.lifecycle.cleanupFailures){retire();return;}
+    // Wait for earlier queue refreshes and ordinary poll cleanup. A later
+    // manual refresh fences this status read immediately, without cancelling it.
+    if(this.polling||this.queueRefreshes){schedule();return;}
+    reading=true;const read=this.queueRead;
+    const settled=()=>{reading=false;if(active)schedule();else release();};
+    const failed=(error:unknown)=>{
+     // Failed native reader cleanup stays owned by UIModelOwner. Do not keep
+     // retrying it or let a status read reject/confirm the original command.
+     if(error instanceof PromptReaderCleanupError){const visible=current();retire();if(visible)this.editor.fail(error);}
+    };
+    void this.observeRequest(async observation=>{
+     try{await this.navigation.controls.run(async()=>{
+      const owns=()=>current()&&observation()&&this.queueRefreshes===0&&read===this.queueRead;
+      if(!owns())return;let model:OwnedModel<QueueView>|undefined,retained=false;
+      try{
+       model=await this.navigation.controls.read<QueueView>('/api/v1/queue'+(cursor?'?after='+encodeURIComponent(cursor):''),owns,REQUEST_NAVIGATION_LIMITS.pageBytes);
+       if(!owns())return;
+       this.navigation.controls.replace('queue',model);retained=true;this.queue=model.value;this.changed();
+      }finally{if(!retained)model?.release();}
+     });}catch(error){failed(error);}finally{settled();}
+    },settled).catch(()=>{});
+   },150);
+  };
+  this.pendingQueueObservation=retire;schedule();return retire;
+ }
  // An explicit queue action owns its receipt-following refresh. A scheduled
  // poll must not supersede that read and turn a saved command into an error.
  private poll(){
@@ -477,8 +520,12 @@ export class RequestEditing{
  });}
  private async accept(){const review=this.review,owns=this.owns(),intent=this.intent;if(!review)throw Error('Prepare a review first.');const settle=this.beginReviewProgress('review:'+review.id,'accepting','Saving request review acceptance…',()=>owns()&&intent===this.intent);try{const receipt=await this.editor.ownedRequestReview({type:'AcceptRequestReview',reviewId:review.id,token:review.token});try{if(!owns()||intent!==this.intent)return;this.accepted=receipt.value.acceptedReview===review.id;this.acceptanceId=this.accepted?receipt.value.requestId:'';this.busy=false;this.message='Request review accepted locally. No job was queued and no provider call was made.';this.announce('review:'+review.id,'accepted',this.message);this.changed();}finally{receipt.release();}}finally{settle();}}
 
- private resetQueuePage(){this.navigation.controls.clear('queue-history');this.navigation.controls.clear('queue');this.queueCursor='';this.queueBack=[];this.queueRead++;this.queueNavigation++;this.queueNavigating=false;this.queueKnownTotal=null;this.queueNewJobs=false;}
- private refreshQueue(after=this.queueCursor,back?:OwnedModel<string[]>){return this.observeRequest(current=>{try{return this.navigation.controls.run(()=>this.refreshQueueOwned(after,back,current));}catch(error){back?.release();throw error;}},()=>back?.release());}
+ private resetQueuePage(){this.pendingQueueObservation?.();this.navigation.controls.clear('queue-history');this.navigation.controls.clear('queue');this.queueCursor='';this.queueBack=[];this.queueRead++;this.queueNavigation++;this.queueNavigating=false;this.queueKnownTotal=null;this.queueNewJobs=false;}
+ private refreshQueue(after=this.queueCursor,back?:OwnedModel<string[]>){
+  this.queueRefreshes++;
+  try{return this.observeRequest(current=>{try{return this.navigation.controls.run(()=>this.refreshQueueOwned(after,back,current));}catch(error){back?.release();throw error;}},()=>back?.release()).finally(()=>{this.queueRefreshes--;});}
+  catch(error){this.queueRefreshes--;throw error;}
+ }
  private async refreshQueueOwned(after:string,back:OwnedModel<string[]>|undefined,observation:()=>boolean){
   const navigating=back!==undefined;if(!observation()||this.queueNavigating&&!navigating){back?.release();return;}
   const entryOwns=this.owns(false),owns=()=>entryOwns()&&observation(),read=++this.queueRead;let model:OwnedModel<QueueView>|undefined,retained=false,backRetained=false;
@@ -507,9 +554,13 @@ export class RequestEditing{
   this.queueAction=token;this.queueBusy=true;const announcementKey='queue-action:'+ ++this.announcementSerial;
   const pending=body.type==='CancelJob'?'Saving cancellation request…':body.type==='QueueInference'?'Saving request…':body.type==='RecoverJob'?'Checking the existing request…':'Saving queue choice…';
   this.message=pending;this.announce(announcementKey,'saving',pending);this.changed();
+  let retirePending:(()=>void)|undefined;
   try{
-   // Only two scalar facts leave the owned event callback. No event graph is retained.
-   const summary=await this.editor.withCommandEvents(body,events=>(events.some(event=>event.type==='JobQueued')?1:0)|(events.some(event=>event.type==='QueueStateChanged')?2:0),null);
+   if(body.type==='QueueInference')retirePending=this.beginPendingQueueObservation(continuing);
+   // Retire status publication synchronously before the owned callback returns;
+   // no pending read can supersede the protected receipt-following refresh.
+   // Only two scalar facts leave the callback. No event graph is retained.
+   const summary=await this.editor.withCommandEvents(body,events=>{retirePending?.();return (events.some(event=>event.type==='JobQueued')?1:0)|(events.some(event=>event.type==='QueueStateChanged')?2:0);},null);
    if(continuing()&&owns()){
     if(this.queueCursor&&(summary&1))this.queueNewJobs=true;
     this.announce(announcementKey,'saved',body.type==='QueueInference'?'Request accepted and saved in the local queue.':body.type==='CancelJob'?'Cancellation request saved locally. Provider cancellation is not yet confirmed.':body.type==='RecoverJob'?'Existing request recovery check saved.':'Queue choice saved locally.');
@@ -518,6 +569,7 @@ export class RequestEditing{
    }
   }catch(error){if(continuing()&&owns()){this.message='Queue change could not be confirmed. Check the durable queue before trying again.';this.announce(announcementKey,'unconfirmed',this.message);throw error;}}
   finally{
+   retirePending?.();
    if(continuing()){
     this.queueAction=null;this.queueBusy=false;
     if(!owns()){

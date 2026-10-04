@@ -1023,3 +1023,215 @@ test('document release waits for the real owned queue body cancellation before r
   await f.advance(1000);assert.equal(calls,1);assert.equal(f.instance.pollTimer,null);assert.equal(f.instance.polling,false);
  }finally{cancelGate.resolve();await Promise.allSettled([release,originalSettlement].filter(Boolean));await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
 });
+
+// QueueInference may durably commit before its command proof settles. These
+// controls drive the real controller/owned JSON readers with an explicit held
+// command boundary and deterministic timer clock; they do not emulate the server.
+const e4QueueBody=()=>({type:'QueueInference',reviewId:'review',token:'token',acceptanceId:'accepted'});
+
+test('pending enqueue observes an initially empty then committed queue without claiming command completion',async t=>{
+ const f=await paginationFixture(t),proof=previewDeferred(),observed=observeRequestAnnouncements(f),empty=structuredClone(f.pages.get('')),committed=queueObservation('completed');
+ empty.jobs=[];empty.totalJobs=0;empty.nextCursor=null;committed.totalJobs=1;const fixtureRead=f.editor.json.bind(f.editor);
+ f.editor.json=async(path,...args)=>path.includes('/candidates')?candidateObservation():fixtureRead(path,...args);await f.instance.inspectCandidates('job','attempt');await flush();const retainedCandidate=f.instance.candidateViews.get('attempt');assert(retainedCandidate,'A real independently owned candidate page is retained');
+ const originalRead=f.editor.json.bind(f.editor);let candidates=0,reads=0,saved=0,settled=false;
+ f.instance.resetQueuePage();f.instance.queue=null;f.host.requestUpdate();await flush();
+ f.editor.json=(path,...args)=>path.includes('/candidates')?(candidates++,candidateObservation()):originalRead(path,...args);
+ f.setReader(()=>++reads===1?empty:committed);f.editor.command=()=>proof.promise;
+ const drafts=structuredClone(f.saved),entryBusy=f.instance.busy,command=f.instance.queueCommand(e4QueueBody(),()=>saved++);void command.then(()=>{settled=true;},()=>{settled=true;});
+ try{
+  await flush();assert.equal(f.instance.queueBusy,true);assert.equal(f.instance.message,'Saving request…');assert.equal(requestAnnouncement(f),'Saving request…');
+  await f.advance(149);assert.equal(reads,0,'Pending observation keeps the original bounded cadence');await f.advance(1);
+  assert.equal(reads,1);assert.deepEqual(f.instance.queue.jobs,[]);assert.equal(settled,false);assert.equal(saved,0);
+  await f.advance(150);assert.equal(reads,2);assert.equal(f.instance.queue.jobs[0].id,committed.jobs[0].id);assert.equal(f.instance.queue.jobs[0].attempts[0].terminal,'completed');
+  assert.equal(settled,false);assert.equal(saved,0);assert.equal(f.instance.queueBusy,true);assert.equal(f.instance.busy,entryBusy);assert.equal(f.instance.message,'Saving request…');assert.equal(requestAnnouncement(f),'Saving request…');
+  assert.equal(f.instance.queueKnownTotal,null,'Observation is not an authoritative page refresh');assert.equal(f.instance.queueNewJobs,false);assert.equal(f.instance.candidateViews.size,1);assert.strictEqual(f.instance.candidateViews.get('attempt'),retainedCandidate,'An empty precommit page cannot prune separately owned candidates');assert.equal(candidates,0);assert.deepEqual(f.saved,drafts);assert.deepEqual(observed.focus,[]);
+  assert(!observed.changes.some(value=>/accepted and saved|Queue change saved|could not be confirmed/.test(value)));
+  proof.resolve([{type:'JobQueued',payload:{}},{type:'QueueStateChanged',payload:{}}]);await command;await flush();
+  assert.equal(saved,1);assert.equal(settled,true);assert.equal(f.instance.queueBusy,false);assert.equal(f.instance.queueKnownTotal,1);assert.match(f.instance.message,/^Queue change saved locally\./);assert.deepEqual(observed.focus,[]);
+ }finally{proof.resolve([]);f.setReader(null);await Promise.allSettled([command]);await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
+});
+
+test('pending enqueue keeps at most one unsettled observation across repeated timer turns',async t=>{
+ const f=await paginationFixture(t),proof=previewDeferred(),read=previewDeferred();let reads=0;
+ f.editor.command=()=>proof.promise;f.setReader(()=>{reads++;return read.promise;});const command=f.instance.queueCommand(e4QueueBody());
+ try{
+  await f.advance(150);assert.equal(reads,1);assert.equal(f.instance.inspectMemory().navigation.controls.reads,1);
+  for(let turn=0;turn<5;turn++){f.instance.poll();await f.advance(150);assert.equal(reads,1);assert.equal(f.instance.inspectMemory().navigation.controls.reads,1);}
+  read.resolve(f.pages.get(''));await flush();assert.equal(f.instance.inspectMemory().navigation.controls.reads,0);
+  await f.advance(149);assert.equal(reads,1);await f.advance(1);assert.equal(reads,2,'A new observation waits for actual settlement plus the cadence');
+  f.setReader(null);proof.resolve([]);await command;await flush();assert.equal(f.instance.queueBusy,false);
+ }finally{read.resolve(f.pages.get(''));proof.resolve([]);f.setReader(null);await Promise.allSettled([command]);await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
+});
+
+test('pending enqueue does not introduce a second read beside an older ordinary queue poll',async t=>{
+ const f=await paginationFixture(t),old=previewDeferred(),proof=previewDeferred();let reads=0,candidates=0;
+ const json=f.editor.json.bind(f.editor);f.editor.json=(path,...args)=>path.includes('/candidates')?(candidates++,candidateObservation()):json(path,...args);
+ const view=structuredClone(f.pages.get(''));view.jobs[0].attempts[0].requestId='known-provider-request';
+ f.setReader(()=>{reads++;return reads===1?old.promise:view;});await f.advance(150);assert.equal(f.instance.polling,true);assert.equal(reads,1);
+ f.editor.command=()=>proof.promise;const command=f.instance.queueCommand(e4QueueBody());
+ try{
+  await f.advance(600);assert.equal(reads,1);assert.equal(f.instance.inspectMemory().navigation.controls.reads,1);
+  old.resolve(view);await flush();assert.equal(f.instance.polling,false);assert.equal(candidates,0);
+  await f.advance(150);assert.equal(reads,2);assert.equal(candidates,0);assert.equal(f.instance.queueBusy,true);
+  f.setReader(null);proof.resolve([]);await command;assert.equal(f.instance.queueBusy,false);
+ }finally{old.resolve(view);proof.resolve([]);f.setReader(null);await Promise.allSettled([command]);await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
+});
+
+test('enqueue summary synchronously fences a late observation before owned event cleanup and the protected refresh',async t=>{
+ const f=await paginationFixture(t),proof=previewDeferred(),late=previewDeferred(),cleanup=previewDeferred(),entered=previewDeferred(),finalRead=previewDeferred(),stale=queuePage('obsolete',null),finalView=queuePage('authoritative',null);
+ let reads=0,saved=0;f.editor.command=()=>proof.promise;f.setReader(()=>++reads===1?late.promise:finalRead.promise);
+ // Retain the fixture's actual owned event model and callback. This held
+ // cleanup is outside that callback, exactly where the caller can yield.
+ f.editor.withCommandEvents=async(body,work,...args)=>{const model=await f.editor.ownedCommand(body,...args);try{const result=work(model.value);late.resolve(stale);entered.resolve();await cleanup.promise;return result;}finally{model.release();}};
+ const original=f.instance.queue,command=f.instance.queueCommand(e4QueueBody(),()=>saved++);
+ try{
+  await f.advance(150);assert.equal(reads,1);proof.resolve([{type:'JobQueued',payload:{}}]);await entered.promise;await flush();
+  assert.strictEqual(f.instance.queue,original,'An old response cannot publish after the event callback has handed off');assert.equal(saved,0);assert.equal(f.instance.queueBusy,true);
+  await f.advance(600);assert.equal(reads,1,'No pending timer survives the synchronous handoff');
+  cleanup.resolve();await flush();assert.equal(reads,2,'Exactly the protected final refresh starts after event cleanup');
+  await f.advance(600);assert.equal(reads,2,'The pending lane cannot supersede the protected refresh');
+  finalRead.resolve(finalView);await command;await flush();assert.equal(f.instance.queue.jobs[0].id,'authoritative');assert.equal(saved,1);assert.equal(f.instance.queueBusy,false);assert.deepEqual(f.instance.issues,[]);assert.deepEqual(f.focus,[]);
+ }finally{proof.resolve([]);late.resolve(stale);cleanup.resolve();finalRead.resolve(finalView);await Promise.allSettled([command]);await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
+});
+
+test('ordinary pending queue read failure stays observational and a later queue status is still admitted',async t=>{
+ const f=await paginationFixture(t),proof=previewDeferred(),failure=Error('Pending read temporarily unavailable'),original=f.instance.queue,observed=observeRequestAnnouncements(f);let reads=0,saved=0;
+ f.editor.command=()=>proof.promise;f.setReader(()=>{if(++reads===1)throw failure;return queuePage('later-committed',null);});const command=f.instance.queueCommand(e4QueueBody(),()=>saved++);
+ try{
+  await f.advance(150);assert.equal(reads,1);assert.strictEqual(f.instance.queue,original);assert.equal(f.instance.queueBusy,true);assert.equal(f.instance.message,'Saving request…');assert.deepEqual(f.instance.issues,[]);assert.deepEqual(observed.focus,[]);
+  await f.advance(150);assert.equal(reads,2);assert.equal(f.instance.queue.jobs[0].id,'later-committed');assert.equal(saved,0);assert.equal(requestAnnouncement(f),'Saving request…');
+  proof.resolve([]);await command;assert.equal(saved,1);assert.equal(f.instance.queueBusy,false);assert(!observed.changes.some(value=>value.includes('could not be confirmed')));
+ }finally{proof.resolve([]);f.setReader(null);await Promise.allSettled([command]);await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
+});
+
+test('enqueue command rejection preserves the original error and retires its observation before later polling',async t=>{
+ const f=await paginationFixture(t),proof=previewDeferred(),late=previewDeferred(),failure=Error('Exact enqueue proof rejection'),observed=observeRequestAnnouncements(f),original=f.instance.queue;let caught,saved=0,reads=0;
+ f.editor.command=()=>proof.promise;f.setReader(()=>{reads++;return late.promise;});
+ f.instance.action(event(),async()=>{try{await f.instance.queueCommand(e4QueueBody(),()=>saved++);}catch(error){caught=error;throw error;}});await f.advance(0);
+ try{
+  await f.advance(150);assert.equal(reads,1);proof.reject(failure);await flush();assert.strictEqual(caught,failure);assert.equal(f.instance.queueBusy,false);assert.equal(saved,0);assert.match(f.instance.message,/^Queue change could not be confirmed\./);assert.deepEqual(f.instance.issues,[{field:'review',code:'REVIEW',message:failure.message}]);assert.deepEqual(observed.focus,['#request-errors']);
+  late.resolve(queuePage('late-rejected-command',null));await flush();assert.strictEqual(f.instance.queue,original,'Rejected command observation cannot subsequently publish');
+  f.setReader(null);const before=f.reads.length;await f.advance(150);assert.equal(f.reads.length,before+1,'Existing normal observation resumes');assert.deepEqual(observed.focus,['#request-errors']);
+ }finally{proof.resolve([]);late.resolve(f.pages.get(''));f.setReader(null);await flush();await Promise.allSettled([...f.instance.entryTasks]);await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
+});
+
+test('enqueue protected final refresh rejection retains its exact error after successful pending observations',async t=>{
+ const f=await paginationFixture(t),proof=previewDeferred(),failure=Error('Exact final enqueue refresh rejection'),observed=observeRequestAnnouncements(f);let caught,reads=0,saved=0;
+ f.editor.command=()=>proof.promise;f.setReader(()=>{reads++;return queuePage('observed-before-proof',null);});
+ f.instance.action(event(),async()=>{try{await f.instance.queueCommand(e4QueueBody(),()=>saved++);}catch(error){caught=error;throw error;}});await f.advance(0);
+ try{
+  await f.advance(150);assert.equal(reads,1);assert.equal(f.instance.queue.jobs[0].id,'observed-before-proof');f.setReader(()=>{reads++;throw failure;});proof.resolve([{type:'JobQueued',payload:{}}]);await flush();
+  assert.equal(reads,2);assert.strictEqual(caught,failure);assert.equal(saved,0);assert.equal(f.instance.queueBusy,false);assert.match(f.instance.message,/^Queue change could not be confirmed\./);assert.deepEqual(f.instance.issues,[{field:'review',code:'REVIEW',message:failure.message}]);assert.deepEqual(observed.focus,['#request-errors']);
+ }finally{proof.resolve([]);f.setReader(null);await flush();await Promise.allSettled([...f.instance.entryTasks]);await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
+});
+
+test('explicit queue navigation retires a pending enqueue observation without changing the chosen page',async t=>{
+ const f=await paginationFixture(t),proof=previewDeferred(),late=previewDeferred(),originalPath='/api/v1/queue',nextPath=originalPath+'?after='+encodeURIComponent(pageTwo);let originalReads=0;
+ f.editor.command=()=>proof.promise;f.setReader(path=>path===originalPath?(originalReads++,late.promise):f.defaultRead(path));const command=f.instance.queueCommand(e4QueueBody());
+ try{
+  await f.advance(150);assert.equal(originalReads,1);await f.click('queue-next');assert.equal(f.instance.queueCursor,pageTwo);assert.equal(f.instance.queue.jobs[0].id,'middle');assert.deepEqual(f.focus,['#queue-page-status']);
+  late.resolve(queuePage('late-first-page',null));await flush();assert.equal(f.instance.queueCursor,pageTwo);assert.equal(f.instance.queue.jobs[0].id,'middle');
+  const reads=f.reads.length;await f.advance(600);assert.equal(f.reads.length,reads,'The original-page lane stays retired');assert.equal(f.instance.queueBusy,true);
+  proof.resolve([{type:'JobQueued',payload:{}}]);await command;await flush();assert.equal(f.reads.at(-1),nextPath);assert.equal(pageNumber(f),2);assert.equal(f.instance.queue.jobs[0].id,'middle');assert.deepEqual(f.focus,['#queue-page-status']);
+ }finally{late.resolve(f.pages.get(''));proof.resolve([]);f.setReader(null);await Promise.allSettled([command]);await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
+});
+
+for(const boundary of ['document','draft-owner','session'])test('pending enqueue observation cannot publish after '+boundary+' ownership replacement',async t=>{
+ const f=await paginationFixture(t),proof=previewDeferred(),late=previewDeferred(),original=f.instance.queue;let reads=0;
+ f.editor.command=()=>proof.promise;f.setReader(()=>{reads++;return late.promise;});const command=f.instance.queueCommand(e4QueueBody());
+ try{
+  await f.advance(150);assert.equal(reads,1);
+  if(boundary==='document')f.editor.view.document={id:'replacement',revision:'1'};else if(boundary==='draft-owner')f.editor.draftOwner={drafts:new Map()};else f.editor.sessionId='replacement-session';
+  late.resolve(queuePage('foreign-late',null));await flush();assert.strictEqual(f.instance.queue,original);const before=f.reads.length;await f.advance(600);assert.equal(f.reads.length,before);assert.deepEqual(f.focus,[]);
+  proof.resolve([{type:'JobQueued',payload:{}}]);await command;await flush();assert.equal(f.reads.length,before);assert.strictEqual(f.instance.queue,original);
+ }finally{late.resolve(f.pages.get(''));proof.resolve([]);f.setReader(null);await Promise.allSettled([command]);await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
+});
+
+test('confirmed deletion drains the original pending enqueue read and cannot revive its retired lane',async t=>{
+ const f=await paginationFixture(t),proof=previewDeferred(),late=previewDeferred(),original=f.instance.queue;let reads=0,drained=false,lease;
+ f.editor.command=()=>proof.promise;f.setReader(()=>{reads++;return late.promise;});const command=f.instance.queueCommand(e4QueueBody());
+ try{
+  await f.advance(150);assert.equal(reads,1);const originals=[...f.instance.observationTasks.keys()];assert(originals.length>0,'Pending enqueue read participates in the real observation registry');
+  lease=f.instance.pauseDocumentObservation('doc');void lease.drain.then(()=>{drained=true;});await f.advance(600);assert.equal(drained,false);assert.equal(reads,1);
+  late.resolve(queuePage('deleted-late',null));await lease.drain;await flush();assert.equal(drained,true);assert.strictEqual(f.instance.queue,original);assert.equal(f.instance.observationTasks.size,0);assert.equal(f.instance.inspectMemory().navigation.controls.reads,0);
+  lease.release();await f.advance(600);assert.equal(reads,1,'Refused deletion may resume normal polling, but does not revive this command lane');assert.equal(f.instance.queueBusy,true);
+  f.setReader(null);proof.resolve([]);await command;await flush();assert.equal(f.instance.queueBusy,false);const before=f.reads.length;await f.advance(150);assert.equal(f.reads.length,before+1);
+ }finally{late.resolve(f.pages.get(''));proof.resolve([]);f.setReader(null);lease?.release();await Promise.allSettled([command,lease?.drain].filter(Boolean));await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
+});
+
+test('document release waits for pending enqueue native reader cancellation without claiming cleanup early',{timeout:5000},async t=>{
+ const f=await paginationFixture(t),proof=previewDeferred(),entered=previewDeferred(),cancelGate=previewDeferred();let calls=0,cancels=0,signal,release,released=false,settlement;
+ const body=new ReadableStream({pull(){entered.resolve();},cancel(){cancels++;return cancelGate.promise;}},{highWaterMark:0});
+ f.editor.ownedJSON=(path,owner,init,current,maxBytes,kind)=>{assert.equal(path,'/api/v1/queue');calls++;signal=init.signal;const original=readOwnedJSON(async()=>new Response(body,{headers:{'content-length':'2'}}),path,{owner,init,owns:current,maxBytes,kind});settlement=Promise.allSettled([original]);return original;};
+ f.editor.command=()=>proof.promise;const command=f.instance.queueCommand(e4QueueBody());
+ try{
+  await f.advance(150);await entered.promise;assert.equal(calls,1);assert.equal(body.locked,true);assert.equal(signal.aborted,false);
+  release=f.instance.releaseDocument();void release.then(()=>{released=true;},()=>{});assert.equal(signal.aborted,true);await f.advance(600);
+  assert.equal(cancels,1);assert.equal(released,false);assert.equal(body.locked,true);assert.equal(calls,1);assert.equal(f.instance.inspectMemory().navigation.controls.reads,1,'The real cancellation promise remains owned');
+  cancelGate.resolve();await release;const [result]=await settlement;assert.equal(result.status,'rejected');assert.match(result.reason.message,/PROMPT_READ_STALE/);assert.equal(body.locked,false);assert.equal(released,true);assert.equal(cancels,1);
+  proof.resolve([{type:'JobQueued',payload:{}}]);await command;await f.advance(600);assert.equal(calls,1);assert.equal(f.instance.queue,null);assert.equal(f.instance.candidateViews.size,0);assert.equal(f.instance.observationTasks.size,0);assert.deepEqual(f.instance.inspectMemory().navigation.controls,{models:0,reads:0,pending:0,cleanupFailures:0});
+ }finally{cancelGate.resolve();proof.resolve([]);await Promise.allSettled([command,release,settlement].filter(Boolean));await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
+});
+
+test('non-enqueue queue commands keep the original no-pending-observation behavior',async t=>{
+ const f=await paginationFixture(t),proof=previewDeferred(),body={type:'CancelJob',jobId:'newest',attemptId:'attempt-newest',expectedVersion:'1'};let reads=0;
+ f.editor.command=()=>proof.promise;f.setReader(()=>{reads++;return f.pages.get('');});const command=f.instance.queueCommand(body);
+ try{
+  await f.advance(600);assert.equal(reads,0);assert.equal(f.instance.queueBusy,true);assert.equal(f.instance.message,'Saving cancellation request…');
+  proof.resolve([]);await command;assert.equal(reads,1,'Only the existing receipt-following refresh occurs');assert.equal(f.instance.queueBusy,false);
+ }finally{proof.resolve([]);f.setReader(null);await Promise.allSettled([command]);await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
+});
+
+// Manual refresh owns an authoritative page independently of ordinary polling.
+// Both response orders preserve that priority; only a newly issued observation
+// after actual refresh settlement may update status again.
+test('manual queue refresh already in flight has priority over a newly pending enqueue observer',async t=>{
+ const f=await paginationFixture(t),manual=previewDeferred(),proof=previewDeferred(),manualView=queuePage('manual-before-enqueue',null);let reads=0;
+ f.setReader(()=>++reads===1?manual.promise:manualView);const refresh=f.instance.refreshQueue();const refreshResult=Promise.allSettled([refresh]);await flush();assert.equal(reads,1);assert.equal(f.instance.inspectMemory().navigation.controls.reads,1);
+ f.editor.command=()=>proof.promise;const command=f.instance.queueCommand(e4QueueBody());
+ try{
+  await f.advance(600);assert.equal(reads,1,'A new pending lane cannot overlap the original manual read');assert.equal(f.instance.inspectMemory().navigation.controls.reads,1);assert.equal(f.instance.queueBusy,true);
+  manual.resolve(manualView);await refresh;await flush();assert.equal(f.instance.queue.jobs[0].id,'manual-before-enqueue');assert.equal(f.instance.inspectMemory().navigation.controls.reads,0);assert.deepEqual(f.focus,[]);
+  proof.resolve([]);await command;assert.equal(reads,2,'The saved command retains its one authoritative final refresh');assert.equal(f.instance.queue.jobs[0].id,'manual-before-enqueue');assert.equal(f.instance.queueBusy,false);
+ }finally{manual.resolve(manualView);proof.resolve([]);f.setReader(null);await Promise.allSettled([command,refreshResult]);await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
+});
+
+for(const order of ['manual-first','pending-first'])test('manual queue refresh fences a held pending enqueue response and resumes only after settlement: '+order,async t=>{
+ const f=await paginationFixture(t),proof=previewDeferred(),old=previewDeferred(),manual=previewDeferred(),fresh=previewDeferred(),oldView=queuePage('obsolete-pending',null),manualView=queuePage('manual-authority',null),freshView=queuePage('new-observation',null);let reads=0,refresh;
+ f.editor.command=()=>proof.promise;f.setReader(()=>{reads++;return reads===1?old.promise:reads===2?manual.promise:reads===3?fresh.promise:freshView;});const command=f.instance.queueCommand(e4QueueBody());
+ try{
+  await f.advance(150);assert.equal(reads,1);refresh=f.instance.refreshQueue();void refresh.catch(()=>{});await flush();assert.equal(reads,2,'The explicitly requested manual read is admitted');assert.equal(f.instance.inspectMemory().navigation.controls.reads,2);
+  if(order==='manual-first'){
+   manual.resolve(manualView);await refresh;await flush();assert.equal(f.instance.queue.jobs[0].id,'manual-authority');
+   await f.advance(600);assert.equal(reads,2,'The still-held old observation does not permit another observation');old.resolve(oldView);await flush();
+   assert.equal(f.instance.queue.jobs[0].id,'manual-authority','Late older bytes cannot overwrite the completed manual refresh');
+  }else{
+   const retained=f.instance.queue;old.resolve(oldView);await flush();assert.strictEqual(f.instance.queue,retained,'The in-flight manual read already fences old observation publication');
+   await f.advance(600);assert.equal(reads,2,'Settling the old status read does not allow a later timer to join the unsettled manual refresh');assert.equal(f.instance.inspectMemory().navigation.controls.reads,1);
+   manual.resolve(manualView);await refresh;await flush();assert.equal(f.instance.queue.jobs[0].id,'manual-authority');
+  }
+  assert.equal(f.instance.queueBusy,true);assert.equal(f.instance.inspectMemory().navigation.controls.reads,0);assert.deepEqual(f.focus,[]);
+  await f.advance(150);assert.equal(reads,3,'Only a fresh post-refresh observation resumes');fresh.resolve(freshView);await flush();assert.equal(f.instance.queue.jobs[0].id,'new-observation');assert.equal(f.instance.queueBusy,true);assert.equal(f.instance.message,'Saving request…');
+  proof.resolve([]);await command;assert.equal(reads,4);assert.equal(f.instance.queueBusy,false);assert.equal(f.instance.queue.jobs[0].id,'new-observation');assert.deepEqual(f.focus,[]);
+ }finally{old.resolve(oldView);manual.resolve(manualView);fresh.resolve(freshView);proof.resolve([]);f.setReader(null);await Promise.allSettled([command,refresh].filter(Boolean));await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
+});
+
+
+test('pending enqueue native unlock failure stops observation and retains cleanup debt until explicit successful release',async t=>{
+ const f=await paginationFixture(t),proof=previewDeferred(),unlockFailure=Error('Exact native reader unlock refusal'),commandFailure=Error('Exact enqueue command refusal after diagnostic failure'),reported=[];
+ const originalOwnedJSON=f.editor.ownedJSON.bind(f.editor),wire=JSON.stringify(f.pages.get('')),bytes=new TextEncoder().encode(wire);let allowUnlock=false,reads=0,unlocks=0,reader,restoreReader,lease,firstRelease;
+ const body=new ReadableStream({start(controller){controller.enqueue(bytes);controller.close();}}),getReader=body.getReader;
+ // Keep the native response, reader, reads, cancellation and owner accounting.
+ // Only the documented native unlock boundary refuses until explicitly repaired.
+ Object.defineProperty(body,'getReader',{configurable:true,value:function(...args){reader=Reflect.apply(getReader,this,args);const releaseLock=reader.releaseLock;restoreReader=()=>{delete reader.releaseLock;};Object.defineProperty(reader,'releaseLock',{configurable:true,value:function(){unlocks++;if(!allowUnlock)throw unlockFailure;return Reflect.apply(releaseLock,this,[]);}});return reader;}});
+ f.editor.ownedJSON=(path,owner,init,current,maxBytes,kind)=>{assert.equal(path,'/api/v1/queue');reads++;return readOwnedJSON(async()=>new Response(body,{headers:{'content-length':String(bytes.length)}}),path,{owner,init,owns:current,maxBytes,kind});};
+ f.editor.fail=error=>reported.push(error);f.editor.command=()=>proof.promise;const command=f.instance.queueCommand(e4QueueBody()),commandResult=Promise.allSettled([command]);
+ try{
+  await f.advance(150);assert.equal(reads,1);assert.equal(reported.length,1);const cleanup=reported[0];assert.equal(cleanup.message,'PROMPT_READER_CLEANUP_FAILED');assert(cleanup.errors.includes(unlockFailure));assert.equal(cleanup.cancellationFailed,false,'This is repairable unlock debt, not invented cancellation success');assert.equal(body.locked,true);assert(unlocks>=2);assert.equal(f.instance.inspectMemory().navigation.controls.cleanupFailures,1);assert.equal(f.instance.queueBusy,true);
+  await f.advance(600);assert.equal(reads,1,'Failed reader cleanup forbids another pending observation');assert.equal(reported.length,1,'The original failure is reported once');assert.equal(f.instance.message,'Saving request…');
+  lease=f.instance.pauseDocumentObservation('doc');const [deletion]=await Promise.allSettled([lease.drain]);assert.equal(deletion.status,'rejected');assert.match(deletion.reason.message,/Request observation cleanup is incomplete/);assert.equal(f.instance.inspectMemory().navigation.controls.cleanupFailures,1);assert.equal(body.locked,true);lease.release();
+  proof.reject(commandFailure);const [result]=await commandResult;assert.equal(result.status,'rejected');assert.strictEqual(result.reason,commandFailure,'A status cleanup failure cannot replace the original command failure');assert.equal(f.instance.queueBusy,false);assert.strictEqual(reported[0],cleanup);
+  f.editor.ownedJSON=originalOwnedJSON;firstRelease=f.instance.releaseDocument();await assert.rejects(firstRelease,/REQUEST_RELEASE_INCOMPLETE/);await flush();assert.equal(body.locked,true);assert.equal(f.instance.inspectMemory().navigation.controls.cleanupFailures,1,'Unsuccessful release keeps the actual original cleanup owner');
+  allowUnlock=true;await f.instance.dispose();await flush();assert.equal(body.locked,false);assert.equal(f.instance.inspectMemory().navigation.controls.cleanupFailures,0);assert.equal(f.instance.observationTasks.size,0);assertReleasedRequestStatus(f);await f.advance(600);assert.equal(reads,1);
+ }finally{allowUnlock=true;proof.resolve([]);lease?.release();f.editor.ownedJSON=originalOwnedJSON;await Promise.allSettled([commandResult,firstRelease].filter(Boolean));try{await f.instance.dispose();await flush();}finally{restoreReader?.();delete body.getReader;}assertReleasedRequestStatus(f);}
+});
