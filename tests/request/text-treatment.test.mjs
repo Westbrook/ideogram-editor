@@ -421,3 +421,55 @@ test('pure successor metadata cannot establish retained R16 subset or prepared-p
  assert.equal(intent.kind,'text-treatment-successor-placement-intent-1');assert.deepEqual(intent.maskSuccessor.finalEffectiveMask,unreadMask);for(const field of ['assetId','pixels','preparationIdentity'])assert.equal(Object.hasOwn(intent.candidate,field),false);
  assert.throws(()=>planTextTreatmentSuccessorAdoption(f.p,f.p.inventory,intent.candidate,f.choice,bindings,witness),/SHAPE/);assert.throws(()=>planTextTreatmentPlacement(f.p,f.p.inventory,descriptor,f.choice),/PRESERVATION_PROOF_REQUIRED/);
 });
+
+// Same-call composition has no retained validation authority. These controls use
+// the unchanged public validators and actual later placement planner as bounds.
+import {assertTextTreatmentPlanEnvelope} from '../../dist/local/src/request/text-treatment.js';
+function composedErrorCode(work){let caught;try{work();}catch(error){caught=error;}assert(caught,'Expected treatment refusal');return caught.code;}
+
+test('composed plan and envelope validation agrees with both public validators without changing its inputs',()=>{
+ for(const kind of ['native-overlay','baked-lettering','no-native-text']){
+  const p=plan(kind),envelope=bindTextTreatmentEnvelope(p,textTreatmentPlanRef(p)),before=structuredClone({p,envelope});
+  validateTextTreatmentPlan(p);assertTextTreatmentEnvelope(envelope,p);assert.equal(assertTextTreatmentPlanEnvelope(envelope,p),undefined);
+  assert.deepEqual({p,envelope},before);assert.deepEqual(textTreatmentPlanRef(p),envelope.plan);
+ }
+});
+
+test('composed validation preserves plan-first error precedence while the original public envelope API remains envelope-first',()=>{
+ const p=plan(),envelope=bindTextTreatmentEnvelope(p,textTreatmentPlanRef(p)),bad=structuredClone(p);bad.retainedNativeIds=[];
+ const malformed={...envelope,unreviewed:true};
+ assert.equal(composedErrorCode(()=>validateTextTreatmentPlan(bad)),'TEXT_TREATMENT_PLAN_IDENTITY');
+ assert.equal(composedErrorCode(()=>assertTextTreatmentPlanEnvelope(malformed,bad)),'TEXT_TREATMENT_PLAN_IDENTITY');
+ assert.equal(composedErrorCode(()=>assertTextTreatmentEnvelope(malformed,bad)),'TEXT_TREATMENT_SHAPE');
+ assert.equal(composedErrorCode(()=>assertTextTreatmentEnvelope({...envelope,planHash:hash('other fingerprint')},bad)),'TEXT_TREATMENT_ENVELOPE_IDENTITY');
+ assert.equal(composedErrorCode(()=>assertTextTreatmentEnvelope(envelope,bad)),'TEXT_TREATMENT_PLAN_IDENTITY');
+ assert.equal(composedErrorCode(()=>textTreatmentPlanRef(bad)),'TEXT_TREATMENT_PLAN_IDENTITY');
+});
+
+test('composed validation retains malformed envelope and exact fingerprint hash length and media refusals',()=>{
+ const p=plan(),envelope=bindTextTreatmentEnvelope(p,textTreatmentPlanRef(p));
+ for(const alter of [e=>{e.extra=true;},e=>{e.kind='other';},e=>{e.planHash=hash('other');},e=>{e.plan.hash=hash('different bytes');},e=>{e.plan.byteLength=String(Number(e.plan.byteLength)+1);},e=>{e.plan.mediaType='text/plain';}]){
+  const changed=structuredClone(envelope);alter(changed);const before=structuredClone(changed),expected=composedErrorCode(()=>assertTextTreatmentEnvelope(changed,p));
+  assert.equal(composedErrorCode(()=>assertTextTreatmentPlanEnvelope(changed,p)),expected);assert.deepEqual(changed,before);
+ }
+});
+
+test('a successful composed call cannot authorize a later mutated plan source or treatment choice',()=>{
+ const original=plan(),envelope=bindTextTreatmentEnvelope(original,textTreatmentPlanRef(original));
+ for(const change of [p=>{p.retainedNativeIds=[];},p=>{p.afterSource.source.pixels.hash=hash('changed source');},p=>{p.choice.approvalId='later choice';}]){
+  const p=structuredClone(original);assertTextTreatmentPlanEnvelope(envelope,p);change(p);
+  assert.equal(composedErrorCode(()=>assertTextTreatmentPlanEnvelope(envelope,p)),composedErrorCode(()=>validateTextTreatmentPlan(p)));
+  assertTextTreatmentPlanEnvelope(envelope,structuredClone(original));
+ }
+});
+
+test('later public placement still fully validates the plan current inventory and adoption choice after composition',()=>{
+ const p=plan(),envelope=bindTextTreatmentEnvelope(p,textTreatmentPlanRef(p)),current=structuredClone(p.inventory),c=placementCandidate(p),choice=adoption();
+ assertTextTreatmentPlanEnvelope(envelope,p);const expected=planTextTreatmentPlacement(p,current,c,choice);
+ const changed=structuredClone(current);changed.layers[1].native.renderVersion=hash('later native render');
+ assert.equal(composedErrorCode(()=>planTextTreatmentPlacement(p,changed,c,choice)),'TEXT_TREATMENT_STALE');
+ const bad=structuredClone(p);bad.retainedNativeIds=[];
+ assert.equal(composedErrorCode(()=>planTextTreatmentPlacement(bad,current,c,choice)),'TEXT_TREATMENT_PLAN_IDENTITY');
+ assert.equal(composedErrorCode(()=>planTextTreatmentPlacement(p,current,c,{...choice,approvalId:''})),'TEXT_TREATMENT_ADOPTION_CHOICE');
+ assert.deepEqual(planTextTreatmentPlacement(p,current,c,choice),expected);
+});

@@ -16,7 +16,7 @@ import {parseControlJSON} from '../../src/protocol/json.js';
 import {validateRequestSourceCapture} from '../../src/protocol/request-edits.js';
 import {textSource,textRefs} from '../../src/protocol/text.js';
 import {bindingValue,validateComposition,compositionRefs,type Composition} from '../../src/composition/core.js';
-import {TextTreatmentError,createTextTreatmentMaskSuccessor,planTextTreatmentSuccessorPlacement,planTextTreatmentSuccessorAdoption,type TextTreatmentMaskSuccessor,type TextTreatmentMaskSuccessorInputs,planTextTreatment,planTextTreatmentAdoption,planTextTreatmentPlacement,type TreatmentPlacementCandidate,type TreatmentAdoptionCandidate,type TreatmentAdoptionChoice,validateTextTreatmentPlan,assertTextTreatmentFresh,bindTextTreatmentEnvelope,textTreatmentRefs,assertTextTreatmentEnvelope,type TextTreatmentReviewIntent,type TextTreatmentInventory,type TreatmentContribution,type TreatmentSource,type TextTreatmentPlan,type RequestTextTreatmentEnvelope} from '../../src/request/text-treatment.js';
+import {TextTreatmentError,createTextTreatmentMaskSuccessor,planTextTreatmentSuccessorPlacement,planTextTreatmentSuccessorAdoption,type TextTreatmentMaskSuccessor,type TextTreatmentMaskSuccessorInputs,planTextTreatment,planTextTreatmentAdoption,planTextTreatmentPlacement,type TreatmentPlacementCandidate,type TreatmentAdoptionCandidate,type TreatmentAdoptionChoice,validateTextTreatmentPlan,assertTextTreatmentFresh,bindTextTreatmentEnvelope,textTreatmentRefs,assertTextTreatmentEnvelope,assertTextTreatmentPlanEnvelope,type TextTreatmentReviewIntent,type TextTreatmentInventory,type TreatmentContribution,type TreatmentSource,type TextTreatmentPlan,type RequestTextTreatmentEnvelope} from '../../src/request/text-treatment.js';
 const same=(a:unknown,b:unknown)=>canonical(a)===canonical(b);
 function deny(code:string):never{throw new RequestError([{field:'textTreatment',code,message:'Review native layers, semantic text and the exact source again before continuing.'}]);}
 export type TextTreatmentReference={ref:BlobRef;role:'required'|'font-bytes'};
@@ -108,7 +108,7 @@ export class TextTreatments {
   const {plan,current,copyState}=this.placementContext(envelope,document,choice);return {decision:planTextTreatmentAdoption(plan,current,candidate,choice),copyState};
  }
  private placementContext(envelope:RequestTextTreatmentEnvelope,document:Document,choice:TreatmentAdoptionChoice){
-  const plan=this.json(envelope.plan,524288);validateTextTreatmentPlan(plan);assertTextTreatmentEnvelope(envelope,plan);
+  const plan=this.json(envelope.plan,524288);assertTextTreatmentPlanEnvelope(envelope,plan);
   let frozen:{state:ImageState;revision:string;imageState:BlobRef}|undefined;
   if(choice.action==='new-document'){
    if(document.id!==plan.inventory.documentId)deny('TEXT_TREATMENT_SOURCE_CHANGED');

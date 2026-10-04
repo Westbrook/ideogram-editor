@@ -368,9 +368,12 @@ export function validateTextTreatmentAdoptionDecision(value:TextTreatmentAdoptio
 }
 export function validateRequestTextTreatmentEnvelope(v:any):asserts v is RequestTextTreatmentEnvelope {exact(v,['kind','plan','planHash']);ref(v.plan,'application/json',TEXT_TREATMENT_LIMITS.manifestBytes);if(v.kind!=='request-text-treatment-1'||!digest(v.planHash))fail('TEXT_TREATMENT_ENVELOPE');}
 /** New plan objects are stored as canonical JSON. This proves the passed ref's exact bytes. */
-export function textTreatmentPlanRef(plan:TextTreatmentPlan):BlobRef {validateTextTreatmentPlan(plan);return {hash:hash(plan),byteLength:String(new TextEncoder().encode(canonical(plan)).byteLength),mediaType:'application/json'};}
+function textTreatmentPlanRefValidated(plan:TextTreatmentPlan):BlobRef {return {hash:hash(plan),byteLength:String(new TextEncoder().encode(canonical(plan)).byteLength),mediaType:'application/json'};}
+export function textTreatmentPlanRef(plan:TextTreatmentPlan):BlobRef {validateTextTreatmentPlan(plan);return textTreatmentPlanRefValidated(plan);}
 export function bindTextTreatmentEnvelope(plan:TextTreatmentPlan,stored:BlobRef):RequestTextTreatmentEnvelope {if(!same(textTreatmentPlanRef(plan),stored))fail('TEXT_TREATMENT_ENVELOPE_BYTES');return {kind:'request-text-treatment-1',plan:structuredClone(stored),planHash:plan.fingerprint};}
 export function assertTextTreatmentEnvelope(envelope:RequestTextTreatmentEnvelope,plan:TextTreatmentPlan):void {validateRequestTextTreatmentEnvelope(envelope);if(envelope.planHash!==plan.fingerprint||!same(envelope.plan,textTreatmentPlanRef(plan)))fail('TEXT_TREATMENT_ENVELOPE_IDENTITY');}
+/** One plan-first check; no validation authority survives this synchronous call. */
+export function assertTextTreatmentPlanEnvelope(envelope:RequestTextTreatmentEnvelope,plan:TextTreatmentPlan):asserts plan is TextTreatmentPlan {validateTextTreatmentPlan(plan);validateRequestTextTreatmentEnvelope(envelope);if(envelope.planHash!==plan.fingerprint||!same(envelope.plan,textTreatmentPlanRefValidated(plan)))fail('TEXT_TREATMENT_ENVELOPE_IDENTITY');}
 
 export function textTreatmentProvenance(plan:TextTreatmentPlan):TextTreatmentProvenance {
  validateTextTreatmentPlan(plan);const nativeRows=(selected:readonly string[])=>plan.inventory.layers.filter(l=>selected.includes(l.id)).map(l=>({layerId:l.id,layerVersion:l.version,...structuredClone(l.native!)}));

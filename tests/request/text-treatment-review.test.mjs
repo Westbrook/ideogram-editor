@@ -445,3 +445,49 @@ for(const kind of ['binary','large-json'])test('treatment '+kind+' fallback keep
   });
  });assert.deepEqual(ownedTextSnapshot(),before);
 });
+
+// Actual storage placement and inventory reconstruction over the existing
+// genuine immutable object fixture. Raster/font rendering remains out of scope.
+async function composedStorageFixture(t){
+ const source=fixture(),f=await ownedTextFixture(t);for(const bytes of source.objects.values())await f.put(bytes);
+ const state=structuredClone(source.state),document={id:source.plan.inventory.documentId,revision:source.plan.inventory.documentRevision,image:{state:source.plan.inventory.imageState,semanticDigest:semanticDigest(state),compositeAssetId:'original_composite'}},events=[];
+ const assets={asset(id){events.push(['asset',id]);const at=source.layers.findIndex(layer=>layer.assetId===id);assert(at>=0);return {raster:{manifest:source.originals[at]}};}};
+ const treatments=new OwnedTextTreatments(f.objects,assets,id=>{events.push(['state',id]);assert.equal(id,document.id);return state;},{});
+ const candidate={candidateId:'candidate',grid:{width:1,height:1},preparation:'safe-region',sourcePixels:structuredClone(source.plan.afterSource.source.pixels),effectiveMask:structuredClone(source.plan.edit.effectiveMask)};
+ const choice={kind:'text-treatment-adoption-choice-1',action:'keep-native-overlay',approvalId:'placement_review',duplicationAcknowledgement:null,newLayerId:'generated',hideNativeIds:[],nativeCopies:[],preservation:'single-original-contribution'};
+ return {...f,source,state,document,events,treatments,candidate,choice,place(envelope=source.envelope,value=choice){return treatments.placement(envelope,document,candidate,value);}};
+}
+const treatmentIssue=code=>error=>error.issues?.[0]?.code===code;
+
+test('storage composed validation refuses an invalid plan before a malformed envelope or current inventory read',async t=>{
+ const f=await composedStorageFixture(t),bad=structuredClone(f.source.plan);bad.retainedNativeIds=[];const stored=await f.put(Buffer.from(canonical(bad))),envelope={...f.source.envelope,plan:stored.ref,unexpected:true},baseline=ownedTextSnapshot();
+ assert.throws(()=>f.place(envelope),treatmentIssue('TEXT_TREATMENT_PLAN_IDENTITY'));
+ assert.deepEqual(f.events,[]);assert.deepEqual(f.rows.map(row=>[row.method,row.releases]),[['verifyOwned',1]]);assert.deepEqual(ownedTextSnapshot(),baseline);
+});
+
+test('storage composed envelope failures stay before live inventory and cannot reuse a prior successful placement',async t=>{
+ const f=await composedStorageFixture(t),first=f.place(),baseline=ownedTextSnapshot();assert.equal(first.decision.kind,'text-treatment-placement-intent-1');assert.equal(first.copyState,f.state);
+ for(const envelope of [{...f.source.envelope,unexpected:true},{...f.source.envelope,planHash:hash('forged fingerprint')}]){
+  f.events.length=0;const reads=f.rows.length;
+  assert.throws(()=>f.place(envelope),treatmentIssue(Object.hasOwn(envelope,'unexpected')?'TEXT_TREATMENT_SHAPE':'TEXT_TREATMENT_ENVELOPE_IDENTITY'));
+  assert.deepEqual(f.events,[]);assert.equal(f.rows.length,reads+1);assert.equal(f.rows.at(-1).releases,1);assert.deepEqual(ownedTextSnapshot(),baseline);
+ }
+ assert.deepEqual(f.place().decision,first.decision);
+});
+
+test('storage placement reopens actual current native bytes and rejects later corruption before restoring clean authority',async t=>{
+ const f=await composedStorageFixture(t),first=f.place(),baseline=ownedTextSnapshot(),path=f.objects.path(f.source.nativeRef),bytes=f.source.objects.get(f.source.nativeRef.hash),wrong=Buffer.from(bytes);wrong[wrong.length-2]^=1;
+ f.events.length=0;await ownedTextWrite(path,wrong,{mode:0o600});
+ assert.throws(()=>f.place(),{code:'CORRUPT_OBJECT'});assert(f.events.some(row=>row[0]==='state'));assert.deepEqual(ownedTextSnapshot(),baseline);
+ await ownedTextWrite(path,bytes,{mode:0o600});assert.deepEqual(f.place().decision,first.decision);
+ f.state.layers[1].locked=true;assert.throws(()=>f.place(),treatmentIssue('TEXT_TREATMENT_STALE'));f.state.layers[1].locked=false;
+ assert.deepEqual(f.place().decision,first.decision);assert.deepEqual(ownedTextSnapshot(),baseline);
+});
+
+test('storage placement rereads the plan and rechecks each later choice after a successful composed call',async t=>{
+ const f=await composedStorageFixture(t),first=f.place(),baseline=ownedTextSnapshot();f.events.length=0;
+ assert.throws(()=>f.place(f.source.envelope,{...f.choice,approvalId:''}),treatmentIssue('TEXT_TREATMENT_ADOPTION_CHOICE'));assert(f.events.some(row=>row[0]==='state'));
+ const path=f.objects.path(f.source.envelope.plan),bytes=f.source.objects.get(f.source.envelope.plan.hash),wrong=Buffer.from(bytes);wrong[wrong.length-2]^=1;f.events.length=0;
+ await ownedTextWrite(path,wrong,{mode:0o600});assert.throws(()=>f.place(),{code:'CORRUPT_OBJECT'});assert.deepEqual(f.events,[]);
+ await ownedTextWrite(path,bytes,{mode:0o600});assert.deepEqual(f.place().decision,first.decision);assert.deepEqual(ownedTextSnapshot(),baseline);
+});

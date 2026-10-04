@@ -492,3 +492,81 @@ test('lettering comparison preserves asset preconditions before reading and grid
   assert.throws(()=>f.read(),{code:'INCOMPATIBLE',reason:'LETTERING_COMPARISON_GRID'});assertLetteringReadDrained(f,before,3);
  });
 });
+
+// Exercise the actual compiled Histories method, not a replacement algorithm.
+// Its collaborator boundary is an already validated JSON state and reviewed
+// decision; document/ID/limit services are explicit spies, not native proofs.
+function placementCloneFixture(schemaVersion=5,{newDocument=false}={}){
+ const original={id:'original',version:'7',kind:'image',name:'Original',assetId:'original_asset',layerToDocument:[1,0,0,1,3,4],opacity:0.7,visible:true,locked:false,blend:'normal',mask:null};
+ const native={id:'native',version:'3',kind:'text',name:'Native',assetId:'native_asset',layerToDocument:[1,0,0,1,5,6],opacity:0.6,visible:true,locked:false,blend:'normal',mask:null,source:metadata({fixture:'native-source'})};
+ const layers=schemaVersion===1?[original]:[original,native];
+ // Deliberately non-default own-key order is part of the serialized state.
+ const before={height:32,layers,schemaVersion,width:32,...(schemaVersion===5?{composition:{id:'composition',value:metadata({fixture:'composition'}),bindings:{authored_native:'native'}}}:{})};
+ const copyState=structuredClone(before),copy={sourceLayerId:'native',newLayerId:'native_copy',sourceStateHash:hashBytes(canonical(copyState.layers[1]??{})),source:copyState.layers[1]?.source,transform:[1,0,0,1,9,10]};
+ const decision={copiedNative:newDocument?[copy]:[],afterOrder:newDocument?[{id:'generated',version:'1',visible:true},{id:'native_copy',version:'1',visible:true}]:[{id:'original',version:'8',visible:false},{id:'generated',version:'1',visible:true},...(schemaVersion===1?[]:[{id:'native',version:'3',visible:true}])]};
+ const body={placement:newDocument?'new-document':'current-document',newDocumentId:newDocument?'new_document':null,newLayerId:'generated',name:'Generated',textTreatment:{choice:{nativeCopies:newDocument?[{sourceLayerId:'native',newLayerId:'native_copy',transform:copy.transform}]:[]}}},document={id:'placement_document'},events=[];
+ const state={used:false,existingDocument:false,tombstone:false,limitError:null};
+ const histories=Object.create(Histories.prototype);
+ Object.assign(histories,{document(id){events.push(['document',id]);return state.existingDocument?{id}:null;},db:{prepare(sql){assert.equal(sql,'SELECT 1 FROM candidate_document_tombstones WHERE document_id=?');return {get(id){events.push(['tombstone',id]);return state.tombstone?{found:1}:undefined;}};}},usedLayer(documentId,layerId){events.push(['usedLayer',documentId,layerId]);return state.used;},texts:{limits(after){events.push(['limits',after]);if(state.limitError)throw state.limitError;}}});
+ const generated={id:'generated',version:'1',kind:'image',name:'Generated',assetId:'generated_asset',layerToDocument:[1,0,0,1,0,0],opacity:1,visible:true,locked:false,blend:'normal',mask:null};
+ return {histories,before,copyState,decision,body,document,state,events,generated,run(width=32,height=32){return histories.textPlacementState(body,document,before,width,height,'generated_asset',decision,copyState);}};
+}
+
+test('actual text placement preserves current-document schema one through five values and own-key order',()=>{
+ for(const version of [1,2,3,4,5]){
+  const f=placementCloneFixture(version),input=structuredClone(f.before),expected=structuredClone(f.before);
+  expected.layers=[{...structuredClone(f.before.layers[0]),version:'8',visible:false},f.generated,...(version===1?[]:[structuredClone(f.before.layers[1])])];
+  const after=f.run();assert.deepEqual(after,expected);assert.deepEqual(Object.keys(after),Object.keys(input));assert.equal(canonical(after),canonical(expected));assert.deepEqual(f.before,input);
+  assert.deepEqual(f.events.map(row=>row[0]),['usedLayer','limits']);assert.equal(f.events[1][1],after);
+ }
+});
+
+test('actual current-document placement deep-isolates retained layers and schema five composition metadata',()=>{
+ const f=placementCloneFixture(),original=structuredClone(f.before),copied=structuredClone(f.copyState),after=f.run();
+ assert.notEqual(after.layers[0],f.before.layers[0]);assert.notEqual(after.layers[0].layerToDocument,f.before.layers[0].layerToDocument);
+ assert.notEqual(after.layers[2].source,f.before.layers[1].source);assert.notEqual(after.composition,f.before.composition);assert.notEqual(after.composition.bindings,f.before.composition.bindings);
+ after.layers[0].layerToDocument[4]=999;after.layers[2].source.hash='sha256:'+'f'.repeat(64);after.composition.value.byteLength='1';after.composition.bindings.authored_native='changed';
+ assert.deepEqual(f.before,original);assert.deepEqual(f.copyState,copied);assert.deepEqual(f.run().composition,original.composition);
+});
+
+test('actual current-document final metadata clone excludes the discarded original layer graph',t=>{
+ const f=placementCloneFixture(),clone=globalThis.structuredClone,rootInputs=[];
+ t.mock.method(globalThis,'structuredClone',function(value,...args){if(value&&Object.hasOwn(value,'schemaVersion')&&Array.isArray(value.layers))rootInputs.push({keys:Object.keys(value),layers:value.layers,composition:value.composition});return Reflect.apply(clone,this,[value,...args]);});
+ const after=f.run();assert.equal(rootInputs.length,1);assert.deepEqual(rootInputs[0].keys,Object.keys(f.before));assert.deepEqual(rootInputs[0].layers,[]);assert.notEqual(rootInputs[0].layers,f.before.layers);assert.equal(rootInputs[0].composition,f.before.composition);
+ assert.equal(after.layers.length,3);assert.notEqual(after.composition,f.before.composition);
+});
+
+test('actual current placement retains ID mapping and schema refusal order before text limits',()=>{
+ const reused=placementCloneFixture();reused.state.used=true;reused.decision.copiedNative=[{sourceLayerId:'missing'}];
+ assert.throws(()=>reused.run(),{code:'INVALID_INPUT',reason:'LAYER_ID_REUSE'});assert.deepEqual(reused.events.map(row=>row[0]),['usedLayer']);
+ const badCopy=placementCloneFixture();badCopy.decision.copiedNative=[{sourceLayerId:'missing'}];
+ assert.throws(()=>badCopy.run(),{code:'INCOMPATIBLE',reason:'TEXT_TREATMENT_COPY_MAPPING_REQUIRED'});assert.deepEqual(badCopy.events.map(row=>row[0]),['usedLayer']);
+ const missing=placementCloneFixture();missing.decision.afterOrder.push({id:'absent',version:'1',visible:true});assert.throws(()=>missing.run(),{code:'CORRUPT_OBJECT'});assert.deepEqual(missing.events.map(row=>row[0]),['usedLayer']);
+ const duplicate=placementCloneFixture();duplicate.decision.afterOrder.push({id:'native',version:'3',visible:true});assert.throws(()=>duplicate.run(),{message:'Invalid recovery data'});assert.deepEqual(duplicate.events.map(row=>row[0]),['usedLayer']);
+ const absent=placementCloneFixture();absent.body.textTreatment=null;assert.throws(()=>absent.run(),{code:'CORRUPT_STORE'});assert.deepEqual(absent.events,[]);
+});
+
+test('actual placement preserves the text-limit failure identity and rechecks a later invocation',()=>{
+ const f=placementCloneFixture(),original=structuredClone(f.before),failure=Object.freeze(Error('original text limit refusal'));f.state.limitError=failure;
+ assert.throws(()=>f.run(),error=>error===failure);assert.deepEqual(f.events.map(row=>row[0]),['usedLayer','limits']);assert.deepEqual(f.before,original);
+ f.events.length=0;f.state.limitError=null;const after=f.run();assert.deepEqual(f.events.map(row=>row[0]),['usedLayer','limits']);assert.equal(f.events[1][1],after);assert.deepEqual(f.before,original);
+});
+
+test('actual new-document placement keeps its existing native-copy shape aliases and composition-null contract',()=>{
+ for(const version of [2,5]){
+  const f=placementCloneFixture(version,{newDocument:true}),before=structuredClone(f.before),copyBefore=structuredClone(f.copyState),after=f.run(48,64),copy=f.decision.copiedNative[0];
+  const expected={schemaVersion:version,width:48,height:64,layers:[f.generated,{...structuredClone(f.copyState.layers[1]),id:'native_copy',version:'1',layerToDocument:copy.transform}],...(version===5?{composition:null}:{})};
+  assert.deepEqual(after,expected);assert.deepEqual(Object.keys(after),Object.keys(expected));assert.deepEqual(f.events.map(row=>row[0]),['document','tombstone','limits']);
+  assert.notEqual(after.layers[1].source,f.copyState.layers[1].source);assert.equal(after.layers[1].layerToDocument,copy.transform,'The existing reviewed-decision transform alias is preserved');
+  after.layers[1].source.byteLength='1';after.layers[1].layerToDocument[4]=100;assert.deepEqual(f.before,before);assert.deepEqual(f.copyState,copyBefore);
+ }
+});
+
+test('actual new-document placement preserves document reuse fresh-ID and copied-row refusal precedence',()=>{
+ const existing=placementCloneFixture(5,{newDocument:true});existing.state.existingDocument=true;existing.decision.copiedNative=[{sourceLayerId:'missing'}];assert.throws(()=>existing.run(),{code:'INVALID_INPUT',reason:'DOCUMENT_ID_REUSE'});assert.deepEqual(existing.events.map(row=>row[0]),['document']);
+ const tombstone=placementCloneFixture(5,{newDocument:true});tombstone.state.tombstone=true;assert.throws(()=>tombstone.run(),{code:'INVALID_INPUT',reason:'DOCUMENT_ID_REUSE'});assert.deepEqual(tombstone.events.map(row=>row[0]),['document','tombstone']);
+ const reused=placementCloneFixture(5,{newDocument:true});reused.body.newLayerId='original';assert.throws(()=>reused.run(),{code:'INVALID_INPUT',reason:'TEXT_TREATMENT_FRESH_LAYER_IDS_REQUIRED'});assert.deepEqual(reused.events.map(row=>row[0]),['document','tombstone']);
+ for(const change of [f=>{f.decision.copiedNative[0].sourceLayerId='missing';},f=>{f.decision.copiedNative[0].sourceStateHash=hashBytes('wrong state');},f=>{f.decision.copiedNative[0].source=metadata({wrong:'source'});}]){
+  const f=placementCloneFixture(5,{newDocument:true});change(f);assert.throws(()=>f.run(),{code:'INCOMPATIBLE',reason:'TEXT_TREATMENT_COPY_MAPPING_REQUIRED'});assert.deepEqual(f.events.map(row=>row[0]),['document','tombstone']);
+ }
+});
