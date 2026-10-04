@@ -10,9 +10,10 @@ import {boundedChild} from '../qualification/container/bounded-child.mjs';
 import {acquireTimingLock, timingLockDirectory} from '../qualification/campaigns/host.mjs';
 import {loadAllocation, startEvidenceMonitor, retainEvidenceAudit, verifyEvidenceAudit} from '../qualification/evidence-volume.mjs';
 import {createAccounting, coverage, volumeSize, workerCanonical} from './hosted-accounting.mjs';
+import {TOOLCHAIN_SCHEDULING, SYNCHRONIZATION_WINDOW_MS, createToolchainScope, coordinateObservation, verifyCoordination} from './hosted-toolchain-freezer.mjs';
 
 export const PHASES = Object.freeze(['inputs','toolchain','build16','build17','build18','verify16','verify17','verify18']);
-export const REQUIRED_SOURCE_PATHS = Object.freeze(['tooling/rollback-producer/hosted-control.mjs','tooling/rollback-producer/hosted-worker.py','tooling/rollback-producer/hosted-host.py','tooling/rollback-producer/hosted-export.py','tooling/rollback-producer/hosted-offline.py','tooling/rollback-producer/hosted-accounting.mjs','tooling/rollback-producer/volume_observer.py','tooling/rollback-producer/hosted-inputs.mjs','tooling/rollback-producer/hosted-inputs.json','tooling/qualification/container/bounded-child.mjs','tooling/qualification/campaigns/host.mjs','tooling/qualification/campaigns/common.mjs','tooling/qualification/evidence-volume.mjs','tooling/qualification/evidence-trends.mjs','tooling/bootstrap-toolchain.py','tooling/toolchain.json','tests/store/no-network.mjs']);
+export const REQUIRED_SOURCE_PATHS = Object.freeze(['tooling/rollback-producer/hosted-control.mjs','tooling/rollback-producer/hosted-toolchain-freezer.mjs','tooling/rollback-producer/hosted-toolchain-launch.py','tooling/rollback-producer/hosted-worker.py','tooling/rollback-producer/hosted-host.py','tooling/rollback-producer/hosted-export.py','tooling/rollback-producer/hosted-offline.py','tooling/rollback-producer/hosted-accounting.mjs','tooling/rollback-producer/volume_observer.py','tooling/rollback-producer/hosted-inputs.mjs','tooling/rollback-producer/hosted-inputs.json','tooling/qualification/container/bounded-child.mjs','tooling/qualification/campaigns/host.mjs','tooling/qualification/campaigns/common.mjs','tooling/qualification/evidence-volume.mjs','tooling/qualification/evidence-trends.mjs','tooling/bootstrap-toolchain.py','tooling/toolchain.json','tests/store/no-network.mjs']);
 export const TIMEOUTS = Object.freeze({initialize:120000, inputs:600000, prepare:600000, recheck:600000, toolchain:600000, build16:14400000, build17:14400000, build18:14400000, verify16:7200000, verify17:7200000, verify18:7200000, collect:1800000, observe:2000, 'host-check':120000});
 const require = (value, message) => {if (!value) throw Error(message);};
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -97,6 +98,7 @@ export function nativeSummary(summary) {
   return {kind:'hosted-native-data-observation-1',status:summary.status,scopes:summary.scopes,records:summary.records,journalHead:summary.journalHead,intervalMs:summary.intervalMs,maxSuccessfulStartGapMs:summary.maxSuccessfulStartGapMs,physicalQualification:false};
 }
 export function replayDataRecords(lines,request,capacityBytes,expected) {
+  require(request.scheduling===undefined||request.scheduling===TOOLCHAIN_SCHEDULING&&exact(request.synchronizationGroup,['dev','ino']),'Unknown observation scheduling policy');
   let previous=null,sequence=0,command=null;const records=[],watchdog=[];
   for(const row of lines){
     if(row.kind==='hosted-native-observation-command-1'){require(command===null,'Orphan observation command');command=row;continue;}
@@ -106,6 +108,8 @@ export function replayDataRecords(lines,request,capacityBytes,expected) {
       require(command.root===request.root&&isDeepStrictEqual(command.rootIdentity,request.rootIdentity),'Observer root binding differs');
       if(row.error===null){
         require(successfulChild(command.result)&&command.failure===null,'Failed observer cannot be successful accounting');
+        if(request.scheduling===TOOLCHAIN_SCHEDULING)verifyCoordination(command.synchronization,command,row,request.synchronizationGroup);
+        else require(!('synchronization' in command),'Unexpected observation scheduling policy');
         const raw=Buffer.from(command.stdoutBase64,'base64');require(raw.length<=65536&&Buffer.from(command.stderrBase64,'base64').length<=16384,'Observer stream bound');
         const value=JSON.parse(raw);require(raw.toString()===workerCanonical(value)+'\n','Observer canonical output differs');
         const result=volumeSize(value,request.worker);require(result.bytes===row.bytes&&isDeepStrictEqual(result,row.observation),'Observer replay differs');
@@ -173,20 +177,54 @@ async function main(){
   await absent(out);await mkdir(out,{mode:0o700});
   const aborter=new AbortController(),interrupt=signal=>aborter.abort(signal),sigint=()=>interrupt('SIGINT'),sigterm=()=>interrupt('SIGTERM');process.on('SIGINT',sigint);process.on('SIGTERM',sigterm);
   const jobTimer=setTimeout(()=>aborter.abort('Hosted job cleanup/export reserve reached'),config.job.deadlineEpochMs-EXPORT_RESERVE_MS-Date.now());
+  let toolchainScope=null,toolchainCloseAttempted=false;
   let uncertain=false,lease=null,host=null,accounting=null,log=null,logBytes=0,ordinal=0,receiptRef=null,dataFinal=null,dataReplay=null,hostFinal=null,hostReplay=null,watchFailure=null;
-  const state={kind:'hosted-native-phase-1',phase,runId:config.runId,config:input.ref,startedAt:new Date().toISOString(),outcome:'FAIL',commands:[],carried,physicalQualification:false,setupMeasured:false,controllerNetworkEffects:globalThis.__storeNetworkCounters.read(),jobAdmission,physicalAvailability:{availableBytes:String(availableBytes),observedAt:new Date().toISOString(),reservation:false},failure:null};
+  const state={kind:'hosted-native-phase-1',phase,runId:config.runId,config:input.ref,startedAt:new Date().toISOString(),outcome:'FAIL',commands:[],carried,physicalQualification:false,setupMeasured:false,observationScheduling:phase==='toolchain'?TOOLCHAIN_SCHEDULING:'producer-running',controllerNetworkEffects:globalThis.__storeNetworkCounters.read(),jobAdmission,physicalAvailability:{availableBytes:String(availableBytes),observedAt:new Date().toISOString(),reservation:false},failure:null};
   const latch=error=>{watchFailure??=errorRecord(error);aborter.abort('Evidence observation/journal or capacity unavailable');};
   const safeEnv={PATH:'/usr/bin:/bin:/usr/sbin:/sbin',HOME:join(dataRoot,'home'),TMPDIR:join(dataRoot,'tmp'),LANG:'C',LC_ALL:'C',TZ:'UTC',PYTHONDONTWRITEBYTECODE:'1',PYTHONNOUSERSITE:'1',PYTHONSAFEPATH:'1'};
+  async function closeToolchainScope(){
+    if(!toolchainScope||toolchainCloseAttempted)return;
+    toolchainCloseAttempted=true;
+    try{state.toolchainScopeClosure=await toolchainScope.close();}
+    catch(error){uncertain=true;state.toolchainScopeClosure={complete:false,code:/^[A-Z][A-Z0-9_]{0,79}$/.test(error?.message??'')?error.message:'FREEZER_SYSTEM_ERROR'};throw error;}
+  }
   async function run(action,options={},observation=false){
-    const selection=payloadArgv(config,configPath,grant,action,options),buffers=[[],[]],counts=[0,0],limits=observation?[65536,16384]:[16*1024**2,16*1024**2];let failure=null,result=null;
+    const ordinary=payloadArgv(config,configPath,grant,action,options),writer=action==='toolchain'&&toolchainScope!==null;
+    const selection=writer?toolchainScope.selection(config,configPath,grant):ordinary,buffers=[[],[]],counts=[0,0],limits=observation?[65536,16384]:[16*1024**2,16*1024**2];let failure=null,result=null,synchronization=null,writerAdmission=null,writerBegan=false,header=Buffer.alloc(0),ready=false;
     const local=new AbortController(),cancel=()=>local.abort(aborter.signal.reason);if(!observation){aborter.signal.addEventListener('abort',cancel,{once:true});if(aborter.signal.aborted)cancel();}
-    const collect=i=>chunk=>{const n=Math.min(chunk.length,limits[i]-counts[i]);if(n){buffers[i].push(Buffer.from(chunk.subarray(0,n)));counts[i]+=n;}if(n!==chunk.length){failure={message:'Command stream cap exceeded'};local.abort('Command stream cap');}};
-    const startedMs=performance.now();
-    try{result=await boundedChild(selection.binary,selection.args,{cwd:config.controlRoot,env:safeEnv,timeoutMs:TIMEOUTS[action],graceMs:observation?1000:10000,abortSignal:local.signal,onStdout:collect(0),onStderr:collect(1)});}catch(error){result={code:null,signal:null,error:errorRecord(error)};uncertain=true;}
-    finally{aborter.signal.removeEventListener('abort',cancel);}
+    const collect=i=>chunk=>{
+      if(writer&&i===0&&!ready){
+        if(failure)return;
+        header=Buffer.concat([header,chunk]);const newline=header.indexOf(10);
+        if(newline<0){if(header.length>4096){failure={message:'Toolchain launch handshake exceeded bound'};local.abort('Toolchain launch handshake');header=Buffer.alloc(0);}return;}
+        try{require(newline<=4096,'Toolchain launch handshake exceeded bound');writerAdmission=JSON.parse(header.subarray(0,newline).toString('utf8'));toolchainScope.accept(writerAdmission);ready=true;chunk=header.subarray(newline+1);header=Buffer.alloc(0);}
+        catch(error){failure={message:'Toolchain launch handshake refused'};local.abort('Toolchain launch handshake');header=Buffer.alloc(0);return;}
+      }
+      const n=Math.min(chunk.length,limits[i]-counts[i]);if(n){buffers[i].push(Buffer.from(chunk.subarray(0,n)));counts[i]+=n;}if(n!==chunk.length){failure={message:'Command stream cap exceeded'};local.abort('Command stream cap');}
+    };
+    const runStartedMs=performance.now(),writerDeadlineMs=runStartedMs+TIMEOUTS[action];
+    let startedMs=runStartedMs,endedMs=startedMs;
+    async function execute({outerDeadlineMs=null}={}){
+      startedMs=performance.now();const deadlineMs=outerDeadlineMs??(writer?writerDeadlineMs:null),timeoutMs=deadlineMs===null?TIMEOUTS[action]:Math.max(1,Math.min(TIMEOUTS[action],Math.floor(deadlineMs-startedMs)));
+      require(deadlineMs===null||startedMs<deadlineMs,'Enclosing child deadline expired');
+      try{return await boundedChild(selection.binary,selection.args,{cwd:config.controlRoot,env:safeEnv,timeoutMs,graceMs:observation?1000:10000,abortSignal:local.signal,onStdout:collect(0),onStderr:collect(1)});}
+      finally{endedMs=performance.now();}
+    }
+    try{
+      if(writer){await toolchainScope.begin(writerDeadlineMs,()=>local.signal.aborted);writerBegan=true;}
+      if(observation&&toolchainScope){const coordinated=await coordinateObservation(toolchainScope,execute);result=coordinated.value??{code:null,signal:null,error:errorRecord(coordinated.error??Error('Observation did not start'))};synchronization=coordinated.trace;if(coordinated.error){failure??={message:'Toolchain synchronization refused: '+(synchronization.failure?.code??synchronization.cleanupFailure?.code??'FREEZER_SYSTEM_ERROR')};if(synchronization.cleanupFailure)uncertain=true;}}
+      else result=await execute();
+    }catch(error){result={code:null,signal:null,error:errorRecord(error)};uncertain=true;}
+    finally{
+      aborter.signal.removeEventListener('abort',cancel);
+      if(writerBegan)try{await toolchainScope.end();}catch(error){failure??={message:'Toolchain writer closure unproven'};uncertain=true;}
+    }
     if(childClosureUncertain(action,result))uncertain=true;
-    const stdout=Buffer.concat(buffers[0]),stderr=Buffer.concat(buffers[1]),entry={kind:observation?'hosted-native-observation-command-1':'hosted-native-command-1',action,binary:selection.binary,argv:selection.args,startedMs,endedMs:performance.now(),result,failure,stdoutBase64:stdout.toString('base64'),stderrBase64:stderr.toString('base64')};
-    if(observation){Object.assign(entry,{root:dataRoot,rootIdentity:config.dataRootIdentity});await append(entry);}else{const path=join(out,String(++ordinal).padStart(3,'0')+'-'+action+'.json');state.commands.push(await save(path,entry));}
+    const stdout=Buffer.concat(buffers[0]),stderr=Buffer.concat(buffers[1]),entry={kind:observation?'hosted-native-observation-command-1':'hosted-native-command-1',action,binary:selection.binary,argv:selection.args,startedMs,endedMs:synchronization?endedMs:performance.now(),result,failure,stdoutBase64:stdout.toString('base64'),stderrBase64:stderr.toString('base64')};
+    if(synchronization)entry.synchronization=synchronization;
+    if(writer){entry.writerAdmission=writerAdmission;entry.scheduledStartedMs=runStartedMs;entry.absoluteDeadlineMs=writerDeadlineMs;}
+    if(observation){Object.assign(entry,{root:dataRoot,rootIdentity:config.dataRootIdentity});await append(entry);if(synchronization)require(performance.now()-synchronization.startedMs<=SYNCHRONIZATION_WINDOW_MS,'Toolchain observation retention exceeded unchanged window');}
+    else{const path=join(out,String(++ordinal).padStart(3,'0')+'-'+action+'.json');state.commands.push(await save(path,entry));}
     require(successfulChild(result)&&failure===null,'Unsuccessful fixed child: '+action);return stdout.toString('utf8').trim();
   }
   async function replayChild(){
@@ -199,12 +237,12 @@ async function main(){
     require(successfulChild(result)&&!overflow,'Data journal replay child failed');return JSON.parse(raw);
   }
   async function append(value){const bytes=Buffer.from(JSON.stringify(value)+'\n');require(bytes.length<=256*1024&&logBytes+bytes.length<=512*1024**2,'Data journal bound');let offset=0;while(offset<bytes.length){const n=writeSync(log.fd,bytes,offset,bytes.length-offset);require(n>0,'Journal short write');offset+=n;}logBytes+=bytes.length;await log.sync();}
-  const request={root:dataRoot,rootIdentity:config.dataRootIdentity,worker:{kind:'capsule-volume-request-1',mode:'sample',ownerUid:config.owner.uid,ownerGid:config.owner.gid,rootIdentity:config.dataRootIdentity,policyId:'capsule-allocated-inodes-1'}};
+  const request={root:dataRoot,rootIdentity:config.dataRootIdentity,worker:{kind:'capsule-volume-request-1',mode:'sample',ownerUid:config.owner.uid,ownerGid:config.owner.gid,rootIdentity:config.dataRootIdentity,policyId:'capsule-allocated-inodes-1'},...(phase==='toolchain'?{scheduling:TOOLCHAIN_SCHEDULING}:{})};
   try{
     lease=await acquireTimingLock(await timingLockDirectory(),{receiptId:config.runId+'-'+phase});await save(join(out,'timing-acquired.json'),{path:lease.path,identity:lease.identity});
     const lifecycle=await monitoredBody({
       startHost:async()=>{host=await startEvidenceMonitor({allocationPath:config.evidenceAllocation.path,output:out,campaignId:config.runId+'-'+phase,intervalMs:2000,onAlarm:alarm=>{if(alarm.status!=='PASS')latch(alarm);}});require(!aborter.signal.aborted,'Initial controller evidence unknown');state.evidenceStorage=host.reference;},
-      startData:async()=>{log=await open(join(out,'data-observations.jsonl'),'wx',0o600);accounting=createAccounting({observe:async target=>{if(target.key==='host-journal-watchdog'){await host.checkpoint();return {bytes:0,meaning:'Journal watchdog only; actual host audit owns accounting'};}const raw=await run('observe',{},true);const value=JSON.parse(raw);require(raw===workerCanonical(value),'Noncanonical worker result');return volumeSize(value,request.worker);},retain:append,onFailure:latch});await accounting.add({key:'host-journal-watchdog',capacityBytes:1,meaning:'Observer journal liveness only'});const initial=await accounting.add({key:'producer-data',capacityBytes:producerAllocation.capacityBytes,meaning:'All unique file/directory/symlink inode blocks, no symlink target traversal'});if(phase==='inputs'){const value=initial.observation.result;require(value.attempts[value.selectedAttempt].counts.entries===1,'New producer-data allocation is not initially empty');}require(!aborter.signal.aborted,'Initial producer evidence unavailable');},
+      startData:async()=>{log=await open(join(out,'data-observations.jsonl'),'wx',0o600);if(phase==='toolchain'){try{toolchainScope=await createToolchainScope({runId:config.runId,owner:config.owner});request.synchronizationGroup=toolchainScope.identity;state.toolchainScope={policy:TOOLCHAIN_SCHEDULING,groupIdentity:toolchainScope.identity,locatorSHA256:toolchainScope.locatorSHA256};}catch(error){uncertain=true;throw error;}}accounting=createAccounting({observe:async target=>{if(target.key==='host-journal-watchdog'){await host.checkpoint();return {bytes:0,meaning:'Journal watchdog only; actual host audit owns accounting'};}const raw=await run('observe',{},true);const value=JSON.parse(raw);require(raw===workerCanonical(value),'Noncanonical worker result');return volumeSize(value,request.worker);},retain:append,onFailure:latch});await accounting.add({key:'host-journal-watchdog',capacityBytes:1,meaning:'Observer journal liveness only'});const initial=await accounting.add({key:'producer-data',capacityBytes:producerAllocation.capacityBytes,meaning:'All unique file/directory/symlink inode blocks, no symlink target traversal'});if(phase==='inputs'){const value=initial.observation.result;require(value.attempts[value.selectedAttempt].counts.entries===1,'New producer-data allocation is not initially empty');}require(!aborter.signal.aborted,'Initial producer evidence unavailable');},
       body:async()=>{await guard();require(!aborter.signal.aborted,'Observation already failed');if(phase==='inputs')await run('initialize');await run('host-check');
         if(phase==='inputs'){await run('inputs');state.carried.prepared=JSON.parse(await run('prepare')).receipt;}
         else{const prepared=JSON.parse(await run('recheck'));require(prepared.receipt.hash===state.carried.prepared.hash&&prepared.receipt.byteLength===state.carried.prepared.byteLength,'Prepared closure differs');
@@ -215,7 +253,7 @@ async function main(){
           }
         }
         await run('host-check');await guard();require(Object.values(globalThis.__storeNetworkCounters.read()).every(value=>value===0),'Controller network effect detected');require(!aborter.signal.aborted,'Observation/source interrupted phase');state.outcome='PASS';},
-      finishData:async()=>{if(!accounting)return {status:'FAIL'};dataFinal=nativeSummary(await accounting.finish());await log.sync();await log.close();log=null;const journal=(await held(join(out,'data-observations.jsonl'),null,{maximum:512*1024**2,collect:false})).ref;await save(join(out,'data-replay-input.json'),{request,capacityBytes:producerAllocation.capacityBytes,summary:dataFinal,journal});dataReplay=await replayChild();state.dataStorage={summary:dataFinal,journal,replay:dataReplay};return {status:dataFinal.status==='PASS'&&dataReplay.status==='PASS'?'PASS':'FAIL'};},
+      finishData:async()=>{if(!accounting)return {status:'FAIL'};dataFinal=nativeSummary(await accounting.finish());let scopeFailure=null;try{await closeToolchainScope();}catch(error){scopeFailure=error;}await log.sync();await log.close();log=null;const journal=(await held(join(out,'data-observations.jsonl'),null,{maximum:512*1024**2,collect:false})).ref;await save(join(out,'data-replay-input.json'),{request,capacityBytes:producerAllocation.capacityBytes,summary:dataFinal,journal});dataReplay=await replayChild();state.dataStorage={summary:dataFinal,journal,replay:dataReplay};if(scopeFailure)throw scopeFailure;return {status:dataFinal.status==='PASS'&&dataReplay.status==='PASS'?'PASS':'FAIL'};},
       finishHost:async(raw,closed,failure)=>{if(!host)return {status:'FAIL'};state.outcome=raw;state.failure=failure??watchFailure;state.endedAt=new Date().toISOString();receiptRef=await save(join(out,'receipt.json'),state);hostFinal=await host.finish({receiptPath:receiptRef.path,outcome:state.outcome});await retainEvidenceAudit(host.reference,out);hostReplay=await verifyEvidenceAudit(host.reference,receiptRef.path);return {status:hostFinal.status==='PASS'&&hostReplay.status==='PASS'?'PASS':'FAIL'};},
       release:async()=>{if(uncertain||accounting&&!dataFinal||host&&!hostFinal)return false;await lease.release();return true;},onFailure:error=>{state.failure??=errorRecord(error);},
     });
@@ -225,6 +263,7 @@ async function main(){
   finally{
     // Partial-start failure must still drain any actually created observers.
     if(accounting&&!dataFinal){try{dataFinal=nativeSummary(await accounting.finish());}catch(error){state.failure??=errorRecord(error);}}
+    if(toolchainScope&&!toolchainCloseAttempted){try{await closeToolchainScope();}catch(error){state.failure??=errorRecord(error);}}
     if(log){try{await log.sync();await log.close();}catch(error){state.failure??=errorRecord(error);}}
     if(host&&!hostFinal){try{receiptRef??=await save(join(out,'receipt.json'),state);hostFinal=await host.finish({receiptPath:receiptRef.path,outcome:'FAIL'});await retainEvidenceAudit(host.reference,out);hostReplay=await verifyEvidenceAudit(host.reference,receiptRef.path);}catch(error){state.failure??=errorRecord(error);}}
   }

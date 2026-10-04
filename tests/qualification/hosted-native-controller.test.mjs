@@ -154,3 +154,112 @@ test('native mutation retries are separated inside the original bounded window a
   const records=[{boundary:'initial',startedMs:0,endedMs:1,bytes:4608,error:null},{boundary:'periodic',startedMs:1000,endedMs:1100,bytes:null,error:{code:'EVIDENCE_MUTATION'}},{boundary:'final',startedMs:2000,endedMs:2001,bytes:4608,error:null}];
   const retained=coverage(records,100000);assert.equal(retained.status,'INCONCLUSIVE');assert.equal(retained.unknownSamples,1);assert.equal(retained.coverageComplete,false);
 });
+
+
+import {TOOLCHAIN_SCHEDULING, coordinateObservation, admissionGate, verifyCoordination, cgroupHierarchy, authenticateHierarchy, cgroupLocation, eventValues, memberValues, processFields, validateMemberIdentities} from '../../tooling/rollback-producer/hosted-toolchain-freezer.mjs';
+function frozenFixture(overrides={}) {
+  let now=10,frozen=0;const events=[],ids=[{pid:11,start:'100'}],identity={dev:3,ino:7};
+  const scope={identity,ready:async deadline=>{events.push(['ready',deadline]);},write:async(name,value)=>{events.push([name,value]);frozen=Number(value);now+=2;},events:async()=>({populated:1,frozen}),identities:async()=>ids,...overrides};
+  return {scope,events,identity,clock:()=>now,advance:n=>now+=n,sleep:async n=>{now+=n;},observe:async({outerDeadlineMs})=>{events.push(['scan',outerDeadlineMs]);now+=20;return {code:0};}};
+}
+test('toolchain observation charges freeze scan and thaw without changing the scanner or child allowance',async()=>{
+  const f=frozenFixture(),value=await coordinateObservation(f.scope,f.observe,f);
+  assert.equal(value.error,null);assert.deepEqual(value.value,{code:0});assert.equal(value.trace.policy,TOOLCHAIN_SCHEDULING);
+  assert.deepEqual(f.events,[['ready',1010],['cgroup.freeze','1'],['scan',2010],['cgroup.freeze','0']]);
+  assert.equal(value.trace.startedMs,10);assert.equal(value.trace.frozenMs,12);assert.equal(value.trace.scanEndedMs,32);assert.equal(value.trace.thawedMs,34);assert.equal(value.trace.endedMs,34);
+  const command={startedMs:12,endedMs:32},record={startedMs:9,endedMs:35};assert.equal(verifyCoordination(value.trace,command,record,f.identity),true);
+  assert.throws(()=>verifyCoordination(value.trace,command,{...record,endedMs:1011},f.identity),/WINDOW/);
+  assert.throws(()=>verifyCoordination(value.trace,command,record,{dev:3,ino:8}),/GROUP/);
+});
+test('toolchain mutation failure retains original cause and always attempts thaw without another scan',async()=>{
+  const f=frozenFixture(),cause=Error('EVIDENCE_MUTATION');let scans=0;
+  const value=await coordinateObservation(f.scope,async()=>{scans++;throw cause;},f);
+  assert.equal(value.error,cause);assert.equal(scans,1);assert.equal(value.trace.failure.code,'EVIDENCE_MUTATION');assert.deepEqual(f.events.at(-1),['cgroup.freeze','0']);assert.equal(value.trace.cleanupFailure,null);
+});
+test('toolchain synchronization never accepts oversleep or late complete scan and still requests thaw',async()=>{
+  const f=frozenFixture();let scans=0;
+  const value=await coordinateObservation(f.scope,async()=>{scans++;f.advance(1001);return {code:0};},f);
+  assert.match(value.error.message,/WINDOW/);assert.equal(scans,1);assert.ok(value.trace.endedMs-value.trace.startedMs>1000);assert.deepEqual(f.events.at(-1),['cgroup.freeze','0']);
+  const noFreeze=frozenFixture({ready:async()=>{throw Error('FREEZER_WRITER_READY_DEADLINE');}});
+  const refused=await coordinateObservation(noFreeze.scope,async()=>{assert.fail('scan must not start');},noFreeze);assert.equal(refused.trace.freezeRequestedMs,null);assert.deepEqual(noFreeze.events,[]);
+});
+test('toolchain thaw failure is distinct from the original failed scan and has no successful replay',async()=>{
+  const f=frozenFixture(),write=f.scope.write,cause=Error('EVIDENCE_MUTATION');f.scope.write=async(name,value)=>{if(value==='0')throw Error('FREEZER_THAW_FAILED');return write(name,value);};
+  const value=await coordinateObservation(f.scope,async()=>{throw cause;},f);
+  assert.equal(value.error,cause);assert.equal(value.trace.failure.code,'EVIDENCE_MUTATION');assert.equal(value.trace.cleanupFailure.code,'FREEZER_THAW_FAILED');assert.equal(value.trace.thawedMs,null);
+  assert.throws(()=>verifyCoordination(value.trace,{},{},f.identity),/FAILURE/);
+  const leaked=frozenFixture();const hidden=await coordinateObservation(leaked.scope,async()=>{throw Error('secret /private/path or grant');},leaked);assert.equal(hidden.trace.failure.code,'FREEZER_SYSTEM_ERROR');assert(!JSON.stringify(hidden.trace).includes('/private'));
+});
+test('toolchain observation refuses membership change and does not substitute empty counts',async()=>{
+  const f=frozenFixture();let reads=0;f.scope.identities=async()=>++reads===1?[{pid:11,start:'100'}]:[];
+  const value=await coordinateObservation(f.scope,f.observe,f);assert.match(value.error.message,/MEMBERSHIP/);assert.deepEqual(value.trace.members,[{pid:11,start:'100'}]);assert.equal(reads,2);assert.deepEqual(f.events.at(-1),['cgroup.freeze','0']);
+});
+test('private cgroup discovery and census retain finite fail-closed parsing',()=>{
+  const mount='1 0 0:1 / /sys/fs/cgroup rw - cgroup2 cgroup rw\n';
+  assert.equal(cgroupLocation('0::/job/sub\n',mount),'/sys/fs/cgroup/job/sub');
+  for(const [membership,mounts] of [['1:cpu:/job',mount],['0::/job/sub\n',mount+mount],['0::/job/sub\n',mount.replaceAll(' rw',' ro')],['0::/job/../other\n',mount]])assert.throws(()=>cgroupLocation(membership,mounts));
+  assert.deepEqual(eventValues('populated 1\nfrozen 0\n'),{populated:1,frozen:0});assert.throws(()=>eventValues('populated 1\nfrozen 0\nfrozen 1\n'));
+  assert.deepEqual(memberValues('9\n4\n'),[4,9]);assert.throws(()=>memberValues('9\n9\n'));assert.throws(()=>memberValues(Array.from({length:4097},(_,i)=>i+1).join('\n')));
+});
+test('actual credential parser distinguishes empty groups, selected children and only the bound trusted stub',()=>{
+  const status='Name:\tworker\nUid:\t20000 20000 20000 20000\nGid:\t20000 20000 20000 20000\nGroups:\t\nNStgid:\t11\nCapInh:\t0\nCapPrm:\t0\nCapEff:\t0\nCapBnd:\t0\nCapAmb:\t0\nNoNewPrivs:\t1\n';
+  const raw='11 (name with ) chars) S '+process.pid+' 0 11 '+Array(15).fill('0').join(' ')+' 100';
+  const row=processFields(11,status,raw),owner={uid:20000,gid:20000,groups:[]},ready={pid:11,start:'100'};
+  assert.deepEqual(row.groups,[]);assert.deepEqual(validateMemberIdentities([row],owner,ready),[{pid:11,start:'100'}]);
+  for(const change of [x=>x.groups=[1],x=>x.capabilities[0]='1',x=>x.start='101',x=>x.noNewPrivs='0']){const bad=structuredClone(row);change(bad);assert.throws(()=>validateMemberIdentities([bad],owner,ready));}
+  const stub={...row,uids:[0,0,0,0],parent:process.pid};assert.deepEqual(validateMemberIdentities([stub],owner,ready),[{pid:11,start:'100'}]);assert.throws(()=>validateMemberIdentities([stub],owner,null));assert.throws(()=>validateMemberIdentities([{...stub,uids:[]}],owner,ready));
+});
+test('new scheduling records cannot replay through the old-policy path or an unbound group',()=>{
+  const value=journal();value.request.scheduling='unreviewed-policy';assert.throws(()=>replayDataRecords(value.lines,value.request,100000,value.summary),/scheduling/);
+  const missing=journal();missing.request.scheduling=TOOLCHAIN_SCHEDULING;missing.request.synchronizationGroup={dev:3,ino:7};assert.throws(()=>replayDataRecords(missing.lines,missing.request,100000,missing.summary));
+  const old=journal();old.lines.find(x=>x.kind==='hosted-native-observation-command-1').synchronization={policy:TOOLCHAIN_SCHEDULING};assert.throws(()=>replayDataRecords(old.lines,old.request,100000,old.summary),/scheduling/);
+});
+test('fixed toolchain launch admission and attach-before-exec controls are exercised without a native payload',async t=>{
+  const {stdout,stderr}=await promisify(execFile)('python3',['-I','-S','-B',fileURLToPath(new URL('./fixtures/hosted-toolchain-launch-unit.py',import.meta.url)),fileURLToPath(new URL('../../tooling/rollback-producer/hosted-toolchain-launch.py',import.meta.url))],{maxBuffer:65536,timeout:10000});
+  assert.deepEqual(JSON.parse(stdout),{tests:10,failures:0,errors:0});t.diagnostic(stderr.trim());
+});
+
+test('toolchain admission and observation exclude each other without pausing caller clocks',async()=>{
+  let now=0;const wake=[],gate=admissionGate({clock:()=>now,sleep:ms=>{now+=ms;return new Promise(resolve=>wake.push(resolve));}});
+  await gate.acquire(100);let admitted=false;const writer=gate.begin(100).then(()=>{admitted=true;});
+  await Promise.resolve();assert.equal(admitted,false);assert.equal(now,5);gate.release();wake.shift()();await writer;assert.equal(admitted,true);
+  let observing=false;const observation=gate.acquire(100).then(()=>{observing=true;});await Promise.resolve();assert.equal(observing,false);assert.equal(now,10);
+  gate.ready();wake.shift()();await observation;assert.equal(observing,true);gate.release();
+  await assert.rejects(gate.begin(100,()=>true),/DEADLINE/);
+  const late=admissionGate({clock:()=>now,sleep:async ms=>{now+=ms;}});await late.acquire(100);await assert.rejects(late.begin(now+4),/DEADLINE/);assert.equal(now,15);late.release();
+});
+test('a failed synchronization releases admission exclusion and retains its original budget cost',async()=>{
+  const f=frozenFixture();let released=false;f.scope.acquire=async()=>f.advance(1001);f.scope.release=()=>{released=true;};
+  const value=await coordinateObservation(f.scope,async()=>{assert.fail('late acquisition cannot scan');},f);
+  assert.match(value.error.message,/WINDOW/);assert.equal(released,true);assert.equal(value.trace.freezeRequestedMs,null);assert.equal(value.trace.endedMs-value.trace.startedMs,1001);
+});
+
+
+test('toolchain policy replays exact successful synchronization while retaining sticky failed samples',()=>{
+  const value=journal();value.request.scheduling=TOOLCHAIN_SCHEDULING;value.request.synchronizationGroup={dev:3,ino:7};
+  for(const command of value.lines.filter(x=>x.kind==='hosted-native-observation-command-1')){
+    const start=command.startedMs;
+    command.synchronization={policy:TOOLCHAIN_SCHEDULING,groupIdentity:{dev:3,ino:7},startedMs:start-0.9,freezeRequestedMs:start-0.8,frozenMs:start-0.7,scanStartedMs:start-0.6,scanEndedMs:command.endedMs+0.1,thawRequestedMs:command.endedMs+0.2,thawedMs:command.endedMs+0.3,endedMs:command.endedMs+0.4,members:[],frozenEvents:{populated:0,frozen:1},afterScanEvents:{populated:0,frozen:1},thawedEvents:{populated:0,frozen:0},failure:null,cleanupFailure:null};
+  }
+  assert.equal(replayDataRecords(value.lines,value.request,100000,value.summary).status,'PASS');
+  const changed=structuredClone(value);changed.lines[1].synchronization.thawedEvents.frozen=1;assert.throws(()=>replayDataRecords(changed.lines,changed.request,100000,changed.summary),/EVENTS/);
+  const failed=journal({watchdogError:true});failed.request=value.request;
+  for(const command of failed.lines.filter(x=>x.kind==='hosted-native-observation-command-1'))command.synchronization=structuredClone(value.lines.find(x=>x.kind==='hosted-native-observation-command-1'&&x.startedMs===command.startedMs).synchronization);
+  assert.throws(()=>replayDataRecords(failed.lines,failed.request,100000,failed.summary));
+});
+
+
+test('visible cgroup hierarchy refuses hidden roots and all alternate mounts, including nonmatching roots',()=>{
+  const mount='1 0 0:1 / /sys/fs/cgroup rw - cgroup2 cgroup rw\n';
+  assert.deepEqual(cgroupHierarchy('0::/job/sub\n',mount),{parent:'/sys/fs/cgroup/job/sub',mount:'/sys/fs/cgroup',ancestors:['/sys/fs/cgroup/job/sub','/sys/fs/cgroup/job','/sys/fs/cgroup']});
+  assert.throws(()=>cgroupHierarchy('0::/job/sub\n',mount.replace('0:1 / ','0:1 /job ')),/HIDDEN/);
+  assert.throws(()=>cgroupHierarchy('0::/job/sub\n',mount+'2 0 0:1 /other /else rw - cgroup2 cgroup rw\n'),/AMBIGUOUS/);
+  assert.throws(()=>cgroupHierarchy('0::/'+Array(129).fill('nested').join('/')+'\n',mount),/BOUND/);
+});
+test('nested cgroup admission checks the higher common-ancestor control without repairing permissions',async()=>{
+  const layout=cgroupHierarchy('0::/job/sub\n','1 0 0:1 / /sys/fs/cgroup rw - cgroup2 cgroup rw\n'),visited=[];
+  let permissive=null;
+  const inspect=async path=>{visited.push(path);const file=path.endsWith('/cgroup.procs');return {uid:0,mode:(file?0o100600:0o40700)|(path===permissive?0o022:0),dev:3,ino:visited.length,isFile:()=>file,isDirectory:()=>!file};};
+  const rows=await authenticateHierarchy(layout,{inspect});assert.equal(rows.length,3);assert.deepEqual(visited,['/sys/fs/cgroup/job/sub','/sys/fs/cgroup/job/sub/cgroup.procs','/sys/fs/cgroup/job','/sys/fs/cgroup/job/cgroup.procs','/sys/fs/cgroup','/sys/fs/cgroup/cgroup.procs']);
+  permissive='/sys/fs/cgroup/cgroup.procs';visited.length=0;await assert.rejects(authenticateHierarchy(layout,{inspect}),/ANCESTOR_CONTROL/);assert.equal(visited.at(-1),permissive);
+});

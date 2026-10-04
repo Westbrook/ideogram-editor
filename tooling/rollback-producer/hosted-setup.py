@@ -470,8 +470,27 @@ def diagnostic_worker(raw, config, grant):
         result['attempts'].append({key:row[key] for key in ('sequence','status','drained','startMonotonicUs','endMonotonicUs')}|{'errors':projected})
     return result
 
+def diagnostic_synchronization(value):
+    times=('startedMs','freezeRequestedMs','frozenMs','scanStartedMs','scanEndedMs','thawRequestedMs','thawedMs','endedMs')
+    fields={'policy','groupIdentity','members','frozenEvents','afterScanEvents','thawedEvents','failure','cleanupFailure',*times}
+    require(isinstance(value,dict) and set(value)==fields and value['policy']=='hosted-toolchain-quiescent-inodes-1', 'Synchronization diagnostic grammar differs')
+    require(all(value[key] is None or diagnostic_number(value[key]) for key in times), 'Synchronization diagnostic clock differs')
+    group=value['groupIdentity'];require(isinstance(group,dict) and set(group)=={'dev','ino'} and all(type(group[key]) is int and 0<=group[key]<=9007199254740991 for key in group) and group['ino']>0, 'Synchronization diagnostic identity differs')
+    result={key:value[key] for key in ('policy','groupIdentity',*times)}
+    for key in ('frozenEvents','afterScanEvents','thawedEvents'):
+        events=value[key];require(events is None or isinstance(events,dict) and set(events)=={'populated','frozen'} and all(type(item) is int and item in (0,1) for item in events.values()), 'Synchronization diagnostic events differ');result[key]=events
+    for key in ('failure','cleanupFailure'):
+        error=value[key];require(error is None or isinstance(error,dict) and set(error)=={'code'} and isinstance(error['code'],str) and re.fullmatch('[A-Z][A-Z0-9_]{0,79}',error['code']), 'Synchronization diagnostic error differs');result[key]=error
+    members=value['members'];require(members is None or isinstance(members,list) and len(members)<=4096, 'Synchronization diagnostic membership bound')
+    if members is not None:
+        require(all(isinstance(row,dict) and set(row)=={'pid','start'} and type(row['pid']) is int and 0<row['pid']<=9007199254740991 and isinstance(row['start'],str) and re.fullmatch('[0-9]{1,20}',row['start']) for row in members) and len({row['pid'] for row in members})==len(members), 'Synchronization diagnostic member differs')
+    result.update(membersCount=None if members is None else len(members),members=None if members is None else members[:16],omittedMembers=None if members is None else max(0,len(members)-16),qualification=False)
+    return result
+
 def diagnostic_observation(command, config, grant):
-    require(set(command)=={'kind','action','binary','argv','startedMs','endedMs','result','failure','stdoutBase64','stderrBase64','root','rootIdentity'} and command['kind']=='hosted-native-observation-command-1' and command['action']=='observe', 'Unknown observation command grammar')
+    fields={'kind','action','binary','argv','startedMs','endedMs','result','failure','stdoutBase64','stderrBase64','root','rootIdentity'}
+    require(set(command) in (fields,fields|{'synchronization'}) and command['kind']=='hosted-native-observation-command-1' and command['action']=='observe', 'Unknown observation command grammar')
+    synchronization=diagnostic_synchronization(command['synchronization']) if 'synchronization' in command else None
     require(command['root']==config['_dataRoot'] and command['rootIdentity']==config['dataRootIdentity'], 'Observation root binding differs')
     require(diagnostic_number(command['startedMs']) and diagnostic_number(command['endedMs']) and command['endedMs']>=command['startedMs'], 'Observation command interval differs')
     child=command['result'];require(isinstance(child,dict) and set(child)<={'code','signal','error','timedOut','interrupted','exitObserved','reason','timeoutMs','requestedSignals','processTree'} and {'code','signal'}<=set(child), 'Unknown observation child result')
@@ -480,12 +499,12 @@ def diagnostic_observation(command, config, grant):
     projected={'code':child['code'],'signal':None if child['signal'] is None else diagnostic_text(child['signal'],grant,80)}
     for key in ('timedOut','interrupted','exitObserved'):
         if key in child: require(type(child[key]) is bool, 'Observation child flag differs');projected[key]=child[key]
-    if 'timeoutMs' in child: require(type(child['timeoutMs']) is int and child['timeoutMs']==2000, 'Observation timeout differs');projected['timeoutMs']=child['timeoutMs']
+    if 'timeoutMs' in child: require(type(child['timeoutMs']) is int and (0<child['timeoutMs']<=2000 if synchronization is not None else child['timeoutMs']==2000), 'Observation timeout differs');projected['timeoutMs']=child['timeoutMs']
     if 'reason' in child: projected['reason']=diagnostic_text(child['reason'],grant)
     projected['error']=diagnostic_failure(child.get('error'),grant)
     stdout=base64.b64decode(command['stdoutBase64'],validate=True);stderr=base64.b64decode(command['stderrBase64'],validate=True)
     require(len(stdout)<=65536 and len(stderr)<=16384, 'Observation stream bounds differ')
-    return {'result':projected,'failure':diagnostic_failure(command['failure'],grant),'worker':diagnostic_worker(stdout,config,grant),'stderr':diagnostic_stream(command['stderrBase64'],grant)}
+    return {'result':projected,'failure':diagnostic_failure(command['failure'],grant),'worker':diagnostic_worker(stdout,config,grant),'stderr':diagnostic_stream(command['stderrBase64'],grant),**({'synchronization':synchronization} if synchronization is not None else {})}
 
 def diagnostic_journal(config, directory, storage, summary, replay, grant, budget):
     if storage is None: return {'status':'not-recorded','observations':[],'omittedObservations':None,'refusals':0,'rawStorageVerified':False}

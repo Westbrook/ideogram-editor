@@ -43,8 +43,8 @@
     },
     {
       "path": "tooling/rollback-producer/hosted-control.mjs",
-      "bytes": 35024,
-      "sha256": "446c670bda560cd23baa3951beb891bcbc0b60e7ccb78d326aea021afec60a5e"
+      "bytes": 39552,
+      "sha256": "2fe81b3a49ac481c76ce2f992b26d4594f63755a90f547cc5c7be76de7fe2ebf"
     },
     {
       "path": "tooling/rollback-producer/hosted-export.py",
@@ -73,8 +73,18 @@
     },
     {
       "path": "tooling/rollback-producer/hosted-setup.py",
-      "bytes": 61952,
-      "sha256": "897882c142bc3228e7908f8a1a5ddb0f398696d26fc270c8d04c5d2fb5be04fb"
+      "bytes": 64527,
+      "sha256": "e2805f3d554fd2735db3d75a6cc1760942f6dba3f4c477d8ec8f63f9bcb84c13"
+    },
+    {
+      "path": "tooling/rollback-producer/hosted-toolchain-freezer.mjs",
+      "bytes": 16015,
+      "sha256": "c581305c634b57d8df1d20b2a8c99d6a035e04718a02ed087771fc006f401ba9"
+    },
+    {
+      "path": "tooling/rollback-producer/hosted-toolchain-launch.py",
+      "bytes": 8952,
+      "sha256": "a359c0f4dc884783cca06fc52c6e1b267df0086f428d017d379586f6f3e9aeda"
     },
     {
       "path": "tooling/rollback-producer/hosted-worker.py",

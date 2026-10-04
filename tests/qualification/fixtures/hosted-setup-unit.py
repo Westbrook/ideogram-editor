@@ -788,6 +788,39 @@ class Boundaries(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError,'^Mutation diagnostic (differences bound|fields unordered)$'):subject.diagnostic_worker(observation_test_json(changed),config,'c'*64)
 
 
+    def synchronization_fixture(self):
+        return {'policy':'hosted-toolchain-quiescent-inodes-1','groupIdentity':{'dev':3,'ino':7},'startedMs':0,'freezeRequestedMs':0.2,'frozenMs':0.4,'scanStartedMs':0.5,'scanEndedMs':2.1,'thawRequestedMs':2.2,'thawedMs':2.4,'endedMs':2.5,'members':[{'pid':100+i,'start':str(1000+i)} for i in range(20)],'frozenEvents':{'populated':1,'frozen':1},'afterScanEvents':{'populated':1,'frozen':1},'thawedEvents':{'populated':1,'frozen':0},'failure':{'code':'FREEZER_WINDOW_EXCEEDED'},'cleanupFailure':None}
+
+    def test_toolchain_synchronization_failure_projects_through_real_retained_journal(self):
+        with tempfile.TemporaryDirectory() as raw, diagnostic_files_as_controller():
+            config,directory,receipt,final,rows,worker,commit,save=observation_fixture(Path(raw).resolve())
+            rows[0]['synchronization']=self.synchronization_fixture();rows[0]['result']['timeoutMs']=1990;commit(rows)
+            value=subject.phase_diagnostic(config,'toolchain','c'*64,{'bytes':0})
+            command=value['accounting']['journal']['observations'][0]['observationCommand'];detail=command['synchronization']
+            self.assertEqual(command['result']['timeoutMs'],1990);self.assertEqual(detail['membersCount'],20);self.assertEqual(len(detail['members']),16);self.assertEqual(detail['omittedMembers'],4)
+            self.assertEqual(detail['failure'],{'code':'FREEZER_WINDOW_EXCEEDED'});self.assertFalse(detail['qualification']);self.assertFalse(value['timingLockReleased'])
+            for forbidden in ('c'*64,'--grant','"argv"','"environment"','/fixed-owned-data','stdoutBase64'):self.assertNotIn(forbidden,json.dumps(value))
+
+    def test_toolchain_synchronization_projection_preserves_unobserved_fields_and_old_timeout_contract(self):
+        value=self.synchronization_fixture();value.update(members=None,frozenEvents=None,afterScanEvents=None,thawedEvents=None,frozenMs=None,scanStartedMs=None,scanEndedMs=None,thawRequestedMs=None,thawedMs=None)
+        projected=subject.diagnostic_synchronization(value);self.assertIsNone(projected['members']);self.assertIsNone(projected['membersCount']);self.assertIsNone(projected['omittedMembers']);self.assertIsNone(projected['thawedMs'])
+        with tempfile.TemporaryDirectory() as raw:
+            config,directory,receipt,final,rows,worker,commit,save=observation_fixture(Path(raw).resolve());command=rows[0]
+            self.assertNotIn('synchronization',subject.diagnostic_observation(command,config,'c'*64))
+            command['result']['timeoutMs']=1990
+            with self.assertRaisesRegex(ValueError,'^Observation timeout differs$'):subject.diagnostic_observation(command,config,'c'*64)
+            command['synchronization']=value
+            for timeout in (0,2001,True):
+                command['result']['timeoutMs']=timeout
+                with self.assertRaisesRegex(ValueError,'^Observation timeout differs$'):subject.diagnostic_observation(command,config,'c'*64)
+
+    def test_toolchain_synchronization_projection_refuses_opaque_fields_unbounded_members_and_false_zero(self):
+        changes=[('path','/private/secret'),('policy','other'),('failure',{'code':'c'*64}),('cleanupFailure',{'code':'X','path':'/private/secret'}),('startedMs',float('nan')),('groupIdentity',{'dev':True,'ino':7}),('members',[{'pid':1,'start':'2'}]*4097),('members',[{'pid':1,'start':'2'},{'pid':1,'start':'3'}]),('members',[{'pid':1,'start':'x'*21}]),('frozenEvents',{'populated':False,'frozen':1})]
+        for key,changed in changes:
+            value=self.synchronization_fixture();value[key]=changed
+            with self.assertRaises(ValueError):subject.diagnostic_synchronization(value)
+
+
 suite=unittest.defaultTestLoader.loadTestsFromTestCase(Boundaries)
 result=unittest.TextTestRunner(verbosity=2).run(suite)
 print(json.dumps({'tests':result.testsRun,'failures':len(result.failures),'errors':len(result.errors)}))

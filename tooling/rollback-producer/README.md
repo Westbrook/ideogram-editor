@@ -76,6 +76,46 @@ Every phase must fit its unchanged maximum before it starts; all eight phases
 are not guaranteed to fit. A deadline or failed observation cannot be repaired by
 a later stable sample, omitted phase or larger budget.
 
+## Toolchain-only observation scheduling successor
+
+The hosted `toolchain` phase declares
+`hosted-toolchain-quiescent-inodes-1`. Only its fixed bootstrap writer is admitted
+to a newly created, root-owned cgroup. Admission requires one visible cgroup2
+mount rooted at `/` and authenticates every visible ancestor `cgroup.procs`
+through the mountpoint as root-owned without group/other write. The controller
+rechecks its bound closure; the launcher independently checks before attaching.
+Subtree-rooted/alternate mounts and permissive higher controls refuse. This is
+visible-hierarchy containment for the fixed nonroot child, not a claim of global
+host-namespace control. A source-bound root launch stub attaches
+itself, reads back its actual membership, then executes the original selected
+`setpriv` privilege drop before the unchanged worker. Its descendants inherit the
+same cgroup; the controller and inode-observer child remain outside it. The fixed
+nonroot identity, empty supplementary groups, zero capabilities and no-new-privileges
+are checked in actual frozen member observations. A bound root launch stub may
+appear only during its fixed attachment-to-privilege-drop transition.
+
+Before an inode scan the controller excludes new writer admission, requests and
+confirms freezing, checks actual membership, runs the unchanged scanner, verifies
+continued frozen membership, then requests and confirms thawing. The complete
+synchronization interval must fit the existing one-second observation window;
+the original two-second child allowance includes preceding synchronization time.
+Three scanner attempts, 100 ms retry spacing, two-second accounting cadence,
+four-second conservative coverage bound, capacities, phase deadlines, six-hour
+job cap and cleanup reserve remain unchanged. All actual elapsed time continues
+to count. A failed scan or unavailable capability stays failed; no stable later
+sample repairs it. Cleanup attempts thaw/kill and requires the actual group to
+be empty before removal; uncertain cleanup keeps the lease held.
+
+This is a separately disclosed prerequisite-correctness schedule. It supersedes
+the earlier no-pause scheduling boundary only for toolchain bootstrap. It cannot
+satisfy a continuously running producer-observation requirement, performance,
+cold-install or physical qualification. Prior failed runs remain unchanged.
+Inputs, sealed builds, fresh restores and native proof programs keep their
+original unpaused scheduling and deadlines. Freezing is not a filesystem lock:
+other writers and pending kernel work can still cause the original scanner to
+refuse. A scoped capability experiment does not prove this integration works;
+whole-owner tests and an authenticated changed-source hosted run remain required.
+
 ## Retained results and limits
 
 Authenticate the actual run/attempt/control revision, artifact digest and exported
