@@ -28,7 +28,9 @@ export function busyStateObserver({root,origin,request,created,held}) {
    let image;
    if(Object.hasOwn(document,'image')){
     const ref=document.image.state,objects=join(root,'objects','sha256');
-    const bytes=Objects.prototype.verify.call({check(){},objects,path:r=>join(objects,r.hash.slice(7,9),r.hash.slice(7))},ref,true);
+    // Inherit verifier delegation without constructing a store or creating staging.
+    const reader=Object.assign(Object.create(Objects.prototype),{check(){},objects});
+    const bytes=reader.verify(ref,true);
     const text=new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(bytes);image=JSON.parse(text);imageState(image);assert.equal(canonical(image),text);assert.equal(hashBytes(canonical({...image,layers:image.layers.map(({version,...layer})=>layer)})),document.image.semanticDigest);
    }else image={schemaVersion:1,width:document.width,height:document.height,layers:[]};
    imageState(image);assert.equal(image.width,document.width);assert.equal(image.height,document.height);assert.deepEqual(image.layers.map(layer=>layer.id),document.orderedLayerIds);

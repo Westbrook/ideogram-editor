@@ -94,3 +94,30 @@ test('authoring callbacks associate original POST/exact GET status without any b
  }finally{f.close();}});
 test('authoring callbacks record existing JSON observation and preserve frozen failure cutoff',()=>{const f=authoringFixture();try{const origin='http://127.0.0.1:12345',w=createAuthoringCommandWitness(origin),post=authoringRequest(origin,f.command.commandId);w.submitted(post,f.wire);const token=w.response(post,200);w.readResult(token,{kind:'receipt',receipt:f.accepted});const report=w.failureSnapshot(f.root),before=JSON.stringify(report);assert.equal(report.rows[2].sameCommand,true);assert.equal(report.rows[2].receiptStatus,'accepted');w.readFailed(token);w.response(post,200);w.submitted(post,f.wire);assert.equal(JSON.stringify(w.failureSnapshot(f.root)),before);assert.equal(report.snapshot.status,'absent','Observed response does not manufacture durable state');}finally{f.close();}});
 test('authoring callback overflow remains explicit and bounded; unavailable snapshot preserves primary error',()=>{const f=authoringFixture();try{const origin='http://127.0.0.1:12345',w=createAuthoringCommandWitness(origin),post=authoringRequest(origin,f.command.commandId);w.submitted(post,f.wire);for(let i=0;i<700;i++)w.response(post,202);const error=Error('original five-second assertion'),openFailure=Error('private diagnostic open failure');let retained,caught;try{try{throw error;}catch(original){retained=w.failureSnapshot(f.root,{open(){throw openFailure;}});throw original;}}catch(e){caught=e;}assert.equal(caught,error);assert.equal(retained.snapshot.status,'unavailable');assert.equal(retained.snapshot.closed,false);assert.equal(retained.overflow,true);assert.equal(retained.rows.length,AUTHORING_DIAGNOSTIC_LIMITS.rows);assert.ok(Buffer.byteLength(JSON.stringify(retained))<=AUTHORING_DIAGNOSTIC_LIMITS.outputBytes);assert.ok(!JSON.stringify(retained).includes(openFailure.message));}finally{f.close();}});
+
+
+import {existsSync} from 'node:fs';
+test('durable object witness inherits the real verifier without constructing a store',()=>{
+ const f=fixture();try{
+  const path=join(f.root,'objects','sha256',f.asset.blob.hash.slice(7,9),f.asset.blob.hash.slice(7)),before=readFileSync(path);
+  assert.equal(existsSync(join(f.root,'staging')),false);
+  const first=f.read();assert.deepEqual(first,f.read());
+  assert.equal(first.descriptor.text,canonical(f.descriptor));assert.equal(first.descriptor.sha256,f.asset.blob.hash);
+  assert.equal(first.graph.text,canonical(f.graph));assert.equal(first.graph.sha256,f.descriptor.graph.hash);
+  assert.deepEqual(readFileSync(path),before);assert.equal(existsSync(join(f.root,'staging')),false);
+ }finally{f.close();}
+});
+test('durable object witness reports actual verifier hash failure rather than receiver TypeError',()=>{
+ const f=fixture(),path=join(f.root,'objects','sha256',f.asset.blob.hash.slice(7,9),f.asset.blob.hash.slice(7)),before=readFileSync(path);
+ try{const corrupt=Buffer.from(before);corrupt[0]^=1;writeFileSync(path,corrupt);assert.throws(f.read,{code:'CORRUPT_OBJECT'});
+  writeFileSync(path,before);assert.equal(f.read().descriptor.sha256,f.asset.blob.hash);
+ }finally{try{writeFileSync(path,before);}finally{f.close();}}
+});
+test('durable object witness retains the real 65536-byte verified-read bound',()=>{
+ const f=fixture();try{f.asset.blob.byteLength='65537';f.update();assert.throws(f.read,{code:'PAYLOAD_TOO_LARGE'});}finally{f.close();}
+});
+for(const kind of ['malformed','noncanonical'])test('durable object witness reaches exact '+kind+' JSON refusal after byte verification',()=>{
+ const f=fixture();try{f.asset.blob=f.put(kind==='malformed'?'{':JSON.stringify(f.descriptor,null,2));f.update();
+  assert.throws(f.read,kind==='malformed'?SyntaxError:assert.AssertionError);
+ }finally{f.close();}
+});

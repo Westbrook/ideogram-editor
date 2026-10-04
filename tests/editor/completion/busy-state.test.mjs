@@ -30,3 +30,31 @@ for(const [name,change]of Object.entries({revision:f=>f.document.revision='2',hi
 
 for(const image of [false,true])test('named transparent UI creation preserves exact metadata '+(image?'with referenced empty image':'without an image field'),()=>{const f=fixture(image,true);try{const observe=f.observe(),before=observe();assert.deepEqual(before.creation.command.body,f.created.body);assert.deepEqual(before.document.metadata,{schemaVersion:1,name:'Busy witness',creationBackground:{kind:'transparent'}});assert.deepEqual(before,observe());}finally{f.close();}});
 for(const [name,change]of Object.entries({name:f=>f.document.metadata.name='Different name',background:f=>f.document.metadata.creationBackground={kind:'solid',color:[255,255,255,255],layerId:'other'},color:f=>f.document.color='DisplayP3',depth:f=>f.document.depth=16}))test('named creation witness refuses changed '+name,()=>{const f=fixture(true,true);try{change(f);f.update();assert.throws(()=>f.observe()());}finally{f.close();}});
+
+
+import {existsSync} from 'node:fs';
+test('busy image witness inherits the real verifier without constructing a store',()=>{
+ const f=fixture(true);try{
+  const ref=f.document.image.state,path=join(f.root,'objects','sha256',ref.hash.slice(7,9),ref.hash.slice(7)),before=readFileSync(path);
+  assert.equal(existsSync(join(f.root,'staging')),false);
+  const observe=f.observe(),first=observe();assert.deepEqual(first,observe());
+  assert.equal(canonical(first.image),before.toString());assert.equal(hashBytes(before),ref.hash);
+  assert.deepEqual(readFileSync(path),before);assert.equal(existsSync(join(f.root,'staging')),false);
+ }finally{f.close();}
+});
+test('busy image witness reports actual verifier hash failure rather than receiver TypeError',()=>{
+ const f=fixture(true),ref=f.document.image.state,path=join(f.root,'objects','sha256',ref.hash.slice(7,9),ref.hash.slice(7)),before=readFileSync(path);
+ try{const corrupt=Buffer.from(before);corrupt[0]^=1;writeFileSync(path,corrupt);assert.throws(()=>f.observe()(),{code:'CORRUPT_OBJECT'});
+  writeFileSync(path,before);assert.equal(hashBytes(canonical(f.observe()().image)),ref.hash);
+ }finally{try{writeFileSync(path,before);}finally{f.close();}}
+});
+test('busy image witness retains the earlier 65536-byte document-image bound',()=>{
+ const f=fixture(true);try{f.document.image.state.byteLength='65537';f.update();assert.throws(()=>f.observe()(),{name:'Error',message:'Invalid recovery data'});}finally{f.close();}
+});
+for(const kind of ['malformed','noncanonical'])test('busy image witness reaches exact '+kind+' JSON refusal after byte verification',()=>{
+ const f=fixture(true);try{
+  const text=kind==='malformed'?'{':JSON.stringify({schemaVersion:1,width:360,height:200,layers:[]},null,2),ref=f.document.image.state;
+  ref.hash=hashBytes(text);ref.byteLength=String(Buffer.byteLength(text));const dir=join(f.root,'objects','sha256',ref.hash.slice(7,9));mkdirSync(dir,{recursive:true,mode:0o700});writeFileSync(join(dir,ref.hash.slice(7)),text,{mode:0o600});f.update();
+  assert.throws(()=>f.observe()(),kind==='malformed'?SyntaxError:assert.AssertionError);
+ }finally{f.close();}
+});

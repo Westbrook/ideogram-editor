@@ -7,7 +7,9 @@ import {compositionDraft,compositionDraftGraph} from '../../dist/local/src/compo
 
 function object(root,ref){
  const objects=join(root,'objects','sha256');
- const bytes=Objects.prototype.verify.call({check(){},objects,path:r=>join(objects,r.hash.slice(7,9),r.hash.slice(7))},ref,true);
+ // Inherit verifier delegation without constructing a store or creating staging.
+ const reader=Object.assign(Object.create(Objects.prototype),{check(){},objects});
+ const bytes=reader.verify(ref,true);
  const text=new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(bytes),value=JSON.parse(text);
  assert.equal(text,canonical(value),'Exact canonical object bytes');
  return {ref,bytes:bytes.length,sha256:hashBytes(bytes),text,value};

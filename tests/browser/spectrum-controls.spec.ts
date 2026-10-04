@@ -41,7 +41,15 @@ test('Spectrum Select labels, native values, focus and responsive appearance',as
     await step(label+'-paint',async()=>{
      await expect(control).toHaveCSS('background-color',color(mode,'color.surface'));
      await expect(control).toHaveCSS('color',color(mode,'color.text'));
-     await expect(control).toHaveCSS('appearance','none');
+     const enhanced=await control.evaluate(()=>CSS.supports('appearance','base-select')&&CSS.supports('selector(::picker(select))'));
+     await expect(control).toHaveCSS('appearance',enhanced?'base-select':'none');
+     await expect(control).toHaveAccessibleName(name);
+     const selectedButton=control.locator(':scope > button[part="selected-button"]');
+     await expect(selectedButton).toHaveCount(1);
+     if(enhanced){
+      await expect(selectedButton).toBeVisible();const target=await selectedButton.boundingBox();expect(target).not.toBeNull();
+      expect(target!.width).toBeGreaterThanOrEqual(24);expect(target!.height).toBeGreaterThanOrEqual(24);
+     }else await expect(selectedButton).toBeHidden();
     });
     await step(label+'-geometry',async()=>{
      await page.evaluate(async()=>{await document.fonts.ready;});
