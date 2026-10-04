@@ -8,6 +8,8 @@ import {join} from 'node:path';
 import {serverProcess} from './process.js';
 import {ownedOPFS} from './owned-opfs.js';
 import {recordDOMErrors} from './error-monitor.js';
+// @ts-ignore Test-only passive command metadata and read-only failure witness.
+import {createAuthoringCommandWitness} from './authoring-command-witness.mjs';
 const receipt=specReceipt(import.meta.url,'artifacts/p1c3/browser');
 const click=(p:Page,name:string)=>p.getByRole('button',{name,exact:true}).click();
 async function field(p:Page,name:string,value:string){const f=p.getByRole('spinbutton',{name,exact:true});await f.fill(value);await f.press('Tab');}
@@ -60,9 +62,10 @@ test('P1c3 selection, exact mask review, draft undo, attachment, sample, transfo
 test('P1c3 inherited layer operations and reviewed geometry remain usable through public controls',async({page,context,browserName})=>{
  const guard=await ownedOPFS(context,'p1c3-inherited-'+browserName),errors=await recordDOMErrors(context),commands:any[]=[],ids=new Map<string,string>(),receipts=new Map<string,any>(),seen=new Map<string,number>();
  const dir=await mkdtemp(join(await realpath(tmpdir()),'ie-p1c3-inherited-')),server=await serverProcess(join(dir,'private'));
- page.on('request',r=>{if(r.method()==='POST'&&new URL(r.url()).pathname==='/api/v1/commands'){const c=JSON.parse(r.postData()!).command;commands.push(c.body);ids.set(c.commandId,c.body.type);}});
- page.on('response',async r=>{if(new URL(r.url()).pathname.startsWith('/api/v1/commands')&&r.status()===200){const value=await r.json().catch(()=>null);if(value?.receipt)receipts.set(value.receipt.commandId,value.receipt);}});
- let observedRevision='';const accepted=async(type:string)=>{const count=()=>[...receipts].filter(([id,r])=>ids.get(id)===type&&r.status==='accepted').length;await expect.poll(count).toBeGreaterThan(seen.get(type)??0);seen.set(type,count());await expect(page.locator('.document-name')).not.toHaveText(observedRevision);observedRevision=(await page.locator('.document-name').textContent())!;await expect(page.getByRole('button',{name:'Undo',exact:true})).toBeEnabled();};
+ const commandDiagnostic=createAuthoringCommandWitness(server.origin);
+ page.on('request',r=>{if(r.method()==='POST'&&new URL(r.url()).pathname==='/api/v1/commands'){const wire=r.postData()!,c=JSON.parse(wire).command;commands.push(c.body);ids.set(c.commandId,c.body.type);if(c.body.type==='SetLayerProperties')commandDiagnostic.submitted(r,wire);}});
+ page.on('response',async r=>{const status=r.status(),token=commandDiagnostic.response(r.request(),status);if(new URL(r.url()).pathname.startsWith('/api/v1/commands')&&status===200){const value=await r.json().catch(()=>{commandDiagnostic.readFailed(token);return null;});commandDiagnostic.readResult(token,value);if(value?.receipt)receipts.set(value.receipt.commandId,value.receipt);}});
+ let observedRevision='';const accepted=async(type:string)=>{const count=()=>[...receipts].filter(([id,r])=>ids.get(id)===type&&r.status==='accepted').length;try{await expect.poll(count).toBeGreaterThan(seen.get(type)??0);}catch(error){if(type==='SetLayerProperties'){try{const diagnostic=commandDiagnostic.failureSnapshot(join(dir,'private'));await mkdir(receipt,{recursive:true});await writeFile(join(receipt,'inherited-final-properties-diagnostic.json'),JSON.stringify(diagnostic));}catch{console.error('AUTHORING_DIAGNOSTIC_EXPORT_UNAVAILABLE');}}throw error;}seen.set(type,count());await expect(page.locator('.document-name')).not.toHaveText(observedRevision);observedRevision=(await page.locator('.document-name').textContent())!;await expect(page.getByRole('button',{name:'Undo',exact:true})).toBeEnabled();};
  try{
   await guard.admit(page,server.origin);await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await importImage(page);
   await page.getByRole('textbox',{name:'Layer name',exact:true}).fill('Renamed original');await field(page,'Opacity (0–1)','0.75');await click(page,'Apply properties');await accepted('SetLayerProperties');await expect(page.getByRole('treeitem')).toContainText('Renamed original');
