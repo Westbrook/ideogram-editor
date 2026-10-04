@@ -10,6 +10,7 @@ import {gateInputKey,treeIdentity,treeIdentityAsync,outputIdentity,outputIdentit
 import {sha256,digestJSON,sourceIdentity,sourceIdentityAsync} from '../../tooling/qualification/core.mjs';
 import {developmentPlan} from '../../tooling/qualification/development-plan.mjs';
 import {selectedFastSetup, fastSetupPlan, provisionFastSetup, fastBrowserFamilies, selectedFastBrowserSetup, fastBrowserSetupPlan, selectedFastDispatchSetup, provisionFastBrowserSetup, stagePinnedAdapterResponse, publishPinnedAdapterFile, provisionFastAdapterFixture} from '../../tooling/qualification/fast-ci-setup.mjs';
+import {rendererReceiptOwner, rendererReceiptRequirement} from '../../tooling/qualification/r18-ci-inputs.mjs';
 import {functionalGates} from '../../tooling/qualification/manifest.mjs';
 import {createBrowserPlan} from '../../tooling/qualification/container/browser-plan.mjs';
 
@@ -1340,3 +1341,41 @@ for(const engine of ['chromium','firefox','webkit']){
   assert.throws(()=>fastBrowserSetupPlan(plan,{sourceFor:browserDeadlineSource}),/Browser issuer prerequisite changed/);
  });
 }
+
+test('Fast renderer transport is selected only for the genuine whole integration owner', () => {
+ const selected = selectedFastSetup(process.cwd(), rendererReceiptOwner);
+ assert.deepEqual(selected.rendererReceipts, rendererReceiptRequirement());
+ assert(selected.gates.some(gate => gate.id === 'build-app'));
+ assert.equal(selected.totalBudgetMs, selected.gateBudgetMs + 40*60_000 + 15*60_000);
+ const unrelated = selectedFastSetup(process.cwd(), 'tests/campaigns/renderer-ownership.test.mjs');
+ assert.equal(unrelated.rendererReceipts, null);
+ let calls = 0;
+ assert.throws(() => provisionFastSetup(process.cwd(), {...selected, rendererReceipts: null}, {execute: () => { calls++; }}), /Selected renderer receipt prerequisite/);
+ assert.throws(() => provisionFastSetup(process.cwd(), {...unrelated, rendererReceipts: selected.rendererReceipts}, {execute: () => { calls++; }}), /Selected renderer receipt prerequisite/);
+ assert.equal(calls, 0, 'Wrong selection must refuse before any child or Git command');
+});
+test('Fast renderer child is fixed and bounded and its retained result is authenticated before success', t => {
+ const f=fixture(t), plan=selectedFastSetup(process.cwd(),rendererReceiptOwner), expected=plan.rendererReceipts;
+ const leaf=join(f.cwd,'artifacts/validation/r18-inputs-fixture'),path=join(leaf,'receipt.json');mkdirSync(leaf,{recursive:true});
+ const head='a'.repeat(40),recorded={kind:'fast-renderer-receipt-provisioning-1',qualification:false,status:'PASS',expected,headBefore:head,headAfter:head,transport:{copied:expected.files}};
+ const bytes=Buffer.from(JSON.stringify(recorded));writeFileSync(path,bytes);
+ const value={kind:recorded.kind,qualification:false,status:'PASS',expected,files:expected.files,receipt:{path,bytes:bytes.length,sha256:sha256(bytes)}};
+ let children=0;
+ const execute=(command,args,options)=>{
+  if(command==='git'){assert.deepEqual(args.slice(4),['rev-parse','--verify','HEAD']);return Buffer.from(head+'\n');}
+  assert.equal(command,process.execPath);assert(args[0].endsWith('/tooling/qualification/r18-ci-inputs.mjs'));assert.deepEqual(args.slice(1),[f.cwd]);
+  assert.equal(options.timeout,11*60_000);assert.equal(options.maxBuffer,65536);assert.deepEqual(options.stdio,['ignore','pipe','pipe']);children++;return Buffer.from(JSON.stringify(value));
+ };
+ const result=provisionFastSetup(f.cwd,plan,{execute});assert.equal(result.status,'PASS');assert.equal(children,1);assert.deepEqual(result.rendererReceipts.expected,expected);
+ const observations=[];writeFileSync(path,Buffer.from(JSON.stringify({...recorded,status:'FAIL'})));
+ assert.throws(()=>provisionFastSetup(f.cwd,plan,{execute,record:r=>observations.push(structuredClone(r))}),/readback differs/);
+ assert.equal(observations.at(-1).status,'FAIL');assert.equal(observations.at(-1).headAfter,head);
+});
+test('Fast renderer child failure remains failure and still checks current checkout identity', t => {
+ const f=fixture(t),plan=selectedFastSetup(process.cwd(),rendererReceiptOwner),observations=[];let heads=0;
+ assert.throws(()=>provisionFastSetup(f.cwd,plan,{execute:(command,args)=>{
+  if(command==='git'){heads++;return Buffer.from('b'.repeat(40)+'\n');}
+  throw Error('fixed child interrupted; retained original failure');
+ },record:r=>observations.push(structuredClone(r))}),/fixed child interrupted/);
+ assert.equal(heads,2);assert.equal(observations.at(-1).status,'FAIL');assert.equal(observations.at(-1).rendererReceipts,null);
+});

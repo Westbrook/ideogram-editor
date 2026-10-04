@@ -2,11 +2,12 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { chmod, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises';
+import { chmod, mkdir, mkdtemp, readFile, realpath, rm, symlink, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { copySealedFile, fixtureRequirements, historyRequirements, installInputs, prepareInputs, verifyAdapterFixture, verifyInputs, verifyInstalledInputs } from '../../tooling/qualification/container/inputs.mjs';
 import { REVIEWED_RENDERER_OWNERSHIP } from '../../tooling/qualification/campaigns/renderer-ownership.mjs';
+import {validateRendererReceiptDescriptor, validateRendererInputGit, stageRendererReceiptCopies, rendererReceiptRequirement} from '../../tooling/qualification/r18-ci-inputs.mjs';
 
 const baselineFixtures = Object.freeze([
   ['evidence/p1b6-correction/original-review/drop-transaction-prefix.zip', 23385, 'a0dcad5ba6fe2fbb76149cc898aa6981d6bcdaae38fde2e81cae0954bc017ddd'],
@@ -165,4 +166,73 @@ test('closure pins every current migration snapshot, seven baseline fixtures and
   const found = new Set();
   for (const path of consumerPaths) for (const match of String(await readFile(path)).matchAll(/['"]([a-f0-9]{40})['"]/g)) found.add(match[1]);
   assert.deepEqual([...found].sort(), historyRequirements.map(item => item.commit).sort());
+});
+
+function receiptDescriptorFixture() {
+  const files = Array.from({length: 12}, (_, index) => ({path: `artifacts/receipts/${index}.json`, bytes: 2, sha256: sha256('{}')}));
+  const descriptor = {kind: 'r18-ci-receipt-inputs-1', qualification: false, repository: 'https://github.com/Westbrook/ideogram-editor.git', reviewId: 'ie-r18-6d08921-20261004', commit: 'a'.repeat(40), tree: 'b'.repeat(40), files, totalBytes: 24};
+  const reviews = [{id: descriptor.reviewId, appAllocation: {runtimeInputs: files.map(row => ({...row, role: 'correctness-receipt', sha256: 'sha256:' + row.sha256}))}}];
+  return {descriptor, reviews, files};
+}
+test('renderer receipt provisioning requires issued identities and exact paired registry and fixture bytes', () => {
+  const {descriptor, reviews, files} = receiptDescriptorFixture();
+  assert.deepEqual(validateRendererReceiptDescriptor(descriptor, reviews, files), descriptor);
+  assert.equal(rendererReceiptRequirement().files.length, 12, 'Production requirement must join the actual literal registry and maintained fixtures');
+  for (const alter of [d => d.commit = null, d => d.tree = null, d => d.repository = 'https://example.invalid/repo', d => d.files[1] = d.files[0], d => d.files[0].path = 'artifacts/../escape', d => d.files[0].sha256 = '0'.repeat(64), d => d.totalBytes++]) {
+    const changed = structuredClone(descriptor); alter(changed);
+    assert.throws(() => validateRendererReceiptDescriptor(changed, reviews, files));
+  }
+  assert.throws(() => validateRendererReceiptDescriptor(descriptor, [], files), /approved renderer/);
+  assert.throws(() => validateRendererReceiptDescriptor(descriptor, reviews, files.slice(1)), /fixture seal/);
+  const changedReview = structuredClone(reviews); changedReview[0].appAllocation.runtimeInputs[0].bytes++;
+  assert.throws(() => validateRendererReceiptDescriptor(descriptor, changedReview, files), /approved runtime/);
+});
+test('renderer Git admission checks raw parentlessness, exact tree and regular complete membership', () => {
+  const {descriptor} = receiptDescriptorFixture();
+  const commit = Buffer.from(`tree ${descriptor.tree}\nauthor Fixture <fixture@example.invalid> 0 +0000\ncommitter Fixture <fixture@example.invalid> 0 +0000\n\nReceipt fixture\n`);
+  const listing = Buffer.from(descriptor.files.map(row => `100644 blob ${'c'.repeat(40)} ${row.bytes}\t${row.path}\0`).join(''));
+  assert.equal(validateRendererInputGit(commit, listing, descriptor).length, 12);
+  assert.throws(() => validateRendererInputGit(Buffer.from(commit.toString().replace('\nauthor', '\nparent ' + 'd'.repeat(40) + '\nauthor')), listing, descriptor), /no parents/);
+  assert.throws(() => validateRendererInputGit(commit, listing, {...descriptor, tree: 'e'.repeat(40)}), /exact tree/);
+  for (const mutate of [s => s.replace('100644', '120000'), s => s.replace('100644', '100755'), s => s.replace('artifacts/receipts/0.json', 'artifacts/../escape'), s => s.split('\0').slice(1).join('\0'), s => s + s.split('\0')[0] + '\0']) {
+    assert.throws(() => validateRendererInputGit(commit, Buffer.from(mutate(listing.toString())), descriptor));
+  }
+});
+async function rendererTransportFixture(t) {
+  const directory = await realpath(await mkdtemp(join(tmpdir(), 'renderer-receipt-transport-')));
+  t.after(() => rm(directory, {recursive: true, force: true}));
+  const source = join(directory, 'source'), checkout = join(directory, 'checkout');
+  for (const path of [source, checkout]) { await mkdir(path); git(path, ['init', '--quiet', '--template=']); }
+  const path = 'artifacts/receipts/original.json', bytes = Buffer.from('{"fixture":"raw original"}\n');
+  await mkdir(join(source, 'artifacts/receipts'), {recursive: true}); await writeFile(join(source, path), bytes);
+  git(source, ['add', '.']); git(source, ['commit', '--quiet', '-m', 'Parentless fixture']);
+  const commit = git(source, ['rev-parse', 'HEAD']).toString().trim(), tree = git(source, ['rev-parse', 'HEAD^{tree}']).toString().trim();
+  // A fetched source starts with only Git objects, without a materialized tree.
+  await rm(join(source, 'artifacts'), {recursive: true});
+  await writeFile(join(checkout, 'sentinel.txt'), 'owned checkout retained');
+  git(checkout, ['add', '.']); git(checkout, ['commit', '--quiet', '-m', 'Owned checkout']);
+  return {source, checkout, packet: join(directory, 'packet'), recipient: join(directory, 'recipient'), descriptor: {commit, tree, files: [{path, bytes: bytes.length, sha256: sha256(bytes)}]}, bytes};
+}
+test('renderer transport verifies a real packet in a fresh recipient and copies exact bytes without installing over checkout', async t => {
+  const options = await rendererTransportFixture(t), head = git(options.checkout, ['rev-parse', 'HEAD']), config = await readFile(join(options.checkout, '.git/config'));
+  const result = await stageRendererReceiptCopies(options);
+  assert.equal(result.qualification, false); assert.deepEqual(result.copied, options.descriptor.files);
+  assert.deepEqual(await readFile(join(options.checkout, options.descriptor.files[0].path)), options.bytes);
+  assert.deepEqual(git(options.checkout, ['rev-parse', 'HEAD']), head);
+  assert.deepEqual(await readFile(join(options.checkout, '.git/config')), config);
+  assert.deepEqual(git(options.recipient, ['cat-file', 'commit', options.descriptor.commit]), git(options.source, ['cat-file', 'commit', options.descriptor.commit]));
+  assert.equal(git(options.recipient, ['remote']).toString(), '');
+  await assert.rejects(stageRendererReceiptCopies({...options, packet: options.packet + '-retry', recipient: options.recipient + '-retry'}), /existing renderer receipt/);
+  assert.deepEqual(await readFile(join(options.checkout, options.descriptor.files[0].path)), options.bytes);
+});
+test('renderer transport refuses aliased parents, changed blobs and existing recipients before checkout writes', async t => {
+  for (const kind of ['alias', 'changed', 'recipient']) {
+    const options = await rendererTransportFixture(t);
+    if (kind === 'alias') await symlink(options.source, join(options.checkout, 'artifacts'));
+    if (kind === 'changed') options.descriptor.files[0].sha256 = '0'.repeat(64);
+    if (kind === 'recipient') { await mkdir(options.recipient); git(options.recipient, ['init', '--quiet', '--template=']); }
+    await assert.rejects(stageRendererReceiptCopies(options), kind === 'alias' ? /real directory/ : kind === 'changed' ? /seal differs/ : /existing renderer receipt/);
+    await assert.rejects(readFile(join(options.packet, 'manifest.json')), {code: 'ENOENT'});
+    assert.equal(String(await readFile(join(options.checkout, 'sentinel.txt'))), 'owned checkout retained');
+  }
 });

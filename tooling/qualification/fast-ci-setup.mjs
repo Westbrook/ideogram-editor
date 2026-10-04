@@ -10,6 +10,7 @@ import {parseSync} from 'rolldown/utils';
 import {developmentPlan} from './development-plan.mjs';
 import {createBrowserPlan} from './container/browser-plan.mjs';
 import {historyRequirements, fixtureRequirements, adapterSourceURL, verifyAdapterFixture} from './container/inputs.mjs';
+import {rendererReceiptOwner, rendererReceiptRequirement} from './r18-ci-inputs.mjs';
 
 const hostedFiles = new Set([
   'tests/history/mask-text-compatibility.test.mjs',
@@ -146,7 +147,8 @@ export function fastSetupPlan(plan, {sourceFor, history = historyRequirements} =
     adapterFixture = {...publicAdapterRequirement(), owners: adapterOwners};
   }
   return {kind: 'fast-ci-selected-setup-1', qualification: false, selectedFiles: [...plan.selectedFiles], requiredBrowsers: [...plan.requiredBrowsers], gates,
-    gateBudgetMs, setupReserveMs, finalizationReserveMs, totalBudgetMs, jobMinutes: fastSelectedJobMinutes, sources, history: historyInputs, adapterFixture};
+    gateBudgetMs, setupReserveMs, finalizationReserveMs, totalBudgetMs, jobMinutes: fastSelectedJobMinutes, sources, history: historyInputs, adapterFixture,
+    rendererReceipts: plan.selectedFiles.includes(rendererReceiptOwner) ? rendererReceiptRequirement() : null};
 }
 export function selectedFastSetup(root, nodeFiles) {
   if (!nodeFiles) throw Error('Fast prerequisite setup requires a nonempty explicit whole-file selection');
@@ -278,11 +280,26 @@ export function provisionFastBrowserSetup(root, plan, {execute = execFileSync, r
   return receipt;
 }
 
+function provisionRendererReceipts(root, expected, execute) {
+  const args = [fileURLToPath(new URL('./r18-ci-inputs.mjs', import.meta.url)), root];
+  // The child owns a bounded process group for all Git/materialization work.
+  // This outer limit leaves its existing 5-second drain ample time to finish.
+  const value = JSON.parse(execute(process.execPath, args, {cwd: root, timeout: 11 * 60_000, maxBuffer: 65536, stdio: ['ignore', 'pipe', 'pipe']}).toString());
+  if (value.kind !== 'fast-renderer-receipt-provisioning-1' || value.status !== 'PASS' || value.qualification !== false || !same(value.expected, expected) || !same(value.files, expected.files) || typeof value.receipt?.path !== 'string') throw Error('Renderer receipt provisioning result differs');
+  const directory = dirname(value.receipt.path), parent = join(root, 'artifacts/validation');
+  if (dirname(directory) !== parent || !/^r18-inputs-[A-Za-z0-9]+$/.test(directory.slice(parent.length + 1)) || value.receipt.path !== join(directory, 'receipt.json')) throw Error('Renderer receipt provisioning path differs');
+  const bytes = readFileSync(value.receipt.path), recorded = JSON.parse(bytes);
+  if (bytes.length !== value.receipt.bytes || sha256(bytes) !== value.receipt.sha256 || recorded.status !== 'PASS' || recorded.qualification !== false || !same(recorded.expected, expected) || recorded.headBefore !== recorded.headAfter || !same(recorded.transport?.copied, expected.files)) throw Error('Renderer receipt provisioning readback differs');
+  return {...value, command: [process.execPath, ...args]};
+}
+
 export function provisionFastSetup(root, plan, {execute = execFileSync, record = () => {}} = {}) {
+  const expectedRenderer = plan.selectedFiles.includes(rendererReceiptOwner) ? rendererReceiptRequirement() : null;
+  if (!same(plan.rendererReceipts ?? null, expectedRenderer)) throw Error('Selected renderer receipt prerequisite differs from approved input');
   const adapterOwners = plan.selectedFiles.filter(path => path.startsWith('tests/adapters/'));
   const expectedAdapter = adapterOwners.length ? {...publicAdapterRequirement(), owners: adapterOwners} : null;
   if (!same(plan.adapterFixture ?? null, expectedAdapter)) throw Error('Selected public adapter prerequisite differs from pinned input');
-  const receipt = {kind: 'fast-ci-selected-provisioning-1', qualification: false, plan, status: 'PENDING', history: [], browser: null, adapterFixture: null};
+  const receipt = {kind: 'fast-ci-selected-provisioning-1', qualification: false, plan, status: 'PENDING', history: [], browser: null, adapterFixture: null, rendererReceipts: null};
   const env = {...process.env, GIT_NO_REPLACE_OBJECTS: '1', GIT_TERMINAL_PROMPT: '0'};
   const git = (args, timeout = 60_000) => execute('git', ['-c', 'core.hooksPath=/dev/null', '-C', root, ...args], {env, timeout, maxBuffer: 256 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe']});
   const head = () => git(['rev-parse', '--verify', 'HEAD']).toString().trim();
@@ -299,6 +316,7 @@ export function provisionFastSetup(root, plan, {execute = execFileSync, record =
     if (expectedAdapter) {
       receipt.adapterFixture = provisionPublicAdapterChild(root, expectedAdapter, execute); record(receipt);
     }
+    if (expectedRenderer) { receipt.rendererReceipts = provisionRendererReceipts(root, expectedRenderer, execute); record(receipt); }
     if (plan.requiredBrowsers.length) {
       // npm ci installed this exact lockfile-pinned CLI. No npx download or
       // alternative browser binary is permitted by this setup path.
