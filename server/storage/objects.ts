@@ -174,6 +174,15 @@ export class Objects {
   }
   path(ref: BlobRef): string { validateBlob(ref); return join(this.objects, ref.hash.slice(7, 9), ref.hash.slice(7)); }
   verify(ref: BlobRef, read = false): Uint8Array | undefined {
+    return this.verifyObserved(ref,read,bytes=>adapterResources.retain('objects','verify-result',bytes));
+  }
+  /** A bounded verified read whose receiver owns the exact returned buffer. */
+  verifyOwned(ref: BlobRef): {bytes: Uint8Array; release: () => void} {
+    let release=()=>{};
+    try{const bytes=this.verifyObserved(ref,true,bytes=>{release=adapterResources.buffer('objects','verify-owned-result',bytes);return bytes;})!;return {bytes,release};}
+    catch(error){release();throw error;}
+  }
+  private verifyObserved(ref: BlobRef, read: boolean, observe: (bytes: Buffer) => Buffer): Uint8Array | undefined {
     this.check(); validateBlob(ref);
     if (read && BigInt(ref.byteLength) > 65536n) throw new StoreError('PAYLOAD_TOO_LARGE');
     let fd: number;
@@ -198,7 +207,7 @@ export class Objects {
         if (read) {const part=Buffer.from(chunk.subarray(0, n));releases.push(adapterResources.buffer('objects','verify-part',part));parts.push(part);}
       }
       if (length !== BigInt(ref.byteLength) || `sha256:${hash.digest('hex')}` !== ref.hash) throw new StoreError('CORRUPT_OBJECT');
-      return read ? adapterResources.retain('objects','verify-result',Buffer.concat(parts)) : undefined;
+      return read ? observe(Buffer.concat(parts)) : undefined;
     } finally {try{closeSync(fd);releaseFD();}finally{for(const release of releases)release();} }
   }
   readRange(ref: BlobRef, offset: string, length: number): Uint8Array {

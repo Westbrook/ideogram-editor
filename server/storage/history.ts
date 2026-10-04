@@ -535,6 +535,13 @@ export class Histories {
   private ownPlacementMetadata(ref:BlobRef,maximum:number):{readonly value:unknown;release():void}{
     if(ref.mediaType!=='application/json'||BigInt(ref.byteLength)<=0n||BigInt(ref.byteLength)>BigInt(maximum))throw new StoreError('CORRUPT_STORE');
     return this.rasters.compositionMemory.ownedMetadata(Number(ref.byteLength),()=>{
+      if(BigInt(ref.byteLength)<=65536n){
+        const owned=this.objects.verifyOwned(ref);
+        try{
+          if(hashBytes(owned.bytes)!==ref.hash)throw new StoreError('CORRUPT_OBJECT');
+          try{const value=parseControlJSON(owned.bytes,maximum);if(canonical(value)!==Buffer.from(owned.bytes.buffer,owned.bytes.byteOffset,owned.bytes.byteLength).toString('utf8'))throw new Error('METADATA_IDENTITY');return value;}catch{throw new StoreError('CORRUPT_OBJECT');}
+        }finally{owned.release();}
+      }
       this.objects.verify(ref);const bytes=Buffer.alloc(Number(ref.byteLength)),digest=createHash('sha256');
       for(let at=0;at<bytes.length;){const part=this.objects.readRangeOwned(ref,String(at),Math.min(1048576,bytes.length-at));try{if(!part.bytes.byteLength)throw new StoreError('CORRUPT_OBJECT');bytes.set(part.bytes,at);digest.update(part.bytes);at+=part.bytes.byteLength;}finally{part.release();}}
       if('sha256:'+digest.digest('hex')!==ref.hash)throw new StoreError('CORRUPT_OBJECT');

@@ -49,7 +49,7 @@ async function fixture(t){
   let serial=0,forbidReads=false;
   // Inspection of a proof's private file identity remains real. Neither cleanup
   // nor a missing lease may fall back to hashing or reading canonical raw bytes.
-  for(const method of ['prove','verify','readRange','adoptFile']){
+  for(const method of ['prove','verify','verifyOwned','readRange','adoptFile']){
     const original=objects[method].bind(objects);
     objects[method]=(...args)=>{assert.equal(forbidReads,false,'Unexpected raw fallback: Objects.'+method);return original(...args);};
   }
@@ -350,4 +350,64 @@ test('actual prepare failure disposes its memo before original proof-lease clean
     await f.histories.prepare(request.command.commandId,'unused_fixture_slot');assert.equal(factories,2);assert.equal(disposals,2);assert.equal(documentCalls,2);assert.equal(rejections.length,2);assert.equal(cleanups,2);assert.equal(reviewMemoBytes(),baseline);assert.notEqual(created[0],created[1]);
     const calls=reviewValidationProbe(t,f);for(const owner of created){owner.read(entry.reviewId,f.auth);owner.read(entry.reviewId,f.auth);}assert.equal(calls(),4,'Both disposed invocation readers remain full-validation fallbacks');assert.equal(reviewMemoBytes(),baseline);
   }finally{f.histories.placementReviewValidation=factory;f.histories.document=documentLookup;f.histories.commit=originalCommit;f.histories.encodedReviewProofs.discard=originalDiscard;for(const owner of created)owner.dispose();}
+});
+
+
+// The real bounded history metadata owner retains parsed-value admission while
+// the new verified byte owner ends synchronously. No raster/native work is used.
+import {CompositionMemory as PlacementMetadataMemory} from '../../dist/local/server/storage/composition-memory.js';
+const placementReadSnapshot=()=>{const value=adapterResources.snapshot();return {backingBytes:value.backingBytes,reservedBytes:value.reservedBytes,activeLeases:value.activeLeases,returnedBuffers:value.returnedBuffers,unscopedReturnedBuffers:value.unscopedReturnedBuffers,droppedTransitions:value.droppedTransitions};};
+function assertPlacementRawDrained(before,borrowers=0){assert.deepEqual(placementReadSnapshot(),{...before,activeLeases:before.activeLeases+borrowers},'Only the original parsed-admission borrower handles remain; raw verified backing has drained');}
+async function placementMetadataFixture(t){
+ const f=await fixture(t),originalRasters=f.histories.rasters;let rss=0;
+ const memory=new PlacementMetadataMemory(()=>0,()=>rss),rows=[];f.histories.rasters={compositionMemory:memory};t.after(()=>{f.histories.rasters=originalRasters;});
+ for(const method of ['verifyOwned','verify','readRangeOwned']){const original=f.objects[method];t.mock.method(f.objects,method,function(...args){const row={method,returned:false,releases:0};rows.push(row);const result=Reflect.apply(original,this,args);row.returned=true;if(method==='verify')return result;return {bytes:result.bytes,release(){row.releases++;result.release();}};});}
+ return {...f,memory,rows,setRSS:value=>{rss=value;},async put(bytes,mediaType='application/json'){const value=ref(bytes,mediaType),path=f.objects.path(value);await mkdir(dirname(path),{recursive:true,mode:0o700});await writeFile(path,bytes,{mode:0o600});return {ref:value,path};}};
+}
+
+test('history small metadata returns a fresh parsed owner after verified bytes release, then closes parsed admission explicitly',async t=>{
+ const f=await placementMetadataFixture(t),bytes=Buffer.from(canonical({nested:{value:1}})),{ref:input}=await f.put(bytes),before=placementReadSnapshot();let first,second;
+ try{
+  first=f.histories.ownPlacementMetadata(input,65536);assert.deepEqual(first.value,{nested:{value:1}});assert.equal(f.memory.resourceOwnership().borrowers,1);assert.equal(f.memory.bytes,bytes.length*12+1024**2);
+  assert.deepEqual(f.rows.map(row=>[row.method,row.returned,row.releases]),[['verifyOwned',true,1]]);assertPlacementRawDrained(before,1);
+  first.value.nested.value=2;second=f.histories.ownPlacementMetadata(input,65536);assert.deepEqual(second.value,{nested:{value:1}});assert.notEqual(second.value,first.value);assert.equal(f.memory.resourceOwnership().borrowers,2);
+  await Promise.resolve();assert.deepEqual(second.value,{nested:{value:1}});first.release();assert.equal(f.memory.resourceOwnership().borrowers,1);assert.throws(()=>first.value,{code:'CLOSED'});first.release();assert.equal(f.memory.resourceOwnership().borrowers,1);
+ }finally{first?.release();second?.release();}
+ assert.equal(f.memory.bytes,0);assert.equal(f.memory.resourceOwnership().borrowers,0);assert.deepEqual(placementReadSnapshot(),before);
+});
+
+for(const [name,bytes]of [['syntax',Buffer.from('{')],['duplicate',Buffer.from('{"a":1,"a":2}')],['noncanonical',Buffer.from('{ "value": 1 }')],['invalid-utf8',Buffer.from([0xff])]])test('history small metadata '+name+' refusal releases verified bytes and original parsed admission',async t=>{
+ const f=await placementMetadataFixture(t),{ref:input}=await f.put(bytes),before=placementReadSnapshot();assert.throws(()=>f.histories.ownPlacementMetadata(input,65536),{code:'CORRUPT_OBJECT'});
+ assert.deepEqual(f.rows.map(row=>[row.method,row.returned,row.releases]),[['verifyOwned',true,1]]);assert.equal(f.memory.bytes,0);assert.equal(f.memory.resourceOwnership().borrowers,0);assert.deepEqual(placementReadSnapshot(),before);
+});
+
+test('history owned metadata rechecks changed original bytes instead of reusing a prior parsed graph',async t=>{
+ const f=await placementMetadataFixture(t),bytes=Buffer.from(canonical({value:1})),{ref:input,path}=await f.put(bytes),before=placementReadSnapshot();const owner=f.histories.ownPlacementMetadata(input,65536);
+ try{
+  await writeFile(path,Buffer.from(canonical({value:2})),{mode:0o600});assert.throws(()=>f.histories.ownPlacementMetadata(input,65536),{code:'CORRUPT_OBJECT'});assert.equal(f.memory.resourceOwnership().borrowers,1,'Failed fresh read cannot consume or leak the prior owner');assert.deepEqual(owner.value,{value:1});
+  await writeFile(path,bytes,{mode:0o600});const fresh=f.histories.ownPlacementMetadata(input,65536);try{assert.deepEqual(fresh.value,{value:1});assert.notEqual(fresh.value,owner.value);}finally{fresh.release();}
+ }finally{owner.release();}assert.equal(f.memory.bytes,0);assert.deepEqual(placementReadSnapshot(),before);
+});
+
+for(const kind of ['wrong-media','empty','maximum','rss'])test('history '+kind+' metadata admission remains before owned byte I/O',async t=>{
+ const f=await placementMetadataFixture(t),bytes=kind==='empty'?Buffer.alloc(0):Buffer.from(canonical({ok:true})),{ref:input}=await f.put(bytes,kind==='wrong-media'?'text/plain':'application/json'),before=placementReadSnapshot();if(kind==='rss')f.setRSS(536870912);
+ assert.throws(()=>f.histories.ownPlacementMetadata(input,kind==='maximum'?bytes.length-1:65536),{code:kind==='rss'?'CAPACITY':'CORRUPT_STORE'});assert.deepEqual(f.rows,[]);assert.equal(f.memory.bytes,0);assert.equal(f.memory.resourceOwnership().borrowers,0);assert.deepEqual(placementReadSnapshot(),before);
+});
+
+for(const size of [65536,65537])test('history '+size+' byte metadata boundary preserves full verification and the larger owned-range fallback',async t=>{
+ const f=await placementMetadataFixture(t),value={value:'x'.repeat(size-Buffer.byteLength(canonical({value:''})))},bytes=Buffer.from(canonical(value)),{ref:input}=await f.put(bytes),before=placementReadSnapshot();assert.equal(bytes.length,size);const owner=f.histories.ownPlacementMetadata(input,524288);
+ try{assert.deepEqual(owner.value,value);assert.equal(f.memory.bytes,size*12+1024**2);assert.deepEqual(f.rows.map(row=>row.method),size===65536?['verifyOwned']:['verify','readRangeOwned']);assert(f.rows.filter(row=>row.method!=='verify').every(row=>row.releases===1));assertPlacementRawDrained(before,1);}finally{owner.release();}
+ assert.equal(f.memory.bytes,0);assert.deepEqual(placementReadSnapshot(),before);
+});
+
+test('history parsed-value consumer failure releases the original admission after raw owner already ended',async t=>{
+ const f=await placementMetadataFixture(t),{ref:input}=await f.put(Buffer.from(canonical({ok:true}))),before=placementReadSnapshot(),error=Error('metadata consumer failed');
+ await assert.rejects((async()=>{const owner=f.histories.ownPlacementMetadata(input,65536);try{assert.equal(f.rows[0].releases,1);await Promise.resolve();assert.deepEqual(owner.value,{ok:true});throw error;}finally{owner.release();}})(),value=>value===error);
+ assert.equal(f.memory.bytes,0);assert.equal(f.memory.resourceOwnership().borrowers,0);assert.deepEqual(placementReadSnapshot(),before);
+});
+
+test('history rejects changed returned metadata bytes even after genuine file verification and drains both owners',async t=>{
+ const f=await placementMetadataFixture(t),bytes=Buffer.from(canonical({value:1})),{ref:input}=await f.put(bytes),before=placementReadSnapshot(),original=f.objects.verifyOwned;
+ t.mock.method(f.objects,'verifyOwned',function(...args){const owner=Reflect.apply(original,this,args);assert.deepEqual(Buffer.from(owner.bytes),bytes);owner.bytes[owner.bytes.indexOf(49)]=50;return owner;});
+ assert.throws(()=>f.histories.ownPlacementMetadata(input,65536),{code:'CORRUPT_OBJECT'});assert.deepEqual(f.rows.map(row=>[row.method,row.returned,row.releases]),[['verifyOwned',true,1]]);assert.equal(f.memory.bytes,0);assert.equal(f.memory.resourceOwnership().borrowers,0);assert.deepEqual(placementReadSnapshot(),before);
 });

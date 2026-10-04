@@ -114,3 +114,75 @@ test('an asynchronous verification consumer failure still drains its exact retur
  }),error=>error===failure);
  assertVerifyScratch(rows,bytes.length);assert(rows.every(row=>row.releases===1));assert.deepEqual(verifyOwnership(),before);
 });
+
+
+// Explicit metadata owners use the genuine verifier and filesystem, including
+// its existing private-path, hash, exact-length and return-cap refusals.
+import {chmod as chmodOwnedVerify} from 'node:fs/promises';
+
+for(const size of [0,3,65536])test('owned verification returns exact '+size+' bytes and releases independently of producer scope',async t=>{
+ const f=await verifyFixture(t),bytes=Buffer.alloc(size,61),{ref}=await f.put(bytes),rows=observeVerify(t),before=verifyOwnership();let owner;
+ try{
+  owner=f.objects.verifyOwned(ref);assert.deepEqual(owner.bytes,bytes);assertVerifyScratch(rows,size);
+  const result=rows.find(row=>row.kind==='verify-owned-result');assert(result);assert.equal(result.requestedBytes,size);assert.equal(result.releases,0);assert(rows.filter(row=>row.kind!=='verify-owned-result').every(row=>row.releases===1));
+  assert.equal(verifyOwnership().activeLeases,before.activeLeases+1);assert.equal(verifyOwnership().unscopedReturnedBuffers,before.unscopedReturnedBuffers,'Explicit owners need no surrounding scope');
+  await adapterResources.scope('unrelated-owned-verify-consumer',async()=>{await Promise.resolve();assert.deepEqual(owner.bytes,bytes);});
+  assert.equal(result.releases,0);assert.equal(verifyOwnership().activeLeases,before.activeLeases+1);owner.release();assert.deepEqual(verifyOwnership(),before);
+  owner.release();assert.deepEqual(verifyOwnership(),before);assert.equal(f.objects.hasLeases(),false);
+ }finally{owner?.release();}
+});
+
+for(const kind of ['truncated','hash','excess'])test('owned verification rejects '+kind+' original object bytes and drains every temporary owner',async t=>{
+ const f=await verifyFixture(t),bytes=Buffer.alloc(65536,67),{ref,path}=await f.put(bytes),rows=observeVerify(t),before=verifyOwnership();
+ const changed=kind==='truncated'?bytes.subarray(0,-1):kind==='hash'?Buffer.alloc(bytes.length,68):Buffer.concat([bytes,Buffer.from([69])]);await writeFile(path,changed,{mode:0o600});
+ assert.throws(()=>f.objects.verifyOwned(ref),{code:'CORRUPT_OBJECT'});assertVerifyScratch(rows,bytes.length);assert.equal(rows.some(row=>row.kind==='verify-owned-result'),false);assert(rows.every(row=>row.releases===1));assert.deepEqual(verifyOwnership(),before);
+});
+
+test('owned zero-length verification still rejects an unexpected byte',async t=>{
+ const f=await verifyFixture(t),{ref,path}=await f.put(Buffer.alloc(0)),rows=observeVerify(t),before=verifyOwnership();await writeFile(path,Buffer.from([1]),{mode:0o600});
+ assert.throws(()=>f.objects.verifyOwned(ref),{code:'CORRUPT_OBJECT'});assertVerifyScratch(rows,0);assert(rows.every(row=>row.releases===1));assert.deepEqual(verifyOwnership(),before);
+});
+
+for(const kind of ['missing','symlink','permissions'])test('owned verification retains '+kind+' private object refusal without an escaped result',async t=>{
+ const f=await verifyFixture(t),bytes=Buffer.from('private retained metadata'),{ref,path}=await f.put(bytes),rows=observeVerify(t),before=verifyOwnership();
+ if(kind==='missing')await unlink(path);
+ if(kind==='symlink'){const outside=path+'-original';await writeFile(outside,bytes,{mode:0o600,flag:'wx'});await unlink(path);await symlink(outside,path);}
+ if(kind==='permissions')await chmodOwnedVerify(path,0o644);
+ assert.throws(()=>f.objects.verifyOwned(ref),{code:kind==='missing'?'MISSING_OBJECT':'ROOT_UNSAFE'});assert.equal(rows.some(row=>row.kind==='verify-owned-result'),false);assert(rows.every(row=>row.releases===1));assert.deepEqual(verifyOwnership(),before);
+});
+
+test('owned verification keeps the exact 65536-byte cap before any scratch or result booking',async t=>{
+ const f=await verifyFixture(t),{ref}=await f.put(Buffer.alloc(65537,71)),rows=observeVerify(t),before=verifyOwnership();assert.throws(()=>f.objects.verifyOwned(ref),{code:'PAYLOAD_TOO_LARGE'});assert.deepEqual(rows,[]);assert.deepEqual(verifyOwnership(),before);
+});
+
+test('owned verification rechecks current file bytes and returns a fresh buffer after every successful read',async t=>{
+ const f=await verifyFixture(t),bytes=Buffer.from('{"value":1}'),{ref,path}=await f.put(bytes),rows=observeVerify(t),before=verifyOwnership();let one,two,three;
+ try{
+  one=f.objects.verifyOwned(ref);one.bytes[0]=0;two=f.objects.verifyOwned(ref);assert.notEqual(two.bytes,one.bytes);assert.deepEqual(two.bytes,bytes,'Mutating caller bytes cannot poison a later file read');
+  two.release();two=undefined;await writeFile(path,Buffer.from('{"value":2}'),{mode:0o600});assert.throws(()=>f.objects.verifyOwned(ref),{code:'CORRUPT_OBJECT'});
+  await writeFile(path,bytes,{mode:0o600});three=f.objects.verifyOwned(ref);assert.deepEqual(three.bytes,bytes);assert.notEqual(three.bytes,one.bytes);
+ }finally{one?.release();two?.release();three?.release();}
+ assert.deepEqual(verifyOwnership(),before);assert.equal(rows.filter(row=>row.kind==='verify-owned-result').length,3);
+});
+
+test('explicit owner release on consumer failure preserves the original error and drains actual result backing',async t=>{
+ const f=await verifyFixture(t),bytes=Buffer.from('owned consumer failure'),{ref}=await f.put(bytes),rows=observeVerify(t),before=verifyOwnership(),error=Error('consumer stopped');
+ await assert.rejects((async()=>{const owner=f.objects.verifyOwned(ref);try{await Promise.resolve();assert.deepEqual(owner.bytes,bytes);throw error;}finally{owner.release();}})(),failure=>failure===error);
+ assertVerifyScratch(rows,bytes.length);assert(rows.every(row=>row.releases===1));assert.deepEqual(verifyOwnership(),before);
+});
+
+test('legacy read verification still retains through its producer scope while an explicit owner releases earlier',async t=>{
+ const f=await verifyFixture(t),bytes=Buffer.from('legacy scope lifetime'),{ref}=await f.put(bytes),rows=observeVerify(t),before=verifyOwnership();
+ await adapterResources.scope('legacy-and-owned-verification',async()=>{
+  const legacy=f.objects.verify(ref,true),owner=f.objects.verifyOwned(ref);try{assert.deepEqual(legacy,bytes);assert.deepEqual(owner.bytes,bytes);owner.release();
+   const legacyRow=rows.find(row=>row.kind==='verify-result'),ownedRow=rows.find(row=>row.kind==='verify-owned-result');assert(legacyRow&&ownedRow);assert.equal(legacyRow.releases,0);assert.equal(ownedRow.releases,1);assert.equal(verifyOwnership().activeLeases,before.activeLeases+2,'Original scope handle and legacy result remain');
+   await Promise.resolve();assert.deepEqual(legacy,bytes);assert.equal(legacyRow.releases,0);
+  }finally{owner.release();}
+ });
+ assert.equal(rows.find(row=>row.kind==='verify-result').releases,1);assert.deepEqual(verifyOwnership(),before);
+});
+
+test('owned verification preserves caller check failure identity before filesystem allocation',async t=>{
+ const root=await rootFor(t),error=Object.freeze({code:'CLOSED',private:true}),objects=new Objects(root,()=>{throw error;},()=>{}),rows=observeVerify(t),before=verifyOwnership();t.after(()=>objects.close());
+ assert.throws(()=>objects.verifyOwned(refFor(Buffer.from('not installed'))),failure=>failure===error);assert.deepEqual(rows,[]);assert.deepEqual(verifyOwnership(),before);
+});

@@ -339,3 +339,61 @@ test('real native layer and reviewed Composition prose survive treatment Prepare
  assert.deepEqual(await doc(f),changed);assert.deepEqual((await f.read('/api/v1/documents/'+changed.id+'/image')).json,changedImage);assert.deepEqual(await objectBytes(f,saved.ref),saved.bytes);
  const path='/api/v1/ui/treatment_session/request?draftId=native_prose&generation=2';assert.deepEqual((await f.read(path)).json.value,draft);assert.equal((await f.read(path+'&content=1')).text,exported.prompt);assert.deepEqual(await objectBytes(f,composition.value),Buffer.from(canonical(c)));
 });
+
+
+// Real local immutable objects exercise the small JSON owner separately from
+// native rendering. All pre-existing public writer/treatment workflows remain.
+import {mkdir as ownedTextMkdir,writeFile as ownedTextWrite,unlink as ownedTextUnlink} from 'node:fs/promises';
+import {Objects as OwnedTextObjects} from '../../dist/local/server/storage/objects.js';
+import {TextTreatments as OwnedTextTreatments} from '../../dist/local/server/storage/text-treatment.js';
+import {adapterResources as ownedTextResources} from '../../dist/local/server/observability/adapter-resources.js';
+import {rootFor as ownedTextRoot,refFor as ownedTextRef} from '../store/helpers.mjs';
+const ownedTextSnapshot=()=>{const s=ownedTextResources.snapshot();return {backingBytes:s.backingBytes,reservedBytes:s.reservedBytes,activeLeases:s.activeLeases,returnedBuffers:s.returnedBuffers,unscopedReturnedBuffers:s.unscopedReturnedBuffers,droppedTransitions:s.droppedTransitions};};
+async function ownedTextFixture(t){
+ const root=await ownedTextRoot(t),objects=new OwnedTextObjects(root,()=>{},()=>{});t.after(()=>objects.close());
+ const treatments=new OwnedTextTreatments(objects,{},()=>assert.fail('JSON/reference-only control cannot resolve live document state'),{}),rows=[];
+ for(const method of ['verifyOwned','verify','readRange']){const original=objects[method];t.mock.method(objects,method,function(...args){const result=Reflect.apply(original,this,args);const row={method,bytes:Number(args[0].byteLength),releases:0};rows.push(row);if(method!=='verifyOwned')return result;return {bytes:result.bytes,release(){row.releases++;result.release();}};});}
+ return {root,objects,treatments,rows,async put(bytes){const ref=ownedTextRef(bytes),path=objects.path(ref);await ownedTextMkdir(join(root,'objects','sha256',ref.hash.slice(7,9)),{recursive:true,mode:0o700});await ownedTextWrite(path,bytes,{mode:0o600});return {ref,path};}};
+}
+
+test('small treatment JSON uses a fresh verified owner and releases it before returning each parsed graph',async t=>{
+ const f=await ownedTextFixture(t),bytes=Buffer.from('{"nested":{"value":1}}'),{ref,path}=await f.put(bytes),before=ownedTextSnapshot();
+ const one=f.treatments.json(ref);assert.deepEqual(one,{nested:{value:1}});assert.deepEqual(ownedTextSnapshot(),before);one.nested.value=99;
+ const two=f.treatments.json(ref);assert.deepEqual(two,{nested:{value:1}});assert.notEqual(two,one);assert.notEqual(two.nested,one.nested);assert.equal(f.rows.filter(row=>row.method==='verifyOwned').length,2);assert(f.rows.every(row=>row.method==='verifyOwned'&&row.releases===1));
+ await ownedTextWrite(path,Buffer.from('{"nested":{"value":2}}'),{mode:0o600});assert.throws(()=>f.treatments.json(ref),{code:'CORRUPT_OBJECT'});assert.deepEqual(ownedTextSnapshot(),before);
+ await ownedTextWrite(path,bytes,{mode:0o600});assert.deepEqual(f.treatments.json(ref),{nested:{value:1}});assert.deepEqual(ownedTextSnapshot(),before);
+});
+
+for(const [name,bytes]of [['syntax',Buffer.from('{')],['duplicate',Buffer.from('{"a":1,"a":2}')],['invalid-utf8',Buffer.from([0xff])]])test('small treatment JSON '+name+' refusal releases actual verified backing',async t=>{
+ const f=await ownedTextFixture(t),{ref}=await f.put(bytes),before=ownedTextSnapshot();assert.throws(()=>f.treatments.json(ref),{code:'MALFORMED_REQUEST'});assert.deepEqual(f.rows.map(row=>[row.method,row.releases]),[['verifyOwned',1]]);assert.deepEqual(ownedTextSnapshot(),before);
+});
+
+for(const name of ['max','rss'])test('treatment '+name+' admission still refuses before opening a small verified owner',async t=>{
+ const f=await ownedTextFixture(t),{ref}=await f.put(Buffer.from('{"ok":true}')),before=ownedTextSnapshot();
+ if(name==='rss'){const memory=process.memoryUsage();t.mock.method(process,'memoryUsage',()=>({...memory,rss:536870912}));}
+ assert.throws(()=>f.treatments.json(ref,name==='max'?Number(ref.byteLength)-1:65536),error=>error.issues?.[0]?.code===(name==='max'?'TEXT_TREATMENT_LIMIT':'TEXT_TREATMENT_CAPACITY'));
+ assert.deepEqual(f.rows,[]);assert.deepEqual(ownedTextSnapshot(),before);
+});
+
+for(const size of [65536,65537])test('treatment JSON '+size+' byte boundary preserves the existing larger fallback and scope lifetime',async t=>{
+ const f=await ownedTextFixture(t),value={value:'x'.repeat(size-Buffer.byteLength(canonical({value:''})))},bytes=Buffer.from(canonical(value));assert.equal(bytes.length,size);const {ref}=await f.put(bytes),before=ownedTextSnapshot();
+ await ownedTextResources.scope('treatment-size-control',async()=>{
+  const inside=ownedTextSnapshot();assert.deepEqual(f.treatments.json(ref,524288),value);
+  if(size===65536){assert.deepEqual(f.rows.map(row=>[row.method,row.releases]),[['verifyOwned',1]]);assert.deepEqual(ownedTextSnapshot(),inside);}
+  else{assert.deepEqual(f.rows.map(row=>row.method),['verify','readRange']);assert(ownedTextSnapshot().activeLeases>inside.activeLeases,'Original large readRange result remains retained until the producer scope ends');}
+  await Promise.resolve();
+ });assert.deepEqual(ownedTextSnapshot(),before);
+});
+
+test('ordinary treatment byte reads keep their prior verify and ranged-read path',async t=>{
+ const f=await ownedTextFixture(t),bytes=Buffer.from('literal text remains opaque'),{ref}=await f.put(bytes),before=ownedTextSnapshot();
+ await ownedTextResources.scope('treatment-literal-control',async()=>{assert.deepEqual(Buffer.from(f.treatments.read(ref)),bytes);assert.deepEqual(f.rows.map(row=>row.method),['verify','readRange']);});assert.deepEqual(ownedTextSnapshot(),before);
+});
+
+test('public treatment reference walks use genuine fresh metadata owners and refuse later missing metadata',async t=>{
+ const source=fixture(),f=await ownedTextFixture(t);for(const bytes of source.objects.values())await f.put(bytes);
+ const before=ownedTextSnapshot(),roles=f.treatments.refsWithRoles(source.envelope),strict=f.treatments.refs(source.envelope);
+ assert.deepEqual(roles.map(row=>row.ref),strict);for(const ref of [source.envelope.plan,source.nativeRef,source.input.inventory.imageState,source.input.inventory.composition.value,source.input.edit.requestPlan])assert(strict.some(value=>canonical(value)===canonical(ref)),canonical(ref));
+ assert(f.rows.some(row=>row.method==='verifyOwned'));assert(f.rows.filter(row=>row.method==='verifyOwned').every(row=>row.releases===1));assert.deepEqual(ownedTextSnapshot(),before);
+ await ownedTextUnlink(f.objects.path(source.nativeRef));assert.throws(()=>f.treatments.refsWithRoles(source.envelope),{code:'MISSING_OBJECT'});assert.deepEqual(ownedTextSnapshot(),before,'Successful earlier parses never supply stale authority for a missing object');
+});
