@@ -50,6 +50,18 @@ export const fixtureRequirements = [
   ['artifacts/evidence-browser-06/run-360/receipt.json', 859841, 'a33f64a507402f3758eb1cc6686b16446a88756d86e11e726371f79ffa67905d'],
   ['artifacts/evidence-browser-07/run-358/receipt.json', 867265, '9356856223c8610a37a0070e267839f08476c1bb3b6ef5e4fe0c025e21619f15'],
   ['artifacts/evidence-browser-07/run-361/receipt.json', 859817, '5149fbdd6f7c36ca60924143db4991455ae76b1c855dc68df55e95ba42728226'],
+  ["artifacts/integration-corrections/r18-current-refresh-prerequisites-01/final-subject-six-origins-candidate-01/origins/native-text-chromium/receipt.json", 893670, "17f0d75698312abacca2ed6f133dcfa0b3b78cb869edb552e367cf63811dbabd"],
+  ["artifacts/integration-corrections/r18-current-refresh-prerequisites-01/final-subject-six-origins-candidate-01/origins/native-text-firefox/receipt.json", 893866, "c40e8fa368854d5d335c92543f2717dd5f92cb9a33d8d9bf3cd37e8c78e6c854"],
+  ["artifacts/integration-corrections/r18-current-refresh-prerequisites-01/final-subject-six-origins-candidate-01/origins/native-text-webkit-macos/receipt.json", 894210, "f11e357eac062be164f44673c634e76fbc70e3909775199d55f68c28e892c65a"],
+  ["artifacts/integration-corrections/r18-current-refresh-prerequisites-01/final-subject-six-origins-candidate-01/origins/text-chromium/receipt.json", 901123, "b0a2d4a28ff1e3b6bafc63c673e89f1d3ae1775e9bc4a32d4f3f458bcae8ec91"],
+  ["artifacts/integration-corrections/r18-current-refresh-prerequisites-01/final-subject-six-origins-candidate-01/origins/text-firefox/receipt.json", 901271, "6e08862a339c7b78a03700b4969a48f99f47ea4bd33aa0dcb22e91ee21c65054"],
+  ["artifacts/integration-corrections/r18-current-refresh-prerequisites-01/final-subject-six-origins-candidate-01/origins/text-webkit-macos/receipt.json", 902734, "852942f4c03f01585bb142d0663bace10e7178e30d70e843385549c440f21b66"],
+  ["artifacts/integration-corrections/r18-current-refresh-prerequisites-01/node-components-6d08921-01/hosted-document-lifecycle-origin/run/receipt.json", 875383, "2eeb94da1ee7f6b9dbb73da92c04888573b7dc3e3e7a5c71aad7254a8c4bc67c"],
+  ["artifacts/integration-corrections/renderer-ownership-approval-preparation-01/component-original-receipts-cache-01/run-202-receipt.json", 830348, "a764db1f0280365649b3056b56b7f726caba8b2aaa56382e693622ac063789a4"],
+  ["artifacts/integration-corrections/renderer-ownership-approval-preparation-01/component-original-receipts-cache-01/run-249-receipt.json", 832472, "e59a9d1a6eaeceb4c17f15bea90b6be56cdc3770962f64e67a5fa09912dfa6ea"],
+  ["artifacts/integration-corrections/renderer-ownership-approval-preparation-01/component-original-receipts-cache-01/run-250-receipt.json", 843682, "e2d138ffee348f727c06dea4cea29e57c3ca3125ccc2aa06a6f86d82e1bb949e"],
+  ["artifacts/integration-corrections/renderer-ownership-approval-preparation-01/component-original-receipts-cache-01/run-286-receipt.json", 837447, "f0472713943729f55a64aaad045b7b42e807eebb4dbbe8bbf1be4a9237f924f0"],
+  ["artifacts/integration-corrections/renderer-ownership-approval-preparation-01/component-original-receipts-cache-01/run-298-receipt.json", 840623, "ef1a494f83a2b9c9e379207318c504191dabc22ae3bd044a3775946c77c64b42"],
 ].map(([path, bytes, sha256]) => ({ path, bytes, sha256 }));
 export const defaultPacket = 'artifacts/qualification-container-inputs';
 export const adapterSourceURL = 'https://v3b.fal.media/files/b/0a9dc89d/NkZw9CyYSB3ojbDx2a2s5_ideogram_v4_lora.safetensors';
