@@ -373,3 +373,60 @@ test('historical compatibility refuses broad scopes or changed identity fields b
     assert.equal(api.state.head, head); assert.deepEqual(mutations(api), [], JSON.stringify(fields));
   }
 });
+
+// The prior markerless fixtures remain byte-exact. Exercise the real remote
+// admission and publication flow with a single additional empty public member.
+test('both recognized markerless distributions can fast-forward to an empty-marker artifact', async () => {
+  for (const fields of [{}, { scope: historicalScope }]) {
+    const prior = artifactWithIdentity('markerless-prior', fields);
+    const current = artifactWithIdentity('prebuilt-current', {}, [['.nojekyll', Buffer.alloc(0)]]);
+    const api = remote(prior), parent = api.state.head;
+    const bytes = current.members.get('artifact-manifest.json');
+    assert.ok(manifestRows(JSON.parse(bytes.toString('utf8')), bytes).some(row => row.path === '.nojekyll' && row.bytes === 0 && row.sha256 === digest(Buffer.alloc(0))));
+    const result = await publish(current, api);
+    assert.equal(result.action, 'fast-forward');
+    assert.deepEqual(api.commits.get(result.artifactCommit).parents, [{ sha: parent }]);
+    assert.deepEqual(refMutations(api).map(({ method, path, body }) => ({ method, path, body })), [
+      { method: 'PATCH', path: '/git/refs/heads/gh-pages', body: { sha: result.artifactCommit, force: false } },
+    ]);
+    const marker = previousTree(api).tree.find(row => row.path === '.nojekyll');
+    assert.deepEqual(marker, { path: '.nojekyll', type: 'blob', mode: '100644', sha: blobHash(Buffer.alloc(0)), size: 0 });
+    assert.deepEqual(api.blobs.get(marker.sha), Buffer.alloc(0));
+    assert.deepEqual(previousTree(api).tree.filter(row => row.type === 'blob').map(row => row.path).sort(), current.files.map(row => row.path).sort());
+  }
+});
+
+test('an identical empty-marker artifact remains a verified publication no-op', async () => {
+  const current = artifactWithIdentity('prebuilt-current', {}, [['.nojekyll', Buffer.alloc(0)]]);
+  const api = remote(current), head = api.state.head;
+  const result = await publish(current, api);
+  assert.equal(result.action, 'unchanged'); assert.equal(result.artifactCommit, head);
+  assert.equal(current.reverifications, 1); assert.deepEqual(mutations(api), []);
+});
+
+test('manifest admission refuses nonempty or falsely pinned nojekyll and unrelated hidden paths', () => {
+  const plan = artifactWithIdentity('prebuilt-current', {}, [['.nojekyll', Buffer.alloc(0)]]);
+  const manifest = JSON.parse(plan.members.get('artifact-manifest.json').toString('utf8'));
+  for (const change of [{ bytes: 1 }, { sha256: digest(Buffer.from('\n')) },
+    { path: 'assets/.nojekyll' }, { path: '.nojekyll.txt' }, { path: '.hidden' }]) {
+    const value = structuredClone(manifest);
+    Object.assign(value.files.find(row => row.path === '.nojekyll'), change);
+    const bytes = Buffer.from(JSON.stringify(value));
+    for (const historical of [false, true])
+      assert.throws(() => manifestRows(value, bytes, { historical }), /Invalid .*member/);
+  }
+});
+
+test('remote nojekyll must be an ordinary empty declared blob before any mutation', async () => {
+  const current = artifactWithIdentity('prebuilt-current', {}, [['.nojekyll', Buffer.alloc(0)]]);
+  for (const change of [{ size: 1 }, { sha: blobHash(Buffer.from('\n')) }, { mode: '120000' }, { type: 'tree', mode: '040000' }]) {
+    const api = remote(current), head = api.state.head;
+    Object.assign(previousTree(api).tree.find(row => row.path === '.nojekyll'), change);
+    await assert.rejects(publish(current, api), /Invalid empty Pages|foreign/);
+    assert.equal(api.state.head, head); assert.deepEqual(mutations(api), []);
+  }
+  const api = remote(artifact('undeclared-marker')), head = api.state.head;
+  previousTree(api).tree.push({ path: '.nojekyll', type: 'blob', mode: '100644', sha: blobHash(Buffer.alloc(0)), size: 0 });
+  await assert.rejects(publish(current, api), /outside its recognized manifest/);
+  assert.equal(api.state.head, head); assert.deepEqual(mutations(api), []);
+});

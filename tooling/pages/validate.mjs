@@ -157,18 +157,18 @@ export async function validatePages(options) {
         entry.counts = counts;
         entry.outcome = gateOutcome({ exitCode: observation.code, signal: observation.signal, timedOut: observation.timedOut,
           interrupted: observation.interrupted, counts, logError: log.error }, true);
-        if (entry.outcome !== 'PASS' || counts.tests !== 28 || counts.pass !== 28) { entry.outcome = 'FAIL'; throw Error('All 28 Pages publisher Node cases must pass without skips'); }
+        if (entry.outcome !== 'PASS' || counts.tests !== 32 || counts.pass !== 32) { entry.outcome = 'FAIL'; throw Error('All 32 Pages publisher Node cases must pass without skips'); }
       }
       if (gate.id === 'pages-offline-boundary-tests') {
         const counts = tapCounts(await readFile(path, 'utf8'));
         entry.counts = counts;
         entry.outcome = gateOutcome({ exitCode: observation.code, signal: observation.signal, timedOut: observation.timedOut,
           interrupted: observation.interrupted, counts, logError: log.error }, true);
-        if (entry.outcome !== 'PASS' || counts.tests !== 19 || counts.pass !== 19) { entry.outcome = 'FAIL'; throw Error('All 19 Pages offline boundary Node cases must pass without skips'); }
+        if (entry.outcome !== 'PASS' || counts.tests !== 22 || counts.pass !== 22) { entry.outcome = 'FAIL'; throw Error('All 22 Pages offline boundary Node cases must pass without skips'); }
       }
       if (gate.id === 'pages-unpack-tests') {
         const text = await readFile(path, 'utf8'), match = /Ran ([1-9][0-9]*) tests? in [^\n]+\n\nOK\s*$/.exec(text);
-        if (!match || Number(match[1]) !== 7) { entry.outcome = 'FAIL'; throw Error('All seven Pages unpack cases must pass without skips'); }
+        if (!match || Number(match[1]) !== 10) { entry.outcome = 'FAIL'; throw Error('All ten Pages unpack cases must pass without skips'); }
         entry.counts = { tests: Number(match[1]), pass: Number(match[1]) };
       }
       if (gate.id === 'pages-browser') {

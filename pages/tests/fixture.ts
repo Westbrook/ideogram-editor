@@ -16,12 +16,18 @@ export const test = base.extend<{ guard: Guard }, { pagesOwner: Owner }>({
     const manifestStat = await lstat(manifestPath);
     if (!manifestStat.isFile() || manifestStat.isSymbolicLink() || manifestStat.size > 256 * 1024 || await realpath(manifestPath) !== manifestPath)
       throw Error('A bounded sealed Pages manifest is required for the request allowlist');
-    const manifest = JSON.parse(await readFile(manifestPath, 'utf8')) as { kind?: string; files?: { path: string }[] };
+    const manifest = JSON.parse(await readFile(manifestPath, 'utf8')) as { kind?: string; files?: { path: string; bytes?: number; sha256?: string }[] };
     if (manifest.kind !== 'ideogram-pages-public-artifact-1' || !Array.isArray(manifest.files) || !manifest.files.length || manifest.files.length > 160)
       throw Error('Invalid Pages request inventory');
     const publicPaths = new Set<string>(['/ideogram-editor/', '/ideogram-editor/artifact-manifest.json']);
     const seen = new Set<string>();
     for (const row of manifest.files) {
+      // Deployment metadata is sealed but never a browser request permission.
+      if (row.path === '.nojekyll') {
+        if (seen.has(row.path) || row.bytes !== 0 || row.sha256 !== 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855')
+          throw Error('Invalid empty Pages .nojekyll member');
+        seen.add(row.path); continue;
+      }
       if (typeof row.path !== 'string' || seen.has(row.path) ||
           !/^(?:index\.html|build-identity\.json|assets\/profile-[A-Za-z0-9_-]{8}\.json|assets\/[A-Za-z0-9_.-]+\.(?:js|css|wasm|ttf|otf|woff2?|svg)|notices\/[A-Za-z0-9_.-]+\.txt)$/.test(row.path))
         throw Error('Unexpected Pages request member');

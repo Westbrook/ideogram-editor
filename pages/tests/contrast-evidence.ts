@@ -6,9 +6,10 @@ import {captureWebKitContrast,type ContrastScreencastMetadata} from '../../tests
 
 // Pages-only supplement adapted from the existing bounded axe.ts collector.
 // Fixed 4/8 editor targets and 1 preview target address the retained 99 gaps.
-// No new scan, input, scroll, focus change, rule override or numeric verdict.
+// No new scan, input, focus change, rule override or numeric verdict.
+// The optional fixed narrow exposure observes one target after the caller scrolls it.
 // DOM and screenshot are sequential; phase drift/occlusion remain explicit.
-export async function capturePagesContrast(page:Page,info:TestInfo,state:string,results:Pick<AxeResults,'incomplete'>,reportPath:string,scope:'editor'|'preview'){
+export async function capturePagesContrast(page:Page,info:TestInfo,state:string,results:Pick<AxeResults,'incomplete'>,reportPath:string,scope:'editor'|'preview',exposure?:'zoom'|'pan-x'|'pan-y'|'activity'){
   if(!/^[a-z0-9-]{1,64}$/.test(state))throw Error('Invalid Pages contrast state');
   const maximumBytes=4*1024*1024,maximumTargets=8;
   const reportStat=await stat(reportPath);if(!reportStat.isFile()||reportStat.size>maximumBytes)throw Error('Bounded original Pages axe report required');
@@ -19,7 +20,9 @@ export async function capturePagesContrast(page:Page,info:TestInfo,state:string,
     ['#zoom',minus],['#pan-x',minus],['#pan-y',minus],['en-accordion-item[label="Activity"]','span[part="indicator"][aria-hidden="true"]'],
     ...(state==='help'?[2,3,5,6].map(n=>['#help-drawer > p:nth-child('+n+')']):[]),
   ];
-  const targets=paths.map(path=>({target:[path]}));
+  const exposureIndex=exposure?['zoom','pan-x','pan-y','activity'].indexOf(exposure):-1;
+  if(exposure&&(scope!=='editor'||state!=='narrow-panels-post-scroll-'+exposure||exposureIndex<0))throw Error('Invalid fixed narrow exposure');
+  const targets=(exposure?[paths[exposureIndex]!]:paths).map(path=>({target:[path]}));
   const webkit=page.context().browser()?.browserType().name()==='webkit';
   const capturePath=info.outputPath('paint-'+scope+'-'+state+'.json'),screenshotPath=info.outputPath('paint-'+scope+'-'+state+(webkit?'.jpg':'.png'));
   let capture:unknown={status:'unknown',reason:'capture-not-completed'};
@@ -117,12 +120,13 @@ export async function capturePagesContrast(page:Page,info:TestInfo,state:string,
         stringsTruncated,originalTargetCount:originalTargets.length,originalTargetCapExceeded:originalTargets.length>128,modalHostCount:modalHosts.length,modalCapExceeded:modalHosts.length>16,modals,rows};
     },{targets,maximumTargets,originalTargets});
   }catch{capture={status:'unknown',reason:'page-capture-error',expectedTargets:targets.length};}
-  const screenshot={status:'unknown',path:screenshotPath,bytes:0,sha256:null as string|null,startedAt:Date.now(),finishedAt:0,
+  const screenshot={status:'unknown',path:exposure?null:screenshotPath,bytes:0,sha256:null as string|null,startedAt:Date.now(),finishedAt:0,
     method:webkit?'playwright-public-screencast':'playwright-page-screenshot',codec:webkit?'JPEG':'PNG',mimeType:webkit?'image/jpeg':'image/png',
     capture:null as ContrastScreencastMetadata|null};
   let captureCleanupFailed=false;
   try{
-    if(webkit){
+    if(exposure){screenshot.status='not-requested-dom-only-exposure';screenshot.method='none';screenshot.codec='none';screenshot.mimeType='none';}
+    else if(webkit){
       const viewport=page.viewportSize();
       if(!viewport)screenshot.status='unknown-viewport';
       else{
@@ -148,12 +152,14 @@ export async function capturePagesContrast(page:Page,info:TestInfo,state:string,
   const visualViewportMatchesRequest=!!requestedSize&&!!beforeVisual&&!!afterVisual&&JSON.stringify(beforeVisual)===JSON.stringify(afterVisual)&&
     beforeVisual.scale===1&&beforeVisual.offsetLeft===0&&beforeVisual.offsetTop===0&&beforeVisual.width===requestedSize.width&&beforeVisual.height===requestedSize.height;
   const dpr=beforeImage?.viewport?.devicePixelRatio;
-  const webkitContext=webkit?{before:(capture as {after?:unknown}).after??null,after:afterScreenshot,devicePixelRatio:dpr??null,
+  const webkitContext=webkit&&!exposure?{before:(capture as {after?:unknown}).after??null,after:afterScreenshot,devicePixelRatio:dpr??null,
     domViewportMatchesRequest,visualViewportMatchesRequest,
     scale:'Encoded-to-CSS ratio applies only with exact stable DOM/requested/visual viewport joins; mismatched, offset or zoomed viewports remain unknown.',
     unchanged:contextChanges?Object.values(contextChanges).every(value=>value===false)&&typeof dpr==='number'&&Number.isFinite(dpr)&&dpr>0&&dpr===afterImage?.viewport?.devicePixelRatio&&domViewportMatchesRequest&&visualViewportMatchesRequest:false}:null;
   if(webkit&&screenshot.status==='captured'&&!webkitContext?.unchanged)screenshot.status='unknown-context-drift';
   const record={kind:'pages-rendered-contrast-evidence-1',scope,state,reportPath,resultSha256,webkitContext,capture,screenshot,afterScreenshot,contextChanges,
+    ...(exposure?{observation:{phase:'post-scroll-exposure',target:exposure,sourceAxeState:'narrow-panels',
+      relationship:'Original report identifies the target only. This is a later exposed DOM/paint/clip/hit observation after public scroll; no new axe scan or same-state axe PASS, screenshot or physical-frame claim.'}}:{}),
     limits:{maximumBytes,maximumTargets},disposition:'Supplemental sequential rendered evidence only. No contrast pass, visibility proof or incomplete adjudication is inferred. Clipping rectangles and pointer hit tests do not model every painted pixel. Hit samples cover only the first nonempty text range or target box. Native value text, pseudo-only ink, external SVG/use and paint servers are not fully measured; complex/occluded/unsupported cases remain unknown. WebKit JPEG is lossy supplemental visual evidence: no exact RGB, tiny-glyph edge, PNG agreement, atomic axe/DOM/frame or physical-presentation claim.'};
   let raw=JSON.stringify(record);
   if(Buffer.byteLength(raw)>maximumBytes)raw=JSON.stringify({...record,capture:{status:'unknown',reason:'capture-byte-cap',expectedTargets:targets.length,targets:targets.slice(0,maximumTargets),omittedTargets:Math.max(0,targets.length-maximumTargets)}},null,2);

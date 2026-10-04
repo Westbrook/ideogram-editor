@@ -58,9 +58,11 @@ def unpack(archive, destination, manifest_sha256):
                 continue
             if not item.isfile() or item.issym() or item.islnk() or item.sparse:
                 raise ValueError("Archive links and special files are forbidden")
-            allowed = name in ("index.html", "build-identity.json", "artifact-manifest.json") or re.fullmatch(r"(?:assets|notices)/[A-Za-z0-9_.-]+", name)
+            allowed = name in ("index.html", "build-identity.json", "artifact-manifest.json", ".nojekyll") or re.fullmatch(r"(?:assets|notices)/[A-Za-z0-9_.-]+", name)
             if not allowed or len(path.parts) > 2 or item.size < 0 or item.size > MAX_FILE_BYTES:
                 raise ValueError("Unapproved artifact file")
+            if path.name == ".nojekyll" and (name != ".nojekyll" or item.size != 0):
+                raise ValueError("Pages .nojekyll must be an empty root file")
             file_count += 1
             total += item.size
             if file_count > 160 or total > MAX_CONTENT_BYTES:

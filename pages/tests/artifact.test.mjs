@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { mkdtemp, mkdir, readFile, realpath, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, realpath, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { buildIdentity, sealArtifact, verifyArtifact } from '../../tooling/pages/artifact.mjs';
@@ -149,4 +149,47 @@ test('a sealed distribution refuses changed JavaScript bytes and identity before
   await assert.rejects(value.verify(), /Public artifact changed after sealing/);
   await value.write('build-identity.json', value.members.get('build-identity.json'));
   await value.verify();
+});
+
+// Historical markerless artifacts above remain recognized. New prebuilt output
+// includes only this empty root marker, covered by the ordinary manifest seal.
+test('empty root nojekyll is sealed exactly and cannot disappear after sealing', async t => {
+  const value = await fixture(t);
+  await value.write('.nojekyll', Buffer.alloc(0));
+  const sealed = await value.seal();
+  assert.deepEqual(sealed.files.find(row => row.path === '.nojekyll'), { path: '.nojekyll', ...pin(Buffer.alloc(0)) });
+  assert.deepEqual(await value.verify(), sealed);
+  await rm(join(value.directory, '.nojekyll'));
+  await assert.rejects(value.verify(), /Public artifact changed after sealing/);
+  await value.write('.nojekyll', Buffer.alloc(0));
+  assert.deepEqual(await value.verify(), sealed);
+});
+
+test('nojekyll refuses every nonempty body including a newline before and after sealing', async t => {
+  const value = await fixture(t);
+  for (const bytes of [Buffer.from('\n'), Buffer.from('private configuration'), Buffer.from([0])]) {
+    await value.write('.nojekyll', bytes);
+    await assert.rejects(value.seal(), /Pages \.nojekyll must be empty/);
+  }
+  await value.write('.nojekyll', Buffer.alloc(0));
+  await value.seal();
+  await value.write('.nojekyll', '\n');
+  await assert.rejects(value.verify(), /Pages \.nojekyll must be empty/);
+});
+
+test('nojekyll does not admit linked markers, directories, nested markers or other hidden roots', async t => {
+  const value = await fixture(t), outside = join(value.root, 'empty');
+  await writeFile(outside, Buffer.alloc(0));
+  await symlink(outside, join(value.directory, '.nojekyll'));
+  await assert.rejects(value.seal(), /Non-regular public artifact/);
+  await rm(join(value.directory, '.nojekyll'));
+  await mkdir(join(value.directory, '.nojekyll'));
+  await assert.rejects(value.seal(), /Unexpected artifact directory/);
+  await rm(join(value.directory, '.nojekyll'), { recursive: true });
+  for (const path of ['assets/.nojekyll', '.nojekyll.txt', '.hidden']) {
+    await value.write(path, Buffer.alloc(0));
+    await assert.rejects(value.seal(), /Unapproved public artifact/, path);
+    await rm(join(value.directory, path));
+  }
+  await value.seal(); await value.verify();
 });

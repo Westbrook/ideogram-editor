@@ -13,7 +13,7 @@ const blobHash = bytes => createHash('sha1').update(`blob ${bytes.length}\0`).up
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const ordered = rows => [...rows].sort((a, b) => a.path.localeCompare(b.path));
 const limits = Object.freeze({ files: 160, memberBytes: 24 * 1024 * 1024, totalBytes: 64 * 1024 * 1024, manifestBytes: 1024 * 1024, responseBytes: 2 * 1024 * 1024 });
-const publicPath = path => typeof path === 'string' && (['index.html', 'build-identity.json'].includes(path) ||
+const publicPath = path => typeof path === 'string' && (['index.html', 'build-identity.json', '.nojekyll'].includes(path) ||
   /^assets\/[A-Za-z0-9_.-]+\.(?:js|css|wasm|ttf|otf|woff2?|svg)$/.test(path) || /^assets\/profile-[A-Za-z0-9_-]{8}\.json$/.test(path) || /^notices\/[A-Za-z0-9_.-]+\.txt$/.test(path));
 
 export function publicationArguments(args) {
@@ -86,6 +86,7 @@ export function manifestRows(manifest, manifestBytes, { historical = false } = {
   const names = new Set();
   for (const row of manifest.files) {
     if (!publicPath(row.path) || names.has(row.path) || !Number.isSafeInteger(row.bytes) || row.bytes < 0 || row.bytes > limits.memberBytes || !sha256(row.sha256)) throw Error('Invalid gh-pages public artifact member');
+    if (row.path === '.nojekyll' && (row.bytes !== 0 || row.sha256 !== hash(Buffer.alloc(0)))) throw Error('Invalid empty Pages .nojekyll member');
     names.add(row.path); total += row.bytes;
   }
   if (total > limits.totalBytes || !['index.html', 'build-identity.json', 'notices/index.txt'].every(path => names.has(path))) throw Error('Incomplete or oversized gh-pages public artifact');
@@ -98,6 +99,7 @@ function treeFiles(tree, expectedSHA) {
   for (const row of tree.tree) {
     if (typeof row.path !== 'string' || names.has(row.path) || !sha1(row.sha)) throw Error('Ambiguous gh-pages tree');
     names.add(row.path);
+    if (row.path === '.nojekyll' && (row.size !== 0 || row.sha !== blobHash(Buffer.alloc(0)))) throw Error('Invalid empty Pages .nojekyll blob');
     if (row.type === 'tree' && row.mode === '040000' && ['assets', 'notices'].includes(row.path)) directories.push(row.path);
     else if (row.type === 'blob' && row.mode === '100644' && (publicPath(row.path) || row.path === 'artifact-manifest.json') &&
         Number.isSafeInteger(row.size) && row.size >= 0 && row.size <= limits.memberBytes) files.push({ path: row.path, bytes: row.size, gitSHA: row.sha });

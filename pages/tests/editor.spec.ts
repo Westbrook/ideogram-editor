@@ -32,6 +32,7 @@ async function scan(page: Page, info: TestInfo, state: string) {
   await info.attach(`editor-axe-${state}`, { contentType: 'application/json', path: reportPath });
   expect(result.violations).toEqual([]);
   await capturePagesContrast(page, info, state, result, reportPath, 'editor');
+  return { result, reportPath };
 }
 async function screenshot(page: Page, info: TestInfo, name: string) {
   const bytes = await page.screenshot({ path: info.outputPath(name + '.png'), fullPage: true,
@@ -153,8 +154,22 @@ test('desktop drawer and narrow editor layouts keep the actual panels reachable'
     expect(canvas!.x).toBeGreaterThanOrEqual(0); expect(canvas!.width).toBeLessThanOrEqual(width);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     if (width === 320) {
-      await scan(page, info, 'narrow-panels');
+      const original = await scan(page, info, 'narrow-panels');
       if (browserName === 'chromium') await screenshot(page, info, 'full-editor-narrow');
+      if (browserName === 'firefox' || browserName === 'webkit') {
+        const minus = '[part="decrement"] > span[aria-hidden="true"]';
+        const glyphs = [
+          ['zoom', page.locator('#zoom').locator(minus)],
+          ['pan-x', page.locator('#pan-x').locator(minus)],
+          ['pan-y', page.locator('#pan-y').locator(minus)],
+          ['activity', page.locator('en-accordion-item[label="Activity"]').locator('span[part="indicator"][aria-hidden="true"]')],
+        ] as const;
+        for (const [id, glyph] of glyphs) {
+          await glyph.scrollIntoViewIfNeeded();
+          await expect(glyph).toBeInViewport({ ratio: 1 });
+          await capturePagesContrast(page, info, 'narrow-panels-post-scroll-' + id, original.result, original.reportPath, 'editor', id);
+        }
+      }
     }
   }
 });

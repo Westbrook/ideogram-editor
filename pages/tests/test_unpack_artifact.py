@@ -94,5 +94,34 @@ class UnpackArtifact(unittest.TestCase):
         self.assertFalse((self.destination / "assets/oversized.wasm").exists())
 
 
+    def test_empty_root_nojekyll_is_restored_with_old_archive_compatibility(self):
+        self.archive_with(self.valid() + [("./.nojekyll", b"", tarfile.REGTYPE)])
+        result = module.unpack(self.archive, self.destination, HASH)
+        self.assertEqual(result["files"], 4)
+        self.assertEqual((self.destination / ".nojekyll").read_bytes(), b"")
+        self.assertEqual(result["manifestSha256"], HASH)
+
+    def test_nojekyll_refuses_nonempty_nested_and_lookalike_members(self):
+        for index, (name, content) in enumerate(((".nojekyll", b"\n"), (".nojekyll", b"private"),
+                                                ("assets/.nojekyll", b""), (".nojekyll.txt", b""), (".hidden", b""))):
+            with self.subTest(name=name, content=content):
+                self.archive_with([(name, content, tarfile.REGTYPE)])
+                destination = self.root / f"refused-{index}"
+                with self.assertRaisesRegex(ValueError, "empty root|Unapproved"):
+                    module.unpack(self.archive, destination, HASH)
+                self.assertFalse((destination / name).exists())
+
+    def test_nojekyll_refuses_links_directories_and_duplicates(self):
+        for index, kind in enumerate((tarfile.SYMTYPE, tarfile.LNKTYPE, tarfile.FIFOTYPE, tarfile.DIRTYPE)):
+            with self.subTest(kind=kind):
+                self.archive_with([(".nojekyll", b"", kind)])
+                with self.assertRaisesRegex(ValueError, "links and special|Unexpected artifact directory"):
+                    module.unpack(self.archive, self.root / f"refused-kind-{index}", HASH)
+        self.archive_with(self.valid() + [("./.nojekyll", b"", tarfile.REGTYPE), (".nojekyll", b"", tarfile.REGTYPE)])
+        with self.assertRaisesRegex(ValueError, "Duplicate archive member"):
+            module.unpack(self.archive, self.destination, HASH)
+        self.assertEqual((self.destination / ".nojekyll").read_bytes(), b"")
+
+
 if __name__ == "__main__":
     unittest.main()

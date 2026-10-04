@@ -58,6 +58,8 @@ export async function buildPages(options) {
   await mkdir(join(directory, 'notices'));
   for (const row of notices) await copyFile(join(root, row.source), join(directory, row.path));
   await writeFile(join(directory, 'build-identity.json'), JSON.stringify(identity, null, 2) + '\n', { flag: 'wx' });
+  // The prebuilt branch must bypass Jekyll without introducing any public data.
+  await writeFile(join(directory, '.nojekyll'), Buffer.alloc(0), { flag: 'wx' });
   const manifest = await sealArtifact(root, directory, identity);
   if ((await committedInputs(root, identity.commit)).digest !== source.digest) throw Error('Pages source changed during build');
   console.log(JSON.stringify({ outcome: 'PASS', scope: 'Build and public artifact only; browser validation separate', identity, files: manifest.files.length, moduleCount: boundary.modules.length }));

@@ -41,10 +41,11 @@ async function inventory(root, directory, notices) {
         await walk(path + '/'); continue;
       }
       if (!stat.isFile() || stat.isSymbolicLink() || await realpath(absolute) !== absolute) throw Error(`Non-regular public artifact: ${path}`);
-      if (!['index.html', 'build-identity.json', 'artifact-manifest.json'].includes(path) && !allowedNotices.has(path) &&
+      if (!['index.html', 'build-identity.json', 'artifact-manifest.json', '.nojekyll'].includes(path) && !allowedNotices.has(path) &&
           !/^assets\/[A-Za-z0-9_.-]+\.(?:js|css|wasm|ttf|otf|woff2?|svg)$/.test(path) && !/^assets\/profile-[A-Za-z0-9_-]{8}\.json$/.test(path)) throw Error(`Unapproved public artifact: ${path}`);
       if (stat.size > 24 * 1024 * 1024 || ++fileCount > 160 || (total += stat.size) > 64 * 1024 * 1024) throw Error('Public artifact bound exceeded');
       const bytes = await readFile(absolute);
+      if (path === '.nojekyll' && bytes.length !== 0) throw Error('Pages .nojekyll must be empty');
       const notice = allowedNotices.get(path);
       if (notice && (bytes.length !== notice.bytes || hash(bytes) !== notice.sha256)) throw Error(`Distributed notice differs: ${path}`);
       if (/\.(?:html|js|css|json|svg)$/.test(path)) {

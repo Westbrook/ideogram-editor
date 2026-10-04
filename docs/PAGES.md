@@ -47,10 +47,24 @@ The public artifact verifier binds the source commit, emitted files, native WASM
 
 ## Publication
 
-GitHub Actions workflows have been removed. Pushes no longer build or deploy this
-site automatically. The local validator and `tooling/pages/publish-branch.mjs`
+GitHub Actions workflow files have been removed from the project. Source-branch
+pushes no longer build or publish the site through a project workflow. The local
+validator and `tooling/pages/publish-branch.mjs`
 remain available for explicitly requested publication of an already verified
 `public-artifact/` and its exact manifest hash.
+
+New local builds include an exactly empty root `.nojekyll`, sealed in the public
+manifest and published as an ordinary file. For a separately selected `gh-pages`
+root publishing source, this tells GitHub to serve the prebuilt artifact without
+Jekyll processing. The verifier also recognizes older markerless artifacts; that
+compatibility does not establish that an old artifact bypasses Jekyll. Nonempty
+markers, nested markers and marker symlinks are refused. This deployment metadata
+does not add a browser request permission.
+
+The marker does not change repository Pages settings or add a project workflow.
+GitHub documents that even [branch-based Pages publication](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)
+uses its service-managed Actions deployment. Disabling Jekyll is not a claim
+that deployment uses no GitHub Actions infrastructure.
 
 The publisher verifies the complete artifact before updating `gh-pages` with an
 ordinary forward commit. It preserves the existing parent, refuses competing or
