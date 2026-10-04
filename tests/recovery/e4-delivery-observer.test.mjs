@@ -579,3 +579,138 @@ for (const profile of ['queue-ui','portable-review']) test(profile+' identical c
   for(const suffix of ['one','two'])await f.consume(f.response(text,{path:prefix+suffix}),undefined,profile==='queue-ui'?postInit(f):undefined);
   assert.equal(f.parse(text).protocolVersion,1);assert.equal(f.rows().length,0);assert(f.errors().some(error=>error.code==='E4_OBSERVER_AMBIGUOUS_BODY'));
 });
+
+
+// Original transaction timing is a diagnostic-only fixture lane. Its isolated
+// IDB boundary uses real EventTarget dispatch and an injected monotonic clock;
+// no test sleeps, fetches, stored values or alternate transactions are needed.
+import {installE4TransactionTiming,observeE4AuthorityWrite} from './e4-transaction-timing.mjs';
+function transactionTimingFixture(t) {
+  const clock={wall:1000,mono:10}, calls=[], phase={released:0,failValue:false,failRelease:false,records:[],dropped:0,invalid:0};
+  class TimingDate extends Date {static now(){return clock.wall;}}
+  class Transaction extends EventTarget {
+    constructor(stores,mode){super();this.mode=mode;this.objectStoreNames={length:stores.length,item:i=>stores[i]};}
+    get result(){throw Error('Diagnostic must not read native values');}
+    get error(){throw Error('Diagnostic must not read native error payload');}
+  }
+  class Database {
+    constructor(name='ie-projection-private-name'){this.name=name;}
+    transaction(...args){calls.push({receiver:this,args});if(this.failure)throw this.failure;clock.mono+=2;return this.last=new Transaction(Array.isArray(args[0])?args[0]:[args[0]],args[1]??'readonly');}
+  }
+  const descriptor=Object.getOwnPropertyDescriptor(Database.prototype,'transaction');
+  const context=createContext({Date:TimingDate,performance:{now:()=>clock.mono,timeOrigin:990},IDBDatabase:Database,TextEncoder,
+    __IDEOGRAM_PHASES__:{readSnapshot(key){assert.equal(key,'e4-transaction-timing');return {get value(){if(phase.failValue)throw Error('private read failure');return {trace:{records:phase.records,dropped:phase.dropped,invalid:phase.invalid,clockOriginUnixMs:990}};},release(){phase.released++;if(phase.failRelease)throw Error('private release failure');}};}}});
+  runInContext('globalThis.window=globalThis',context);
+  runInContext(`(${installE4TransactionTiming.toString()})()`,context);
+  const observer=context.__p25TransactionTiming;
+  t.after(()=>{observer.dispose();assert.deepEqual(Object.getOwnPropertyDescriptor(Database.prototype,'transaction'),descriptor);});
+  return {clock,calls,phase,Database,observer,context,descriptor,snapshot:()=>plain(observer.snapshot())};
+}
+test('E4 transaction timing preserves the original receiver, arguments, result and property descriptor',t=>{
+  const f=transactionTimingFixture(t),db=new f.Database(),stores=['meta','rows'],options={durability:'strict'};
+  const tx=db.transaction(stores,'readonly',options);
+  assert.equal(tx,db.last);assert.equal(f.calls.length,1);assert.equal(f.calls[0].receiver,db);
+  assert.equal(f.calls[0].args[0],stores);assert.equal(f.calls[0].args[2],options);
+  const changed=Object.getOwnPropertyDescriptor(f.Database.prototype,'transaction');
+  for(const key of ['writable','enumerable','configurable'])assert.equal(changed[key],f.descriptor[key]);
+  assert.deepEqual(f.snapshot().records[0],{id:1,scope:'recovery',mode:'readonly',stores:['meta','rows'],startedWallMs:1000,startedMs:10,returnedMs:12,terminalMs:null,terminalWallMs:null,outcome:'pending',errorEvents:0});
+  tx.dispatchEvent(new Event('complete'));
+});
+test('E4 transaction timing preserves the exact original synchronous exception without retries',t=>{
+  const f=transactionTimingFixture(t),db=new f.Database(),error=Error('native original');db.failure=error;
+  assert.throws(()=>db.transaction('meta'),e=>e===error);assert.equal(f.calls.length,1);assert.equal(f.snapshot().observed,0);
+});
+test('E4 transaction timing waits for the real complete event and does not replace product listeners',t=>{
+  const f=transactionTimingFixture(t),db=new f.Database(),tx=db.transaction('meta','readonly'),seen=[];
+  tx.addEventListener('complete',()=>seen.push('product complete'));
+  f.clock.mono=50;f.clock.wall=1040;assert.equal(f.snapshot().records[0].outcome,'pending');
+  tx.dispatchEvent(new Event('complete'));
+  const row=f.snapshot().records[0];assert.equal(row.startedMs,10);assert.equal(row.returnedMs,12);assert.equal(row.terminalMs,50);assert.equal(row.terminalWallMs,1040);assert.equal(row.outcome,'complete');assert.deepEqual(seen,['product complete']);assert.equal(f.snapshot().pending,0);
+});
+test('E4 transaction error events are nonterminal and the actual abort remains distinct',t=>{
+  const f=transactionTimingFixture(t),tx=new f.Database('ie-delivery-private-owner').transaction('entries','readwrite');
+  tx.dispatchEvent(new Event('error'));tx.dispatchEvent(new Event('error'));
+  assert.equal(f.snapshot().records[0].outcome,'pending');assert.equal(f.snapshot().pending,1);
+  f.clock.mono=31;tx.dispatchEvent(new Event('abort'));
+  const row=f.snapshot().records[0];assert.equal(row.scope,'journal');assert.equal(row.errorEvents,2);assert.equal(row.outcome,'abort');assert.equal(row.terminalMs,31);
+});
+test('E4 transaction completion does not erase a preceding error event',t=>{
+  const f=transactionTimingFixture(t),tx=new f.Database().transaction('rows','readwrite');
+  tx.dispatchEvent(new Event('error'));tx.dispatchEvent(new Event('complete'));tx.dispatchEvent(new Event('abort'));
+  const row=f.snapshot().records[0];assert.equal(row.outcome,'complete');assert.equal(row.errorEvents,1);assert.equal(f.snapshot().pending,0);
+});
+test('E4 transaction snapshots omit database identities and never read native result or error',t=>{
+  const f=transactionTimingFixture(t),db=new f.Database('ie-projection-private-sentinel'),tx=db.transaction(['meta','rows'],'readonly');
+  tx.dispatchEvent(new Event('error'));tx.dispatchEvent(new Event('abort'));
+  assert.equal(JSON.stringify(f.snapshot()).includes('private-sentinel'),false);assert.equal(f.calls.length,1);
+});
+test('E4 transaction observer leaves unrelated databases unobserved and native calls intact',t=>{
+  const f=transactionTimingFixture(t),db=new f.Database('unrelated-private-database'),tx=db.transaction('secret','readwrite');
+  assert.equal(tx,db.last);assert.equal(f.snapshot().ignored,1);assert.deepEqual(f.snapshot().records,[]);assert.deepEqual(f.snapshot().errors,[]);
+});
+test('E4 transaction records have a fixed bound and explicitly retain drops without refusing native work',t=>{
+  const f=transactionTimingFixture(t),db=new f.Database();
+  for(let i=0;i<4097;i++)db.transaction('meta','readonly').dispatchEvent(new Event('complete'));
+  const s=f.snapshot();assert.equal(f.calls.length,4097);assert.equal(s.observed,4096);assert.equal(s.dropped,1);assert.equal(s.pending,0);assert.ok(s.errors.includes('E4_IDB_TIMING_CAPACITY'));assert.ok(s.records.length===4096||s.errors.includes('E4_IDB_TIMING_OUTPUT'));
+});
+test('E4 simultaneous transaction references are bounded and completion releases only observed references',t=>{
+  const f=transactionTimingFixture(t),db=new f.Database(),transactions=[];
+  for(let i=0;i<257;i++)transactions.push(db.transaction('meta','readonly'));
+  assert.equal(f.snapshot().pending,256);assert.equal(f.snapshot().dropped,1);assert.equal(f.calls.length,257);
+  for(const tx of transactions)tx.dispatchEvent(new Event('complete'));
+  assert.equal(f.snapshot().pending,0);assert.equal(f.snapshot().records.length,256);
+});
+test('E4 diagnostic disposal restores the native method but cannot claim pending transaction completion',t=>{
+  const f=transactionTimingFixture(t),db=new f.Database(),tx=db.transaction('meta','readonly');
+  f.observer.dispose();tx.dispatchEvent(new Event('complete'));
+  assert.equal(f.snapshot().disposed,true);assert.equal(f.snapshot().records[0].outcome,'pending');assert.equal(f.snapshot().pending,0);
+  assert.equal(Object.getOwnPropertyDescriptor(f.Database.prototype,'transaction').value,f.descriptor.value);
+  db.transaction('meta','readonly');assert.equal(f.calls.length,2);assert.equal(f.snapshot().records.length,1);
+});
+test('E4 phase projection selects existing command spans, preserves exact command identity and releases its owner',t=>{
+  const f=transactionTimingFixture(t);f.phase.records=[{sequence:1,phase:'command.accept',startedMs:1,endedMs:9,durationMs:8,outcome:'ok',context:{commandId:'command_1',transactionId:'tx_1',documentId:'doc_1',prompt:'secret prompt',assetId:'secret asset'}},{phase:'source.capture',context:{commandId:'not-selected'}}];
+  const s=f.snapshot();assert.equal(f.phase.released,1);assert.deepEqual(s.phases.records,[{sequence:1,phase:'command.accept',startedMs:1,endedMs:9,durationMs:8,outcome:'ok',context:{commandId:'command_1',transactionId:'tx_1',documentId:'doc_1'}}]);assert.equal(JSON.stringify(s).includes('secret'),false);
+});
+test('E4 phase diagnostic retains missing-read and release failures without replacing original errors',t=>{
+  const f=transactionTimingFixture(t);f.phase.failValue=true;f.phase.failRelease=true;
+  const s=f.snapshot();assert.equal(f.phase.released,1);assert.deepEqual(s.phases.errors,['E4_PHASE_TIMING_UNAVAILABLE','E4_PHASE_TIMING_RELEASE']);assert.equal(JSON.stringify(s).includes('private'),false);
+});
+test('E4 phase projection preserves source drops and invalid counts and bounds selected rows',t=>{
+  const f=transactionTimingFixture(t);f.phase.dropped=4;f.phase.invalid=2;f.phase.records=Array.from({length:257},(_,sequence)=>({sequence,phase:'command.accept',context:{},startedMs:1,endedMs:2,durationMs:1,outcome:'ok'}));
+  const s=f.snapshot();assert.equal(s.phases.records.length,256);assert.deepEqual(s.phases.errors,['E4_PHASE_TIMING_CAPACITY']);assert.equal(s.phases.dropped,4);assert.equal(s.phases.invalid,2);assert.equal(f.phase.released,1);
+});
+test('E4 diagnostic snapshot copies cannot mutate retained timing records',t=>{
+  const f=transactionTimingFixture(t),tx=new f.Database().transaction('meta','readonly');const first=f.observer.snapshot();first.records[0].stores.push('invented');first.records[0].outcome='invented';
+  assert.equal(f.snapshot().records[0].outcome,'pending');assert.deepEqual(f.snapshot().records[0].stores,['meta']);tx.dispatchEvent(new Event('complete'));
+});
+test('E4 authority write timing delegates once, preserves return identity and leaves original authority untouched',()=>{
+  const record={phase:'P1',at:123,monotonic:4},result={},times=[7,11];let calls=0;
+  assert.equal(observeE4AuthorityWrite(record,()=>{calls++;return result;},()=>times.shift()),result);
+  assert.equal(calls,1);assert.deepEqual(record,{phase:'P1',at:123,monotonic:4,diagnosticWrite:{startedMs:7,endedMs:11,outcome:'returned',clockError:false}});
+});
+test('E4 authority write timing preserves the original failed write and records no successful return',()=>{
+  const record={at:123},error=Error('original write failed'),times=[7,11];let calls=0;
+  assert.throws(()=>observeE4AuthorityWrite(record,()=>{calls++;throw error;},()=>times.shift()),e=>e===error);assert.equal(calls,1);assert.deepEqual(record.diagnosticWrite,{startedMs:7,endedMs:11,outcome:'threw',clockError:false});
+});
+test('E4 diagnostic clock failure cannot prevent or replace an original authority write outcome',()=>{
+  for(const fails of [false,true]){const record={},result={},error=Error('original'),clockError=Error('clock');let calls=0;const write=()=>{calls++;if(fails)throw error;return result;};
+    if(fails)assert.throws(()=>observeE4AuthorityWrite(record,write,()=>{throw clockError;}),e=>e===error);else assert.equal(observeE4AuthorityWrite(record,write,()=>{throw clockError;}),result);
+    assert.equal(calls,1);assert.equal(record.diagnosticWrite.clockError,true);assert.equal(record.diagnosticWrite.outcome,fails?'threw':'returned');}
+});
+
+test('E4 IDB metadata observation failure preserves the exact native transaction and is explicit',t=>{
+  const f=transactionTimingFixture(t),db=new f.Database();Object.defineProperty(db,'name',{get(){throw Error('private metadata error');}});
+  const tx=db.transaction('meta','readonly');assert.equal(tx,db.last);assert.equal(f.calls.length,1);
+  assert.deepEqual(f.snapshot().errors,['E4_IDB_TIMING_OBSERVATION']);assert.deepEqual(f.snapshot().records,[]);
+});
+test('E4 transaction installation is idempotent and does not stack native wrappers',t=>{
+  const f=transactionTimingFixture(t),installed=f.Database.prototype.transaction;
+  runInContext(`(${installE4TransactionTiming.toString()})()`,f.context);
+  assert.equal(f.Database.prototype.transaction,installed);assert.equal(f.context.__p25TransactionTiming,f.observer);
+  new f.Database().transaction('meta','readonly').dispatchEvent(new Event('complete'));assert.equal(f.calls.length,1);assert.equal(f.snapshot().records.length,1);
+});
+test('E4 missing native transaction API remains an explicit incomplete diagnostic',()=>{
+  const context=createContext({Date,performance:{now:()=>1,timeOrigin:0},TextEncoder});runInContext('globalThis.window=globalThis',context);
+  runInContext(`(${installE4TransactionTiming.toString()})()`,context);
+  const snapshot=plain(context.__p25TransactionTiming.snapshot());assert.deepEqual(snapshot.errors,['E4_IDB_TIMING_UNAVAILABLE']);assert.deepEqual(snapshot.phases.errors,['E4_PHASE_TIMING_UNAVAILABLE']);context.__p25TransactionTiming.dispose();
+});
