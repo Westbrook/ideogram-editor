@@ -966,3 +966,60 @@ for(const boundary of ['accepted','owner','veto'])test(`shared rendered operatio
  if(boundary==='accepted'){assert(f.saved.length>before,'The actual guarded action saves its draft');assert.equal(lastDraft(f).fields.strength,'0.8');}
  else{assert.equal(f.saved.length,before,'A captured shared button cannot bypass changed authority or late veto');assert.equal(f.instance.entry().draft.fields.strength,'0.4');}
 });
+
+
+// Fixture retirement uses the same real request owner release that shell
+// disconnection invokes. These controls do not implement a browser DOM fixture.
+test('document release synchronously retires a scheduled queue poll without saving a new draft',{timeout:5000},async t=>{
+ const f=await paginationFixture(t),beforeReads=f.reads.length,saved=structuredClone(f.saved),drafts=structuredClone([...f.editor.draftOwner.drafts]),ui=structuredClone(f.editor.ui);
+ let release;
+ try{
+  assert.notEqual(f.instance.pollTimer,null,'The real initial queue refresh scheduled its next poll');
+  await f.advance(149);assert.equal(f.reads.length,beforeReads);
+  release=f.instance.releaseDocument();assert.strictEqual(f.instance.releaseDocument(),release,'Repeated release shares the actual drain');
+  assert.equal(f.instance.pollTimer,null,'The scheduled timer is removed synchronously');assert.equal(f.instance.polling,false);assert.equal(f.instance.queue,null);
+  await release;await f.advance(1000);
+  assert.equal(f.reads.length,beforeReads,'No queue read starts after retirement');assert.equal(f.instance.observationTasks.size,0);
+  assert.deepEqual(f.saved,saved);assert.deepEqual([...f.editor.draftOwner.drafts],drafts);assert.deepEqual(f.editor.ui,ui);assert.deepEqual(f.commands,[]);
+ }finally{await release;await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
+});
+
+test('document release retains the original held queue completion and forbids its candidate continuation',{timeout:5000},async t=>{
+ const f=await paginationFixture(t),held=pendingPage(),view=structuredClone(f.pages.get(''));view.jobs[0].attempts[0].requestId='provider-known';
+ let candidates=0,released=false,observed=false,release,settlement;
+ const json=f.editor.json.bind(f.editor);f.editor.json=(path,...args)=>path.includes('/candidates')?(candidates++,candidateObservation()):json(path,...args);f.setReader(()=>held.promise);
+ try{
+  const before=f.reads.length;await f.advance(150);assert.equal(f.reads.length,before+1);assert.equal(f.instance.polling,true);
+  const originals=[...f.instance.observationTasks.keys()];assert(originals.length>0,'The original poll/read tasks remain owned');
+  settlement=Promise.allSettled(originals).then(results=>{observed=true;return results;});
+  release=f.instance.releaseDocument();void release.then(()=>{released=true;},()=>{});
+  assert.equal(f.instance.pollTimer,null);assert.equal(f.instance.polling,false);assert.equal(f.instance.queue,null);
+  await f.advance(450);assert.equal(released,false,'Release cannot forget the held original transport');assert.equal(observed,false);assert.equal(candidates,0);assert.equal(f.reads.length,before+1);
+  held.resolve(view);await release;const results=await settlement;await flush();
+  assert.equal(released,true);assert.equal(observed,true);assert(results.every(result=>result.status==='rejected'&&result.reason?.name==='AbortError'),'Original stale read outcomes remain observable');
+  assert.equal(f.instance.observationTasks.size,0);assert.equal(f.instance.queue,null);assert.equal(candidates,0);assert.equal(f.instance.candidateViews.size,0);
+  await f.advance(1000);assert.equal(f.reads.length,before+1);assert.equal(f.instance.pollTimer,null);assert.equal(f.instance.polling,false);
+ }finally{held.resolve(view);await Promise.allSettled([release,settlement].filter(Boolean));await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
+});
+
+test('document release waits for the real owned queue body cancellation before reporting its drain',{timeout:5000},async t=>{
+ const f=await paginationFixture(t),entered=pendingPage(),cancelGate=pendingPage();let calls=0,cancels=0,signal,release,released=false,readSettled=false,originalSettlement;
+ const body=new ReadableStream({pull(){entered.resolve();},cancel(){cancels++;return cancelGate.promise;}},{highWaterMark:0});
+ // Replace only the synthetic editor transport boundary; the request owner,
+ // UIModelOwner, owned JSON parser and native reader/cancellation all stay real.
+ f.editor.ownedJSON=(path,owner,init,current,maxBytes,kind)=>{
+  assert.equal(path,'/api/v1/queue');calls++;signal=init.signal;
+  const original=readOwnedJSON(async()=>new Response(body,{headers:{'content-length':'2'}}),path,{owner,init,owns:current,maxBytes,kind});
+  originalSettlement=Promise.allSettled([original]).then(results=>{readSettled=true;return results;});return original;
+ };
+ try{
+  await f.advance(150);await entered.promise;assert.equal(calls,1);assert.equal(body.locked,true);assert.equal(signal.aborted,false);assert.equal(f.instance.inspectMemory().navigation.controls.reads,1);
+  release=f.instance.releaseDocument();void release.then(()=>{released=true;},()=>{});assert.equal(signal.aborted,true,'Actual owner retirement aborts its own read');
+  await f.advance(1000);assert.equal(cancels,1);assert.equal(readSettled,false);assert.equal(released,false,'A requested native cancel is not a completed drain');assert.equal(body.locked,true);assert.equal(calls,1);
+  assert.equal(f.instance.inspectMemory().navigation.controls.reads,1,'The original read remains counted while native cancellation is pending');assert.equal(f.instance.pollTimer,null);
+  cancelGate.resolve();await release;const [result]=await originalSettlement;await flush();
+  assert.equal(result.status,'rejected');assert.match(result.reason.message,/PROMPT_READ_STALE/);assert.equal(readSettled,true);assert.equal(released,true);assert.equal(cancels,1);assert.equal(body.locked,false);
+  assert.deepEqual(f.instance.inspectMemory().navigation.controls,{models:0,reads:0,pending:0,cleanupFailures:0});assert.equal(f.instance.observationTasks.size,0);assert.equal(f.instance.queue,null);assert.equal(f.instance.candidateViews.size,0);
+  await f.advance(1000);assert.equal(calls,1);assert.equal(f.instance.pollTimer,null);assert.equal(f.instance.polling,false);
+ }finally{cancelGate.resolve();await Promise.allSettled([release,originalSettlement].filter(Boolean));await f.instance.dispose();await flush();assertReleasedRequestStatus(f);}
+});
