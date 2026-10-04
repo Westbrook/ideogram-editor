@@ -525,9 +525,13 @@ export class Histories {
   private letteringManifest(intent:BlobRef,grid:{width:number;height:number},images:{candidateAlone:Asset;nativeOff:Asset;nativeOn:Asset},graphs:ReturnType<Histories['letteringGraphs']>){
     const rows=([['candidate-alone',images.candidateAlone,graphs.candidateAlone],['native-off',images.nativeOff,graphs.nativeOff],['native-on',images.nativeOn,graphs.nativeOn]] as const).map(([comparison,asset,graph])=>{
       if(asset.availability!=='available'||asset.safety!=='safe'||asset.qualification!=='canonical-png'||asset.blob.mediaType!=='image/png'||!asset.raster||asset.raster.role!=='export'||asset.raster.width>1024||asset.raster.height>1024)throw new AssetRejection('INCOMPATIBLE','LETTERING_COMPARISON_REQUIRED');
-      const manifest=JSON.parse(Buffer.from(this.objects.verify(asset.raster.manifest,true)!).toString('utf8'));validateRasterManifest(manifest);const plan=manifest.plan as {kind?:string;sourceWidth?:number;sourceHeight?:number;comparison?:string;preservation?:string;layers?:unknown};
-      if(plan.kind!=='candidate-lettering-comparison-v1'||plan.sourceWidth!==grid.width||plan.sourceHeight!==grid.height||plan.comparison!==comparison||plan.preservation!=='not-applied'||canonical(plan.layers)!==canonical(graph.layers))throw new AssetRejection('INCOMPATIBLE','LETTERING_COMPARISON_REQUIRED');
-      return {comparison,assetId:asset.id,blob:asset.blob,raster:asset.raster};
+      // Fresh verification on every call; raw-byte accounting ends with this row.
+      const owned=this.objects.verifyOwned(asset.raster.manifest);
+      try{
+        const manifest=JSON.parse(Buffer.from(owned.bytes).toString('utf8'));validateRasterManifest(manifest);const plan=manifest.plan as {kind?:string;sourceWidth?:number;sourceHeight?:number;comparison?:string;preservation?:string;layers?:unknown};
+        if(plan.kind!=='candidate-lettering-comparison-v1'||plan.sourceWidth!==grid.width||plan.sourceHeight!==grid.height||plan.comparison!==comparison||plan.preservation!=='not-applied'||canonical(plan.layers)!==canonical(graph.layers))throw new AssetRejection('INCOMPATIBLE','LETTERING_COMPARISON_REQUIRED');
+        return {comparison,assetId:asset.id,blob:asset.blob,raster:asset.raster};
+      }finally{owned.release();}
     });
     if(rows.some(row=>row.raster.width!==rows[0].raster.width||row.raster.height!==rows[0].raster.height))throw new AssetRejection('INCOMPATIBLE','LETTERING_COMPARISON_GRID');
     return {kind:'candidate-lettering-comparison-manifest-1' as const,intent,grid,preservation:'not-applied' as const,images:rows};

@@ -411,3 +411,84 @@ test('history rejects changed returned metadata bytes even after genuine file ve
  t.mock.method(f.objects,'verifyOwned',function(...args){const owner=Reflect.apply(original,this,args);assert.deepEqual(Buffer.from(owner.bytes),bytes);owner.bytes[owner.bytes.indexOf(49)]=50;return owner;});
  assert.throws(()=>f.histories.ownPlacementMetadata(input,65536),{code:'CORRUPT_OBJECT'});assert.deepEqual(f.rows.map(row=>[row.method,row.returned,row.releases]),[['verifyOwned',true,1]]);assert.equal(f.memory.bytes,0);assert.equal(f.memory.resourceOwnership().borrowers,0);assert.deepEqual(placementReadSnapshot(),before);
 });
+
+
+// Call the actual Histories comparison-manifest method with schema-valid local
+// manifests and real Objects verification. Pixel/render authority is not mocked
+// into existence: these controls cover metadata reads, not native rendering.
+async function letteringReadFixture(t){
+ const f=await placementMetadataFixture(t),grid={width:1,height:1},images={},graphs={},files={},values={};
+ const pixels=ref(Buffer.from([0,0,0,255]),RGBA),blob=ref(Buffer.from('fixture PNG identity'),'image/png'),intent=ref(Buffer.from('fixture intent'));
+ for(const [key,comparison]of [['candidateAlone','candidate-alone'],['nativeOff','native-off'],['nativeOn','native-on']]){
+  const layers=[{assetId:'fixture_candidate',transform:[1,0,0,1,0,0],opacity:1,mask:null}],value={schemaVersion:1,pipeline:PIPELINE,width:1,height:1,format:'straight-srgb-rgba8',layout:'row-major-tile-views-v1',tileSize:512,pixels,tiles:[{x:0,y:0,width:1,height:1,hash:pixels.hash}],dependencies:[],plan:{kind:'candidate-lettering-comparison-v1',sourceWidth:1,sourceHeight:1,layers,comparison,kernel:'triangle-area-source-axis-row-norm-v1',edge:'transparent-zero-no-renormalization',preservation:'not-applied'}};
+  const bytes=Buffer.from(canonical(value)),stored=await f.put(bytes);files[key]={...stored,bytes};values[key]=value;
+  graphs[key]={type:'ComposeRaster',width:1,height:1,layers};images[key]={id:'fixture_'+key,availability:'available',safety:'safe',qualification:'canonical-png',blob,raster:{role:'export',width:1,height:1,manifest:stored.ref,pixels}};
+ }
+ return {...f,grid,images,graphs,files,values,intent,read(){return f.histories.letteringManifest(intent,grid,images,graphs);}};
+}
+function assertLetteringReadDrained(f,before,attempts,returned=attempts){
+ assert.equal(f.rows.length,attempts);assert(f.rows.every(row=>row.method==='verifyOwned'));
+ assert.equal(f.rows.filter(row=>row.returned).length,returned);assert(f.rows.filter(row=>row.returned).every(row=>row.releases===1));assert(f.rows.filter(row=>!row.returned).every(row=>row.releases===0));
+ assert.deepEqual(placementReadSnapshot(),before,'Verified raw backing and handles must end before the surrounding producer scope');
+}
+
+test('lettering comparison reads release each verified buffer while the original producer scope stays open',async t=>{
+ const f=await letteringReadFixture(t);
+ await adapterResources.scope('lettering-comparison-consumer',async()=>{
+  const before=placementReadSnapshot(),original=f.objects.verifyOwned;
+  t.mock.method(f.objects,'verifyOwned',function(...args){assert.deepEqual(placementReadSnapshot(),before,'Prior row ownership must drain before the next read');return Reflect.apply(original,this,args);});
+  const expected={kind:'candidate-lettering-comparison-manifest-1',intent:f.intent,grid:f.grid,preservation:'not-applied',images:[['candidateAlone','candidate-alone'],['nativeOff','native-off'],['nativeOn','native-on']].map(([key,comparison])=>({comparison,assetId:f.images[key].id,blob:f.images[key].blob,raster:f.images[key].raster}))};
+  const first=f.read();assert.deepEqual(first,expected);assertLetteringReadDrained(f,before,3);
+  await Promise.resolve();assert.deepEqual(placementReadSnapshot(),before);
+  const second=f.read();assert.deepEqual(second,expected);assert.notStrictEqual(second,first);assert.notStrictEqual(second.images,first.images);assertLetteringReadDrained(f,before,6);
+ });
+});
+
+test('lettering comparison parse, schema and plan refusals release the successful and failing row owners',async t=>{
+ for(const kind of ['parse','schema','plan']){
+  const f=await letteringReadFixture(t),value=JSON.parse(canonical(f.values.nativeOff));let bytes;
+  if(kind==='parse')bytes=Buffer.from('{');else{if(kind==='schema')value.format='invalid-format';else value.plan.comparison='native-on';bytes=Buffer.from(canonical(value));}
+  const stored=await f.put(bytes);f.images.nativeOff.raster.manifest=stored.ref;
+  await adapterResources.scope('lettering-refused-consumer',async()=>{
+   const before=placementReadSnapshot();
+   assert.throws(()=>f.read(),error=>kind==='parse'?error instanceof SyntaxError:kind==='schema'?error instanceof Error&&error.message==='Invalid recovery data':error.code==='INCOMPATIBLE'&&error.reason==='LETTERING_COMPARISON_REQUIRED');
+   assertLetteringReadDrained(f,before,2);await Promise.resolve();assert.deepEqual(placementReadSnapshot(),before);
+  });
+ }
+});
+
+test('lettering comparison preserves a comparison error identity while releasing its verified bytes',async t=>{
+ const f=await letteringReadFixture(t),original=Object.freeze(Error('original comparison graph failure'));let reads=0;
+ Object.defineProperty(f.graphs.nativeOff,'layers',{get(){reads++;throw original;}});
+ await adapterResources.scope('lettering-graph-failure',async()=>{
+  const before=placementReadSnapshot();assert.throws(()=>f.read(),error=>error===original);assert.equal(reads,1);assertLetteringReadDrained(f,before,2);assert.equal(original.message,'original comparison graph failure');
+ });
+});
+
+test('lettering comparison verifies changed original bytes again and accepts a restored source without reuse',async t=>{
+ const f=await letteringReadFixture(t),first=f.files.candidateAlone,corrupt=Buffer.from(first.bytes);corrupt[0]^=1;
+ await adapterResources.scope('lettering-fresh-file-check',async()=>{
+  const before=placementReadSnapshot(),original=f.read();assertLetteringReadDrained(f,before,3);
+  await writeFile(first.path,corrupt,{mode:0o600});assert.throws(()=>f.read(),{code:'CORRUPT_OBJECT'});assertLetteringReadDrained(f,before,4,3);
+  await writeFile(first.path,first.bytes,{mode:0o600});const restored=f.read();assert.deepEqual(restored,original);assert.notStrictEqual(restored,original);assertLetteringReadDrained(f,before,7,6);
+ });
+});
+
+test('lettering comparison keeps the exact small-read ceiling and refuses larger metadata before an owner returns',async t=>{
+ for(const size of [65536,65537]){
+  const f=await letteringReadFixture(t),raw=canonical(f.values.candidateAlone),bytes=Buffer.from(raw+' '.repeat(size-Buffer.byteLength(raw))),stored=await f.put(bytes);f.images.candidateAlone.raster.manifest=stored.ref;assert.equal(bytes.length,size);
+  await adapterResources.scope('lettering-read-size-bound',async()=>{
+   const before=placementReadSnapshot();if(size===65536){assert.equal(f.read().images.length,3);assertLetteringReadDrained(f,before,3);}else{assert.throws(()=>f.read(),{code:'PAYLOAD_TOO_LARGE'});assertLetteringReadDrained(f,before,1,0);}
+  });
+ }
+});
+
+test('lettering comparison preserves asset preconditions before reading and grid rejection after all owners end',async t=>{
+ const f=await letteringReadFixture(t);
+ await adapterResources.scope('lettering-preconditions-and-grid',async()=>{
+  const before=placementReadSnapshot();f.images.candidateAlone.qualification='opaque';
+  assert.throws(()=>f.read(),{code:'INCOMPATIBLE',reason:'LETTERING_COMPARISON_REQUIRED'});assertLetteringReadDrained(f,before,0);
+  f.images.candidateAlone.qualification='canonical-png';f.images.nativeOn.raster.width=2;
+  assert.throws(()=>f.read(),{code:'INCOMPATIBLE',reason:'LETTERING_COMPARISON_GRID'});assertLetteringReadDrained(f,before,3);
+ });
+});
