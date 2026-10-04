@@ -39,6 +39,13 @@ def read(path,maximum,immutable=False):
         return b''.join(chunks)
     finally:os.close(fd)
 
+def read_process(name,maximum):
+    require(sys.platform=='linux','LAUNCH_PROCESS_PLATFORM')
+    require(isinstance(name,str) and name in ('cgroup','mountinfo','stat'),'LAUNCH_PROCESS_FILE')
+    # /proc/self is a kernel symlink. Address only this live process by its
+    # kernel PID; preserve canonical-path, O_NOFOLLOW and bounded read checks.
+    return read(Path('/proc')/str(os.getpid())/name,maximum)
+
 def decode(raw):
     def pairs(rows):
         value={}
@@ -96,7 +103,7 @@ def main(argv):
     for item in [group,*group.parents]:
         value=item.lstat();require(item.resolve(strict=True)==item and stat.S_ISDIR(value.st_mode) and value.st_uid==0 and not stat.S_IMODE(value.st_mode)&0o022,'LAUNCH_GROUP_ANCESTRY')
     value=group.lstat();require((value.st_dev,value.st_ino)==(device,inode),'LAUNCH_GROUP_IDENTITY')
-    layout=hierarchy(read('/proc/self/cgroup',131072).decode('ascii'),read('/proc/self/mountinfo',131072).decode('ascii'));require(layout['parent']==group.parent,'LAUNCH_PARENT_BINDING');authenticate_hierarchy(layout);parent_membership=layout['membership']
+    layout=hierarchy(read_process('cgroup',131072).decode('ascii'),read_process('mountinfo',131072).decode('ascii'));require(layout['parent']==group.parent,'LAUNCH_PARENT_BINDING');authenticate_hierarchy(layout);parent_membership=layout['membership']
     control=group/'cgroup.procs';value=control.lstat();require(stat.S_ISREG(value.st_mode) and value.st_uid==0 and not stat.S_IMODE(value.st_mode)&0o022,'LAUNCH_CONTROL')
     fd=os.open(control,os.O_WRONLY|os.O_NOFOLLOW|os.O_CLOEXEC)
     try:
@@ -104,8 +111,8 @@ def main(argv):
     finally:os.close(fd)
     require((group.lstat().st_dev,group.lstat().st_ino)==(device,inode),'LAUNCH_GROUP_REPLACED')
     members=read(control,65536).decode('ascii').split();require(len(members)<=4096 and str(os.getpid()) in members,'LAUNCH_ATTACH_READBACK')
-    after=read('/proc/self/cgroup',131072).decode('ascii').splitlines();require(after==['0::'+parent_membership.rstrip('/')+'/'+group.name],'LAUNCH_ACTUAL_MEMBERSHIP')
-    rawstat=read('/proc/self/stat',131072);require(b') ' in rawstat,'LAUNCH_STAT');tail=rawstat[rawstat.rfind(b') ')+2:].split();require(len(tail)>=20 and tail[19].isdigit(),'LAUNCH_START')
+    after=read_process('cgroup',131072).decode('ascii').splitlines();require(after==['0::'+parent_membership.rstrip('/')+'/'+group.name],'LAUNCH_ACTUAL_MEMBERSHIP')
+    rawstat=read_process('stat',131072);require(b') ' in rawstat,'LAUNCH_STAT');tail=rawstat[rawstat.rfind(b') ')+2:].split();require(len(tail)>=20 and tail[19].isdigit(),'LAUNCH_START')
     ready={'kind':'hosted-toolchain-writer-ready-1','pid':os.getpid(),'start':tail[19].decode('ascii'),'groupIdentity':{'dev':device,'ino':inode},'attached':True,'privilegeDropPending':True}
     sys.stdout.write(json.dumps(ready,separators=(',',':'))+'\n');sys.stdout.flush()
     os.execve(executable,[executable,*arguments],dict(os.environ))

@@ -1,4 +1,4 @@
-"""Pure launch admission controls; no root, cgroup, process or network action."""
+"""Launch controls with bounded own-proc reads; no root or native writer action."""
 import hashlib
 import importlib.util
 import json
@@ -68,10 +68,10 @@ class Controls(unittest.TestCase):
             if path==str(self.root/'config.json'):return raw
             if path==str(source):return body
             if path in ('/usr/bin/python3','/usr/bin/setpriv'):return b'x'
-            if path=='/proc/self/cgroup':return ('0::/'+(self.group.name if control.read_bytes() else '')+'\n').encode()
-            if path=='/proc/self/mountinfo':return ('1 0 0:1 / '+str(self.root)+' rw - cgroup2 cgroup rw\n').encode()
+            if path==f'/proc/{os.getpid()}/cgroup':return ('0::/'+(self.group.name if control.read_bytes() else '')+'\n').encode()
+            if path==f'/proc/{os.getpid()}/mountinfo':return ('1 0 0:1 / '+str(self.root)+' rw - cgroup2 cgroup rw\n').encode()
             if path==str(control):events.append('attached-readback');return control.read_bytes()
-            if path=='/proc/self/stat':return b'1 (stub) S 2 0 1 '+b'0 '*15+b'1234\n'
+            if path==f'/proc/{os.getpid()}/stat':return b'1 (stub) S 2 0 1 '+b'0 '*15+b'1234\n'
             raise AssertionError('unexpected read')
         class Output:
             def write(self,value):events.append(('ready',json.loads(value)))
@@ -102,6 +102,26 @@ class Controls(unittest.TestCase):
             upper_control.chmod(0o622)
             with self.assertRaisesRegex(ValueError,'^LAUNCH_ANCESTOR_CONTROL$'):subject.authenticate_hierarchy(layout)
         self.assertEqual(stat.S_IMODE(upper_control.stat().st_mode),0o622)
+
+
+    def test_actual_own_process_reads_preserve_canonical_alias_and_byte_guards(self):
+        if sys.platform!='linux':
+            with self.assertRaisesRegex(ValueError,'^LAUNCH_PROCESS_PLATFORM$'):subject.read_process('stat',131072)
+            return
+        # Actual procfs, not the mocked main fixture: the old /proc/self calls
+        # fail the unchanged canonical guard while fixed own-PID reads succeed.
+        pid=os.getpid();self.assertEqual(os.readlink('/proc/self'),str(pid))
+        for name in ('cgroup','mountinfo','stat'):
+            data=subject.read_process(name,131072);self.assertIsInstance(data,bytes);self.assertGreater(len(data),0);self.assertLessEqual(len(data),131072)
+            with self.assertRaisesRegex(ValueError,'^LAUNCH_CANONICAL$'):subject.read('/proc/self/'+name,131072)
+            if name=='stat':self.assertEqual(int(data.split(b' ',1)[0]),pid)
+        with self.assertRaisesRegex(ValueError,'^LAUNCH_READ_BOUND$'):subject.read_process('stat',1)
+
+    def test_process_read_accepts_no_caller_pid_or_other_proc_operand(self):
+        with patch.object(subject.sys,'platform','linux'),patch.object(subject,'read',side_effect=AssertionError('unexpected file read')) as reader:
+            for name in ('self/stat','1/stat','../stat','status','/proc/self/stat','stat/..','',None,1,[]):
+                with self.assertRaisesRegex(ValueError,'^LAUNCH_PROCESS_FILE$'):subject.read_process(name,131072)
+            reader.assert_not_called()
 
 
 suite=unittest.defaultTestLoader.loadTestsFromTestCase(Controls)

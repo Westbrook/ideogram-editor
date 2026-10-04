@@ -83,8 +83,8 @@
     },
     {
       "path": "tooling/rollback-producer/hosted-toolchain-launch.py",
-      "bytes": 8952,
-      "sha256": "a359c0f4dc884783cca06fc52c6e1b267df0086f428d017d379586f6f3e9aeda"
+      "bytes": 9348,
+      "sha256": "4934f910ca420ea66502a6c71960f917408d07761ce4ba518b1172feec26a114"
     },
     {
       "path": "tooling/rollback-producer/hosted-worker.py",

@@ -216,7 +216,7 @@ test('new scheduling records cannot replay through the old-policy path or an unb
 });
 test('fixed toolchain launch admission and attach-before-exec controls are exercised without a native payload',async t=>{
   const {stdout,stderr}=await promisify(execFile)('python3',['-I','-S','-B',fileURLToPath(new URL('./fixtures/hosted-toolchain-launch-unit.py',import.meta.url)),fileURLToPath(new URL('../../tooling/rollback-producer/hosted-toolchain-launch.py',import.meta.url))],{maxBuffer:65536,timeout:10000});
-  assert.deepEqual(JSON.parse(stdout),{tests:10,failures:0,errors:0});t.diagnostic(stderr.trim());
+  assert.deepEqual(JSON.parse(stdout),{tests:12,failures:0,errors:0});t.diagnostic(stderr.trim());
 });
 
 test('toolchain admission and observation exclude each other without pausing caller clocks',async()=>{
