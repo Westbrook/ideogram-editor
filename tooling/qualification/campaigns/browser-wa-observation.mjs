@@ -46,8 +46,8 @@ export const WA_OPAQUE_PATH_SOURCE_PINS = freeze([
   },
   {
     "path": "src/state/editor-client.ts",
-    "bytes": 132260,
-    "sha256": "sha256:86e0d989d26095161a307ddc493a1913a10735a2d6c5d6fcb1f0e40c62c820e1"
+    "bytes": 132616,
+    "sha256": "sha256:050bb6a57153674cff46f14212de0ac3b1321b647d764f55cd1a28c994a37e92"
   },
   {
     "path": "src/protocol/sha256.ts",

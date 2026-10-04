@@ -3,6 +3,7 @@
 // paint, native memory, physical timing, or the observation verifier itself.
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import {pathToFileURL} from 'node:url';
 import {resolve} from 'node:path';
@@ -46,7 +47,7 @@ async function fixture(t){
  import {DocumentResources} from ${JSON.stringify(resourcesURL)};
  import {collectOwnedDocuments} from ${JSON.stringify(documentsURL)};
  import {readUndoAvailability} from ${JSON.stringify(historyURL)};
- import {readOwnedJSON,cloneOwnedModel,ModelPayload} from ${JSON.stringify(memoryURL)};
+ import {readOwnedJSON,createOwnedModel,cloneOwnedModel,modelPayloadBytes,reserveModelBytes,ModelPayload} from ${JSON.stringify(memoryURL)};
  import {reserveCommandWire,measureControl} from ${JSON.stringify(controlURL)};
  import {allocationLedger} from ${JSON.stringify(allocationsURL)};
  import {canonical,parseControlJSON} from ${JSON.stringify(jsonURL)};
@@ -302,4 +303,140 @@ test('owned accepted checkpoint refuses a failed newest real restore after its o
   io.receiptGate.resolve();io.eventsGate.resolve();io.projectionGate.resolve();io.draftGate.resolve();own.resume.resolve();newest.resume.resolve();
   await Promise.allSettled([task,latest].filter(Boolean));await f.close();
  }
+});
+
+
+// Real draft preparation, upload, command receipt/event proof and DraftPersistence
+// paths. Only server IO/recovery/model loading are fixture boundaries; these do
+// not qualify a browser, persistent store, painted status or physical timing.
+function draftFeedbackIO(f){
+ const paths=[],commands=[],stages=new Map(),uiRequests=[],events=[],releases=[],loads=[];
+ const state={failure:null,holdReceipt:null,holdProof:null,receiptEntered:f.gate(),proofEntered:f.gate(),sequence:40};
+ let checkpoint=structuredClone(f.client.ui),owner;
+ const commandById=id=>{const value=commands.find(row=>row.command.commandId===id);assert(value,'Unknown original command '+id);return value;};
+ const recoveryFor=row=>({recoveryId:'feedback_'+row.receipt.toSeq,writerEpoch:'1',projectionSchema:19,highWater:row.receipt.toSeq,expiresAt:'2099-01-01T00:00:00.000Z'});
+ const transport=async(path,init)=>{
+  paths.push({path,method:init?.method??'GET',body:init?.body});
+  if(path==='/api/v1/assets/staging'&&init?.method==='POST'){
+   const request=JSON.parse(init.body);assert.equal(request.protocolVersion,1);assert(!stages.has(request.stagingId));
+   stages.set(request.stagingId,{...request,ownerClientId:f.client.owner,version:'1',committedOffset:'0',state:'receiving',bytes:Buffer.alloc(0)});return response({});
+  }
+  if(path.startsWith('/api/v1/assets/staging/')){
+   const stage=stages.get(path.slice('/api/v1/assets/staging/'.length));assert(stage);
+   if(init?.method==='PUT'){
+    if(state.failure==='upload')throw Error('STORAGE_FULL');
+    assert.equal(init.headers['Upload-Offset'],stage.committedOffset);stage.bytes=Buffer.concat([stage.bytes,Buffer.from(init.body)]);stage.committedOffset=String(stage.bytes.length);stage.state='complete';
+    assert.equal(stage.committedOffset,stage.expectedBytes);assert.equal('sha256:'+createHash('sha256').update(stage.bytes).digest('hex'),stage.sha256);
+   }else assert.equal(init?.method,undefined);
+   const {bytes,...record}=stage;return response(record);
+  }
+  if(path==='/api/v1/commands'&&init?.method==='POST'){
+   const request=JSON.parse(init.body),command=request.command,seq=String(++state.sequence);assert.equal(request.protocolVersion,1);
+   assert(['FinalizeStaging','SaveCheckpoint'].includes(command.body.type));
+   if(command.body.type==='FinalizeStaging'){const stage=stages.get(command.body.stagingId);assert(stage);assert.equal(stage.committedOffset,stage.expectedBytes);assert.equal(command.body.expectedSha256,stage.sha256);}
+   const receipt=state.failure==='receipt-rejected'?{status:'rejected',commandId:command.commandId,code:'STALE_REVISION'}:{status:'accepted',commandId:command.commandId,transactionId:command.transactionId,fromSeq:seq,toSeq:seq,documentRevision:command.documentId?'4':null};
+   commands.push({command,wire:init.body,receipt});
+   if(command.body.type==='FinalizeStaging'){state.receiptEntered.resolve();await state.holdReceipt?.promise;}
+   if(state.failure==='receipt-lost')throw Error('Failed to fetch');
+   return response({protocolVersion:1,kind:'receipt',receipt});
+  }
+  const commandPath=/^\/api\/v1\/commands\/([^/]+)(\/result)?$/.exec(path);
+  if(commandPath){
+   const row=commandById(commandPath[1]);
+   if(!commandPath[2])return response({protocolVersion:1,kind:'receipt',receipt:row.receipt});
+   const {command,receipt}=row,recovery=recoveryFor(row),stage=stages.get(command.body.stagingId),asset=stage?{id:'asset_'+receipt.toSeq,version:'1',purpose:stage.purpose,blob:{hash:stage.sha256,byteLength:stage.expectedBytes,mediaType:stage.mediaType},dependencies:[],safety:stage.purpose==='caption'?'safe':'unknown',availability:'available',qualification:stage.purpose==='caption'?'opaque-text':'pending-text',measuredMediaType:stage.mediaType}:undefined;
+   const event={schemaVersion:1,payloadVersion:1,eventId:'event_'+receipt.toSeq,workspaceSeq:receipt.toSeq,streamId:asset?'assets':f.document.id,streamSeq:asset?receipt.toSeq:'4',documentId:asset?null:f.document.id,resultingDocumentRevision:asset?null:'4',commandId:command.commandId,correlationId:command.correlationId,causationId:null,transactionId:command.transactionId,writerEpoch:'1',recordedAt:'2026-10-04T01:11:37.325Z',type:asset?'AssetRegistered':'CheckpointSaved',payload:asset?{asset}:{checkpoint:{id:'checkpoint_'+receipt.toSeq,name:command.body.name,documentId:f.document.id,documentRevision:'4',historyHead:'history_4',highWater:'40'}}};
+   if(state.failure==='events')event.commandId='foreign_command';events.push(event);
+   return response({protocolVersion:1,kind:'batches',recovery,nextCursor:receipt.toSeq,more:false,batches:[{kind:'inline',transactionId:receipt.transactionId,fromSeq:receipt.fromSeq,toSeq:receipt.toSeq,events:[event]}]});
+  }
+  const proofPath=/^\/api\/v1\/events\?after=([0-9]+)&recoveryId=feedback_([0-9]+)$/.exec(path);
+  if(proofPath){
+   assert.equal(proofPath[1],proofPath[2]);const row=commands.find(row=>row.receipt.toSeq===proofPath[1]);assert(row);state.proofEntered.resolve();await state.holdProof?.promise;
+   return response({protocolVersion:1,kind:'batches',recovery:recoveryFor(row),nextCursor:proofPath[1],more:false,batches:[]});
+  }
+  const releasePath=/^\/api\/v1\/recovery\/feedback_([0-9]+)\/release$/.exec(path);
+  if(releasePath){assert.equal(init.method,'POST');assert.deepEqual(JSON.parse(init.body),{protocolVersion:1});releases.push(releasePath[1]);return new Response(null,{status:204});}
+  if(path==='/api/v1/ui/ui_fixture'){
+   if(init?.method==='POST'){
+    const request=JSON.parse(init.body);uiRequests.push(request);assert.equal(request.body.type,'SaveDraft');assert.equal(request.sessionId,checkpoint.sessionId);assert.equal(request.expectedUISeq,checkpoint.uiSeq);
+    const rejected=state.failure==='draft-rejected';if(!rejected)checkpoint={...checkpoint,uiSeq:String(BigInt(checkpoint.uiSeq)+1n),drafts:[{...request.body.draft,status:'saved-unapplied'}]};
+    return response({protocolVersion:1,requestId:request.requestId,status:rejected?'rejected':'accepted',uiSeq:checkpoint.uiSeq,...(rejected?{reason:'DRAFT_CHANGED'}:{})});
+   }
+   assert.equal(init?.method,undefined);return response(state.failure==='draft-restore'?{...checkpoint,sessionId:'foreign_session'}:checkpoint);
+  }
+  throw Error('Unexpected draft feedback path '+path);
+ };
+ f.setTransport(transport);owner=f.installDraftOwner(transport);f.client.patch({document:f.document});delete f.client.draftStatus;
+ f.client.sync=async()=>{if(state.failure==='recovery')throw Error('RECOVERY_REFUSED');f.setCursor(String(state.sequence));};
+ f.client.loadDocument=async document=>{loads.push(document.id);};f.journal.get=async key=>structuredClone(f.journal.rows.get(key));
+ const draft=(kind,text)=>{owner.change({id:'feedback_draft',kind,text,documentId:f.document.id,targetLayerId:kind==='inspector'||kind==='mask'?'layer_1':null,expectedDocumentRevision:'4',composing:false});};
+ return {state,paths,commands,stages,uiRequests,events,releases,loads,owner,draft};
+}
+const draftFeedbackValues={
+ inspector:'{"a":"30","b":"0","c":"0","d":"30","x":"10","y":"5"}',
+ prompt:'Retained prompt',mask:'{"points":[[1,2],[3,4]]}',
+ request:JSON.stringify({draft:{prompt:{text:null}},text:'Request prompt'}),
+ composition:JSON.stringify({composition:{raw:[],review:null},bindings:[]}),
+ text:JSON.stringify({text:'Retained native text',style:{family:'Fixture',size:16},frame:{x:0,y:0,width:128,height:32},fonts:[]}),
+};
+for(const kind of Object.keys(draftFeedbackValues))test(kind+' draft saves through real staging and complete events without taking operation status',async t=>{
+ const f=await fixture(t),io=draftFeedbackIO(f),message='ApplyTransform accepted and saved locally.',recovery='Retained recovery warning',error='Retained diagnostic';
+ io.draft(kind,draftFeedbackValues[kind]);f.client.patch({message,recovery,error});const begin=f.calls.length;
+ await f.track(f.client.flushDrafts());
+ assert.equal(f.client.view.message,message);assert.equal(f.client.view.recovery,recovery);assert.equal(f.client.view.error,error);assert.equal(f.client.view.drafts,'Draft saved locally; not applied to the document');
+ const expected=['request','composition','text'].includes(kind)?2:1;assert.equal(io.commands.length,expected);assert.equal(io.events.length,expected);assert.equal(io.releases.length,expected);assert.equal(io.stages.size,expected);
+ assert(io.commands.every(row=>row.command.body.type==='FinalizeStaging'));assert.equal(io.uiRequests.length,1);assert.equal(io.uiRequests[0].body.draft.kind,kind);assert.equal(io.uiRequests[0].body.draft.assetId,'asset_'+io.commands.at(-1).receipt.toSeq);
+ assert.equal(io.owner.drafts.get('feedback_draft').savedGeneration,'1');assert.equal(io.owner.drafts.get('feedback_draft').error,null);assert.deepEqual(io.loads,[f.document.id]);assert.deepEqual(io.owner.pendingRequests(),[]);
+ assert(f.calls.slice(begin).filter(row=>row.type==='state').every(row=>row.input.message===message&&row.input.hasRecovery&&row.input.hasError));
+ for(const row of io.commands){const saved=f.journal.rows.get('command:'+row.command.commandId);assert.equal(saved.wire,row.wire);assert.deepEqual(saved.request.command,row.command);assert.deepEqual(saved.result.receipt,row.receipt);assert.equal(Object.hasOwn(saved,'announce'),false);}
+ await f.close();
+});
+
+test('a held inspector save cannot overwrite a later genuine foreground command completion',async t=>{
+ const f=await fixture(t),io=draftFeedbackIO(f);io.state.holdReceipt=f.gate();io.draft('inspector',draftFeedbackValues.inspector);
+ const saving=f.track(f.client.flushDrafts());await io.state.receiptEntered.promise;
+ await f.track(f.client.withCommandEvents({type:'SaveCheckpoint',name:'Later user operation'},events=>{assert.equal(events[0].type,'CheckpointSaved');assert.equal(events[0].payload.checkpoint.name,'Later user operation');}));
+ const message=f.client.view.message;assert.equal(message,'SaveCheckpoint accepted and saved locally.');assert.equal(f.authority('checkpoint').length,1);const begin=f.calls.length;
+ io.state.holdReceipt.resolve();await saving;
+ assert.equal(f.client.view.message,message);assert.equal(io.commands.length,2);assert.equal(io.commands[0].command.body.type,'FinalizeStaging');assert.equal(io.commands[1].command.body.type,'SaveCheckpoint');assert.equal(io.releases.length,2);assert.equal(io.uiRequests.length,1);
+ assert(f.calls.slice(begin).filter(row=>row.type==='state').every(row=>row.input.message===message));await f.close();
+});
+
+for(const entry of ['caption','ownedStageTextBlob'])test('explicit '+entry+' preserves ordinary FinalizeStaging success feedback',async t=>{
+ const f=await fixture(t),io=draftFeedbackIO(f);f.client.patch({message:'User staging…',recovery:'Old warning'});
+ const result=await f.track(entry==='caption'?f.client.caption('Explicit caption'):f.client.ownedStageTextBlob(new Blob(['Explicit native text']),'text/plain'));
+ assert.equal(f.client.view.message,'FinalizeStaging accepted and saved locally.');assert.equal(f.client.view.recovery,'');assert.equal(io.commands.length,1);assert.equal(io.releases.length,1);assert.deepEqual(io.uiRequests,[]);result?.release?.();await f.close();
+});
+
+test('draft success remains pending through its exact event proof while a newer diagnostic survives',async t=>{
+ const f=await fixture(t),io=draftFeedbackIO(f);io.state.holdProof=f.gate();io.draft('inspector',draftFeedbackValues.inspector);let settled=false;
+ const task=f.track(f.client.flushDrafts());void task.then(()=>{settled=true;},()=>{settled=true;});await io.state.proofEntered.promise;
+ assert.equal(settled,false);assert.deepEqual(io.uiRequests,[]);assert.equal(io.owner.drafts.get('feedback_draft').savedGeneration,null);
+ f.client.fail(Error('NEW_FOREGROUND_FAILURE'));const begin=f.calls.length;io.state.holdProof.resolve();await task;
+ assert.equal(f.client.view.message,'Action needs attention.');assert.equal(f.client.view.error,'NEW_FOREGROUND_FAILURE');assert.equal(io.releases.length,1);assert.equal(io.owner.drafts.get('feedback_draft').savedGeneration,'1');
+ assert(f.calls.slice(begin).filter(row=>row.type==='state').every(row=>row.input.message==='Action needs attention.'&&row.input.hasError));await f.close();
+});
+
+for(const failure of ['upload','receipt-rejected','receipt-lost','events','recovery','draft-restore','draft-rejected'])test('background '+failure+' retains its failure and cannot report silent draft success',async t=>{
+ const f=await fixture(t),io=draftFeedbackIO(f);io.state.failure=failure;io.draft('inspector',draftFeedbackValues.inspector);f.client.patch({message:'Prior user result',recovery:'Retained recovery'});
+ let original;await f.track(f.client.flushDrafts().catch(error=>{original=error;f.client.fail(error);}));assert(original instanceof Error);
+ assert.equal(f.client.view.message,'Action needs attention.');assert(f.client.view.error.length>0);assert.equal(f.client.view.recovery,'Retained recovery');assert.equal(io.owner.drafts.get('feedback_draft').savedGeneration,null);assert(io.owner.drafts.get('feedback_draft').error);
+ assert.equal(io.uiRequests.length,failure==='draft-rejected'?1:0);assert.equal(io.commands.length,failure==='upload'?0:1);
+ for(const row of io.commands){const saved=f.journal.rows.get('command:'+row.command.commandId);assert.equal(saved.wire,row.wire);assert.deepEqual(saved.request.command,row.command);}
+ if(['events','recovery','draft-restore','draft-rejected'].includes(failure))assert.equal(io.releases.length,1);
+ assert.equal(f.states().some(row=>row.input.message==='FinalizeStaging accepted and saved locally.'),false);await f.close();
+});
+
+test('explicit retry of an uncertain background finalization keeps original wire and announces verified success',async t=>{
+ const f=await fixture(t),io=draftFeedbackIO(f);io.state.failure='receipt-lost';io.draft('inspector',draftFeedbackValues.inspector);
+ await assert.rejects(f.track(f.client.flushDrafts()),/Failed to fetch/);const row=io.commands[0],saved=f.journal.rows.get('command:'+row.command.commandId);assert.equal(saved.wire,row.wire);assert.equal(saved.result,undefined);
+ io.state.failure=null;f.client.patch({message:'Retry original operation…',recovery:'Old warning'});const result=await f.track(f.client.ownedRetry(row.command.commandId));
+ assert.equal(result.value[0].type,'AssetRegistered');assert.equal(io.commands.length,1);assert.equal(io.paths.filter(row=>row.path==='/api/v1/commands'&&row.method==='POST').length,1);assert(io.paths.some(entry=>entry.path==='/api/v1/commands/'+row.command.commandId&&entry.method==='GET'));
+ assert.equal(f.journal.rows.get('command:'+row.command.commandId).wire,row.wire);assert.equal(f.client.view.message,'FinalizeStaging accepted and saved locally.');assert.equal(f.client.view.recovery,'');assert.equal(io.owner.drafts.get('feedback_draft').savedGeneration,null);assert.deepEqual(io.uiRequests,[]);result.release();await f.close();
+});
+
+for(const replacement of ['sessionIdentity','documentGeneration'])test('background staging stays fenced after '+replacement+' replacement',async t=>{
+ const f=await fixture(t),io=draftFeedbackIO(f);io.state.holdReceipt=f.gate();io.draft('inspector',draftFeedbackValues.inspector);
+ const task=f.track(f.client.flushDrafts());await io.state.receiptEntered.promise;invalidateOpen[replacement](f);f.client.patch({message:'Replacement owner result'});io.state.holdReceipt.resolve();
+ await assert.rejects(task,/owner changed|superseded|abort/i);assert.equal(f.client.view.message,'Replacement owner result');assert.deepEqual(io.uiRequests,[]);assert.deepEqual(io.events,[]);assert.equal(io.commands.length,1);assert.equal(f.journal.rows.get('command:'+io.commands[0].command.commandId).wire,io.commands[0].wire);await f.close();
 });

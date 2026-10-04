@@ -221,10 +221,10 @@ export class EditorClient {
     // its reads fenced until exact rejection or original-owner retirement.
     return {drain:this.viewReads.settle(),check:()=>{if(!current()||this.documentReadBarrier!==barrier)throw Error('DOCUMENT_OBSERVATION_OWNER_CHANGED');},journaled:(commandId:string)=>{barrier.commandId=commandId;barrier.hold=true;},accepted:()=>{barrier.hold=true;},release:barrier.release};
   }
-  async withCommandEvents<T>(body:Command['body'],work:(events:readonly DomainEvent[])=>T|Promise<T>,document:Pick<Document,'id'|'revision'>|null=this.view.document,newId?:string,onJournaled?:(commandId:string)=>void):Promise<T>{
+  async withCommandEvents<T>(body:Command['body'],work:(events:readonly DomainEvent[])=>T|Promise<T>,document:Pick<Document,'id'|'revision'>|null=this.view.document,newId?:string,onJournaled?:(commandId:string)=>void,announce=true):Promise<T>{
     const scope=this.controlContext(),args=reserveCommandWire({body,document:document?{id:document.id,revision:document.revision}:null,newId});
     try{return await this.controlReads.run(async signal=>{scope.check(signal);const command=args.request.body,pause=command.type==='DeleteDocument'?this.pauseDocumentReads(command.documentId,command.expectedRevision):undefined;
-      try{if(pause){await pause.drain;scope.check(signal);pause.check();}const result=await this.ownedCommand(args.request.body,args.request.document,args.request.newId,pause?id=>{pause.journaled(id);onJournaled?.(id);}:onJournaled);
+      try{if(pause){await pause.drain;scope.check(signal);pause.check();}const result=await this.ownedCommand(args.request.body,args.request.document,args.request.newId,pause?id=>{pause.journaled(id);onJournaled?.(id);}:onJournaled,announce);
         try{if(command.type==='DeleteDocument'&&result.value.some(event=>event.type==='DocumentDeleted'&&event.payload.id===command.documentId))pause?.accepted();scope.check(signal);return await work(result.value);}finally{result.release();}
       }finally{pause?.release();}
     });}finally{args.release();}
@@ -532,7 +532,7 @@ export class EditorClient {
     const check=(signal?:AbortSignal)=>{if(signal?.aborted||!current())throw new DOMException('The original command owner changed. Its journaled delivery remains available.','AbortError');};
     return {session,identity,owner,sessionId,journal,current,check};
   }
-  async ownedCommand(body:Command['body'],document:Pick<Document,'id'|'revision'>|null=this.view.document,newId?:string,onJournaled?:(commandId:string)=>void):Promise<OwnedModel<DomainEvent[]>> {
+  async ownedCommand(body:Command['body'],document:Pick<Document,'id'|'revision'>|null=this.view.document,newId?:string,onJournaled?:(commandId:string)=>void,announce=true):Promise<OwnedModel<DomainEvent[]>> {
     const scope=this.controlContext();if(!scope.owner||!scope.identity||scope.owner!==scope.identity||!scope.journal)throw Error('SESSION_REQUIRED');const journal=scope.journal;
     const validation=browserPhases.recorder.start('component.proposal',{...(document?{documentId:document.id,revision:document.revision}:{})});
     const proposal:CommandRequest={protocolVersion:1,command:{schemaVersion:1,commandId:crypto.randomUUID(),clientId:scope.owner,sessionId:scope.sessionId,correlationId:crypto.randomUUID(),causationId:null,transactionId:crypto.randomUUID(),documentId:newId??document?.id??null,expectedDocumentRevision:document?.revision??null,expectedEntityVersions:EMPTY_EXPECTED_VERSIONS,issuedAt:new Date().toISOString(),body}};
@@ -556,7 +556,7 @@ export class EditorClient {
     await journal.put('command:'+request.command.commandId,delivery);scope.check(signal);
     onJournaled?.(request.command.commandId);scope.check(signal);
     await this.restorePending(undefined,signal);scope.check(signal);
-    const events=await this.deliverOwned(delivery,false,signal,submitted,scope);try{scope.check(signal);const registered=events.value.find(e=>e.type==='AssetRegistered');operation?.end('incomplete',{boundary:request.command.body.type==='PrepareCandidateAdoption'?'prepared-durable':'authority-durable',...(registered?.type==='AssetRegistered'?{outputAssetId:registered.payload.asset.id,assetHash:registered.payload.asset.blob.hash}:{})});return events;}catch(error){events.release();throw error;}
+    const events=await this.deliverOwned(delivery,false,signal,submitted,scope,announce);try{scope.check(signal);const registered=events.value.find(e=>e.type==='AssetRegistered');operation?.end('incomplete',{boundary:request.command.body.type==='PrepareCandidateAdoption'?'prepared-durable':'authority-durable',...(registered?.type==='AssetRegistered'?{outputAssetId:registered.payload.asset.id,assetHash:registered.payload.asset.blob.hash}:{})});return events;}catch(error){events.release();throw error;}
     });
     }catch(error){operation?.end('error');throw error;}finally{submitted?.();this.importAdmissions.delete(request.command.commandId);this.exportAdmissions.delete(request.command.commandId);this.reviewAdmissions.delete(request.command.commandId);}
     }finally{envelope.release();}
@@ -628,7 +628,8 @@ export class EditorClient {
     this.patch({message:delivery.label+' accepted and saved locally.',recovery:'',drafts:this.draftStatus()});return events;
     }catch(error){acceptance.end('error');if(adoptionId)browserPhases.adoptionFailed(adoptionId);throw error;}
   }
-  private async deliverOwned(delivery:Delivery,lookup:boolean,signal:AbortSignal,submitted?:()=>void,scope=this.controlContext()):Promise<OwnedModel<DomainEvent[]>> {
+  // Draft staging retains durable success and errors without taking operation feedback.
+  private async deliverOwned(delivery:Delivery,lookup:boolean,signal:AbortSignal,submitted?:()=>void,scope=this.controlContext(),announce=true):Promise<OwnedModel<DomainEvent[]>> {
     scope.check(signal);const journal=scope.journal;if(!journal)throw Error('COMMAND_JOURNAL_UNAVAILABLE');
     const command=delivery.request.command,id=command.commandId,session=scope.session,context:PhaseContext={commandId:id,transactionId:command.transactionId,correlationId:command.correlationId,...(command.documentId?{documentId:command.documentId}:{}),...(command.expectedDocumentRevision?{revision:command.expectedDocumentRevision}:{}),replay:lookup};
     const acceptance=browserPhases.recorder.start('command.accept',context),adoptionId=adoptionTraceId(command.body);let value:OwnedModel<CommandResult>|undefined,events:OwnedModel<DomainEvent[]>|undefined,returned=false;
@@ -647,7 +648,7 @@ export class EditorClient {
       const errors=outcomes.filter((result):result is PromiseRejectedResult=>result.status==='rejected').map(result=>result.reason);if(errors.length)throw new AggregateError(errors,'COMMAND_RESULT_PROOF_FAILED');
       scope.check(signal);
       if(adoptionId){const adopted=events!.value.find(event=>event.type==='ImageEdited'||event.type==='DocumentCreated');if(adopted&&(adopted.type==='ImageEdited'||adopted.type==='DocumentCreated')){const d=adopted.payload.document;if(d.image?.compositeAssetId)browserPhases.adoptionDurable(id,{documentId:d.id,revision:d.revision,assetId:d.image.compositeAssetId},receivedAt);}}
-      scope.check(signal);const draftOwner=this.draftOwner;await draftOwner?.restoreForCommand();scope.check(signal);if(draftOwner!==this.draftOwner)throw Error('UI_OWNER_CHANGED');this.ui=draftOwner?.checkpoint??undefined;this.startStream(this.lifecycle);this.recordNavigationCheckpoint(command,receipt);this.patch({message:delivery.label+' accepted and saved locally.',recovery:'',drafts:this.draftStatus()});returned=true;return events!;
+      scope.check(signal);const draftOwner=this.draftOwner;await draftOwner?.restoreForCommand();scope.check(signal);if(draftOwner!==this.draftOwner)throw Error('UI_OWNER_CHANGED');this.ui=draftOwner?.checkpoint??undefined;this.startStream(this.lifecycle);this.recordNavigationCheckpoint(command,receipt);this.patch({...(announce?{message:delivery.label+' accepted and saved locally.',recovery:''}:{}),drafts:this.draftStatus()});returned=true;return events!;
     }catch(error){acceptance.end('error');if(adoptionId)browserPhases.adoptionFailed(adoptionId);throw error;}finally{value?.release();if(!returned)events?.release();}
   }
   async ownedRetry(id:string):Promise<OwnedModel<DomainEvent[]>>{
@@ -802,10 +803,10 @@ export class EditorClient {
       }catch(error){staging.end('error');throw error;}finally{stage?.release();if(!returned)request?.release();operationSignal.removeEventListener('abort',forward);abort.abort();this.uploads.delete(abort);this.uploadSettlements.delete(abort);settled();}
     },externalSignal);
   }
-  async ownedStageTextBlob(blob:Blob,mediaType:string,purpose:StagingCreateRequest['purpose']='text',stillCurrent:()=>boolean=()=>true):Promise<OwnedModel<BlobRef>> {
+  async ownedStageTextBlob(blob:Blob,mediaType:string,purpose:StagingCreateRequest['purpose']='text',stillCurrent:()=>boolean=()=>true,announce=true):Promise<OwnedModel<BlobRef>> {
     const session=this.session,identity=session.identity(),epoch=this.documentLifetime,lifetime=this.lifecycle,owner=this.draftOwner,current=()=>stillCurrent()&&session===this.session&&identity===session.identity()&&epoch===this.documentLifetime&&lifetime===this.lifecycle&&owner===this.draftOwner;
     const stage=await this.ownedUpload(blob,purpose,purpose==='caption'?'text/plain':'application/octet-stream',undefined,current);
-    try{if(!current())throw Error('UPLOAD_OWNER_CHANGED');return await this.withCommandEvents({type:'FinalizeStaging',stagingId:stage.value.stagingId,expectedSha256:stage.value.sha256},events=>{if(!current())throw Error('UPLOAD_OWNER_CHANGED');const asset=this.asset(events);if(typeof mediaType!=='string'||mediaType.length>256)throw Error('BLOB_MEDIA_TYPE_LIMIT');return createOwnedModel('text-blob-result',modelPayloadBytes(asset.blob)+mediaType.length*2+64,()=>({...asset.blob,mediaType}));},null);}finally{stage.release();}
+    try{if(!current())throw Error('UPLOAD_OWNER_CHANGED');return await this.withCommandEvents({type:'FinalizeStaging',stagingId:stage.value.stagingId,expectedSha256:stage.value.sha256},events=>{if(!current())throw Error('UPLOAD_OWNER_CHANGED');const asset=this.asset(events);if(typeof mediaType!=='string'||mediaType.length>256)throw Error('BLOB_MEDIA_TYPE_LIMIT');return createOwnedModel('text-blob-result',modelPayloadBytes(asset.blob)+mediaType.length*2+64,()=>({...asset.blob,mediaType}));},null,undefined,undefined,announce);}finally{stage.release();}
   }
   async ownedFontAssets(requested:readonly FontVersion[]):Promise<OwnedModel<Asset[]>> {
     const count=requested.length;if(count>16)throw Error('FONT_SELECTION_LIMIT');
@@ -869,9 +870,9 @@ export class EditorClient {
     // draft assets. Exact font bytes are checked again at the content boundary.
     if(this.cache!==cache)throw Error('FONT_LIBRARY_CHANGED');return fonts;
   }
-  async caption(text:string) {
+  async caption(text:string,announce=true) {
     const backing=allocationLedger.reserve({owner:'caption-blob-workspace',kind:'prompt',cpuBytes:text.length*3,handles:1});
-    try{const stage=await this.ownedUpload(new Blob([text]),'caption','text/plain');try{return await this.withCommandEvents({type:'FinalizeStaging',stagingId:stage.value.stagingId,expectedSha256:stage.value.sha256},events=>this.asset(events).id,null);}finally{stage.release();}}finally{backing.release();}
+    try{const stage=await this.ownedUpload(new Blob([text]),'caption','text/plain');try{return await this.withCommandEvents({type:'FinalizeStaging',stagingId:stage.value.stagingId,expectedSha256:stage.value.sha256},events=>this.asset(events).id,null,undefined,undefined,announce);}finally{stage.release();}}finally{backing.release();}
   }
   private asset(events:readonly DomainEvent[]) { let event:DomainEvent|undefined;for(let i=events.length-1;i>=0;i--)if(events[i].type==='AssetRegistered'){event=events[i];break;}if(!event||event.type!=='AssetRegistered')throw Error('ASSET_UNAVAILABLE');return event.payload.asset; }
   async importImage(file:File,existing?:StagingRecord) {
@@ -1068,10 +1069,10 @@ export class EditorClient {
       const pending=owner.ownedSave(id,async text=>{
         const workspace=allocationLedger.reserve({owner:'draft-save-scratch',kind:'prompt',cpuBytes:text.length*12,handles:4});
         try{
-          if(draft.kind==='request'){const {draft:value,text:prompt}=JSON.parse(text);const bytes=new TextEncoder().encode(prompt);if(new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(bytes)!==prompt)throw Error('Invalid Unicode prompt retained.');const ref=await this.ownedStageTextBlob(new Blob([bytes]),'text/plain');try{value.prompt.text=ref.value;return await this.caption(canonical(value));}finally{ref.release();}}
-          if(draft.kind==='composition'){const value=JSON.parse(text),graph=await this.ownedStageTextBlob(new Blob([canonical(value)]),'application/json');try{return await this.caption(canonical({schemaVersion:1,kind:'composition-draft-1',graph:graph.value,raw:[...value.composition.raw,...(value.composition.review?[value.composition.review.prompt]:[])],bindings:value.bindings}));}finally{graph.release();}}
-          if(draft.kind!=='text')return await this.caption(text);
-          const value=JSON.parse(text);if(new TextDecoder('utf-8',{ignoreBOM:true}).decode(new TextEncoder().encode(value.text))!==value.text)throw Error('Invalid Unicode draft retained in the editor. Replace the invalid character before saving.');const textUtf8=await this.ownedStageTextBlob(new Blob([value.text]),'text/plain');try{return await this.caption(canonical({...(value.description?{schemaVersion:3,kind:'text-draft-3',placement:value.placement,description:value.description}:value.placement?{schemaVersion:2,kind:'text-draft-2',placement:value.placement}:{schemaVersion:1,kind:'text-draft-1'}),textUtf8:textUtf8.value,style:value.style,frame:value.frame,fonts:value.fonts}));}finally{textUtf8.release();}
+          if(draft.kind==='request'){const {draft:value,text:prompt}=JSON.parse(text);const bytes=new TextEncoder().encode(prompt);if(new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(bytes)!==prompt)throw Error('Invalid Unicode prompt retained.');const ref=await this.ownedStageTextBlob(new Blob([bytes]),'text/plain',undefined,undefined,false);try{value.prompt.text=ref.value;return await this.caption(canonical(value),false);}finally{ref.release();}}
+          if(draft.kind==='composition'){const value=JSON.parse(text),graph=await this.ownedStageTextBlob(new Blob([canonical(value)]),'application/json',undefined,undefined,false);try{return await this.caption(canonical({schemaVersion:1,kind:'composition-draft-1',graph:graph.value,raw:[...value.composition.raw,...(value.composition.review?[value.composition.review.prompt]:[])],bindings:value.bindings}),false);}finally{graph.release();}}
+          if(draft.kind!=='text')return await this.caption(text,false);
+          const value=JSON.parse(text);if(new TextDecoder('utf-8',{ignoreBOM:true}).decode(new TextEncoder().encode(value.text))!==value.text)throw Error('Invalid Unicode draft retained in the editor. Replace the invalid character before saving.');const textUtf8=await this.ownedStageTextBlob(new Blob([value.text]),'text/plain',undefined,undefined,false);try{return await this.caption(canonical({...(value.description?{schemaVersion:3,kind:'text-draft-3',placement:value.placement,description:value.description}:value.placement?{schemaVersion:2,kind:'text-draft-2',placement:value.placement}:{schemaVersion:1,kind:'text-draft-1'}),textUtf8:textUtf8.value,style:value.style,frame:value.frame,fonts:value.fonts}),false);}finally{textUtf8.release();}
         }finally{workspace.release();}
       });this.uiTail=pending.then(()=>undefined,()=>undefined);const receipt=await pending;
       try{if(!current())return;this.ui=owner.checkpoint!;if(receipt?.value.status==='rejected')throw Error(receipt.value.reason??'DRAFT_CHANGED');}finally{receipt?.release();}

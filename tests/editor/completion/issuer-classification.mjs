@@ -12,7 +12,7 @@ export const NETWORK_BOUNDARIES=Object.freeze({
  // by the existing full Apply stage; its raw bytes stay server-authorized.
  'src/text/durable.ts':'6b426048f78f1a95d8a23c9b4e7724ce2774e7a0cc47bea8968b4258a2682d52',
  'src/text/engine.ts':'c86d782ccb92de17fb4a01376e16989b13114156abcd6418a011af43efb5c830',
- 'src/state/editor-client.ts':'86e0d989d26095161a307ddc493a1913a10735a2d6c5d6fcb1f0e40c62c820e1',
+ 'src/state/editor-client.ts':'050bb6a57153674cff46f14212de0ac3b1321b647d764f55cd1a28c994a37e92',
  'src/observability/adapter-upload-hook.ts':'756a93d71aff8092d41c9eefa8ddabbe5983acdcc2f5350e958b3b263db8ceb9',
  'src/observability/adapter-upload.ts':'77d8bc7603e9a7db0df09369078b02381bca012c92c30c7df1a3b014b198dbba',
  'src/ui/adapter-library.ts':'c36e5c21aa53d940b7fe0507a81185eef5525bb5ee628bb59b9d2a4b91ad366e',
