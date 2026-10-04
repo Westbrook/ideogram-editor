@@ -110,7 +110,7 @@ async function fixture(t,{encoded=false,failure=false,now,bounds=false,actualSiz
  }else server=await providerChild(root,owned=>{close=owned;},new URL('./text-treatment-process-fixture.mjs',import.meta.url));
  mainMemory.sample(memoryFixture,memoryPhase.serverReady);
  const paired=await pair(server);assert.equal(paired.status,200,paired.text);
- const f={root,server,paired,memoryFixture,nativeRequestMemory:bounds&&!encoded,...(passiveMemory?{placementFailureReport:bytes=>t.diagnostic(bytes)}:{}),diagnostic:packet=>t.diagnostic(JSON.stringify(packet)),...(acceptanceWait?{acceptanceWait}:{}),...(now?{syncClock:()=>syncNativeClock(root,now())}:{}),read:path=>call(server.origin,path,{headers:readHeaders(cookieFrom(paired))}),post:(path,body)=>call(server.origin,path,{method:'POST',body,headers:mutationHeaders(server,paired)}),command:(patch={},body={})=>command(EMPTY_EXPECTED_VERSIONS,{clientId:paired.json.clientId,...patch},body),effects:async()=>{const value=JSON.parse(await readFile(join(root,'request-edits-fixture.json'),'utf8'));assert.deepEqual(value.errors,[]);return value.effects;}};
+ const f={root,server,paired,memoryFixture,nativeRequestMemory:bounds&&!encoded,...(passiveMemory?{placementFailureReport:bytes=>t.diagnostic(bytes),adoptionFailureReport:bytes=>t.diagnostic(bytes)}:{}),diagnostic:packet=>t.diagnostic(JSON.stringify(packet)),...(acceptanceWait?{acceptanceWait}:{}),...(now?{syncClock:()=>syncNativeClock(root,now())}:{}),read:path=>call(server.origin,path,{headers:readHeaders(cookieFrom(paired))}),post:(path,body)=>call(server.origin,path,{method:'POST',body,headers:mutationHeaders(server,paired)}),command:(patch={},body={})=>command(EMPTY_EXPECTED_VERSIONS,{clientId:paired.json.clientId,...patch},body),effects:async()=>{const value=JSON.parse(await readFile(join(root,'request-edits-fixture.json'),'utf8'));assert.deepEqual(value.errors,[]);return value.effects;}};
  f.reopen=async()=>{assert(!encoded&&!now&&!bounds);await close();const reopened=await providerChild(root,owned=>{close=owned;},new URL('./text-treatment-process-fixture.mjs',import.meta.url)),newPair=await pair(reopened);assert.equal(newPair.status,200,newPair.text);return clientFor({...f,server:reopened},newPair);};
  assert.equal((await terminal(f,f.command({},{width:512,height:512}))).json.receipt.status,'accepted');
  const background=(await importRaster(f,'black.png')).asset;
@@ -370,7 +370,11 @@ async function terminalAcceptance(f,request,owner,runtime={}){
 }
 async function accept(f,approved){
  const creating=approved.review.placement.placement==='new-document',id=creating?approved.review.placement.newDocumentId:documentId;
- const request=f.command({documentId:id,expectedDocumentRevision:creating?null:(await document(f)).revision,body:approved.body}),result=await(f.acceptanceWait?terminalAcceptance(f,request,f.acceptanceWait):terminal(f,request));assert.equal(result.json.receipt.status,'accepted',result.text);
+ const request=f.command({documentId:id,expectedDocumentRevision:creating?null:(await document(f)).revision,body:approved.body});
+ const report=approved.body.type==='AdoptReviewedCandidate'?f.adoptionFailureReport:undefined;
+ if(report)delete f.adoptionFailureReport;
+ const wait=()=>f.acceptanceWait?terminalAcceptance(f,request,f.acceptanceWait):terminal(f,request);
+ const result=report?await terminalWithDiagnostics(f,request,{documentId:id,documentRevision:request.command.expectedDocumentRevision,phase:'native99-first-adoption'},wait,report):await wait();assert.equal(result.json.receipt.status,'accepted',result.text);
  const committed=await events(f,result.json.receipt);assert(committed.length>=3);assert.equal(committed.at(-1).type,creating?'DocumentCreated':'ImageEdited');
  for(const event of committed)assert.equal(event.transactionId,request.command.transactionId);
  assert(committed.slice(0,-1).every(event=>event.type==='AssetRegistered'&&event.documentId===null));assert.equal(committed.at(-1).documentId,id);
@@ -1278,5 +1282,70 @@ test('native99 actual run keeps ordinary reviews, other commands and fixtures wi
    command:patch=>({command:{...patch,commandId:'fixture-unselected'}}),post:async(path,request)=>{posts++;assert.equal(path,'/api/v1/commands');assert.strictEqual(request.command.body,body);throw original;}};
   await assert.rejects(run(f,body),error=>error===original);
   assert.equal(posts,1);assert.equal(statusReads,0);assert.equal(reports,0);assert.equal(Object.hasOwn(f,'placementFailureReport'),opted);if(opted)assert.strictEqual(f.placementFailureReport,reporter);
+ }
+});
+
+
+// Adoption routing controls reuse the already-tested bounded report helper.
+// Synthetic terminal outcomes exercise accept() without a second native run.
+test('native99 actual accept retains one selected adoption failure for current and new documents',async t=>{
+ for(const creating of [false,true]){
+  const c=await placementFailureCapture(t),original=Object.freeze(Error('original adoption POST failure')),reports=[],posts=[],commands=[];let documents=0;
+  const id=creating?'fixture_new_document':documentId,revision=creating?null:'31',reviewReporter=()=>{throw Error('review reporter must remain separate');};
+  const approved={review:{placement:{placement:creating?'new-document':'current-document',newDocumentId:id}},body:{type:'AdoptReviewedCandidate'}};
+  const f={...c.f,placementFailureReport:reviewReporter,adoptionFailureReport:text=>reports.push(text),
+   read:async path=>{if(path==='/api/v1/documents/'+documentId){documents++;return {json:{projection:{value:{revision:'31'}}}};}return c.f.read(path);},
+   command:patch=>{commands.push(patch);return {command:{...patch,commandId:c.request.command.commandId}};},
+   post:async(path,request)=>{posts.push({path,request});throw original;}};
+  await assert.rejects(accept(f,approved),error=>error===original);
+  assert.equal(reports.length,1);const retained=JSON.parse(reports[0]);assert.equal(retained.operation,'AdoptReviewedCandidate');assert.equal(retained.commandId,c.request.command.commandId);
+  assert.deepEqual(retained.baseline,{documentId:id,documentRevision:revision,phase:'native99-first-adoption'});
+  assert.equal(Object.hasOwn(f,'adoptionFailureReport'),false);assert.strictEqual(f.placementFailureReport,reviewReporter);assert.equal(c.reads.length,1);assert.equal(posts.length,1);
+  await assert.rejects(accept(f,approved),error=>error===original);
+  assert.equal(reports.length,1);assert.equal(c.reads.length,1);assert.equal(posts.length,2);assert.equal(commands.length,2);assert.equal(documents,creating?0:2);
+  for(const row of posts){assert.equal(row.path,'/api/v1/commands');assert.strictEqual(row.request.command.body,approved.body);}
+  for(const patch of commands){assert.equal(patch.documentId,id);assert.equal(patch.expectedDocumentRevision,revision);assert.strictEqual(patch.body,approved.body);}
+  assert.equal(original.message,'original adoption POST failure');
+ }
+});
+
+test('native99 actual accept preserves default and unselected routes without consuming either reporter',async()=>{
+ for(const [body,opted] of [[{type:'AdoptReviewedCandidate'},false],[{type:'ReviewCandidatePlacement'},true]]){
+  const original=Object.freeze(Error('original unselected adoption failure'));let posts=0,statusReads=0,reports=0;
+  const report=()=>{reports++;},approved={review:{placement:{placement:'current-document'}},body};
+  const f={placementFailureReport:report,...(opted?{adoptionFailureReport:report}:{}),
+   get root(){throw Error('unselected capture root');},
+   read:async path=>{if(path==='/api/v1/documents/'+documentId)return {json:{projection:{value:{revision:'37'}}}};statusReads++;throw Error('unselected status read');},
+   command:patch=>({command:{...patch,commandId:'fixture-unselected-adoption'}}),
+   post:async(path,request)=>{posts++;assert.equal(path,'/api/v1/commands');assert.equal(request.command.documentId,documentId);assert.equal(request.command.expectedDocumentRevision,'37');assert.strictEqual(request.command.body,body);throw original;}};
+  await assert.rejects(accept(f,approved),error=>error===original);
+  assert.equal(posts,1);assert.equal(statusReads,0);assert.equal(reports,0);assert.equal(Object.hasOwn(f,'adoptionFailureReport'),opted);if(opted)assert.strictEqual(f.adoptionFailureReport,report);
+  assert.strictEqual(f.placementFailureReport,report);assert.equal(original.message,'original unselected adoption failure');
+ }
+});
+
+test('native99 actual accept consumes its reporter on terminal success and retains the original acceptance assertion',async()=>{
+ let posts=0,statusReads=0,reports=0;
+ const approved={review:{placement:{placement:'current-document'}},body:{type:'AdoptReviewedCandidate'}},response={status:200,json:{receipt:{status:'rejected'}},text:'fixture terminal receipt'};
+ const f={adoptionFailureReport:()=>{reports++;},get root(){throw Error('successful terminal must not capture');},
+  read:async path=>{if(path==='/api/v1/documents/'+documentId)return {json:{projection:{value:{revision:'41'}}}};statusReads++;throw Error('unexpected diagnostic read');},
+  command:patch=>({command:{...patch,commandId:'fixture-terminal-adoption'}}),post:async()=>{posts++;return response;}};
+ // A terminal HTTP200 is returned through the helper. The unchanged accept()
+ // assertion must still reject the refused receipt before any event/image work.
+ await assert.rejects(accept(f,approved),error=>error.code==='ERR_ASSERTION'&&error.actual==='rejected'&&error.expected==='accepted');
+ assert.equal(posts,1);assert.equal(statusReads,0);assert.equal(reports,0);assert.equal(Object.hasOwn(f,'adoptionFailureReport'),false);
+});
+
+test('native99 actual accept preserves an existing acceptanceWait and its original abort with or without reporting',async()=>{
+ for(const opted of [false,true]){
+  const controller=new AbortController(),original=Object.freeze(Error('original owned wait abort'));controller.abort(original);
+  const owner={deadline:Number.MAX_SAFE_INTEGER,signal:controller.signal,observe:()=>{throw Error('aborted wait cannot observe a response');}},listeners=getEventListeners(owner.signal,'abort');
+  const approved={review:{placement:{placement:'current-document'}},body:{type:'AdoptReviewedCandidate'}};let posts=0,statusReads=0,reports=0;
+  const f={acceptanceWait:owner,...(opted?{adoptionFailureReport:()=>{reports++;}}:{}),get root(){throw Error('preparing response cannot capture');},
+   read:async path=>{if(path==='/api/v1/documents/'+documentId)return {json:{projection:{value:{revision:'43'}}}};statusReads++;assert.equal(path,'/api/v1/commands/fixture-owned-wait');return {status:202,json:{phase:'preparing'}};},
+   command:patch=>({command:{...patch,commandId:'fixture-owned-wait'}}),post:async()=>{posts++;throw Error('default terminal must not run');}};
+  await assert.rejects(accept(f,approved),error=>error===original);
+  assert.equal(posts,0);assert.equal(statusReads,opted?1:0);assert.equal(reports,0);assert.strictEqual(f.acceptanceWait,owner);assert.equal(owner.deadline,Number.MAX_SAFE_INTEGER);assert.strictEqual(owner.signal,controller.signal);
+  assert.deepEqual(getEventListeners(owner.signal,'abort'),listeners);assert.equal(Object.hasOwn(f,'adoptionFailureReport'),false);assert.equal(original.message,'original owned wait abort');
  }
 });
