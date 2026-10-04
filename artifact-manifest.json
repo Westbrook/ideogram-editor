@@ -5,8 +5,8 @@
     "schema": 1,
     "product": "Ideogram Editor preview",
     "scope": "Disconnected editor UI and temporary native text demo; no local server or provider",
-    "commit": "f5040de98b86109b78835b6caf388af029e5fca8",
-    "builtAt": "2026-10-04T11:16:24.837Z",
+    "commit": "1ab554d55efc28f69f48da492c445830a113c638",
+    "builtAt": "2026-10-04T19:35:34.000Z",
     "base": "/ideogram-editor/"
   },
   "files": [
@@ -91,9 +91,9 @@
       "sha256": "9b11ee1ea8bf2f2ff5416ca1f0761498e921d49fa6f13dcaa14aa820f9857a57"
     },
     {
-      "path": "assets/index-D6yoWZ5P.js",
+      "path": "assets/index-B0GovcBg.js",
       "bytes": 3616,
-      "sha256": "f7eeca1b6c973474a40fd0b4cbc46000a807668acc56b058250146bb6fa365d5"
+      "sha256": "d05d13cff175a3704fafd62e45d5b2b3cf3dfb55c35b4b4d9c893c7d5b1ebb8c"
     },
     {
       "path": "assets/index-DWbOn_ZC.css",
@@ -161,9 +161,9 @@
       "sha256": "b66733d44b18f5f0c0dec80f5982f92ee084a7eed278c6b15e7864329578d368"
     },
     {
-      "path": "assets/shell-D69BpAS8.js",
-      "bytes": 1169409,
-      "sha256": "980cbb6a2f423f51d0870ba3f6c57d2e00748189989a0bafaf7aeca43bf21a03"
+      "path": "assets/shell-j2p5PFZe.js",
+      "bytes": 1168961,
+      "sha256": "d2b0e3cea79fa85bf868a44c89248c4c8f44e895c61b1061d0b10f7a00aa4553"
     },
     {
       "path": "assets/storage-library-CfdTvQE8.js",
@@ -171,9 +171,9 @@
       "sha256": "d348075025f15b7c56bd340d3c17f949beff94b02a47cf28a7df7eac9e425cfd"
     },
     {
-      "path": "assets/text-demo-i7FqkfFb.js",
+      "path": "assets/text-demo-DIkTxrvK.js",
       "bytes": 18183,
-      "sha256": "3c127f85ebc8996eadcd5cdd86a6299bbd5d086a42aee1ef22068c61ca62ffb5"
+      "sha256": "435c9997278c5c175fa41c13016bb2bf43c0600c785c662beba23b68cdcfd064"
     },
     {
       "path": "assets/worker-VvD0iOfL.js",
@@ -183,12 +183,12 @@
     {
       "path": "build-identity.json",
       "bytes": 283,
-      "sha256": "eda024b828e79dada185e42a48e204f487a61d1a04b5a5499bec397781a870e9"
+      "sha256": "07a2449c9b4eb1a34deea7360236d9ceda12841e09ef77bdcb4a318e9476e6c0"
     },
     {
       "path": "index.html",
       "bytes": 1743,
-      "sha256": "3b9e2d99e447502bb31b21c2516618fe8a83021b8dd016e06e9f2fe84f9b64c3"
+      "sha256": "638aebde8d6b11c154fae9221e22b64cd187b181fc6cadfac5708d956032d2ce"
     },
     {
       "path": "notices/en-reve-LICENSE.txt",
