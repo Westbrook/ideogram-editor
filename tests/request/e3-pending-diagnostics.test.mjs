@@ -98,3 +98,365 @@ test('actual pending observer projects the captured original owner only after it
  assert.equal(result.commandId,commandId);assert.equal(result.phase,'preparing');assert.deepEqual(result.rasterOwner,{kind:'e3-raster-pending-owner-1',pending:true,family:'history',selectedHistoryCommand:true});
  assert.equal(result.owned.value.raster.workerService.slot,'[redacted]');assert(readFileSync(f.output).byteLength<=DIAGNOSTIC_LIMIT);
 });
+
+// Additive passive-operation observer controls. Deferreds below belong to this
+// test fixture: no product work, diagnostic timer, sleep or collector is run.
+import {installPendingOperationObserver,OPERATION_LIMITS} from '../request-edits/pending-operation-observer.mjs';
+const opMethods=[
+ ['history.prepare','histories','prepare'],
+ ['history.prepareCandidatePreview','histories','prepareCandidatePreview'],
+ ['candidates.reviewAdoptionOwned','candidates','reviewAdoptionOwned'],
+ ['candidates.prepareReviewedAdoption','candidates','prepareReviewedAdoption'],
+ ['candidates.prepareReviewedEncodedAdoption','candidates','prepareReviewedEncodedAdoption'],
+ ['rasters.retainCandidate','rasters','retainCandidate'],
+ ['rasters.prepareDocument','rasters','prepareDocument'],
+ ['rasters.prepareEncodedComposition','rasters','prepareEncodedComposition'],
+ ['objects.prove','objects','prove'],
+ ['objects.adoptFile','objects','adoptFile'],
+ ['objects.putMetadataInSlot','objects','putMetadataInSlot'],
+ ['history.approvedPlacement','histories','approvedPlacement'],
+];
+const opDeferred=()=>{let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b;});return {promise,resolve,reject};};
+function opFixture(t){
+ const f=fixture(t),bodies=new Map(),calls=[],originals=new Map();
+ const store=f.store;store.candidates={};store.rasters={};store.objects={};
+ for(const [method,owner,key]of opMethods){
+  const original=function(...args){calls.push({method,receiver:this,args});const body=bodies.get(method);return body?Reflect.apply(body,this,args):Promise.resolve(undefined);};
+  store[owner][key]=original;originals.set(method,original);
+ }
+ const objectState={stages:1,slots:1,proofReservations:4,retainedProofs:1,proofReaders:2,proofWaiters:1,proofWaitTimer:true,repairReads:0,repairs:0};
+ const proofState={pending:3,retained:1,activeReaders:2,metadataBytes:8192};
+ const compositionState={loans:1,loanBytes:32,borrowers:1,borrowedBytes:16,contentReaders:1};
+ const rasterState={running:false,documentBusy:true,activeWorkers:1,bookedCPUBytes:4096,workerService:{activeJobs:1},compositionMemory:compositionState};
+ let resourceReads=0;
+ store.objects.resourceOwnership=()=>{resourceReads++;return objectState;};
+ store.objects.proofInventory=()=>{resourceReads++;return proofState;};
+ store.rasters.resourceOwnership=()=>{resourceReads++;return rasterState;};
+ const seed=(id=commandId,type=operation)=>store.db.prepare('INSERT INTO history_preparations VALUES(?,?,?)').run(id,JSON.stringify({command:{commandId:id,body:{type}}}),'preparing');
+ seed();
+ return {...f,store,bodies,calls,originals,seed,objectState,proofState,rasterState,compositionState,resourceReads:()=>resourceReads,
+  invoke:(method,...args)=>{const row=opMethods.find(x=>x[0]===method);return Reflect.apply(store[row[1]][row[2]],store[row[1]],args);},
+  start:(id=commandId,slot='history:'+id)=>store.histories.prepare(id,slot)};
+}
+const opAggregate=(snapshot,method)=>snapshot.aggregate.find(row=>row.method===method);
+
+test('operation observer is inert by default and never wraps or reads inventories',async t=>{
+ const f=opFixture(t),before=opMethods.map(([,owner,key])=>Object.getOwnPropertyDescriptor(f.store[owner],key));
+ const held=opDeferred();f.bodies.set('history.prepare',()=>held.promise);
+ const observer=installPendingOperationObserver(f.store);
+ assert.deepEqual(opMethods.map(([,owner,key])=>Object.getOwnPropertyDescriptor(f.store[owner],key)),before);
+ assert.equal(f.start(),held.promise);assert.equal(observer.snapshot(commandId).available,false);assert.equal(observer.resources().available,false);assert.equal(f.resourceReads(),0);
+ held.resolve();await held.promise;observer.dispose();
+});
+
+test('selected root retains the original receiver arguments and unresolved Promise identity',async t=>{
+ const f=opFixture(t),held=opDeferred();f.bodies.set('history.prepare',function(id,slot){assert.equal(this,f.store.histories);assert.equal(id,commandId);assert.equal(slot,'history:'+commandId);return held.promise;});
+ const observer=installPendingOperationObserver(f.store,{enabled:true});t.after(()=>observer.dispose());
+ assert.equal(f.start(),held.promise);const pending=observer.snapshot(commandId);
+ assert.equal(pending.available,true);assert.equal(pending.rootPending,true);assert.equal(pending.active.some(row=>row.method==='history.prepare'),true);assert.equal(f.calls.length,1);
+ held.resolve();await held.promise;assert.equal(observer.snapshot(commandId).rootPending,false);assert.equal(opAggregate(observer.snapshot(commandId),'history.prepare').fulfilled,1);
+});
+
+for(const [method,owner]of opMethods.slice(1))test('passive '+method+' keeps exact arguments receiver and original return',async t=>{
+ const f=opFixture(t),outer=opDeferred(),child=opDeferred(),value=Object.freeze({sentinel:method}),check=()=>{throw Error('observer must not invoke this callback');};
+ const args=[Object.freeze({opaque:true}),check,Object.freeze({last:true})],sync=method==='objects.putMetadataInSlot'||method==='history.approvedPlacement';
+ let returned;
+ f.bodies.set(method,function(...received){assert.equal(this,f.store[owner]);assert.equal(received.length,args.length);received.forEach((arg,i)=>assert.equal(arg,args[i]));return sync?value:child.promise;});
+ f.bodies.set('history.prepare',()=>{returned=f.invoke(method,...args);return outer.promise;});
+ const observer=installPendingOperationObserver(f.store,{enabled:true});t.after(()=>observer.dispose());
+ assert.equal(f.start(),outer.promise);assert.equal(returned,sync?value:child.promise);assert.equal(f.calls.filter(row=>row.method===method).length,1);
+ child.resolve(value);await child.promise;outer.resolve();await outer.promise;
+ const row=opAggregate(observer.snapshot(commandId),method);assert.equal(row.calls,1);assert.equal(row.fulfilled,1);assert.equal(row.rejected,0);assert(Number.isFinite(row.totalMs)&&row.totalMs>=0);assert(Number.isFinite(row.maxMs)&&row.maxMs>=0);
+});
+
+test('synchronous boundary errors are rethrown by identity without inspecting their private data',async t=>{
+ const f=opFixture(t),error=Object.create(null);Object.defineProperty(error,'message',{get(){throw Error('private error inspected');}});
+ f.bodies.set('objects.putMetadataInSlot',()=>{throw error;});
+ f.bodies.set('history.prepare',()=>{assert.throws(()=>f.invoke('objects.putMetadataInSlot',new Uint8Array([1]),'private-slot'),value=>value===error);return Promise.resolve();});
+ const observer=installPendingOperationObserver(f.store,{enabled:true});t.after(()=>observer.dispose());
+ await f.start();const row=opAggregate(observer.snapshot(commandId),'objects.putMetadataInSlot');assert.equal(row.calls,1);assert.equal(row.rejected,1);assert.equal(row.fulfilled,0);
+});
+
+test('asynchronous boundary rejection preserves the original Promise and error identity',async t=>{
+ const f=opFixture(t),held=opDeferred(),error=Object.freeze({privateMessage:'do not export'});let returned;
+ f.bodies.set('objects.prove',()=>held.promise);f.bodies.set('history.prepare',()=>{returned=f.invoke('objects.prove',{},()=>{});return held.promise;});
+ const observer=installPendingOperationObserver(f.store,{enabled:true});t.after(()=>observer.dispose());
+ const result=f.start();assert.equal(result,held.promise);assert.equal(returned,held.promise);
+ held.reject(error);await assert.rejects(result,value=>value===error);
+ const snapshot=observer.snapshot(commandId);assert.equal(opAggregate(snapshot,'objects.prove').rejected,1);assert.equal(opAggregate(snapshot,'history.prepare').rejected,1);assert(!JSON.stringify(snapshot).includes('do not export'));
+});
+
+for(const mode of ['missing-row','wrong-operation','wrong-slot'])test('operation cohort refuses '+mode+' without altering the original call',async t=>{
+ const f=opFixture(t),held=opDeferred();f.bodies.set('history.prepare',()=>{f.invoke('objects.putMetadataInSlot',{},'ignored');return held.promise;});
+ f.bodies.set('objects.putMetadataInSlot',()=>17);
+ if(mode==='missing-row')f.store.db.prepare('DELETE FROM history_preparations').run();
+ if(mode==='wrong-operation')f.store.db.prepare('UPDATE history_preparations SET canonical=?').run(JSON.stringify({command:{commandId,body:{type:'CreateDocument'}}}));
+ const observer=installPendingOperationObserver(f.store,{enabled:true});t.after(()=>observer.dispose());
+ assert.equal(f.start(commandId,mode==='wrong-slot'?'raster:'+commandId:'history:'+commandId),held.promise);assert.equal(observer.snapshot(commandId).available,false);assert.equal(f.calls.length,2);
+ held.resolve();await held.promise;
+});
+
+test('interleaved async preparations attribute nested calls to their own selected cohort',async t=>{
+ const f=opFixture(t),a=opDeferred(),b=opDeferred();f.seed(otherId);f.bodies.set('objects.putMetadataInSlot',()=>1);
+ f.bodies.set('history.prepare',id=>(id===commandId?a.promise:b.promise).then(()=>{f.invoke('objects.putMetadataInSlot',{privateId:id},'history:'+id);}));
+ const observer=installPendingOperationObserver(f.store,{enabled:true});t.after(()=>observer.dispose());
+ const first=f.start(),second=f.start(otherId);b.resolve();await second;
+ assert.equal(opAggregate(observer.snapshot(otherId),'objects.putMetadataInSlot').calls,1);
+ assert.equal(opAggregate(observer.snapshot(commandId),'objects.putMetadataInSlot')?.calls??0,0);assert.equal(observer.snapshot(commandId).rootPending,true);
+ a.resolve();await first;assert.equal(opAggregate(observer.snapshot(commandId),'objects.putMetadataInSlot').calls,1);assert.notEqual(observer.snapshot(commandId).cohort,observer.snapshot(otherId).cohort);
+});
+
+test('unrelated async work resumed during a selected root is not attributed to that root',async t=>{
+ const f=opFixture(t),outside=opDeferred(),root=opDeferred();f.bodies.set('objects.putMetadataInSlot',()=>1);f.bodies.set('history.prepare',()=>root.promise);
+ const unrelated=outside.promise.then(()=>f.invoke('objects.putMetadataInSlot',{},'history:'+commandId));
+ const observer=installPendingOperationObserver(f.store,{enabled:true});t.after(()=>observer.dispose());
+ const pending=f.start();outside.resolve();await unrelated;
+ assert.equal(opAggregate(observer.snapshot(commandId),'objects.putMetadataInSlot')?.calls??0,0);assert.equal(f.calls.filter(row=>row.method==='objects.putMetadataInSlot').length,1);
+ root.resolve();await pending;
+});
+
+test('a held nested proof records its parent and pending interval without invoking release callbacks',async t=>{
+ const f=opFixture(t),proof=opDeferred();let checks=0;
+ f.bodies.set('objects.prove',()=>proof.promise);f.bodies.set('candidates.prepareReviewedAdoption',()=>f.invoke('objects.prove',{},()=>checks++));f.bodies.set('history.prepare',()=>f.invoke('candidates.prepareReviewedAdoption',{},commandId,'history:'+commandId,()=>checks++));
+ const observer=installPendingOperationObserver(f.store,{enabled:true});t.after(()=>observer.dispose());
+ assert.equal(f.start(),proof.promise);const pending=observer.snapshot(commandId),root=pending.active.find(x=>x.method==='history.prepare'),candidate=pending.active.find(x=>x.method==='candidates.prepareReviewedAdoption'),child=pending.active.find(x=>x.method==='objects.prove');
+ assert(root&&candidate&&child);assert.equal(candidate.parent,root.call);assert.equal(child.parent,candidate.call);assert.equal(checks,0);assert.equal(opAggregate(pending,'objects.prove').fulfilled,0);
+ proof.resolve('private-proof-token');await proof.promise;const completed=observer.snapshot(commandId);assert.equal(opAggregate(completed,'objects.prove').fulfilled,1);assert.equal(completed.active.length,0);assert.equal(checks,0);assert(!JSON.stringify(completed).includes('private-proof-token'));
+});
+
+test('injected scalar clock records the held original interval without a diagnostic timer',async t=>{
+ const f=opFixture(t),child=opDeferred(),root=opDeferred();let now=100;
+ f.bodies.set('objects.prove',()=>child.promise);f.bodies.set('history.prepare',()=>{now=120;f.invoke('objects.prove',{},()=>{});return root.promise;});
+ const observer=installPendingOperationObserver(f.store,{enabled:true,now:()=>now});t.after(()=>observer.dispose());assert.equal(f.start(),root.promise);
+ now=170;child.resolve();await child.promise;const proof=opAggregate(observer.snapshot(commandId),'objects.prove');assert.equal(proof.totalMs,50);assert.equal(proof.maxMs,50);
+ now=180;root.resolve();await root.promise;assert.equal(opAggregate(observer.snapshot(commandId),'history.prepare').totalMs,80);
+});
+
+test('same selected command prepared twice never yields an arbitrarily chosen cohort',async t=>{
+ const f=opFixture(t),first=opDeferred(),second=opDeferred();let calls=0;f.bodies.set('history.prepare',()=>++calls===1?first.promise:second.promise);
+ const observer=installPendingOperationObserver(f.store,{enabled:true});t.after(()=>observer.dispose());
+ assert.equal(f.start(),first.promise);assert.equal(f.start(),second.promise);assert.equal(observer.snapshot(commandId).available,false);
+ first.resolve();second.resolve();await Promise.all([first.promise,second.promise]);assert.equal(observer.snapshot(commandId).available,false);assert.equal(calls,2);
+});
+
+test('diagnostic snapshots are detached and exclude opaque arguments results IDs and content',async t=>{
+ const f=opFixture(t),held=opDeferred(),opaque=new Proxy({},{get(){throw Error('opaque argument read');},ownKeys(){throw Error('opaque argument enumerated');}});
+ f.bodies.set('objects.putMetadataInSlot',()=>opaque);f.bodies.set('history.prepare',()=>{assert.equal(f.invoke('objects.putMetadataInSlot',opaque,'private-grant-path'),opaque);return held.promise;});
+ const observer=installPendingOperationObserver(f.store,{enabled:true});t.after(()=>observer.dispose());f.start();
+ const snapshot=observer.snapshot(commandId),saved=JSON.stringify(snapshot);for(const rows of [snapshot.active,snapshot.transitions,snapshot.aggregate])Reflect.set(rows,'length',0);
+ assert.equal(JSON.stringify(observer.snapshot(commandId)),saved);assert(!saved.includes(commandId));assert(!saved.includes('private-grant-path'));assert(Buffer.byteLength(saved)<=OPERATION_LIMITS.serializedBytes);assert.equal(snapshot.backingBytes,10880);
+ held.resolve();await held.promise;
+});
+
+test('resources report existing consistent scalar proof ownership without releasing held readers',t=>{
+ const f=opFixture(t),observer=installPendingOperationObserver(f.store,{enabled:true});t.after(()=>observer.dispose());
+ const observed=observer.resources();assert.equal(observed.available,true);
+ assert.deepEqual(observed.objects,f.objectState);assert.deepEqual(observed.proofs,f.proofState);assert.deepEqual(observed.composition,f.compositionState);
+ assert.deepEqual(observed.raster,{running:false,documentBusy:true,activeWorkers:1,bookedCPUBytes:4096});assert.equal(f.resourceReads(),3);
+ Reflect.set(observed.objects,'proofReaders',99);Reflect.set(observed.proofs,'pending',99);Reflect.set(observed.composition,'loanBytes',99);
+ assert.equal(Object.isExtensible(f.objectState),true);assert.equal(Object.isExtensible(f.proofState),true);assert.equal(Object.isExtensible(f.compositionState),true);
+ assert.equal(f.objectState.proofReaders,2);assert.equal(f.proofState.pending,3);assert.equal(f.compositionState.loanBytes,32);
+});
+
+for(const [name,change]of [
+ ['missing inventory',f=>delete f.store.objects.proofInventory],
+ ['reader mismatch',f=>f.proofState.activeReaders=0],
+ ['reservation mismatch',f=>f.proofState.pending=0],
+ ['worker mismatch',f=>f.rasterState.workerService.activeJobs=0],
+ ['negative scalar',f=>f.objectState.repairs=-1],
+ ['unsafe integer',f=>f.compositionState.loanBytes=Number.MAX_SAFE_INTEGER+1],
+ ['nonfinite scalar',f=>f.rasterState.bookedCPUBytes=Infinity],
+ ['invalid boolean',f=>f.objectState.proofWaitTimer='private-boolean'],
+])test('resource diagnostics keep '+name+' unavailable rather than inventing zero',t=>{
+ const f=opFixture(t),observer=installPendingOperationObserver(f.store,{enabled:true});t.after(()=>observer.dispose());change(f);
+ const value=observer.resources();assert.equal(value.available,false);assert.equal(value.objects,undefined);assert.equal(value.proofs,undefined);
+});
+
+test('transition saturation retains bounded recent chronology and preserves independent active and aggregate completeness',async t=>{
+ const f=opFixture(t),held=opDeferred();let calls=0;f.bodies.set('objects.putMetadataInSlot',()=>++calls);
+ f.bodies.set('history.prepare',()=>{for(let i=0;i<OPERATION_LIMITS.transitionRows+1;i++)f.invoke('objects.putMetadataInSlot',{},'private-slot');return held.promise;});
+ const observer=installPendingOperationObserver(f.store,{enabled:true});t.after(()=>observer.dispose());f.start();
+ const snapshot=observer.snapshot(commandId);assert.equal(calls,OPERATION_LIMITS.transitionRows+1);assert.equal(snapshot.transitions.length,OPERATION_LIMITS.transitionRows);assert.equal(snapshot.traceComplete,false);assert.equal(snapshot.incomplete,true);assert.equal(snapshot.activeComplete,true);assert.equal(snapshot.aggregateComplete,true);
+ assert.equal(opAggregate(snapshot,'objects.putMetadataInSlot').calls,calls);assert(snapshot.transitions[0].sequence>0);assert(snapshot.transitions.every((row,i,all)=>!i||row.sequence>all[i-1].sequence));assert.equal(snapshot.backingBytes,OPERATION_LIMITS.backingBytes);assert(Buffer.byteLength(JSON.stringify(snapshot))<=OPERATION_LIMITS.serializedBytes);
+ held.resolve();await held.promise;
+});
+
+test('active call saturation cannot suppress originals or masquerade as complete ownership',async t=>{
+ const f=opFixture(t),held=Array.from({length:OPERATION_LIMITS.activeCalls+1},opDeferred);let calls=0;
+ f.bodies.set('objects.prove',()=>held[calls++].promise);f.bodies.set('history.prepare',()=>Promise.all(held.map(()=>f.invoke('objects.prove',{},()=>{}))));
+ const observer=installPendingOperationObserver(f.store,{enabled:true});t.after(()=>observer.dispose());const result=f.start(),snapshot=observer.snapshot(commandId);
+ assert.equal(calls,held.length);assert.equal(snapshot.activeComplete,false);assert.equal(snapshot.incomplete,true);assert(snapshot.active.length<=OPERATION_LIMITS.activeCalls);assert.equal(snapshot.backingBytes,OPERATION_LIMITS.backingBytes);
+ held.forEach(x=>x.resolve());await result;assert.equal(observer.snapshot(commandId).incomplete,true);
+});
+
+test('cohort saturation preserves every original preparation and reports incomplete association',async t=>{
+ const f=opFixture(t),ids=Array.from({length:OPERATION_LIMITS.cohorts+1},(_,i)=>String(i+3).padStart(8,'0')+'-1111-4111-8111-111111111111'),held=ids.map(opDeferred);ids.forEach(id=>f.seed(id));
+ f.bodies.set('history.prepare',id=>held[ids.indexOf(id)].promise);
+ const observer=installPendingOperationObserver(f.store,{enabled:true});const results=ids.map(id=>f.start(id));
+ results.forEach((result,i)=>assert.equal(result,held[i].promise));assert.equal(f.calls.length,ids.length);assert.equal(observer.snapshot(ids.at(-1)).available,false);
+ const final=observer.dispose();assert.equal(final.disposed,true);assert.equal(final.incomplete,true);held.forEach(x=>x.resolve());await Promise.all(results);
+});
+
+test('approved placement guard repetition is aggregate-only and retains original throws',async t=>{
+ const f=opFixture(t),held=opDeferred(),error=Object.freeze({private:'guard'});let calls=0;f.bodies.set('history.approvedPlacement',()=>{if(++calls===3)throw error;return calls;});
+ f.bodies.set('history.prepare',()=>{for(let i=0;i<OPERATION_LIMITS.transitionRows+1;i++){if(i===2)assert.throws(()=>f.invoke('history.approvedPlacement',{}),value=>value===error);else f.invoke('history.approvedPlacement',{});}return held.promise;});
+ const observer=installPendingOperationObserver(f.store,{enabled:true});t.after(()=>observer.dispose());f.start();const snapshot=observer.snapshot(commandId),row=opAggregate(snapshot,'history.approvedPlacement');
+ assert.equal(row.calls,OPERATION_LIMITS.transitionRows+1);assert.equal(row.rejected,1);assert.equal(row.fulfilled,row.calls-1);assert.equal(snapshot.transitions.some(x=>x.method==='history.approvedPlacement'),false);assert.equal(snapshot.traceComplete,true);assert(Number.isFinite(row.totalMs)&&row.totalMs>=row.maxMs);
+ held.resolve();await held.promise;
+});
+
+test('dispose restores only owned wrappers before fixture drain and makes late settlement inert',async t=>{
+ const f=opFixture(t),held=opDeferred();f.bodies.set('objects.prove',()=>held.promise);f.bodies.set('history.prepare',()=>f.invoke('objects.prove',{},()=>{}));
+ const observer=installPendingOperationObserver(f.store,{enabled:true});const result=f.start(),summary=observer.dispose();
+ assert.equal(summary.disposed,true);assert(summary.pendingCalls>=1);
+ for(const [method,owner,key]of opMethods)assert.equal(f.store[owner][key],f.originals.get(method));
+ const saved=JSON.stringify(summary),reads=f.resourceReads();assert.equal(observer.snapshot(commandId).available,false);assert.equal(observer.resources().available,false);assert.equal(f.resourceReads(),reads);
+ held.resolve({private:'late-result'});await result;assert.equal(JSON.stringify(summary),saved);assert.equal(observer.snapshot(commandId).available,false);assert.equal(observer.dispose().disposed,true);
+});
+
+test('foreign replacement is preserved and cannot retain complete wrapper ownership',async t=>{
+ const f=opFixture(t),held=opDeferred();f.bodies.set('history.prepare',()=>held.promise);
+ const observer=installPendingOperationObserver(f.store,{enabled:true});f.start();const foreign=function(){return 9;};f.store.objects.prove=foreign;
+ const summary=observer.dispose();assert.equal(f.store.objects.prove,foreign);assert.equal(summary.incomplete,true);
+ for(const [method,owner,key]of opMethods)if(method!=='objects.prove')assert.equal(f.store[owner][key],f.originals.get(method));
+ held.resolve();await held.promise;
+});
+
+test('whole owner replacement remains untouched and invalidates observational completeness',async t=>{
+ const f=opFixture(t),held=opDeferred();f.bodies.set('history.prepare',()=>held.promise);
+ const observer=installPendingOperationObserver(f.store,{enabled:true});f.start();const replacement={prove(){return 11;}};f.store.objects=replacement;
+ const summary=observer.dispose();assert.equal(f.store.objects,replacement);assert.equal(summary.incomplete,true);held.resolve();await held.promise;
+});
+
+test('borrowed method receiver preserves the original call but cannot acquire selected operation ownership',async t=>{
+ const f=opFixture(t),child=opDeferred(),root=opDeferred(),foreign=Object.freeze({foreign:true});let returned;
+ f.bodies.set('objects.prove',function(ref,check){assert.equal(this,foreign);assert.equal(ref,foreign);assert.equal(check,foreign);return child.promise;});
+ f.bodies.set('history.prepare',()=>{returned=Reflect.apply(f.store.objects.prove,foreign,[foreign,foreign]);return root.promise;});
+ const observer=installPendingOperationObserver(f.store,{enabled:true});t.after(()=>observer.dispose());
+ assert.equal(f.start(),root.promise);assert.equal(returned,child.promise);assert.equal(f.calls.find(row=>row.method==='objects.prove').receiver,foreign);
+ const snapshot=observer.snapshot(commandId);assert(snapshot.available===false||(opAggregate(snapshot,'objects.prove')?.calls??0)===0);
+ child.resolve();root.resolve();await Promise.all([child.promise,root.promise]);
+});
+
+test('late rejection after synchronous disposal preserves the original failure and cannot append diagnostics',async t=>{
+ const f=opFixture(t),held=opDeferred(),error=Object.freeze({private:'late-error'});f.bodies.set('objects.prove',()=>held.promise);f.bodies.set('history.prepare',()=>f.invoke('objects.prove',{},()=>{}));
+ const observer=installPendingOperationObserver(f.store,{enabled:true});const result=f.start();assert.equal(result,held.promise);
+ const final=observer.dispose(),before=JSON.stringify(final);held.reject(error);await assert.rejects(result,value=>value===error);
+ assert.equal(JSON.stringify(final),before);assert.equal(observer.snapshot(commandId).available,false);assert.equal(observer.resources().available,false);assert.equal(f.resourceReads(),0);
+});
+
+test('a throwing original resource inventory stays unavailable without exporting error payload',t=>{
+ const f=opFixture(t);f.store.objects.proofInventory=()=>{throw Error('private-inventory-grant');};
+ const observer=installPendingOperationObserver(f.store,{enabled:true});t.after(()=>observer.dispose());const snapshot=observer.resources();
+ assert.equal(snapshot.available,false);assert.equal(snapshot.proofs,undefined);assert(!JSON.stringify(snapshot).includes('private-inventory-grant'));
+});
+
+function opDiagnosticPacket(t,observer,{ownership,capture=raw,valid=true}={}){
+ const f=fixture(t);f.pending('preparing',valid?command:{...command,commandId:otherId});f.trigger();
+ if(ownership)f.store.histories.resourceOwnership=()=>ownership;
+ pendingDiagnosticObserver(f.store,capture,observer)();
+ return {bytes:readFileSync(f.output),value:readBoundedJSON(f.output)};
+}
+const opWithoutOptional=value=>{const copy={...value};delete copy.operationObservation;delete copy.resourceObservation;return copy;};
+
+test('optional observation failures preserve the exact original owned diagnostics and ownership',t=>{
+ const original=opDiagnosticPacket(t);let calls=0;
+ const failed=opDiagnosticPacket(t,{snapshot(id){assert.equal(id,commandId);calls++;throw Error('private-observation-error');},resources(){calls++;throw Error('private-resource-error');}});
+ assert.equal(calls,2);assert.deepEqual(opWithoutOptional(failed.value),original.value);
+ assert.deepEqual(failed.value.operationObservation,{available:false,reason:'observation-unavailable'});assert.deepEqual(failed.value.resourceObservation,{available:false,reason:'observation-unavailable'});
+ assert(!failed.bytes.includes(Buffer.from('private-')));assert(failed.bytes.byteLength<=DIAGNOSTIC_LIMIT);
+});
+
+test('oversized optional observation compacts only the additions and preserves the original capture',t=>{
+ const original=opDiagnosticPacket(t),failed=opDiagnosticPacket(t,{snapshot(){return {available:true,oversized:'x'.repeat(DIAGNOSTIC_LIMIT)};},resources(){return {available:true};}});
+ assert.deepEqual(opWithoutOptional(failed.value),original.value);
+ assert.deepEqual(failed.value.operationObservation,{available:false,reason:'packet-bound'});assert.deepEqual(failed.value.resourceObservation,{available:false,reason:'packet-bound'});assert(failed.bytes.byteLength<=DIAGNOSTIC_LIMIT);
+});
+
+for(const mode of ['cycle','throwing-serialization'])test('optional '+mode+' cannot replace an otherwise valid original diagnostic packet',t=>{
+ const original=opDiagnosticPacket(t),value={available:true};
+ if(mode==='cycle')value.self=value;else value.toJSON=()=>{throw Error('private-serialization');};
+ const failed=opDiagnosticPacket(t,{snapshot(){return value;},resources(){return {available:true};}});
+ assert.deepEqual(failed.bytes,original.bytes);assert.deepEqual(failed.value,original.value);
+});
+
+test('an original packet near its unchanged ceiling survives when even optional refusal markers do not fit',t=>{
+ const small=opDiagnosticPacket(t).value;
+ const entries=Array.from({length:4096},(_,i)=>['K'+String(i).padStart(6,'0')+'x'.repeat(56),0]);
+ const size=n=>Buffer.byteLength(JSON.stringify({...small,ownership:redactOwnedDiagnostics(Object.fromEntries(entries.slice(0,n)))}));
+ let low=0,high=entries.length;
+ while(low<high){const middle=Math.ceil((low+high)/2);if(size(middle)<=DIAGNOSTIC_LIMIT)low=middle;else high=middle-1;}
+ const ownership=Object.fromEntries(entries.slice(0,low));assert(size(low)>DIAGNOSTIC_LIMIT-100);
+ const original=opDiagnosticPacket(t,undefined,{ownership});
+ const failed=opDiagnosticPacket(t,{snapshot(){return {oversized:'x'.repeat(DIAGNOSTIC_LIMIT)};},resources(){return {available:true};}},{ownership});
+ assert.deepEqual(failed.bytes,original.bytes);assert.equal(failed.value.operationObservation,undefined);assert.equal(failed.value.resourceObservation,undefined);assert(failed.bytes.byteLength<=DIAGNOSTIC_LIMIT);
+});
+
+test('optional observations are never called when the original durable command join is refused',t=>{
+ let captures=0,observations=0;const failed=opDiagnosticPacket(t,{snapshot(){observations++;throw Error('unreachable');},resources(){observations++;throw Error('unreachable');}},{valid:false,capture(){captures++;return raw();}});
+ assert.equal(captures,0);assert.equal(observations,0);assert.equal(failed.value.kind,'e3-pending-diagnostic-unavailable-1');assert.equal(failed.value.reason,'capture-refused');assert.equal(failed.value.operationObservation,undefined);
+});
+
+// Integration controls for ownership loss after clean completion and bounded teardown.
+test('foreign replacement after two clean cohorts is independently incomplete',async t=>{
+ const f=opFixture(t);f.seed(otherId);f.bodies.set('history.prepare',()=>Promise.resolve());
+ const observer=installPendingOperationObserver(f.store,{enabled:true});await f.start();await f.start(otherId);
+ for(const id of [commandId,otherId]){const value=observer.snapshot(id);assert.equal(value.incomplete,false);assert.equal(value.active.length,0);}
+ const foreign=()=>37;f.store.objects.prove=foreign;const final=observer.dispose();
+ assert.equal(f.store.objects.prove,foreign);assert.equal(final.pendingCalls,0);assert.equal(final.incomplete,true);assert(final.faults>0);
+});
+
+test('partial installation restores acquired methods and never changes the original invocation',async t=>{
+ const f=opFixture(t),held=opDeferred();f.bodies.set('history.prepare',()=>held.promise);
+ Object.defineProperty(f.store.histories,'approvedPlacement',{value:f.originals.get('history.approvedPlacement'),writable:false,configurable:false});
+ const before=opMethods.map(([,owner,key])=>Object.getOwnPropertyDescriptor(f.store[owner],key));
+ const observer=installPendingOperationObserver(f.store,{enabled:true});
+ assert.deepEqual(opMethods.map(([,owner,key])=>Object.getOwnPropertyDescriptor(f.store[owner],key)),before);
+ assert.equal(f.start(),held.promise);assert.equal(observer.snapshot(commandId).available,false);
+ const final=observer.dispose();assert.equal(final.incomplete,true);assert(final.faults>0);held.resolve();await held.promise;
+});
+
+test('a retired inherited context cannot create new method authority after root completion',async t=>{
+ const f=opFixture(t),later=opDeferred();let detached;f.bodies.set('objects.putMetadataInSlot',()=>19);
+ f.bodies.set('history.prepare',()=>{detached=later.promise.then(()=>f.invoke('objects.putMetadataInSlot',{},'private'));return Promise.resolve();});
+ const observer=installPendingOperationObserver(f.store,{enabled:true});t.after(()=>observer.dispose());await f.start();
+ const before=JSON.stringify(observer.snapshot(commandId));later.resolve();assert.equal(await detached,19);
+ assert.equal(JSON.stringify(observer.snapshot(commandId)),before);assert.equal(f.calls.filter(row=>row.method==='objects.putMetadataInSlot').length,1);
+});
+
+test('a failed diagnostic clock marks timing unavailable without replacing the original Promise',async t=>{
+ const f=opFixture(t),held=opDeferred();f.bodies.set('history.prepare',()=>held.promise);
+ const observer=installPendingOperationObserver(f.store,{enabled:true,now(){throw Error('private-clock-error');}});t.after(()=>observer.dispose());
+ assert.equal(f.start(),held.promise);const pending=observer.snapshot(commandId);assert.equal(pending.available,true);assert.equal(pending.aggregateComplete,false);assert(pending.faults>0);assert(!JSON.stringify(pending).includes('private-clock-error'));
+ held.resolve();await held.promise;assert.equal(observer.snapshot(commandId).rootPending,false);
+});
+
+test('a nested unselected preparation cannot borrow an outer selected cohort',async t=>{
+ const f=opFixture(t),held=opDeferred();f.seed(otherId,'CreateDocument');f.bodies.set('objects.putMetadataInSlot',()=>23);
+ f.bodies.set('history.prepare',id=>{if(id===otherId){f.invoke('objects.putMetadataInSlot',{},'private');return Promise.resolve();}f.start(otherId);f.invoke('objects.putMetadataInSlot',{},'private');return held.promise;});
+ const observer=installPendingOperationObserver(f.store,{enabled:true});t.after(()=>observer.dispose());assert.equal(f.start(),held.promise);
+ assert.equal(observer.snapshot(otherId).available,false);assert.equal(opAggregate(observer.snapshot(commandId),'objects.putMetadataInSlot').calls,1);assert.equal(f.calls.filter(row=>row.method==='objects.putMetadataInSlot').length,2);
+ held.resolve();await held.promise;
+});
+
+// A prior audit must not let a later cohort forget persistent observation loss.
+test('ownership loss audited before admission keeps the next selected cohort incomplete',async t=>{
+ const f=opFixture(t),held=opDeferred(),opaque=Object.freeze({privateArgument:true});let foreignCalls=0;
+ f.bodies.set('history.prepare',()=>f.invoke('objects.prove',opaque));
+ const observer=installPendingOperationObserver(f.store,{enabled:true});t.after(()=>observer.dispose());
+ const foreign=function(value){foreignCalls++;assert.equal(this,f.store.objects);assert.equal(value,opaque);return held.promise;};
+ f.store.objects.prove=foreign;
+ assert.equal(observer.snapshot(otherId).available,false); // Audit before any selected cohort exists.
+ assert.equal(f.start(),held.promise);assert.equal(foreignCalls,1);
+ assert.equal(f.calls.filter(row=>row.method==='history.prepare').length,1);
+ assert.equal(f.calls.filter(row=>row.method==='objects.prove').length,0);
+ const pending=observer.snapshot(commandId);
+ assert.equal(pending.available,true);assert.equal(pending.rootPending,true);
+ assert.equal(pending.activeComplete,false);assert.equal(pending.aggregateComplete,false);assert.equal(pending.incomplete,true);assert(pending.faults>0);
+ assert.equal(opAggregate(pending,'objects.prove').calls,0); // Zero is explicitly incomplete, never complete absence.
+ held.resolve(41);assert.equal(await held.promise,41);
+ const complete=observer.snapshot(commandId);
+ assert.equal(complete.rootPending,false);assert.equal(complete.activeComplete,false);assert.equal(complete.aggregateComplete,false);assert.equal(complete.incomplete,true);
+ assert.equal(f.store.objects.prove,foreign);assert.equal(foreignCalls,1);
+ const final=observer.dispose();assert.equal(final.incomplete,true);assert.equal(f.store.objects.prove,foreign);
+});

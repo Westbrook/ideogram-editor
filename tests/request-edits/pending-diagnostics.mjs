@@ -74,7 +74,7 @@ export function shutdownDiagnostic(shutdown){
 // Uses the original writer's private fixture transport, not another HTTP reader.
 // The returned function is also the interval callback, so tests can drive exactly
 // this observer once without starting a server or changing any product method.
-export function pendingDiagnosticObserver(store,capture){
+export function pendingDiagnosticObserver(store,capture,observation){
  let attempted=false;
  return ()=>{
   if(attempted)return;
@@ -90,6 +90,18 @@ export function pendingDiagnosticObserver(store,capture){
    const owned=JSON.parse(raw);if(owned.commandId!==commandId||!['j19-owned-diagnostics-1','j19-diagnostic-unavailable-1'].includes(owned.kind))throw Error('E3_DIAGNOSTIC_IDENTITY');
    packet={kind:'e3-pending-diagnostic-1',commandId,operation,phase:pending?row.phase:null,terminalStatus:terminal?row.status:null,rasterOwner:pendingRasterOwner(owned,commandId),ownership:redactOwnedDiagnostics(store.histories.resourceOwnership()),owned:redactOwnedDiagnostics(owned)};
   }catch{packet=unavailable('capture-refused',commandId);}
+  // Optional observations cannot erase the original joined evidence or enlarge its bound.
+  if(observation&&packet.kind==='e3-pending-diagnostic-1'){
+   const unavailable=()=>({available:false,reason:'observation-unavailable'});
+   let operationObservation,resourceObservation;
+   try{operationObservation=observation.snapshot(commandId);}catch{operationObservation=unavailable();}
+   try{resourceObservation=observation.resources();}catch{resourceObservation=unavailable();}
+   try{
+    const proposed={...packet,operationObservation,resourceObservation};
+    if(Buffer.byteLength(JSON.stringify(proposed))<=DIAGNOSTIC_LIMIT)packet=proposed;
+    else{const refused={...packet,operationObservation:{available:false,reason:'packet-bound'},resourceObservation:{available:false,reason:'packet-bound'}};if(Buffer.byteLength(JSON.stringify(refused))<=DIAGNOSTIC_LIMIT)packet=refused;}
+   }catch{/* Original complete packet remains available when optional serialization fails. */}
+  }
   const bytes=Buffer.from(JSON.stringify(packet));if(bytes.length>DIAGNOSTIC_LIMIT)throw Error('E3_DIAGNOSTIC_BOUND');
   const output=join(store.root,'e3-pending-'+commandId+'.json'),temporary=output+'.tmp';
   // A complete temporary inode is linked exclusively: no partial JSON publication
