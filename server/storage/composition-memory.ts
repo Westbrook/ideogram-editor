@@ -17,7 +17,7 @@ const CPU_LIMIT=512*1024**2;
 export class CompositionMemory {
  private loans=new Map<string,number>();private families=new Map<string,'composition'|'storage-read'|'storage-registry'>();private content=new Map<string,Set<string>>();private borrowed=0;
  private loanCoverage=new Map<string,()=>void>();private borrowers=0;
- constructor(private otherBytes:()=>number,private rss:()=>number=()=>process.memoryUsage().rss){}
+ constructor(private otherBytes:()=>number,private rss:()=>number=()=>process.memoryUsage.rss()){}
  resourceOwnership(){let loanBytes=0,contentReaders=0;const loanFamilies={composition:0,storageRead:0,storageRegistry:0};for(const bytes of this.loans.values())loanBytes+=bytes;for(const handles of this.content.values())contentReaders+=handles.size;for(const family of this.families.values())loanFamilies[family==='composition'?'composition':family==='storage-read'?'storageRead':'storageRegistry']++;return {loans:this.loans.size,loanBytes,borrowers:this.borrowers,borrowedBytes:this.borrowed,contentReaders,loanFamilies};}
  get bytes(){let total=this.borrowed;for(const n of this.loans.values())total+=n;return total;}
  requireLoan(id:string,minimum:number,family?:'composition'|'storage-read'|'storage-registry'){const bytes=this.loans.get(id);if(!Number.isSafeInteger(minimum)||minimum<1||bytes===undefined||bytes<minimum||family!==undefined&&this.families.get(id)!==family)throw new StoreError('CAPACITY');}

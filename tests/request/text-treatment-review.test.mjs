@@ -370,7 +370,7 @@ for(const [name,bytes]of [['syntax',Buffer.from('{')],['duplicate',Buffer.from('
 
 for(const name of ['max','rss'])test('treatment '+name+' admission still refuses before opening a small verified owner',async t=>{
  const f=await ownedTextFixture(t),{ref}=await f.put(Buffer.from('{"ok":true}')),before=ownedTextSnapshot();
- if(name==='rss'){const memory=process.memoryUsage();t.mock.method(process,'memoryUsage',()=>({...memory,rss:536870912}));}
+ if(name==='rss')t.mock.method(process.memoryUsage,'rss',()=>536870912);
  assert.throws(()=>f.treatments.json(ref,name==='max'?Number(ref.byteLength)-1:65536),error=>error.issues?.[0]?.code===(name==='max'?'TEXT_TREATMENT_LIMIT':'TEXT_TREATMENT_CAPACITY'));
  assert.deepEqual(f.rows,[]);assert.deepEqual(ownedTextSnapshot(),before);
 });
@@ -396,4 +396,52 @@ test('public treatment reference walks use genuine fresh metadata owners and ref
  assert.deepEqual(roles.map(row=>row.ref),strict);for(const ref of [source.envelope.plan,source.nativeRef,source.input.inventory.imageState,source.input.inventory.composition.value,source.input.edit.requestPlan])assert(strict.some(value=>canonical(value)===canonical(ref)),canonical(ref));
  assert(f.rows.some(row=>row.method==='verifyOwned'));assert(f.rows.filter(row=>row.method==='verifyOwned').every(row=>row.releases===1));assert.deepEqual(ownedTextSnapshot(),before);
  await ownedTextUnlink(f.objects.path(source.nativeRef));assert.throws(()=>f.treatments.refsWithRoles(source.envelope),{code:'MISSING_OBJECT'});assert.deepEqual(ownedTextSnapshot(),before,'Successful earlier parses never supply stale authority for a missing object');
+});
+
+
+// Controlled samples exercise the unchanged admission formula, not physical RSS.
+// The process API replacement exists only for these synchronous calls and restores
+// the exact original descriptor before any async test teardown can run.
+function withTreatmentRSSMethods({rss,full=()=>assert.fail('Small JSON admission must not collect the full memory report')},run){
+ const descriptor=Object.getOwnPropertyDescriptor(process,'memoryUsage'),original=descriptor.value,rssDescriptor=Object.getOwnPropertyDescriptor(original,'rss');
+ const replacement=function(...args){return Reflect.apply(full,this,args);};Object.defineProperty(replacement,'rss',{...rssDescriptor,value:function(...args){return Reflect.apply(rss,this,args);}});
+ Object.defineProperty(process,'memoryUsage',{...descriptor,value:replacement});try{return run();}finally{Object.defineProperty(process,'memoryUsage',descriptor);assert.deepEqual(Object.getOwnPropertyDescriptor(process,'memoryUsage'),descriptor);assert.deepEqual(Object.getOwnPropertyDescriptor(original,'rss'),rssDescriptor);}
+}
+
+test('small treatment JSON resamples dedicated RSS at the exact ceiling and refuses the next byte before IO',async t=>{
+ const f=await ownedTextFixture(t),bytes=Buffer.from('{"fresh":true}'),{ref}=await f.put(bytes),before=ownedTextSnapshot(),limit=536870912-bytes.length*6-16777216,events=[];let rss=limit,samples=0;
+ const original=f.objects.verifyOwned;t.mock.method(f.objects,'verifyOwned',function(...args){events.push('read');const owner=Reflect.apply(original,this,args);return {bytes:owner.bytes,release(){events.push('release');owner.release();}};});
+ withTreatmentRSSMethods({rss(){samples++;events.push('rss');return rss;}},()=>{
+  assert.deepEqual(f.treatments.json(ref),{fresh:true});assert.deepEqual(events,['rss','read','release']);assert.deepEqual(ownedTextSnapshot(),before);
+  rss=limit+1;events.length=0;assert.throws(()=>f.treatments.json(ref),error=>error.issues?.[0]?.code==='TEXT_TREATMENT_CAPACITY');assert.deepEqual(events,['rss']);assert.equal(f.rows.length,1);assert.deepEqual(ownedTextSnapshot(),before);
+  rss=limit;events.length=0;assert.deepEqual(f.treatments.json(ref),{fresh:true});assert.deepEqual(events,['rss','read','release']);assert.equal(samples,3);assert.equal(f.rows.length,2);assert(f.rows.every(row=>row.releases===1));assert.deepEqual(ownedTextSnapshot(),before);
+ });
+});
+
+test('small treatment maximum refusal precedes both memory sampling APIs and verified reads',async t=>{
+ const f=await ownedTextFixture(t),{ref}=await f.put(Buffer.from('{"ok":true}')),before=ownedTextSnapshot();
+ withTreatmentRSSMethods({rss:()=>assert.fail('RSS sampled before maximum refusal'),full:()=>assert.fail('Full memory sampled before maximum refusal')},()=>{
+  assert.throws(()=>f.treatments.json(ref,Number(ref.byteLength)-1),error=>error.issues?.[0]?.code==='TEXT_TREATMENT_LIMIT');assert.deepEqual(f.rows,[]);assert.deepEqual(ownedTextSnapshot(),before);
+ });
+});
+
+test('dedicated treatment RSS failure preserves its identity and acquires no byte owner',async t=>{
+ const f=await ownedTextFixture(t),{ref}=await f.put(Buffer.from('{"ok":true}')),before=ownedTextSnapshot(),failure=Error('RSS sample failed');let samples=0;
+ withTreatmentRSSMethods({rss(){samples++;throw failure;}},()=>{assert.throws(()=>f.treatments.json(ref),error=>error===failure);assert.equal(samples,1);assert.deepEqual(f.rows,[]);assert.deepEqual(ownedTextSnapshot(),before);});
+});
+
+test('small treatment parse failure still releases verified bytes after the admitted RSS sample',async t=>{
+ const f=await ownedTextFixture(t),{ref}=await f.put(Buffer.from('{')),before=ownedTextSnapshot();let samples=0;
+ withTreatmentRSSMethods({rss(){samples++;return 0;}},()=>{assert.throws(()=>f.treatments.json(ref),{code:'MALFORMED_REQUEST'});assert.equal(samples,1);assert.deepEqual(f.rows.map(row=>[row.method,row.releases]),[['verifyOwned',1]]);assert.deepEqual(ownedTextSnapshot(),before);});
+});
+
+for(const kind of ['binary','large-json'])test('treatment '+kind+' fallback keeps fresh full-report RSS admission and its original scope ownership',async t=>{
+ const f=await ownedTextFixture(t),value={value:'x'.repeat(65537-Buffer.byteLength(canonical({value:''})))},bytes=kind==='binary'?Buffer.from('literal bytes'):Buffer.from(canonical(value)),{ref}=await f.put(bytes),before=ownedTextSnapshot(),limit=536870912-bytes.length*6-16777216;let rss=limit,samples=0;
+ await ownedTextResources.scope('rss-fallback-control',()=>{
+  const inside=ownedTextSnapshot();withTreatmentRSSMethods({rss:()=>assert.fail('Original fallback must keep the full-report route'),full(){samples++;return {rss};}},()=>{
+   const read=()=>kind==='binary'?f.treatments.read(ref):f.treatments.json(ref,524288),first=read();assert.deepEqual(kind==='binary'?Buffer.from(first):first,kind==='binary'?bytes:value);assert.deepEqual(f.rows.map(row=>row.method),['verify','readRange']);assert(ownedTextSnapshot().activeLeases>inside.activeLeases);
+   const held=ownedTextSnapshot();rss=limit+1;assert.throws(read,error=>error.issues?.[0]?.code==='TEXT_TREATMENT_CAPACITY');assert.deepEqual(f.rows.map(row=>row.method),['verify','readRange']);assert.deepEqual(ownedTextSnapshot(),held);
+   rss=limit;const next=read();assert.deepEqual(kind==='binary'?Buffer.from(next):next,kind==='binary'?bytes:value);assert.equal(samples,3);assert.deepEqual(f.rows.map(row=>row.method),['verify','readRange','verify','readRange']);
+  });
+ });assert.deepEqual(ownedTextSnapshot(),before);
 });

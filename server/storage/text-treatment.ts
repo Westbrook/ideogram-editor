@@ -39,7 +39,7 @@ export class TextTreatments {
  private json(ref:BlobRef,max=65536):any{
   if(BigInt(ref.byteLength)>65536n)return parseControlJSON(this.read(ref,max),max);
   if(BigInt(ref.byteLength)>BigInt(max))deny('TEXT_TREATMENT_LIMIT');
-  if(process.memoryUsage().rss+Number(ref.byteLength)*6+16777216>536870912)deny('TEXT_TREATMENT_CAPACITY');
+  if(process.memoryUsage.rss()+Number(ref.byteLength)*6+16777216>536870912)deny('TEXT_TREATMENT_CAPACITY');
   const owned=this.objects.verifyOwned(ref);try{return parseControlJSON(owned.bytes,max);}finally{owned.release();}
  }
  private store(value:unknown,media='application/json'):BlobRef {const bytes=Buffer.from(media==='application/json'?canonical(value):String(value)),stage=this.objects.begin(String(bytes.length),media);try{for(let at=0;at<bytes.length;at+=1048576)this.objects.chunk(stage,bytes.subarray(at,at+1048576));return this.objects.finish(stage);}finally{this.objects.abort(stage);}}

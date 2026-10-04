@@ -101,3 +101,65 @@ test('portable extraction preserves canonical-byte checks for graph and native s
   await assert.rejects(track(validateCommitAsync('CommitCompositionVersion',f.next,f.state,async ref=>f.read(ref),f.asset,memory,()=>{})),/MALFORMED_REQUEST/);assert.equal(memory.bytes,0);assert.equal(f.reads.includes(f.textRef.hash),false);
  }
 });
+
+
+// These deterministic API samples exercise the real default constructor path.
+// They are admission/ownership controls, never physical RSS or speed evidence.
+import {adapterResources as rssAdmissionResources} from '../../dist/local/server/observability/adapter-resources.js';
+const rssOwnership=()=>{const s=rssAdmissionResources.snapshot();return {backingBytes:s.backingBytes,reservedBytes:s.reservedBytes,activeLeases:s.activeLeases,returnedBuffers:s.returnedBuffers,droppedTransitions:s.droppedTransitions,uncoveredOwners:s.uncoveredOwners};};
+function withCompositionRSSMethods({rss,full=()=>assert.fail('Default admission must not collect the full memory report')},run){
+ const descriptor=Object.getOwnPropertyDescriptor(process,'memoryUsage'),original=descriptor.value,rssDescriptor=Object.getOwnPropertyDescriptor(original,'rss');
+ const replacement=function(...args){return Reflect.apply(full,this,args);};Object.defineProperty(replacement,'rss',{...rssDescriptor,value:function(...args){return Reflect.apply(rss,this,args);}});
+ Object.defineProperty(process,'memoryUsage',{...descriptor,value:replacement});try{return run();}finally{Object.defineProperty(process,'memoryUsage',descriptor);assert.deepEqual(Object.getOwnPropertyDescriptor(process,'memoryUsage'),descriptor);assert.deepEqual(Object.getOwnPropertyDescriptor(original,'rss'),rssDescriptor);}
+}
+
+test('default metadata admission freshly samples RSS in order at the exact ceiling and one byte over',()=>{
+ const bytes=37,allowance=bytes*12+MiB,debt=91,limit=512*MiB-debt-allowance,events=[],before=rssOwnership();let rss=limit,samples=0,memory,builds=0;
+ withCompositionRSSMethods({rss(){samples++;events.push('rss');return rss;}},()=>{
+  memory=new CompositionMemory(()=>{events.push('other');return memory.bytes+debt;});memories.add(memory);assert.deepEqual(events,[],'Construction does not sample or cache RSS');const empty=memory.resourceOwnership();
+  const acquire=()=>memory.ownedMetadata(bytes,()=>{events.push('build');builds++;assert.equal(memory.bytes,allowance);assert.equal(memory.resourceOwnership().borrowers,1);return {ok:true};});
+  let owner=acquire();try{assert.deepEqual(owner.value,{ok:true});assert.deepEqual(events,['rss','other','build']);}finally{owner.release();}assert.deepEqual(memory.resourceOwnership(),empty);assert.deepEqual(rssOwnership(),before);
+  rss=limit+1;events.length=0;assert.throws(acquire,{code:'CAPACITY'});assert.deepEqual(events,['rss','other']);assert.equal(builds,1);assert.deepEqual(memory.resourceOwnership(),empty);assert.deepEqual(rssOwnership(),before);
+  rss=limit;events.length=0;owner=acquire();try{assert.deepEqual(owner.value,{ok:true});assert.deepEqual(events,['rss','other','build']);}finally{owner.release();owner.release();}assert.equal(samples,3);assert.equal(builds,2);assert.deepEqual(memory.resourceOwnership(),empty);assert.deepEqual(rssOwnership(),before);
+ });
+});
+
+test('default native layer admission refuses before actual semantic reads and admits the unchanged exact boundary',()=>{
+ const f=fixture(),allowance=4*MiB+f.state.layers.length*4096+32768,limit=512*MiB-allowance,before=rssOwnership();let rss=limit+1,samples=0,assets=0,consumed=0,memory;
+ withCompositionRSSMethods({rss(){samples++;return rss;}},()=>{
+  memory=new CompositionMemory(()=>memory.bytes);memories.add(memory);const empty=memory.resourceOwnership(),run=()=>withLayerValues(f.state,f.read,id=>{assets++;return f.asset(id);},memory,values=>{consumed++;assert.equal(memory.bytes,allowance);assert.equal(values[0].text,'retained native heading');});
+  assert.throws(run,{code:'CAPACITY'});assert.equal(assets,0);assert.deepEqual(f.reads,[]);assert.equal(consumed,0);assert.deepEqual(memory.resourceOwnership(),empty);assert.deepEqual(rssOwnership(),before);
+  rss=limit;run();assert.equal(samples,2);assert.equal(assets,1);assert.deepEqual(f.reads,[f.source.hash,f.textRef.hash]);assert.equal(consumed,1);assert.deepEqual(memory.resourceOwnership(),empty);assert.deepEqual(rssOwnership(),before);
+ });
+});
+
+test('default resize samples only actual growth and preserves the original RSS plus current debt ordering',()=>{
+ const id='11111111-1111-4111-8111-111111111111',debt=17,before=rssOwnership(),events=[];let memory,rss=512*MiB-debt-100,samples=0;
+ withCompositionRSSMethods({rss(){samples++;events.push('rss');return rss;}},()=>{
+  memory=new CompositionMemory(()=>{events.push('other');return memory.bytes+debt;});memories.add(memory);const empty=memory.resourceOwnership();
+  try{
+   memory.resize(id,100);assert.equal(memory.bytes,100);assert.deepEqual(events,['rss','other']);events.length=0;rss=512*MiB;
+   memory.resize(id,100);memory.resize(id,90);assert.equal(memory.bytes,90);assert.deepEqual(events,[],'Equal size and shrinking do not add a new RSS sample');assert.equal(samples,1);
+   rss=512*MiB-debt-120;memory.resize(id,120);assert.equal(memory.bytes,120);assert.deepEqual(events,['rss','other']);events.length=0;const held=memory.resourceOwnership(),owned=rssOwnership();
+   rss=512*MiB-debt-121+1;assert.throws(()=>memory.resize(id,121),{code:'CAPACITY'});assert.equal(memory.bytes,120);assert.deepEqual(events,['rss','other']);assert.deepEqual(memory.resourceOwnership(),held);assert.deepEqual(rssOwnership(),owned);assert.equal(samples,3);
+  }finally{memory.drop(id,()=>assert.fail('No content reader was opened'));}assert.deepEqual(memory.resourceOwnership(),empty);assert.deepEqual(rssOwnership(),before);
+ });
+});
+
+for(const phase of ['rss','other','builder'])test('default admission '+phase+' failure preserves exact identity and leaves no owner',()=>{
+ const failure=Object.freeze({phase}),events=[],before=rssOwnership();let memory;
+ withCompositionRSSMethods({rss(){events.push('rss');if(phase==='rss')throw failure;return 0;}},()=>{
+  memory=new CompositionMemory(()=>{events.push('other');if(phase==='other')throw failure;return memory.bytes;});memories.add(memory);const empty=memory.resourceOwnership();
+  assert.throws(()=>memory.ownedMetadata(1,()=>{events.push('builder');assert.equal(memory.resourceOwnership().borrowers,1);throw failure;}),error=>error===failure);
+  assert.deepEqual(events,phase==='rss'?['rss']:phase==='other'?['rss','other']:['rss','other','builder']);assert.deepEqual(memory.resourceOwnership(),empty);assert.deepEqual(rssOwnership(),before);
+ });
+});
+
+test('explicit Composition RSS injection stays fresh and never consults either process API',()=>{
+ const before=rssOwnership(),events=[];let rss=0,memory;
+ withCompositionRSSMethods({rss:()=>assert.fail('Injected admission called process RSS'),full:()=>assert.fail('Injected admission collected full memory')},()=>{
+  memory=new CompositionMemory(()=>{events.push('other');return memory.bytes;},()=>{events.push('injected');return rss;});memories.add(memory);const empty=memory.resourceOwnership();let consumed=0;
+  memory.nativeLayers({layers:[]},()=>{consumed++;assert.equal(memory.bytes,4*MiB);});assert.equal(consumed,1);assert.deepEqual(events,['injected','other']);assert.deepEqual(memory.resourceOwnership(),empty);
+  rss=512*MiB-4*MiB+1;events.length=0;assert.throws(()=>memory.nativeLayers({layers:[]},()=>{consumed++;}),{code:'CAPACITY'});assert.deepEqual(events,['injected','other']);assert.equal(consumed,1);assert.deepEqual(memory.resourceOwnership(),empty);assert.deepEqual(rssOwnership(),before);
+ });
+});
