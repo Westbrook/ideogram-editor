@@ -5,8 +5,8 @@
     "schema": 1,
     "product": "Ideogram Editor preview",
     "scope": "Disconnected editor UI and temporary native text demo; no local server or provider",
-    "commit": "e6b6d8ada19e0dc13e1c7ac6bc2fed1f0ba5025b",
-    "builtAt": "2026-10-04T00:09:29.485Z",
+    "commit": "b552e190861716a41c99503f13afb6be22553b93",
+    "builtAt": "2026-10-04T00:35:33.771Z",
     "base": "/ideogram-editor/"
   },
   "files": [
@@ -91,9 +91,9 @@
       "sha256": "fda6e4be5235b43398429f3334cbe6351458886596d743e41a529d089207e697"
     },
     {
-      "path": "assets/index-BFkz0hY4.js",
+      "path": "assets/index-B9hiUTly.js",
       "bytes": 3616,
-      "sha256": "d4307a664d5be746e7a5e3dcd83a5fe35f7387db1db77ecd041d6542c3d1d95c"
+      "sha256": "af05eba11ea9c630e26ac57dec851ffef95032f2673fa9acd8a95deb598cf213"
     },
     {
       "path": "assets/index-BpiY80wJ.css",
@@ -171,9 +171,9 @@
       "sha256": "d348075025f15b7c56bd340d3c17f949beff94b02a47cf28a7df7eac9e425cfd"
     },
     {
-      "path": "assets/text-demo-CkEvB_Jk.js",
+      "path": "assets/text-demo-BSXPR6Sl.js",
       "bytes": 18183,
-      "sha256": "4d3f74b6c6ee2bfec665918409576009817298e5b475bb7ba428af8745eddf7a"
+      "sha256": "68261e3b66e2034840051564497f621896c0a839eb3f165268b09414b34ace10"
     },
     {
       "path": "assets/worker-VvD0iOfL.js",
@@ -183,12 +183,12 @@
     {
       "path": "build-identity.json",
       "bytes": 283,
-      "sha256": "93f7f16072d88a8aa1884b5647e35562a210464f0891dad09f014e9a020b32b5"
+      "sha256": "301bdfd8cde83e63c33e17a6b352c43986f78d3852743fb227522639805529bf"
     },
     {
       "path": "index.html",
       "bytes": 1743,
-      "sha256": "1815669ca09eebe66ddd92d81fb10f738570515a13afdca02554e78bffe1b85f"
+      "sha256": "346ebc6f448fac7a9f89da4ff9fe1c5cb3d49e2c323930748fec7a07216e83a9"
     },
     {
       "path": "notices/en-reve-LICENSE.txt",
