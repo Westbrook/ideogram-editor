@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { FIXTURE_VERSION, workloadDefinition } from '../../tooling/qualification/campaigns/fixtures.mjs';
 import { selectFixtureDescriptor } from '../../tooling/qualification/campaigns/fixture-catalog.mjs';
-import { createFixtureCatalog, descriptorFor, fixtureKey, main, parseFixtureArguments, prepareFixtureInput, readFixtureDescriptor } from '../../tooling/qualification/campaigns/fixtures-run.mjs';
+import { createFixtureCatalog, descriptorFor, fixtureKey, main, parseFixtureArguments, prepareFixtureInput, prepareSeedInput, readFixtureDescriptor } from '../../tooling/qualification/campaigns/fixtures-run.mjs';
 
 async function temporary(t) {
   const root = await realpath(await mkdtemp(join(tmpdir(), 'fixture-cli-')));
@@ -136,4 +136,24 @@ test('help and CLI validation are readable without starting preparation', async 
   assert.match(out, /fixture-input.json/); assert.match(out, /--allow-heavy/); assert.equal(error, '');
   assert.equal(await main(['prepare', '--workload', 'W2', '--output', 'artifacts/new'], streams), 1);
   assert.match(error, /allow-heavy/);
+});
+
+
+test('small mixed seed has an explicit separate command and refuses workload shortcuts', () => {
+  assert.deepEqual(parseFixtureArguments(['prepare-seed', '--output', 'artifacts/new-seed', '--allow-heavy', '--official-adapter', '/sealed/weights', '--repo', '/subject']),
+    {command: 'prepare-seed', output: 'artifacts/new-seed', allowHeavy: true, officialAdapter: '/sealed/weights', repo: '/subject'});
+  assert.throws(() => parseFixtureArguments(['prepare-seed', '--output', 'artifacts/new-seed']), /allow-heavy/);
+  for (const [flag, value] of [['--workload', 'WC512'], ['--closure-bytes', '536870912'], ['--seed', '/old/seed.json'], ['--font-corpus', '/fonts.json'], ['--catalog-output', 'artifacts/catalog.json'], ['--fixture', 'W1=x']])
+    assert.throws(() => parseFixtureArguments(['prepare-seed', '--output', 'artifacts/new-seed', '--allow-heavy', flag, value]), /Unknown prepare-seed option/);
+  assert.throws(() => parseFixtureArguments(['prepare-seed', '--output', 'one', '--output', 'two', '--allow-heavy']), /Duplicate/);
+});
+
+test('programmatic small seed refuses implicit heavy preparation without importing its producer or writing', async t => {
+  const root = await temporary(t), output = join(root, 'absent-seed');
+  await assert.rejects(prepareSeedInput({output}), /allow-heavy/);
+  await assert.rejects(lstat(output), {code: 'ENOENT'});
+  let out = '', error = '';
+  assert.equal(await main(['prepare-seed', '--output', output], {stdout: {write: v => {out += v;}}, stderr: {write: v => {error += v;}}}), 1);
+  assert.equal(out, ''); assert.match(error, /allow-heavy/);
+  await assert.rejects(lstat(output), {code: 'ENOENT'});
 });

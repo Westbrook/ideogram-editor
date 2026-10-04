@@ -81,7 +81,7 @@ export async function startMaskedFixtureProvider(context, store, plan, stagePlan
       const request = requests.get(match[1]);
       if (match[2] === '/status') { assert.equal(req.method, 'GET'); res.end(JSON.stringify({ request_id: request.requestId, status: controls.status })); }
       else if (match[2] === '/cancel') res.end(JSON.stringify({ request_id: request.requestId, status: 'CANCELLING' }));
-      else { assert.equal(req.method, 'GET'); res.end(JSON.stringify({ images: plan.candidates.map((file, index) => ({ url: origin + '/image/' + request.requestId + '/' + index, content_type: 'image/png', file_size: Number(file.byteLength), width: file.width, height: file.height })), prompt: request.prompt, seed: 31, has_nsfw_concepts: plan.candidates.map(() => false) })); }
+      else { assert.equal(req.method, 'GET'); res.end(JSON.stringify({ images: plan.candidates.map((file, index) => ({ url: origin + '/image/' + request.requestId + '/' + index, content_type: 'image/png', file_size: Number(file.byteLength), width: file.width, height: file.height })), prompt: request.prompt, seed: 31, timings: {}, has_nsfw_concepts: plan.candidates.map(() => false) })); }
     } catch (error) { if (!closing) errors.push({ code: error.code ?? error.name, message: error.message }); if (!res.headersSent) { res.statusCode = 500; res.end('{}'); } else res.destroy(); }
     finally { pending.delete(work); settle(); }
   });

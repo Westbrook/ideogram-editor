@@ -21,6 +21,10 @@ const usage = `Sealed performance fixtures (preparation is outside measurement)
     --workload WC --closure-bytes 536870912 --seed /mixed/seed.json \\
     --output artifacts/new-wc --allow-heavy
 
+  node tooling/qualification/campaigns/fixtures-run.mjs prepare-seed \\
+    --output artifacts/new-mixed-seed --allow-heavy \\
+    [--official-adapter /sealed/provider-example.safetensors] [--repo /subject/repo]
+
   node tooling/qualification/campaigns/fixtures-run.mjs catalog \\
     --output artifacts/new-catalog.json \\
     --fixture W1=artifacts/new-w1/fixture-input.json \\
@@ -28,6 +32,8 @@ const usage = `Sealed performance fixtures (preparation is outside measurement)
     [--cell EXACT_CELL_ID=@W1]
 
 prepare writes fixture-input.json containing the separately retained manifest seal.
+prepare-seed writes seed.json only after a genuine small mixed root and archive close.
+Its native worker and bounded loopback provider are preparation, not qualification.
 WXn/WXs require --font-corpus. WC512/WC4G (or WC with --closure-bytes) require
 an actual mixed full-history seed JSON with root, documentId and sealed archive.
 catalog verifies every referenced fixture; --cell also accepts a descriptor path.
@@ -49,9 +55,10 @@ function assignment(value, flag) {
 export function parseFixtureArguments(argv) {
   if (argv.length === 0 || (argv.length === 1 && ['--help', '-h', 'help'].includes(argv[0]))) return { command: 'help' };
   const command = argv[0];
-  if (!['prepare', 'catalog'].includes(command)) throw Error('Expected prepare or catalog command; use --help');
+  if (!['prepare', 'prepare-seed', 'catalog'].includes(command)) throw Error('Expected prepare, prepare-seed or catalog command; use --help');
   const allowed = command === 'prepare'
     ? new Set(['--workload', '--output', '--repo', '--font-corpus', '--official-adapter', '--seed', '--closure-bytes', '--catalog-output', '--allow-heavy'])
+    : command === 'prepare-seed' ? new Set(['--output', '--repo', '--official-adapter', '--allow-heavy'])
     : new Set(['--output', '--fixture', '--cell']);
   const options = { command }, seen = new Set(), fixtures = [], cells = [];
   for (let index = 1; index < argv.length; index++) {
@@ -78,6 +85,8 @@ export function parseFixtureArguments(argv) {
     if (definition.closureBytes && !options.seed) throw Error('WC requires --seed with an actual mixed full-history seed');
     if (!definition.closureBytes && options.seed) throw Error('--seed is only supported for WC workloads');
     if (options.officialAdapter && definition.id !== 'WA') throw Error('--official-adapter is only supported for WA');
+  } else if (command === 'prepare-seed') {
+    if (options.allowHeavy !== true) throw Error('prepare-seed requires explicit --allow-heavy; genuine seed preparation never runs implicitly');
   } else {
     if (!fixtures.length && !cells.length) throw Error('catalog requires at least one --fixture or --cell');
     options.fixtures = fixtures; options.cells = cells;
@@ -204,13 +213,30 @@ export async function prepareFixtureInput(options) {
   return { descriptorPath, descriptor, workload: verified.workload, ...(catalog ? { catalogPath: catalog.catalogPath } : {}) };
 }
 
+// The seed is a separate, ordinary product preparation. It is never substituted
+// for a full WC fixture and does not inherit its zero-network-attempt claim.
+export async function prepareSeedInput(options = {}) {
+  const argv = ['prepare-seed', '--output', options.output ?? ''];
+  for (const [name, flag] of [['repo', '--repo'], ['officialAdapter', '--official-adapter']]) if (options[name] !== undefined) argv.push(flag, String(options[name]));
+  if (options.allowHeavy === true) argv.push('--allow-heavy');
+  const checked = parseFixtureArguments(argv);
+  if (process.versions.node !== '26.10.0') throw Error('Seed preparation requires the pinned Node 26.10.0 toolchain before generating any bytes');
+  const output = await assertNewPath(checked.output), artifactRoot = join(await realpath(REPO), 'artifacts');
+  if (!output.startsWith(artifactRoot + sep)) throw Error('Seed output must be a new artifact directory in this checkout');
+  const {prepareMixedWCSeed} = await import('./fixture-portable-seed.mjs');
+  return prepareMixedWCSeed({repo: checked.repo ? resolve(checked.repo) : await realpath(REPO), output, allowHeavy: true,
+    ...(checked.officialAdapter ? {officialAdapterPath: resolve(checked.officialAdapter)} : {}), signal: options.signal, onProgress: options.onProgress});
+}
+
 export async function main(argv = process.argv.slice(2), { stdout = process.stdout, stderr = process.stderr } = {}) {
   try {
     const options = parseFixtureArguments(argv);
     if (options.command === 'help') { stdout.write(usage); return 0; }
     const result = options.command === 'prepare'
       ? await prepareFixtureInput({ ...options, onProgress: value => stderr.write(JSON.stringify({ preparation: value }) + '\n') })
-      : await createFixtureCatalog(options);
+      : options.command === 'prepare-seed'
+        ? await prepareSeedInput({ ...options, onProgress: value => stderr.write(JSON.stringify({ preparation: value }) + '\n') })
+        : await createFixtureCatalog(options);
     stdout.write(JSON.stringify(result, null, 2) + '\n');
     return 0;
   } catch (error) {

@@ -27,8 +27,8 @@ leaves the single dispatch slot free: the individual fault sample creates and
 observes its own active attempt inside its timing span.
 
 Actual result-bearing and active attempts require a production candidate seeder.
-Native mixed documents require actual browser worker layout/render and durable
-native admission. Full WC closures require actual production references and
+Native mixed documents require actual worker layout/render and durable native
+admission; their preparation records distinguish browser and server workers. Full WC closures require actual production references and
 verified portable output. The fixture must fail preparation if these producers
 are absent. Merely generating the expected bytes or copying expected counts
 into a manifest is not enough. There is no metadata-only compatibility fallback.
@@ -147,3 +147,63 @@ An optional `--cell EXACT_CELL_ID=@W1` selects that verified workload for one ce
 a descriptor path can also be supplied after the equals sign. Catalog creation
 verifies every referenced source, refuses duplicate or mismatched keys, and
 writes a new file without merging or overwriting previous evidence.
+
+
+## Genuine small mixed WC seed
+
+`node --import ./tests/session/no-egress.mjs tooling/qualification/campaigns/fixtures-run.mjs prepare-seed --output artifacts/new-mixed-seed --allow-heavy`
+creates the previously required small mixed seed through the current writer and
+server native renderer. It accepts `--official-adapter /absolute/verified/file`
+for the exact supported 85,299,896-byte public example; it never downloads bytes.
+The pinned Noto Sans and Noto Sans Arabic files and OFL records are verified
+before and after preparation. Selected text must have actual cmap coverage.
+The subsequent WC preparation accepts the final `seed.json` with `--seed`.
+
+This seed has a 512-square real original, one actual completed candidate from a
+literal `127.0.0.1` emulator, a genuine CP1 contribution stack, two canonical
+reviewed Composition versions with raw/derived captions, and a saved request
+joining the latest approved projection to the real immutable adapter version.
+Its native text layers use the actual server renderer with alpha zero; known-zero
+RGBA is accepted only after matching the actual native raster hash. Current,
+hidden and history-only font/source/layout dependencies remain in the archive.
+This provides native layout/admission and closure evidence, with no visible-glyph
+or presentation claim. No direct adapter/font fields are invented in Composition.
+
+Use the inherited session `no-egress.mjs` guard for seed preparation: the one
+bounded local emulator is disclosed, and external provider calls are forbidden.
+The following full WC fixture growth and campaign use their unchanged strict
+store `no-network.mjs` guard. A small seed is not WC512/WC4G, not a scaled workload,
+and not I12C evidence. It must contain all nine typed feature categories and stay
+strictly below 10,000 events, 1,000 assets and 512 MiB of closure so the existing
+producer can grow genuine full fixtures. Normal commands, exact archive hashes,
+portable closure validation, root/document equality and owner closure precede
+publication of `seed.json`; failures retain their output and never publish it.
+
+The seed command itself does not issue a storage allocation or timing authority.
+Use the separately maintained preparation-accounting wrapper for monitored
+preparation, with a fresh child output inside an explicit private allocation.
+Its preparation receipt is separate from later workload and campaign receipts.
+The ordinary regression owner is `tests/adapters/mixed-wc-seed-writer.test.mjs`:
+the shared runner verifies and injects the exact public adapter input before and
+after the whole owner. It requires a server build and inherited no-egress guard,
+not an app build or browser installation. This functional control does not run
+WC fixture growth or acquire performance/hardware qualification.
+
+Run the preparation supervisor with the pinned toolchain and an existing private
+evidence allocation. The outer output must be new; the supervisor supplies the
+producer's `prepared/` child path. For example:
+
+```sh
+IE_EVIDENCE_ALLOCATION=/absolute/allocation.json node tooling/qualification/campaigns/fixture-preparation.mjs \
+  --output /absolute/checkout/artifacts/new-preparation --timeout-ms 600000 -- \
+  prepare-seed --official-adapter /absolute/verified/provider-example.safetensors --allow-heavy
+```
+
+Use the same wrapper with `prepare --workload WC512 --seed /absolute/seed.json
+--allow-heavy` for subsequent growth. The wrapper selects the required inherited
+network guard, monitors storage and preserves failed outputs. A successful raw
+producer result is insufficient: require effective PASS, verified storage,
+stable source/dependencies, observed child closure and released exclusions in
+`finalization.json`. The accounting allocation does not reserve physical space;
+the product also retains its independent physical-filesystem 90% guard. Measure
+actual retained bytes and entry counts before the next preparation or campaign.
