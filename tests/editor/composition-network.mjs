@@ -108,15 +108,28 @@ export function expectedDisplayBusy(e,origin,proofs=[]){
 // original reader reached EOF. This never supplies replacement JSON: the queue
 // fixture must retain a later, complete public queue response for its assertions.
 export function queueBodyObserverDisposition(row,error,origin,engine,observations,snapshot,current){
+ return queueObservedReadDisposition(row,error,origin,engine,observations,snapshot,current,false);
+}
+// A fulfilled original reader cancellation is a distinct no-value disposition.
+// It never certifies EOF, parsed JSON, supersession cause, or model adoption.
+export function queueCancelledBodyObserverDisposition(row,error,origin,engine,observations,snapshot,current){
+ return queueObservedReadDisposition(row,error,origin,engine,observations,snapshot,current,true);
+}
+function queueObservedReadDisposition(row,error,origin,engine,observations,snapshot,current,cancelled){
  const message=error instanceof Error?error.message:error?.message;
  const unavailable='response.json: Protocol error (Network.getResponseBody): No data found for resource with given identifier';
  if(engine!=='chromium'||row?.method!=='GET'||row.origin!==origin||row.path!=='/api/v1/queue'||row.hasQuery!==false||row.status!==200||row.stage!=='json'||row.body!=='failed'||row.terminal!=='failed'||row.nativeFailure!=='net::ERR_ABORTED'||row.contentType!=='application/json; charset=utf-8'||!/^\d+$/.test(row.contentLength??'')||!Number.isSafeInteger(Number(row.contentLength))||Number(row.contentLength)<1||String(Number(row.contentLength))!==row.contentLength||![unavailable,unavailable+'\nResponse body is not available for a response that was navigated away from. Read response.body() before triggering any navigation.'].includes(message))return false;
  const raw=snapshot?.raw,proofs=snapshot?.proofs;
  if(!raw||!Array.isArray(proofs)||!current||!Number.isFinite(snapshot.capturedAt)||!Number.isSafeInteger(snapshot.eventLimit)||!Number.isSafeInteger(snapshot.requestLimit)||raw.errors.length||current.errors.length||raw.events.length>=snapshot.eventLimit||raw.requests.length>=snapshot.requestLimit||current.events.length>=snapshot.eventLimit||current.requests.length>=snapshot.requestLimit)return false;
  const selected=proofs.filter(p=>p.requestId===row.originalRequestId),p=selected[0],url=origin+'/api/v1/queue';
- if(selected.length!==1||p.url!==url||p.method!=='GET'||p.status!==200||p.exactOccurrence!==true||!exactReadAssociation(p)||p.bodyComplete!==true||p.signalAborted!==false||p.bodyCanceled!==false||!Number.isSafeInteger(p.bytes)||String(p.bytes)!==row.contentLength)return false;
+ if(selected.length!==1||p.url!==url||p.method!=='GET'||p.status!==200||p.exactOccurrence!==true||!exactReadAssociation(p)||p.signalAborted!==false)return false;
+ if(cancelled?p.bodyComplete!==false||p.bodyCanceled!==true||p.bytes!==undefined:p.bodyComplete!==true||p.bodyCanceled!==false||!Number.isSafeInteger(p.bytes)||String(p.bytes)!==row.contentLength)return false;
  const sameBucket=e=>e.frameId===p.frameId&&e.url===url&&e.method==='GET',key=e=>JSON.stringify([e.frameId,e.document,e.operation]);
  const rows=raw.events.filter(sameBucket),requests=raw.requests.filter(sameBucket),bucketProofs=proofs.filter(sameBucket),operations=new Set(rows.map(key));
+ if(cancelled){
+  const own=rows.filter(e=>key(e)===key(p)),[start,response,reader,cancel]=own;
+  if(own.length!==4||start.kind!=='start'||response.kind!=='response'||reader.kind!=='reader'||cancel.kind!=='cancel'||reader.reader!==1||cancel.reader!==1||response.status!==200||response.responseURL!==url||response.redirected!==false||start.start!==p.start||cancel.at!==p.end||!(start.at<=response.at&&response.at<=reader.at&&reader.at<=cancel.at))return false;
+ }
  // Keep every raw bucket vertex. A pending/unmatched original operation or
  // native request at the capture boundary makes the whole snapshot ineligible.
  if(operations.size!==requests.length||bucketProofs.length!==requests.length||new Set(requests.map(q=>q.requestId)).size!==requests.length||new Set(bucketProofs.map(q=>q.requestId)).size!==requests.length||bucketProofs.some(q=>!exactReadAssociation(q)||q.exactOccurrence!==true||!operations.has(key(q))||!requests.some(r=>r.requestId===q.requestId))||new Set(bucketProofs.map(key)).size!==operations.size||rows.some(e=>!Number.isFinite(e.at)||e.at>snapshot.capturedAt))return false;
@@ -128,5 +141,11 @@ export function queueBodyObserverDisposition(row,error,origin,engine,observation
  for(const q of requests){const live=liveRequests.filter(r=>r.requestId===q.requestId);if(live.length!==1||JSON.stringify(q)!==JSON.stringify(live[0]))return false;}
  if(liveRequests.some(q=>!requests.some(r=>r.requestId===q.requestId)&&(!Number.isFinite(q.startTime)||q.startTime<=snapshot.capturedAt+2)))return false;
  const later=observations.find(next=>next.id>row.id&&next.epoch===row.epoch&&next.method==='GET'&&next.origin===origin&&next.path==='/api/v1/queue'&&next.hasQuery===false&&next.status===200&&next.stage==='complete'&&next.body==='complete'&&next.terminal==='finished'&&next.nativeFailure===null);
+ if(cancelled){
+  if(!later||later.contentType!==row.contentType||!/^[1-9][0-9]*$/.test(later.contentLength??''))return false;
+  const following=proofs.filter(q=>q.requestId===later.originalRequestId),q=following[0];
+  if(following.length!==1||q.url!==url||q.method!=='GET'||q.status!==200||q.frameId!==p.frameId||q.document!==p.document||q.exactOccurrence!==true||!exactReadAssociation(q)||q.bodyComplete!==true||q.bodyCanceled!==false||q.signalAborted!==false||!Number.isSafeInteger(q.bytes)||String(q.bytes)!==later.contentLength)return false;
+  return {kind:'exact-original-queue-reader-cancel',requestId:p.requestId,frameId:p.frameId,document:p.document,operation:p.operation,bodyComplete:false,bodyCanceled:true,laterObservationId:later.id};
+ }
  return later?{kind:'exact-original-queue-eof-observer-loss',requestId:p.requestId,frameId:p.frameId,document:p.document,operation:p.operation,bytes:p.bytes,laterObservationId:later.id}:false;
 }
