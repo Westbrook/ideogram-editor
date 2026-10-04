@@ -6,6 +6,8 @@ import {join} from 'node:path';
 import {createHash} from 'node:crypto';
 import sharp from 'sharp';
 import {serverProcess} from './process.js';
+// @ts-ignore Test-only bounded failure capture; no application module or additional HTTP read.
+import {capturePendingDiagnostic,shutdownDiagnostic} from './pending-diagnostics.mjs';
 import {ownedOPFS} from '../editor/owned-opfs.js';
 import {recordDOMErrors} from '../editor/error-monitor.js';
 import {runs,step,throwFailures,finishFixture,type RunState} from '../editor/harness-lifecycle.js';
@@ -583,7 +585,7 @@ test(nativeDeferredAdoptionTitle,async({page,context,browserName})=>{
   const state:RunState={failures:[],roots:[dir],writerClosed:false,contextClosed:false,browserClosed:false,retention:[],receipt,prefix:'e3-native-deferred-'};
   runs.set(context,state);
   const responseMetadata=postResponseMetadata(page,state,()=>server?.origin,2048);
-  state.observe=()=>({errors,csp,external,consoleErrors,commands,uiRequests,responseMetadata:responseMetadata.snapshot(),effects,closed,evidence,process:server?.lifecycle,requestLifecycle:guard.requests,cleanup:guard.ledger});
+  state.observe=()=>({errors,csp,external,consoleErrors,commands,uiRequests,responseMetadata:responseMetadata.snapshot(),effects,closed,evidence,process:server?.lifecycle,shutdown:shutdownDiagnostic(server?.shutdown),requestLifecycle:guard.requests,cleanup:guard.ledger});
   state.finalCheck=async()=>{try{
     guard.verify();expect(guard.ledger.filter(entry=>entry.phase==='refused')).toEqual([]);
     expect(errors).toEqual([]);expect(csp).toEqual([]);expect(external).toEqual([]);expect(consoleErrors).toEqual([]);
@@ -605,7 +607,7 @@ test(nativeDeferredAdoptionTitle,async({page,context,browserName})=>{
   async function pixels(id:string){const value=await asset(id),bytes=await readFile(objectPath(root,value.raster.pixels));expect(digest(bytes)).toBe(value.raster.pixels.hash);return bytes;}
 
   try{
-    server=await serverProcess(root);
+    server=await serverProcess(root,512,true);
     await context.route('**/*',route=>{
       const url=new URL(route.request().url());
       if(['http:','https:'].includes(url.protocol)&&url.origin!==server!.origin){external.push(url.origin);return route.abort();}
@@ -832,7 +834,12 @@ test(nativeDeferredAdoptionTitle,async({page,context,browserName})=>{
     evidence.staleRecovery={sourceDocumentId:documentId,sourceRevision:staleTarget.revision,newDocumentId:recoveredDocument.id,sourceUnchanged:true,frozenTextTreatment:newPlacement.body.textTreatment.plan,freshPlacementApproval:newPlacement.body.textTreatment.choice.approvalId};
     evidence.review=job.review;evidence.candidate=candidate;
     if(browserName!=='webkit')await page.screenshot({path:join(receipt,'e3-native-deferred-adopted.png'),caret:'initial'});
-  }catch(error){state.failures.push({phase:'body',error});}finally{
+  }catch(error){
+    state.failures.push({phase:'body',error});
+    // Observe the already posted operation after the original assertion failed.
+    // This does not repost, extend the assertion, or turn any failure into a pass.
+    evidence.pendingAdoption=await capturePendingDiagnostic(root,commands.filter(command=>command.body.type==='AdoptReviewedCandidate').at(-1));
+  }finally{
     if(!state.failures.length)await step(state,'logical-cleanup',async()=>{for(const current of context.pages())await current.goto('about:blank');await guard.cleanup();guard.verify();});
     if(server)state.writerClosed=await step(state,'writer-close',()=>server!.close());
     if(state.writerClosed)await step(state,'native-close-receipt',async()=>{closed=JSON.parse(await readFile(join(root,'request-edits-fixture.json'),'utf8'));expect(closed.closed).toBe(true);expect(closed.errors).toEqual([]);});
