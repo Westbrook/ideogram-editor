@@ -101,8 +101,8 @@ export const WA_OPAQUE_PATH_SOURCE_PINS = freeze([
   },
   {
     "path": "src/ui/request.ts",
-    "bytes": 148846,
-    "sha256": "sha256:8b6aa50bda5f778107035c11f80f27892494d73b68d8e441d46a5dd7db6a6048"
+    "bytes": 147606,
+    "sha256": "sha256:be6428215c9693cb7f4f392313ec322537c0cd00aa6141c8c4147f761f261b2c"
   }
 ]);
 

@@ -272,18 +272,18 @@ test('verified profile binds the one request operation lookup and all four exact
   const source = 'src/ui/request.ts', text = value.sourceTextByPath[source];
   const expression = 'operations[labels.indexOf(label)]', declarationExpression = 'op=' + expression;
   const callExpression = "op.endsWith('-v45')";
-  assert.equal(text.indexOf(expression), 57292);
-  assert.equal(text.indexOf(expression, 57293), -1);
-  assert.equal(text.indexOf(declarationExpression), 57289);
-  const calls = [57384, 57802, 57827, 58417].map(start => {
+  assert.equal(text.indexOf(expression), 56034);
+  assert.equal(text.indexOf(expression, 56035), -1);
+  assert.equal(text.indexOf(declarationExpression), 56031);
+  const calls = [56126, 56544, 56569, 57159].map(start => {
     assert.equal(text.slice(start, start + callExpression.length), callExpression);
     return { start, end: start + callExpression.length, expressionSha256: identity(source, callExpression).sha256, method: 'endsWith', argument: '-v45' };
   });
   assert.equal(text.split(callExpression).length - 1, calls.length);
   const expected = { kind: 'reviewed-d11-event-data-calls-1', sites: [{
-    source, start: 57292, end: 57325, expressionSha256: identity(source, expression).sha256,
+    source, start: 56034, end: 56067, expressionSha256: identity(source, expression).sha256,
     sourceSha256: identity(source, text).sha256,
-    declaration: { start: 57289, end: 57325, expressionSha256: identity(source, declarationExpression).sha256 },
+    declaration: { start: 56031, end: 56067, expressionSha256: identity(source, declarationExpression).sha256 },
     calls, effect: 'request-operation-literal-string-method',
   }] };
   assert.deepEqual(profile.eventDataEffects, expected);
