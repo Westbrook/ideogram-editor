@@ -5,8 +5,8 @@
     "schema": 1,
     "product": "Ideogram Editor preview",
     "scope": "Disconnected editor UI and temporary native text demo; no local server or provider",
-    "commit": "dfec4b03d455c553de4a492933742cc760af9bd2",
-    "builtAt": "2026-10-04T01:00:57.837Z",
+    "commit": "a21442bf2eee3efd40603a9a2bfb6d31a24e0c10",
+    "builtAt": "2026-10-04T01:30:56.570Z",
     "base": "/ideogram-editor/"
   },
   "files": [
@@ -91,14 +91,14 @@
       "sha256": "fda6e4be5235b43398429f3334cbe6351458886596d743e41a529d089207e697"
     },
     {
-      "path": "assets/index-BaTlGjTW.js",
-      "bytes": 3616,
-      "sha256": "a80bf56469b696e2c35c1f8029c66f58ef0fb9546d34034876b9fde6f54c58b4"
-    },
-    {
       "path": "assets/index-BpiY80wJ.css",
       "bytes": 309180,
       "sha256": "f94a0171df3e4154d9e33a40f3b152a52a006a125177f3d2463ab285da41574a"
+    },
+    {
+      "path": "assets/index-DsKJUeni.js",
+      "bytes": 3616,
+      "sha256": "590de39e8a92a53300344385d5ef51004c97cb55967e8924b764f95e0627fec3"
     },
     {
       "path": "assets/lit-tfDubpWu.js",
@@ -171,9 +171,9 @@
       "sha256": "d348075025f15b7c56bd340d3c17f949beff94b02a47cf28a7df7eac9e425cfd"
     },
     {
-      "path": "assets/text-demo-BpLKoRUJ.js",
+      "path": "assets/text-demo-GYDr9RTb.js",
       "bytes": 18183,
-      "sha256": "f284b15cb0f7c4c80efa4b9e159cf3c1ff4b8a9a1fcba22d48f28b040c67619b"
+      "sha256": "ca5d982261f7067bf6a82a49c8b85d22f61a10447da29f387d32196d2f309988"
     },
     {
       "path": "assets/worker-VvD0iOfL.js",
@@ -183,12 +183,12 @@
     {
       "path": "build-identity.json",
       "bytes": 283,
-      "sha256": "d659deb44db08405657a5f86936acac7d69acee54b1dbe62f91db9e46a6ccd80"
+      "sha256": "199d161658291736f1eebde9650875514c9ec3bb6a0ad9423c899b1542f68638"
     },
     {
       "path": "index.html",
       "bytes": 1743,
-      "sha256": "1ecc6bcba6812d9479291a2734cffe95ea18591d20043c575e9593ba2f3ec6fa"
+      "sha256": "3ae5ec054503dd9dc098ecfd70a06ee233c8419680ee97b57cce0929a54c9c9c"
     },
     {
       "path": "notices/en-reve-LICENSE.txt",
