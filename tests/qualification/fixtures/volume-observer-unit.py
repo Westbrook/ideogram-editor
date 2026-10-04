@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Real observer/Scan controls with injected time and metadata, never wall sleeps."""
 import errno
+import hashlib
 import importlib.util
 import json
 from pathlib import Path
@@ -378,6 +379,84 @@ class Controls(unittest.TestCase):
         self.assertEqual(value['windowEndMonotonicUs'],1_030_000)
         self.assertEqual((fs.handles,fs.closed),(0,1));self.chain(value)
 
+
+
+
+    def test_valid_stat_tuple_canonical_bytes_and_digest_match_list_for_actual_names(self):
+        names = ['payload', 'snow-雪', 'quote"-slash\\-line\n', 'x' * 255,
+                 b'raw-\xff-name'.decode('utf-8', 'surrogateescape')]
+        shapes = [stamp(12), stamp(13, directory=True), stamp(14)]
+        shapes[2].st_mode = stat.S_IFLNK | 0o777
+        low = stamp(1)
+        low.st_dev = low.st_uid = low.st_gid = low.st_size = low.st_blocks = 0
+        low.st_mtime_ns, low.st_ctime_ns = -(2 ** 63), 2 ** 63 - 1
+        high = stamp(observer.MAX_INTEGER)
+        for field in ('st_dev', 'st_uid', 'st_gid', 'st_nlink', 'st_size'):
+            setattr(high, field, observer.MAX_INTEGER)
+        high.st_blocks = observer.MAX_INTEGER // 512
+        high.st_mtime_ns, high.st_ctime_ns = 2 ** 63 - 1, -(2 ** 63)
+        for name in names:
+            for shape in [*shapes, low, high]:
+                with self.subTest(name=ascii(name), mode=shape.st_mode):
+                    value = observer.stat_value(shape, '/capsule/parity')
+                    self.assertIs(type(value), tuple)
+                    self.assertEqual(len(value), 10)
+                    prior = [name, list(value)]
+                    current = [name, value]
+                    expected = json.dumps(prior, sort_keys=True, separators=(',', ':'),
+                                          ensure_ascii=True, allow_nan=False).encode('ascii')
+                    self.assertEqual(observer.canonical(current), expected)
+                    self.assertEqual(observer.canonical(current), observer.canonical(prior))
+                    self.assertEqual(observer.digest(current), observer.digest(prior))
+                    self.assertEqual(observer.digest(current), 'sha256:' + hashlib.sha256(expected).hexdigest())
+        self.assertIn(b'\\udcff', observer.canonical([names[-1], observer.stat_value(low, '/capsule/parity')]))
+
+    def test_real_scan_keeps_tuple_inputs_and_all_filesystem_observations(self):
+        clock = Clock()
+        trace = []
+        class Traced(Filesystem):
+            def root_stat(self): trace.append('root_stat'); return super().root_stat()
+            def open_root(self): trace.append('open_root'); return super().open_root()
+            def stat_directory(self, descriptor): trace.append('stat_directory'); return super().stat_directory(descriptor)
+            def names(self, descriptor): trace.append('names'); return super().names(descriptor)
+            def child_stat(self, descriptor, name): trace.append('child_stat'); return super().child_stat(descriptor, name)
+            def close_directory(self, descriptor): trace.append('close_directory'); return super().close_directory(descriptor)
+        fs = Traced(clock)
+        inputs = []
+        original = observer.canonical
+        def capture(value):
+            inputs.append(value)
+            return original(value)
+        with patch.object(observer, 'canonical', side_effect=capture):
+            counts = observer.Scan(self.request(), fs, clock, observer.MAX_WINDOW_US).run()
+        self.assertEqual(trace, ['root_stat', 'open_root', 'stat_directory', 'names',
+                                 'child_stat', 'child_stat', 'names', 'child_stat',
+                                 'stat_directory', 'root_stat', 'close_directory'])
+        self.assertEqual(len(inputs), 2)
+        self.assertTrue(all(value[0] == 'payload' and type(value[1]) is tuple for value in inputs))
+        self.assertEqual(inputs[0], inputs[1])
+        self.assertEqual(counts['allocatedBytes'], 4608)
+        self.assertEqual((fs.child_reads, fs.handles, fs.iterators, fs.opened, fs.closed), (3, 0, 0, 1, 1))
+        self.assertEqual(clock.sleeps, [])
+
+    def test_tuple_membership_digest_preserves_each_changed_stat_field_refusal(self):
+        for field in observer.STAT_FIELDS:
+            with self.subTest(field=field):
+                clock = Clock()
+                class Changed(Filesystem):
+                    def child_stat(self, descriptor, name):
+                        value = super().child_stat(descriptor, name)
+                        if self.child_reads == 3:
+                            setattr(value, field, getattr(value, field) + 1)
+                        return value
+                fs = Changed(clock)
+                with self.assertRaises(observer.ObservationError) as caught:
+                    observer.Scan(self.request(), fs, clock, observer.MAX_WINDOW_US).run()
+                self.assertEqual(caught.exception.record['code'], 'EVIDENCE_MUTATION')
+                self.assertEqual(caught.exception.record['mutation'],
+                                 {'category': 'directory-children-digest', 'statChanges': None})
+                self.assertEqual((fs.child_reads, fs.handles, fs.iterators, fs.opened, fs.closed), (3, 0, 0, 1, 1))
+                self.assertEqual(clock.sleeps, [])
 
 
 if __name__ == '__main__':

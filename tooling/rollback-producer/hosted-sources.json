@@ -383,8 +383,8 @@
     },
     {
       "path": "tooling/rollback-producer/volume_observer.py",
-      "bytes": 19485,
-      "sha256": "3ff116125843812861e2987be4e1baedfe7271cc720bb0a41fbd09637342b817"
+      "bytes": 19473,
+      "sha256": "1a208fbd77adfc4b8b88fc5950fd2d4fc2195c72a5bc3ab63d4760dab307c215"
     },
     {
       "path": "tooling/toolchain.json",

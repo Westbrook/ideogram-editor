@@ -318,7 +318,7 @@ class Scan:
             if revisited != child:
                 raise mutation_error(child_path, 'child-after-walk-stat', child, revisited)
             del revisited
-            membership.update(canonical([name, list(child)]))
+            membership.update(canonical([name, child]))
         # The second full directory enumeration checks membership and all direct
         # identities again; no file content or link target is read at either pass.
         after = self.names(descriptor, path)
@@ -327,7 +327,7 @@ class Scan:
         repeated = hashlib.sha256()
         for name in after:
             child_path = path + '/' + name
-            repeated.update(canonical([name, list(self.read_stat(self.fs.child_stat, child_path, descriptor, name))]))
+            repeated.update(canonical([name, self.read_stat(self.fs.child_stat, child_path, descriptor, name)]))
         if repeated.digest() != membership.digest():
             # Preserve the original short circuit: there is no final fstat here.
             # Aggregate identities cannot supply a particular changed field.

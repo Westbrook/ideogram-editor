@@ -146,7 +146,7 @@ test('input materialization creates private intermediate parents under ordinary 
 test('native mutation retries are separated inside the original bounded window and retain refusals',async()=>{
   const {stdout}=await promisify(execFile)('python3',['-I','-S','-B',fileURLToPath(new URL('./fixtures/volume-observer-unit.py',import.meta.url)),fileURLToPath(new URL('../../tooling/rollback-producer/volume_observer.py',import.meta.url))],{maxBuffer:65536,timeout:10000});
   const {delayedObservation,...result}=JSON.parse(stdout);
-  assert.deepEqual(result,{tests:24,failures:0,errors:0});
+  assert.deepEqual(result,{tests:27,failures:0,errors:0});
   assert.equal(TIMEOUTS.observe,2000);
   assert.equal(volumeSize(delayedObservation,delayedObservation.request).bytes,4608);
   assert.equal(delayedObservation.selectedAttempt,1);
