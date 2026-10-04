@@ -27,7 +27,8 @@ ie-shell { display: flex; flex-direction: column; height: 100dvh; min-height: 65
 .skip-links { position: fixed; inset: 4px 4px auto 4px; z-index: 20; display: flex; gap: 8px; }
 .skip-links en-link { position: absolute; transform: translateY(-180%); white-space: nowrap; padding: 12px; background: var(--en-color-surface); border: 1px solid var(--en-color-boundary); }
 .skip-links en-link:focus-within { position: static; transform: none; }
-.document-bar { min-height: 72px; display: flex; align-items: center; gap: 28px; padding: 12px 20px; border-bottom: 1px solid var(--en-color-line); background: var(--en-color-surface); }
+/* Wrapped document controls must keep their full height in the shell column. */
+.document-bar { min-height: 72px; flex-shrink: 0; display: flex; align-items: center; gap: 28px; padding: 12px 20px; border-bottom: 1px solid var(--en-color-line); background: var(--en-color-surface); }
 .identity { display: flex; align-items: center; gap: 12px; min-inline-size: 0; max-inline-size: 100%; }
 .identity > div { min-inline-size: 0; max-inline-size: 100%; }
 .brand-mark { flex-shrink: 0; width: 36px; height: 36px; border-radius: 11px; background: var(--en-color-accent-subtle); display: grid; place-items: center; color: var(--en-color-action); }
