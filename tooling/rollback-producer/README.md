@@ -12,9 +12,10 @@ Physical C/H qualification remains separate.
 It contains no source archives itself. The exact original inputs are published in
 parentless commit `850b10cfa4853a14290c7220538f4d6f49ba124d`, tree
 `769d56f65b15b7c5a420c22ec9160da38b0401ab`, on
-`codex/linux-prerequisite-inputs-01` in the public project repository. Fetch by the
-fixed commit and authenticate the complete inventory. The input branch is a
-transport for reviewed archives: **never merge it into main or a product branch**.
+archive tag `archive/2026-10-04/linux-prerequisite-inputs-01` in the public project
+repository. Fetch by the fixed commit and authenticate the complete inventory.
+The tag preserves reviewed input archives: **never merge this input history into
+main or a product branch**.
 Input manifest membership, hashes, byte bounds, canonical paths, private ownership,
 single-link files and active helper seals are checked before any wrapper is made.
 

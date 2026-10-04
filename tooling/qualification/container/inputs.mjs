@@ -69,6 +69,13 @@ export const fixtureRequirements = [
   ["artifacts/integration-corrections/r18-final-source-39ac936-acquisition-01/successor-assembly-pending-01/origins/text-chromium/receipt.json", 907597, "93eaa8d245a73f82d5601c63b1d3b67723ff7be4f906fe1a523f0cd39559bb64"],
   ["artifacts/integration-corrections/r18-final-source-39ac936-acquisition-01/successor-assembly-pending-01/origins/text-firefox/receipt.json", 907757, "0d710a08a343e9e1ec76fdcc0c78d4357a5fddb38175dc8027f37c6d8f13f90f"],
   ["artifacts/integration-corrections/r18-final-source-39ac936-acquisition-01/successor-assembly-pending-01/origins/text-webkit/receipt.json", 908078, "a6b081ea0841870df8014c7b3638532b0df59a9d8785daac7b804b238a531f2e"],
+  ["artifacts/integration-corrections/e3-placement-same-call-01/r18-renewal-preflight-01/assembled-1e38249-local-03/origins/editor-native-text-chromium/receipt.json", 902279, "412a9da9d905ed3ff7b04d936ab8b6a7ee56fb81314451d8e313440847f58337"],
+  ["artifacts/integration-corrections/e3-placement-same-call-01/r18-renewal-preflight-01/assembled-1e38249-local-03/origins/editor-native-text-firefox/receipt.json", 902424, "74a2eeb53100c5448f71db61e8f49187d2acfb1f4607c8cff021983900c2ba2f"],
+  ["artifacts/integration-corrections/e3-placement-same-call-01/r18-renewal-preflight-01/assembled-1e38249-local-03/origins/editor-native-text-webkit/receipt.json", 902396, "b2a237222e4ac51b9e453994d2fb8b2f353c772a82be92efe52ca2f96c0e1fb9"],
+  ["artifacts/integration-corrections/e3-placement-same-call-01/r18-renewal-preflight-01/assembled-1e38249-local-03/origins/text-chromium/receipt.json", 909530, "41de4b796e150d0624fa7acf8be905f982254114ac4340f517b09845813e25b1"],
+  ["artifacts/integration-corrections/e3-placement-same-call-01/r18-renewal-preflight-01/assembled-1e38249-local-03/origins/text-firefox/receipt.json", 909624, "2fc3f0f583c7f8866d7688dfb8962ba6342d1c54e1c3fced8107bc31b355608f"],
+  ["artifacts/integration-corrections/e3-placement-same-call-01/r18-renewal-preflight-01/assembled-1e38249-local-03/origins/text-webkit/receipt.json", 909570, "6e4e673eb5add18d003b593af1e3eab9131cffd4a58f3d23da38bb6eee17df38"],
+  ["artifacts/integration-corrections/e3-placement-same-call-01/r18-renewal-preflight-01/assembled-f5040de-01/origins/node-claims/receipt.json", 880038, "5b2c9c2b2470c851f560e8d1670fa9de543a124d0402009a50c7e907c05ae95d"],
 ].map(([path, bytes, sha256]) => ({ path, bytes, sha256 }));
 export const defaultPacket = 'artifacts/qualification-container-inputs';
 export const adapterSourceURL = 'https://v3b.fal.media/files/b/0a9dc89d/NkZw9CyYSB3ojbDx2a2s5_ideogram_v4_lora.safetensors';
