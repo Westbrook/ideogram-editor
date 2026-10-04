@@ -6,22 +6,32 @@ import {envelope,terminal,eventFor} from '../raster/helpers.mjs';
 
 // Same public command and accepted-receipt assertion as operate. A capacity
 // rejection is observed once; it never gains an automatic retry or a new grant.
-export async function queueWithDiagnostics(f,body,context){
- const before=process.memoryUsage(),request=envelope(f,body),response=await terminal(f,request);
+export async function queueWithDiagnostics(f,body,context,{retain=true,report,failureOnly=false}={}){
+ const before=failureOnly?null:process.memoryUsage(),request=envelope(f,body),response=await terminal(f,request);
  try{assert.equal(response.json.receipt.status,'accepted',response.text);}catch(error){
   if(response.json.receipt.code==='CAPACITY'&&response.json.rejectionDetails?.kind==='inline'&&response.json.rejectionDetails.value?.issues?.some(issue=>issue.code==='QUEUE_METADATA_ADMISSION'))try{
    const commandId=request.command.commandId,trigger=join(f.root,'j19-diagnostic-request.json'),result=join(f.root,'j19-diagnostic-'+commandId+'.json');
    let snapshot;
-   await writeFile(trigger,JSON.stringify({commandId}),{mode:0o600});
-   for(let n=0;n<20;n++){
-    try{const bytes=await readFile(result);assert(bytes.length<=262144);snapshot=JSON.parse(bytes);break;}catch(readError){if(readError.code!=='ENOENT')throw readError;}
-    await new Promise(resolve=>setTimeout(resolve,25));
+   // Failure-only callers retain an explicit unavailable observation, never a
+   // stale command's snapshot. The legacy caller keeps its original behavior.
+   if(failureOnly&&response.json.receipt.commandId!==commandId)snapshot={kind:'j19-diagnostic-unavailable-1',commandId,reason:'receipt-command-mismatch'};
+   else try{
+    await writeFile(trigger,JSON.stringify({commandId}),{mode:0o600});
+    for(let n=0;n<20;n++){
+     try{const bytes=await readFile(result);assert(bytes.length<=262144);snapshot=JSON.parse(bytes);break;}catch(readError){if(readError.code!=='ENOENT')throw readError;}
+     await new Promise(resolve=>setTimeout(resolve,25));
+    }
+    if(failureOnly&&snapshot!==undefined&&(!snapshot||!['j19-owned-diagnostics-1','j19-diagnostic-unavailable-1'].includes(snapshot.kind)||snapshot.commandId!==commandId))snapshot={kind:'j19-diagnostic-unavailable-1',commandId,reason:'capture-identity-mismatch'};
+   }catch(captureError){
+    if(!failureOnly)throw captureError;
+    snapshot={kind:'j19-diagnostic-unavailable-1',commandId,reason:'capture-'+String(captureError.code??captureError.name).slice(0,80)};
    }
    snapshot??={kind:'j19-diagnostic-unavailable-1',reason:'capture-deadline'};
    const packet={kind:'candidate-copy-queue-capacity-diagnostic-1',commandId,operation:body.type,context,assertionProcess:{pid:process.pid,before,after:process.memoryUsage()},receipt:response.json.receipt,rejectionDetails:response.json.rejectionDetails,snapshot};
    const bytes=Buffer.from(JSON.stringify(packet));assert(bytes.length<=270336);
-   const output=resolve(process.env.IE_CHAIN_DIAGNOSTIC_OUTPUT??'artifacts/agent-integration/chain-diagnostics');await mkdir(output,{recursive:true});const destination=join(output,commandId+'.json');await writeFile(destination,bytes,{mode:0o600,flag:'wx'});error.message+='\nChained adoption diagnostic: '+destination;
-  }catch(captureError){error.message+='\nChained adoption diagnostic unavailable: '+String(captureError.code??captureError.name).slice(0,80);}
+   if(report)await report(packet);
+   if(retain){const output=resolve(process.env.IE_CHAIN_DIAGNOSTIC_OUTPUT??'artifacts/agent-integration/chain-diagnostics');await mkdir(output,{recursive:true});const destination=join(output,commandId+'.json');await writeFile(destination,bytes,{mode:0o600,flag:'wx'});error.message+='\nChained adoption diagnostic: '+destination;}
+  }catch(captureError){if(retain)error.message+='\nChained adoption diagnostic unavailable: '+String(captureError.code??captureError.name).slice(0,80);}
   throw error;
  }
  return {command:request,receipt:response.json.receipt,event:await eventFor(f,response.json.receipt)};

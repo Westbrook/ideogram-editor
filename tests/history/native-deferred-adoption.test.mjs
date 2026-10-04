@@ -6,7 +6,7 @@ import {EventEmitter,getEventListeners} from 'node:events';
 import {exchange} from '../session/helpers.mjs';
 import {readFile,writeFile,rename,cp,link,symlink} from 'node:fs/promises';
 import {terminalWithDiagnostics} from './native-failure-diagnostics.mjs';
-import {assertCandidatePrepared,joinNativeRequestMemory} from './queue-failure-diagnostics.mjs';
+import {assertCandidatePrepared,joinNativeRequestMemory,queueWithDiagnostics} from './queue-failure-diagnostics.mjs';
 import {observeNativeRequestMain,observeNativeRequestWriter} from './native-request-memory-observation.mjs';
 import {installCandidatePreparationObservation} from './candidate-preparation-observation.mjs';
 import {createNativeMemoryRecorder,nativeMemoryPhases as memoryPhase} from './native-memory-diagnostics.mjs';
@@ -248,7 +248,7 @@ async function candidate(f,{kind='native-overlay',placement='current-document',m
  const review=(await ui(f,{type:'PrepareRequestReview',draftId:'request',generation:'1',textTreatment:{kind:'text-treatment-review-intent-1',choice,baseline:baseline.source,beforeSource:baseline.source}})).value.review;
  assert.equal(review.kind,'request-review-text-1');const plan=JSON.parse(await retained(f,review.textTreatment.plan));
  assert.deepEqual(plan.inventory.imageState,before.image.state);assert.deepEqual(plan.beforeSource.source,baseline.source);assert.deepEqual(plan.afterSource.source,source);
- const accepted=await ui(f,{type:'AcceptRequestReview',reviewId:review.id,token:review.token}),queued=await operate(f,{type:'QueueInference',reviewId:review.id,token:review.token,acceptanceId:accepted.request.requestId}),jobId=queued.event.payload.id;
+ const accepted=await ui(f,{type:'AcceptRequestReview',reviewId:review.id,token:review.token}),queued=await queueWithDiagnostics(f,{type:'QueueInference',reviewId:review.id,token:review.token,acceptanceId:accepted.request.requestId},{sourceDocumentId:documentId,reviewId:review.id,acceptanceId:accepted.request.requestId,kind,placement,memoryFixture:f.memoryFixture},{retain:false,report:f.diagnostic,failureOnly:true}),jobId=queued.event.payload.id;
  let value;const deadline=Date.now()+20000;
  do{const response=await f.read('/api/v1/jobs/'+jobId+'/candidates');if(response.status===200)value=response.json.items[0];if(value?.state==='prepared'||value?.state==='preparation-failed')break;await new Promise(resolve=>setTimeout(resolve,25));}while(Date.now()<deadline);
  await assertCandidatePrepared(f,{items:value?[value]:[]},{sourceDocumentId:documentId,queueCommandId:queued.command.command.commandId,jobId,kind,placement,memoryFixture:f.memoryFixture},{retain:false,report:f.diagnostic,nativeRequestMemory:f.nativeRequestMemory});assert.deepEqual(await document(f),before);
@@ -1403,5 +1403,126 @@ test('native creation waits with no fixture reporter preserve the original termi
   const outcome=terminalWithDiagnostics(f,request,{},undefined,f.nativeFailureReport);
   if(fails)await assert.rejects(outcome,error=>error===original);else assert.strictEqual(await outcome,result);
   assert.equal(posts,1);assert.equal(statusReads,fails?1:0);assert.equal(original.message,'original default native failure');
+ }
+});
+
+// Queue diagnostic controls execute the real envelope/terminal/assert/event
+// helpers. Public replies are fixed doubles; capture files and byte bounds are
+// real. These controls do not issue or qualify a native provider operation.
+import {queueWithDiagnostics as retainedQueueWithDiagnostics} from './queue-failure-diagnostics.mjs';
+import {readdir as queueDiagnosticEntries} from 'node:fs/promises';
+const queueDiagnosticBody=()=>({type:'QueueInference',reviewId:'queue_review',token:'review_token',acceptanceId:'accepted_request'});
+function queueDiagnosticFixture({status='rejected',code='CAPACITY',issue='QUEUE_METADATA_ADMISSION'}={}){
+ const body=queueDiagnosticBody(),id=randomUUID(),commands=[],posts=[],reads=[],event={type:'QueueJobCreated',payload:{id:'job'}},receipt={commandId:id,status,fromSeq:'3',...(status==='accepted'?{}:{code})};
+ const response={status:200,json:{receipt,...(status==='accepted'?{}:{rejectionDetails:{kind:'inline',value:{issues:[{code:issue}]}}})},text:'original queue '+status+' receipt'};
+ let request;const f={get root(){throw Error('unexpected queue diagnostic file access');},command(patch){commands.push(patch);assert.equal(commands.length,1,'Queue diagnostics cannot construct a retry');request={protocolVersion:1,command:{commandId:id,...patch}};return request;},async post(path,value){posts.push({path,value});assert.equal(path,'/api/v1/commands');assert.strictEqual(value,request);assert.equal(posts.length,1,'Queue diagnostics cannot repost');return response;},async read(path){reads.push(path);assert.equal(status,'accepted','A rejected command cannot request event completion');assert.equal(path,'/api/v1/events?after=2');return {status:200,json:{batches:[{kind:'inline',events:[event]}]},text:'original events'};}};
+ return {f,body,id,receipt,response,event,commands,posts,reads,request:()=>request};
+}
+function observeQueueAcceptedAssertion(t,c){
+ const equal=assert.equal,observed=[];
+ const mock=t.mock.method(assert,'equal',function(...args){try{return Reflect.apply(equal,this,args);}catch(error){if(args[0]===c.receipt.status&&args[1]==='accepted'&&args[2]===c.response.text)observed.push({error,message:error.message,actual:error.actual,expected:error.expected,operator:error.operator});throw error;}});
+ return {observed,restore:()=>mock.mock.restore()};
+}
+async function queueDiagnosticCapture(t,c,bytes){
+ const root=await rootFor(t),legacy=join(root,'legacy-output-sentinel');
+ await writeFile(legacy,'legacy output must remain untouched',{flag:'wx',mode:0o600});
+ const old=process.env.IE_CHAIN_DIAGNOSTIC_OUTPUT;process.env.IE_CHAIN_DIAGNOSTIC_OUTPUT=legacy;
+ let restored=false;const restore=()=>{if(restored)return;restored=true;if(old===undefined)delete process.env.IE_CHAIN_DIAGNOSTIC_OUTPUT;else process.env.IE_CHAIN_DIAGNOSTIC_OUTPUT=old;};t.after(restore);
+ Object.defineProperty(c.f,'root',{value:root,configurable:true});
+ if(bytes!==undefined)await writeFile(join(root,'j19-diagnostic-'+c.id+'.json'),bytes,{flag:'wx',mode:0o600});
+ return {root,legacy,restore,async check(trigger=true){try{assert.equal(await readFile(legacy,'utf8'),'legacy output must remain untouched');assert.deepEqual((await queueDiagnosticEntries(root)).sort(),[...(bytes===undefined?[]:['j19-diagnostic-'+c.id+'.json']),...(trigger?['j19-diagnostic-request.json']:[]),'legacy-output-sentinel'].sort());}finally{restore();}}};
+}
+async function originalQueueRefusal(t,c,invoke){
+ const witness=observeQueueAcceptedAssertion(t,c);let failure;
+ try{await invoke();assert.fail('The original rejected queue must still reject');}catch(error){failure=error;}finally{witness.restore();}
+ assert.equal(witness.observed.length,1);const original=witness.observed[0];assert.strictEqual(failure,original.error);assert.equal(failure.message,original.message);assert.equal(failure.code,'ERR_ASSERTION');assert.equal(original.actual,'rejected');assert.equal(original.expected,'accepted');assert.equal(original.operator,'strictEqual');
+ assert.equal(c.commands.length,1);assert.deepEqual(c.commands[0],{documentId:null,expectedDocumentRevision:null,body:c.body});assert.equal(c.posts.length,1);assert.strictEqual(c.posts[0].value,c.request());assert.deepEqual(c.reads,[]);return failure;
+}
+
+test('native99 retained queue success keeps one original command and event without diagnostic reads samples or reporting',async t=>{
+ const c=queueDiagnosticFixture({status:'accepted'}),context={};let samples=0,reports=0;Object.defineProperty(context,'value',{enumerable:true,get(){throw Error('Successful queue context must remain opaque');}});
+ const memory=t.mock.method(process,'memoryUsage',()=>{samples++;throw Error('Successful queue must not sample memory');});let result;
+ try{result=await retainedQueueWithDiagnostics(c.f,c.body,context,{retain:false,failureOnly:true,report(){reports++;throw Error('Successful queue must not report');}});}finally{memory.mock.restore();}
+ assert.equal(samples,0);assert.equal(reports,0);assert.equal(c.commands.length,1);assert.equal(c.posts.length,1);assert.deepEqual(c.commands[0],{documentId:null,expectedDocumentRevision:null,body:c.body});assert.strictEqual(result.command,c.request());assert.strictEqual(result.receipt,c.receipt);assert.strictEqual(result.event,c.event);assert.deepEqual(c.reads,['/api/v1/events?after=2']);
+});
+
+test('default queue success retains its original memory sample command receipt and event behavior',async t=>{
+ const c=queueDiagnosticFixture({status:'accepted'});let samples=0;const memory=t.mock.method(process,'memoryUsage',()=>{samples++;return {rss:1};});let result;
+ try{result=await retainedQueueWithDiagnostics(c.f,c.body,{});}finally{memory.mock.restore();}
+ assert.equal(samples,1);assert.equal(c.commands.length,1);assert.equal(c.posts.length,1);assert.strictEqual(result.command,c.request());assert.strictEqual(result.receipt,c.receipt);assert.strictEqual(result.event,c.event);assert.deepEqual(c.reads,['/api/v1/events?after=2']);
+});
+
+test('native99 queue capacity reporting retains the exact bounded command snapshot without a legacy output path',async t=>{
+ const c=queueDiagnosticFixture(),snapshot={kind:'j19-owned-diagnostics-1',commandId:c.id,rows:[{phase:'queue_metadata',bytes:17}],label:'é'},capture=await queueDiagnosticCapture(t,c,JSON.stringify(snapshot)),context={documentId,request:'native99'},reports=[],sample={rss:71,heapTotal:37,heapUsed:19,external:11,arrayBuffers:7};let samples=0;
+ const memory=t.mock.method(process,'memoryUsage',()=>{samples++;return sample;});
+ try{await originalQueueRefusal(t,c,()=>retainedQueueWithDiagnostics(c.f,c.body,context,{retain:false,failureOnly:true,report:packet=>reports.push(packet)}));}finally{memory.mock.restore();}
+ assert.equal(samples,1);assert.deepEqual(reports,[{kind:'candidate-copy-queue-capacity-diagnostic-1',commandId:c.id,operation:'QueueInference',context,assertionProcess:{pid:process.pid,before:null,after:sample},receipt:c.receipt,rejectionDetails:c.response.json.rejectionDetails,snapshot}]);
+ assert(Buffer.byteLength(JSON.stringify(reports[0]),'utf8')<=270336);assert.deepEqual(JSON.parse(await readFile(join(capture.root,'j19-diagnostic-request.json'),'utf8')),{commandId:c.id});await capture.check();
+});
+
+test('native99 unrelated queue rejections preserve the original assertion without inspecting diagnostic inputs',async t=>{
+ for(const values of [{code:'CAPACITY',issue:'OTHER_CAPACITY'},{code:'INVALID_INPUT',issue:'QUEUE_METADATA_ADMISSION'}]){
+  const c=queueDiagnosticFixture(values),context={};let samples=0,reports=0;Object.defineProperty(context,'value',{enumerable:true,get(){throw Error('Unrelated refusal context must remain opaque');}});
+  const memory=t.mock.method(process,'memoryUsage',()=>{samples++;throw Error('Unrelated refusal must not sample memory');});
+  try{await originalQueueRefusal(t,c,()=>retainedQueueWithDiagnostics(c.f,c.body,context,{retain:false,failureOnly:true,report(){reports++;}}));}finally{memory.mock.restore();}
+  assert.equal(samples,0);assert.equal(reports,0);
+ }
+});
+
+test('native99 queue transport failure remains the original failure with no accepted assertion or diagnostic work',async t=>{
+ const c=queueDiagnosticFixture(),original=Object.freeze(Error('original queue transport failure'));let samples=0,reports=0;
+ c.f.post=async(path,value)=>{c.posts.push({path,value});assert.equal(path,'/api/v1/commands');assert.strictEqual(value,c.request());throw original;};
+ const memory=t.mock.method(process,'memoryUsage',()=>{samples++;throw Error('Transport failure must not sample memory');});
+ try{await assert.rejects(retainedQueueWithDiagnostics(c.f,c.body,{}, {retain:false,failureOnly:true,report(){reports++;}}),error=>error===original);}finally{memory.mock.restore();}
+ assert.equal(samples,0);assert.equal(reports,0);assert.equal(c.commands.length,1);assert.equal(c.posts.length,1);assert.deepEqual(c.reads,[]);
+});
+
+test('native99 queue capture deadline reports unavailable without replacing the original accepted assertion',async t=>{
+ const c=queueDiagnosticFixture(),capture=await queueDiagnosticCapture(t,c),reports=[];
+ await originalQueueRefusal(t,c,()=>retainedQueueWithDiagnostics(c.f,c.body,{case:'missing-capture'},{retain:false,failureOnly:true,report:packet=>reports.push(packet)}));
+ assert.equal(reports.length,1);assert.equal(reports[0].commandId,c.id);assert.strictEqual(reports[0].receipt,c.receipt);assert.deepEqual(reports[0].snapshot,{kind:'j19-diagnostic-unavailable-1',reason:'capture-deadline'});assert.equal(reports[0].assertionProcess.before,null);assert(Buffer.byteLength(JSON.stringify(reports[0]))<=270336);await capture.check();
+});
+
+test('native99 queue capture parse and identity failures retain only explicit unavailability for the actual command',async t=>{
+ for(const value of [{bytes:'{',reason:'capture-SyntaxError'},{bytes:JSON.stringify({kind:'j19-owned-diagnostics-1',commandId:randomUUID()}),reason:'capture-identity-mismatch'},{bytes:JSON.stringify({kind:'other-diagnostic',commandId:'wrong'}),reason:'capture-identity-mismatch'}]){
+  const c=queueDiagnosticFixture(),capture=await queueDiagnosticCapture(t,c,value.bytes),reports=[];
+  await originalQueueRefusal(t,c,()=>retainedQueueWithDiagnostics(c.f,c.body,{}, {retain:false,failureOnly:true,report:packet=>reports.push(packet)}));
+  assert.equal(reports.length,1);assert.equal(reports[0].commandId,c.id);assert.strictEqual(reports[0].receipt,c.receipt);assert.deepEqual(reports[0].snapshot,{kind:'j19-diagnostic-unavailable-1',commandId:c.id,reason:value.reason});await capture.check();
+ }
+});
+
+test('native99 queue receipt mismatch never consumes a different command capture',async t=>{
+ const c=queueDiagnosticFixture();c.receipt.commandId=randomUUID();const snapshot={kind:'j19-owned-diagnostics-1',commandId:c.id,rows:[]},capture=await queueDiagnosticCapture(t,c,JSON.stringify(snapshot)),reports=[];
+ await originalQueueRefusal(t,c,()=>retainedQueueWithDiagnostics(c.f,c.body,{}, {retain:false,failureOnly:true,report:packet=>reports.push(packet)}));
+ assert.equal(reports.length,1);assert.equal(reports[0].commandId,c.id);assert.equal(reports[0].receipt.commandId,c.receipt.commandId);assert.deepEqual(reports[0].snapshot,{kind:'j19-diagnostic-unavailable-1',commandId:c.id,reason:'receipt-command-mismatch'});await capture.check(false);
+});
+
+test('native99 queue snapshot byte ceiling admits the exact bounded JSON and makes one excess byte unavailable',async t=>{
+ for(const excess of [0,1]){
+  const c=queueDiagnosticFixture(),snapshot={kind:'j19-owned-diagnostics-1',commandId:c.id,padding:''};
+  // Non-ASCII content makes the assertion about encoded bytes, not characters.
+  snapshot.padding='é'+'x'.repeat(262144+excess-Buffer.byteLength(JSON.stringify(snapshot))-2);const bytes=Buffer.from(JSON.stringify(snapshot));assert.equal(bytes.length,262144+excess);
+  const capture=await queueDiagnosticCapture(t,c,bytes),reports=[];
+  await originalQueueRefusal(t,c,()=>retainedQueueWithDiagnostics(c.f,c.body,{}, {retain:false,failureOnly:true,report:packet=>reports.push(packet)}));
+  assert.equal(reports.length,1);assert.equal(reports[0].commandId,c.id);if(excess)assert.deepEqual(reports[0].snapshot,{kind:'j19-diagnostic-unavailable-1',commandId:c.id,reason:'capture-ERR_ASSERTION'});else assert.deepEqual(reports[0].snapshot,snapshot);assert(Buffer.byteLength(JSON.stringify(reports[0]))<=270336);await capture.check();
+ }
+});
+
+test('native99 queue report byte ceiling admits exactly bounded UTF8 and refuses oversized serialization',async t=>{
+ for(const excess of [0,1]){
+  const c=queueDiagnosticFixture(),snapshot={kind:'j19-owned-diagnostics-1',commandId:c.id,rows:[]},capture=await queueDiagnosticCapture(t,c,JSON.stringify(snapshot)),sample={rss:71,heapTotal:37,heapUsed:19,external:11,arrayBuffers:7},context={padding:''},reports=[];
+  const expected={kind:'candidate-copy-queue-capacity-diagnostic-1',commandId:c.id,operation:'QueueInference',context,assertionProcess:{pid:process.pid,before:null,after:sample},receipt:c.receipt,rejectionDetails:c.response.json.rejectionDetails,snapshot};
+  context.padding='é'+'x'.repeat(270336+excess-Buffer.byteLength(JSON.stringify(expected))-2);assert.equal(Buffer.byteLength(JSON.stringify(expected)),270336+excess);
+  const memory=t.mock.method(process,'memoryUsage',()=>sample);
+  try{await originalQueueRefusal(t,c,()=>retainedQueueWithDiagnostics(c.f,c.body,context,{retain:false,failureOnly:true,report:packet=>reports.push(packet)}));}finally{memory.mock.restore();}
+  assert.equal(reports.length,excess?0:1);if(!excess){assert.deepEqual(reports[0],expected);assert.equal(Buffer.byteLength(JSON.stringify(reports[0])),270336);}await capture.check();
+ }
+});
+
+test('native99 queue unavailable producer snapshot stays bound and reporter throws or rejects cannot replace the original error',async t=>{
+ for(const mode of ['producer-unavailable','throw','reject']){
+  const c=queueDiagnosticFixture(),snapshot={kind:'j19-diagnostic-unavailable-1',commandId:c.id,reason:'producer-refused'},capture=await queueDiagnosticCapture(t,c,JSON.stringify(snapshot)),reports=[],reportError=Object.freeze(Error('retained reporter failed'));
+  await originalQueueRefusal(t,c,()=>retainedQueueWithDiagnostics(c.f,c.body,{}, {retain:false,failureOnly:true,report(packet){reports.push(packet);if(mode==='throw')throw reportError;if(mode==='reject')return Promise.reject(reportError);}}));
+  assert.equal(reports.length,1);assert.equal(reports[0].commandId,c.id);assert.deepEqual(reports[0].snapshot,snapshot);await capture.check();
  }
 });
