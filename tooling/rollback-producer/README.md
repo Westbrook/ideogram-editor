@@ -42,6 +42,66 @@ manifest as historical provenance. This preserves its bytes while preventing
 collection from reopening its original Mac archive path. Other live references
 remain mandatory. No executable authority or historical-source identity changes.
 
+## Local ARM64 successor
+
+The local controller successor addresses the retained bootstrap extraction
+failure, where the original inode scanner correctly reported changing input
+directories. Its scheduling change is limited to toolchain bootstrap:
+pause the exact owned Docker writer, verify actual kernel membership and frozen
+state with an independent read-only observer, scan the full retained volume,
+recheck membership, and verify thaw. The complete interval must still fit one
+second. Builds, restores and native proofs remain unpaused.
+
+Retained-volume admission keeps the original 4 GiB host allocation and 32 GiB
+named volume. A fresh attempt uses a disjoint subtree; old failed trees remain
+included in whole-volume accounting and cannot become toolchain inputs or a
+successful resume checkpoint. The original local scanner is retained unchanged;
+the hosted scanner has different retry spacing and is not a substitute.
+
+Source implementation and synthetic controls do not establish Docker Desktop
+capability. Before any producer execution, a bounded probe must demonstrate
+frozen and thawed kernel state, contained nonroot descendants, an independent
+observer, the original timing bounds and proven cleanup. The probe neither
+downloads inputs nor writes the retained producer volume. Missing capability or
+uncertain cleanup remains a refusal. No executable packet, Linux product pin or
+physical qualification follows from this source work.
+
+The implementation has 86 distinct source-current passing controls across scoped
+runs, with independently verified retained storage. Actual Desktop capability is
+still unavailable: two attempts stopped at image-label representation admission;
+a third reached the kernel observer and refused `KERNEL_PRIVILEGES` before any
+pause. That aggregate refusal does not identify the rejected process or field.
+Both probe containers stopped and the timing lease released; host and engine
+accounting passed. All failed attempts remain retained. No producer or native
+volume work followed. A diagnostic correction must preserve the privilege checks.
+
+Docker Desktop omits `desktop.docker.io/ports.scheme=v2` from container inspection.
+`local-image-labels.mjs` permits omission or the exact value only when the selected
+image declares that exact key/value. Full selected/requested maps are retained;
+changed values, undeclared metadata, other unknown keys and ownership/version
+differences still refuse.
+
+The observer proves the fixed writer's descendant membership under the
+authenticated Docker supervisor and nonroot/no-migration boundary. It does not
+claim protection from a hostile external root process or Docker daemon. The
+minimal observer refuses child cgroup directories rather than inferring a
+recursive membership census from the direct `cgroup.procs` file.
+
+The maintained entries are `local-capability-probe.mjs` and `local-control.mjs`.
+Both require pinned Node 26.10.0, the existing `tests/store/no-network.mjs`
+preload, an absolute private `--config` path and its exact `--grant` SHA-256.
+The controller additionally requires `--phase` with one of `bootstrap`,
+`observe`, `tests`, `build16`, `build17`, `build18`, `verify16`, `verify17` or
+`verify18`. It admits only a successful, source-bound capability finalization,
+the reviewed retained-volume grant and successful audited phase predecessors.
+Configuration files and raw runtime receipts stay in private evidence storage.
+
+The six `tests/qualification/local-*.test.mjs` owners cover the accounting,
+probe, kernel observer, controller, retained-volume admission and scheduler.
+Run their complete files together with `npm run validate -- run --groups
+qualification --node-files` through the shared runner and an explicit evidence allocation.
+These portable controls do not create containers or invoke a producer.
+
 ## Retained hosted producer implementation
 
 The GitHub Actions native-prerequisite and freezer-probe workflows have been

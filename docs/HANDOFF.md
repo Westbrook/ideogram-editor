@@ -2,6 +2,32 @@
 
 ## Current continuation — Main consolidated; implementation slices accepted; full-plan holds recorded
 
+The local ARM64 rollback controller successor is implemented with 86 distinct
+source-current passing controls: 35 unchanged cases from `local-successor-tests-01`,
+17 probe and 15 admission cases from run 04, and 19 controller cases from run 06.
+Runs 04 and 05 retain their failing test-message assertions; their passing storage
+audits do not rewrite those outcomes. All affected whole-owner results and retained
+storage were independently reviewed. The original local scanner, 4 GiB host and
+32 GiB volume allocations, failed trees and timing limits remain intact.
+
+Actual capability is **UNAVAILABLE**. The first two probes stopped before payload
+start because Docker omitted one declared Desktop metadata label. The closed-key
+comparison now permits only that exact `v2` representation difference. Probe 03
+reached the kernel observer and returned `KERNEL_PRIVILEGES` before any pause;
+the aggregate diagnostic does not identify the rejected process or field. Both
+owned containers stopped, the timing lease released, and host/engine accounting
+passed. All three attempts and containers remain retained. No producer ran or
+retained native volume was touched. Next, add bounded refusal details without
+changing privilege admission, then review the actual cause before further runtime.
+Builds, restores and native proofs remain unpaused. See the maintained
+[local successor boundary](../tooling/rollback-producer/README.md#local-arm64-successor).
+
+Publication follows the user's current direction: no Sites; push completed
+checkpoints to GitHub `main` and changed completed editor artifacts to `gh-pages`.
+This helper-only checkpoint does not change the editor artifact. The independent
+Progress Report remains local; provider, physical, native, resource, corpus and
+manual qualification holds remain open.
+
 The independent [Progress Report](http://127.0.0.1:4381/) now archives 610 older handoff records reversibly at revision 2376, reducing active canonical JSON from 193,358,525 to 101,128,432 bytes. Exact recovery, protected-state verification, source/API/Chromium rehearsal and the six-check live report UI smoke test passed. Tracked effort remains 105/139, product acceptance 92/126, and every product hold is unchanged; this maintenance earns no implementation or qualification credit. The portable [source patch](../.progress-report/maintenance/history-archive-v1.patch) and [deployment/recovery guide](../.progress-report/maintenance/history-archive-v1/README.md) are separate from editor runtime. Within the independent report workspace, retain private `maintenance/history-archive-20261005-01/` recovery material (`revision-2375-original.json` and `pre-upgrade/`) and `data/history-archive-v1/` archives. After later report edits, recover the latest fully expanded logical state before restoring compatible code; never overwrite newer feedback with the old snapshot.
 
 The genuine mixed portable seed and monitored preparation supervisor passed their 35 affected-owner cases in `mixed-wc-seed-04`, with a passing independent storage review. Runs 01–03 remain failures. A separate retained seed also completed with independently reviewed preparation/storage PASS: its 91,803,780-byte archive contains 91,678,695 closure bytes, 21 assets, 21 events and two Composition versions. It includes ordinary raster import, native text with retained font history, a safe local-emulator candidate, CP1 contributions and the supported 85 MB adapter in a saved request. Alpha-zero text does not qualify visible glyphs, and no adapter request or live provider was dispatched. [35-case review](../artifacts/integration-corrections/mixed-wc-seed-20261004-01/runtime-review-04/independent-review.json); [retained seed review](../artifacts/integration-corrections/mixed-wc-seed-20261004-01/seed-preparation-review-01/independent-review.json). The seed archive SHA-256 is `8712c1976acd6bbbe73d78fef6c7fdf4c5fa6112043781e49cb5a7622b41429e`.
