@@ -66,14 +66,33 @@ downloads inputs nor writes the retained producer volume. Missing capability or
 uncertain cleanup remains a refusal. No executable packet, Linux product pin or
 physical qualification follows from this source work.
 
-The implementation has 86 distinct source-current passing controls across scoped
-runs, with independently verified retained storage. Actual Desktop capability is
-still unavailable: two attempts stopped at image-label representation admission;
-a third reached the kernel observer and refused `KERNEL_PRIVILEGES` before any
-pause. That aggregate refusal does not identify the rejected process or field.
-Both probe containers stopped and the timing lease released; host and engine
-accounting passed. All failed attempts remain retained. No producer or native
-volume work followed. A diagnostic correction must preserve the privilege checks.
+The implementation checkpoint at `c07286f` has 86 distinct source-current
+passing controls. A later diagnostic-only worker update passed its six whole-owner
+Node wrappers (including twelve new inner Python checks); retained storage was
+independently verified. Actual Desktop capability remains unavailable. The first
+two attempts stopped at image-label representation admission; the third refused
+an unidentified `KERNEL_PRIVILEGES` check. The fourth retained the exact mismatch:
+the observer's supplementary group list contained its already-required primary
+GID, while all UID/GID fields, capability fields and no-new-privileges matched.
+This failed the literal empty-list rule before any writer credential or cgroup
+check. Both containers stopped and the timing lease released; accounting passed.
+Every attempt remains retained and no producer or native volume work followed.
+
+An explicit local credential-policy successor, `local-primary-group-authority-1`,
+is implemented and passed the 27-case combined worker/scheduler validation.
+Probe 05 under this successor verified kernel membership and freeze/thaw but
+failed the full interval: 1,076.213875 ms exceeded the unchanged 1,000 ms limit,
+before the required resumed-heartbeat check. Host accounting and cleanup passed;
+engine accounting failed on two post-refusal image observations that aborted
+before launch. No capability grant follows. The policy permits exactly an empty supplementary list or one
+entry equal to the required primary GID, retaining the raw list. Every other list,
+including duplicate entries, root or additional groups, still refuses. All four
+GID fields must equal that same nonzero owner, and UID, capabilities,
+no-new-privileges and cgroup permissions remain independently checked. This
+matches the native transport's existing primary-plus-supplementary authority set;
+it does not claim identical `getgroups()` behavior or change the hosted launcher.
+Earlier empty-list failures do not become passes. Fresh source-bound capability
+and timing evidence remain required before producer execution.
 
 Docker Desktop omits `desktop.docker.io/ports.scheme=v2` from container inspection.
 `local-image-labels.mjs` permits omission or the exact value only when the selected

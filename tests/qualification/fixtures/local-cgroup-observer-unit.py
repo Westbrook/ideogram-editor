@@ -170,6 +170,78 @@ elif group == 'drift':
     foreign = View()
     foreign.files['/proc/23/cgroup'] = '0::/other\n'
     refuses(lambda: observe(foreign), 'KERNEL_FOREIGN_MEMBER')
+elif group == 'diagnostics':
+    row = m.process_fields(1, *proc(1, 1000, 1100, '/writer'))
+    for field, value in [('uids', [2000] * 4), ('gids', [2200] * 4), ('groups', [1101]),
+                         ('capabilities', ['0', '0', '1', '0', '0']), ('noNewPrivs', '0'),
+                         ('noNewPrivs', '')]:
+        bad = copy.deepcopy(row)
+        bad[field] = value
+        try:
+            m.credentials(bad, 1000, 1100, 'writer')
+        except m.Refusal as error:
+            result = m.failure_result(error)
+            details = result['credentialRefusal']
+            check(result['code'] == 'KERNEL_PRIVILEGES' and result['status'] == 'FAIL'
+                  and details['mismatches'] == [field] and details['role'] == 'writer'
+                  and details['pid'] == 1 and details['actual'][field] == value
+                  and details['expectedOwnerNonroot'] is True
+                  and details['expected']['groups'] == {'oneOf': [[], [1100]]}
+                  and result['credentialPolicy'] == 'local-primary-group-authority-1')
+        else:
+            raise AssertionError('credential refusal was weakened')
+    for role in ('observer', 'writer', 'member'):
+        bad = copy.deepcopy(row)
+        bad['noNewPrivs'] = 'unbounded raw status must not appear' * 1000
+        try:
+            m.credentials(bad, 1000, 1100, role)
+        except m.Refusal as error:
+            result = m.failure_result(error)
+            check(result['credentialRefusal']['role'] == role
+                  and result['credentialRefusal']['actual']['noNewPrivs'] == 'invalid'
+                  and len(json.dumps(result)) < 1024)
+        else:
+            raise AssertionError('invalid noNewPrivs accepted')
+    check(m.failure_result(OSError('/private/path must not escape')) == {
+        'kind': 'local-cgroup-observation-1', 'credentialPolicy': 'local-primary-group-authority-1',
+        'status': 'FAIL', 'code': 'KERNEL_READ_UNAVAILABLE'})
+    check(m.failure_result(m.Refusal('KERNEL_STATUS')) == {
+        'kind': 'local-cgroup-observation-1', 'credentialPolicy': 'local-primary-group-authority-1',
+        'status': 'FAIL', 'code': 'KERNEL_STATUS'})
+    # A missing status label retains the pre-existing parser refusal; an empty
+    # present label reaches the credential diagnostic as tested above.
+    status, raw_stat, cgroup = proc(1, 1000, 1100, '/writer')
+    refuses(lambda: m.process_fields(1, status.replace('NoNewPrivs:\t1\n', ''), raw_stat, cgroup), 'KERNEL_STATUS')
+elif group == 'group-authority':
+    for groups in ([], [1100]):
+        row = m.process_fields(1, *proc(1, 1000, 1100, '/writer'))
+        row['groups'] = groups
+        before = copy.deepcopy(row)
+        m.credentials(row, 1000, 1100)
+        check(row == before)
+    for groups in ([0], [1101], [1100, 1101], [1100, 1100], [1101, 1100]):
+        row = m.process_fields(1, *proc(1, 1000, 1100, '/writer'))
+        row['groups'] = groups
+        refuses(lambda row=row: m.credentials(row, 1000, 1100), 'KERNEL_PRIVILEGES')
+    # A primary entry cannot mask saved or filesystem GID authority drift.
+    row = m.process_fields(1, *proc(1, 1000, 1100, '/writer'))
+    row['groups'] = [1100]
+    row['gids'][3] = 1101
+    refuses(lambda: m.credentials(row, 1000, 1100), 'KERNEL_PRIVILEGES')
+    view = View()
+    for pid, gid in ((1, 1100), (23, 1100), (90, 2200)):
+        path = '/proc/' + str(pid) + '/status'
+        view.files[path] = view.files[path].replace('Groups:\t\n', 'Groups:\t' + str(gid) + '\n')
+    result = observe(view)
+    check(result['credentialPolicy'] == 'local-primary-group-authority-1'
+          and [r['groups'] for r in result['members']] == [[1100], [1100]]
+          and result['observer']['groups'] == [2200])
+    # Both forms are admissible individually; a transition within an observed
+    # frozen identity snapshot still refuses and must not be normalized away.
+    view = View()
+    view.mutation = lambda p, n: (view.files[p].replace('Groups:\t\n', 'Groups:\t1100\n')
+                                 if p == '/proc/23/status' and n == 2 else None)
+    refuses(lambda: observe(view), 'KERNEL_PROCESS_DRIFT')
 elif group == 'bounds':
     refuses(lambda: m.member_values('\n'.join(str(n) for n in range(1, m.MAX_MEMBERS + 2))), 'KERNEL_MEMBER_BOUND')
     refuses(lambda: m.member_values('2147483648'), 'KERNEL_MEMBER_PID')

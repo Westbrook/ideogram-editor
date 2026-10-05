@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createToolchainQuiescence, parseKernelObservation, SYNCHRONIZATION_WINDOW_MS, COMMAND_ALLOWANCE_MS, OBSERVATION_CADENCE_MS, COVERAGE_BOUND_MS} from '../../tooling/rollback-producer/local-toolchain-quiescence.mjs';
+import {createToolchainQuiescence, parseKernelObservation, CREDENTIAL_POLICY, SYNCHRONIZATION_WINDOW_MS, COMMAND_ALLOWANCE_MS, OBSERVATION_CADENCE_MS, COVERAGE_BOUND_MS} from '../../tooling/rollback-producer/local-toolchain-quiescence.mjs';
 
 const writer = () => ({id: 'a'.repeat(64), runId: 'ie-linux-' + 'b'.repeat(32), image: 'sha256:' + 'c'.repeat(64), user: '1001:1001'});
 const observer = () => ({id: 'd'.repeat(64), user: '1002:1002'});
 const member = (pid, startTime = String(pid * 10)) => ({pid, startTime, parent: pid === 1 ? 0 : 1, uids: [1001, 1001, 1001, 1001], gids: [1001, 1001, 1001, 1001], groups: [], capabilities: ['0', '0', '0', '0', '0'], noNewPrivs: '1', cgroupPath: '/writer'});
 function snapshot(frozen) {
-  return {kind: 'local-cgroup-observation-1', status: 'PASS', frozen,
+  return {kind: 'local-cgroup-observation-1', status: 'PASS', credentialPolicy: CREDENTIAL_POLICY, frozen,
     binding: {writer: {pid: 1, startTime: '10'}, cgroup: {path: '/writer', dev: 7, ino: 11, mountId: 12}, ancestry: [{path: '/'}], observerCgroup: {path: '/observer', dev: 7, ino: 14}},
     members: [member(1), member(2)], observer: {...member(90), uids: [1002, 1002, 1002, 1002], gids: [1002, 1002, 1002, 1002], cgroupPath: '/observer'}};
 }
@@ -174,4 +174,63 @@ test('kernel envelopes reject missing real proof, observer overlap, unordered me
   }
   assert.throws(() => parseKernelObservation('x'.repeat(65537), 1), /KERNEL_BOUND/);
   assert.throws(() => parseKernelObservation('{', 1), /KERNEL_JSON/);
+});
+
+test('the explicit local group policy accepts only empty or a single already-required primary group and retains its raw form', async () => {
+  for (const writerPrimary of [false, true]) for (const observerPrimary of [false, true]) {
+    const f = fixture({alter: value => {
+      if (writerPrimary) value.members.forEach(row => { row.groups = [1001]; });
+      if (observerPrimary) value.observer.groups = [1002];
+    }});
+    const idle = await f.scheduler.admit();
+    assert.deepEqual(idle.members[0].groups, writerPrimary ? [1001] : []);
+    assert.deepEqual(idle.observer.groups, observerPrimary ? [1002] : []);
+    const result = await f.scheduler.observe(f.scan);
+    assert.equal(result.coordination.credentialPolicy, 'local-primary-group-authority-1');
+    assert.equal(result.coordination.frozen.credentialPolicy, CREDENTIAL_POLICY);
+    const closed = await f.scheduler.close();
+    assert.equal(closed.complete, true);
+    assert.deepEqual(closed.kernelObservation.members[0].groups, writerPrimary ? [1001] : []);
+    assert.ok(f.traces.every(trace => trace.credentialPolicy === CREDENTIAL_POLICY));
+    assert.equal(f.scheduler.summary().credentialPolicy, CREDENTIAL_POLICY);
+  }
+});
+
+test('both writer and observer refuse unrelated, duplicate, root, mixed and malformed supplemental group lists', () => {
+  for (const role of ['writer', 'observer']) {
+    const gid = role === 'writer' ? 1001 : 1002;
+    for (const groups of [[0], [gid + 5], [gid, gid], [gid, gid + 5], [0, gid], [String(gid)], null, '']) {
+      const value = snapshot(1), row = role === 'writer' ? value.members[0] : value.observer;
+      row.groups = groups;
+      assert.throws(() => parseKernelObservation(JSON.stringify(value), 1), /KERNEL_CREDENTIAL/);
+    }
+  }
+});
+
+test('primary-only supplemental groups do not weaken all-four expected GID or nonroot admission', async () => {
+  for (const role of ['writer', 'observer']) {
+    for (const gids of [[0, 0, 0, 0], [1008, 1008, 1008, 1008], [1001, 1002, 1001, 1001]]) {
+      const f = fixture({alter: value => {
+        const row = role === 'writer' ? value.members[0] : value.observer;
+        row.gids = gids; row.groups = [gids[0]];
+      }});
+      await assert.rejects(f.scheduler.admit(), /KERNEL_CREDENTIAL|KERNEL_OWNER/);
+      assert.equal(f.commands.length, 1);
+    }
+  }
+});
+
+test('old or mismatched credential policy markers cannot be reinterpreted as successor evidence', () => {
+  for (const policy of [undefined, null, '', 'local-primary-group-authority-0', 'hosted-empty-groups-1']) {
+    const value = snapshot(1); value.credentialPolicy = policy;
+    assert.throws(() => parseKernelObservation(JSON.stringify(value), 1), /CREDENTIAL_POLICY/);
+  }
+});
+
+test('a change between empty and primary-only raw group lists during freeze is still membership drift', async () => {
+  const f = fixture({alter: (value, count) => { if (count === 2) value.members[1].groups = [1001]; }});
+  await f.scheduler.admit();
+  await assert.rejects(f.scheduler.observe(f.scan), /MEMBERSHIP_DRIFT/);
+  assert.equal(f.commands.at(-2).label, 'toolchain-unpause');
+  assert.equal(f.scheduler.summary().cleanupUncertain, false);
 });

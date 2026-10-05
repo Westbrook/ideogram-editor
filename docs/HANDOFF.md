@@ -2,24 +2,37 @@
 
 ## Current continuation — Main consolidated; implementation slices accepted; full-plan holds recorded
 
-The local ARM64 rollback controller successor is implemented with 86 distinct
-source-current passing controls: 35 unchanged cases from `local-successor-tests-01`,
-17 probe and 15 admission cases from run 04, and 19 controller cases from run 06.
-Runs 04 and 05 retain their failing test-message assertions; their passing storage
-audits do not rewrite those outcomes. All affected whole-owner results and retained
-storage were independently reviewed. The original local scanner, 4 GiB host and
-32 GiB volume allocations, failed trees and timing limits remain intact.
+The local ARM64 rollback controller checkpoint is pushed to `main` at `c07286f`.
+Its original local inode scanner, 4 GiB host and 32 GiB volume allocations, failed
+trees and timing limits remain intact. Scoped whole-owner controls and retained
+storage passed independent review; failed test-message assertions in runs 04/05
+remain failures.
 
-Actual capability is **UNAVAILABLE**. The first two probes stopped before payload
-start because Docker omitted one declared Desktop metadata label. The closed-key
-comparison now permits only that exact `v2` representation difference. Probe 03
-reached the kernel observer and returned `KERNEL_PRIVILEGES` before any pause;
-the aggregate diagnostic does not identify the rejected process or field. Both
-owned containers stopped, the timing lease released, and host/engine accounting
-passed. All three attempts and containers remain retained. No producer ran or
-retained native volume was touched. Next, add bounded refusal details without
-changing privilege admission, then review the actual cause before further runtime.
-Builds, restores and native proofs remain unpaused. See the maintained
+Actual capability remains **UNAVAILABLE** through probe 04. The first two probes
+stopped before payload start because Docker omitted one declared metadata label;
+only the exact observed `v2` representation difference is admitted now. Probe 03
+reached the kernel observer but lacked field-specific refusal details. The tested
+diagnostic update identified probe 04's sole observer mismatch: supplementary
+`[65534]` duplicated its already-required primary group while UID/GID, capabilities
+and no-new-privileges matched. The literal empty-list policy failed before writer
+or cgroup checks. Containers stopped, timing leases released, and accounting
+passed. Every attempt remains retained; no producer or native volume was touched.
+
+An explicit local successor `local-primary-group-authority-1` now admits only
+`[]` or `[expected primary GID]`, retains raw groups, and rejects every additional,
+root or duplicate group. The sealed native transport already records authority as
+`sorted(set([gid, *os.getgroups()]))`; no sealed or hosted policy was edited. Both
+worker and scheduler require the new marker, with all other privilege, identity,
+freeze and timing checks preserved. Their combined 27 Node cases passed run 08; 93 distinct Node cases are
+source-current across the scoped runs. Probe 05 verified exact credentials and
+member identities through kernel frozen/thawed readbacks, but its 1,076.213875 ms
+interval exceeded the unchanged 1,000 ms limit. The required resumed-heartbeat
+check was not reached. Cleanup and host accounting passed; engine accounting
+failed because two post-refusal image samples aborted before launch. Neither
+those failures nor earlier attempts are reinterpreted. Repeated full hashing of the 40.4 MB Docker executable occurs before each
+command and is a concrete critical-path investigation target; no timing savings
+or capability success is inferred. Builds, restores and native proofs remain
+unpaused. See the
 [local successor boundary](../tooling/rollback-producer/README.md#local-arm64-successor).
 
 Publication follows the user's current direction: no Sites; push completed

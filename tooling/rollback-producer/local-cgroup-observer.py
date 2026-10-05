@@ -3,7 +3,9 @@
 
 Run in a distinct nonroot observer container sharing the writer PID namespace,
 with the host cgroup namespace, a read-only whole cgroup2 mount, no capabilities,
-no supplementary groups and no-new-privileges. The controller independently
+no group authority beyond its fixed primary GID and no-new-privileges. The
+supplementary list must be empty or contain that primary GID exactly once;
+the raw list remains evidence. The controller independently
 authenticates exact Docker CIDs, namespace settings, source and image pins. This
 worker never controls Docker, writes cgroup files, signals, or scans a volume.
 Nested cgroups are deliberately unsupported and refused. An observation is not
@@ -24,10 +26,13 @@ MAX_ENTRIES = 4096
 MAX_READ = 262144
 MAX_TOTAL_READ = 8 * 1024 * 1024
 MAX_SECONDS = 0.5
+CREDENTIAL_POLICY = 'local-primary-group-authority-1'
 
 
 class Refusal(Exception):
-    pass
+    def __init__(self, code, credential_refusal=None):
+        super().__init__(code)
+        self.credential_refusal = credential_refusal
 
 
 def require(condition, code):
@@ -120,10 +125,29 @@ def process_fields(pid, status, raw_stat, raw_cgroup):
             'noNewPrivs': fields['NoNewPrivs'], 'cgroupPath': membership(raw_cgroup)}
 
 
-def credentials(row, uid, gid):
-    require(uid > 0 and gid > 0 and row['uids'] == [uid] * 4 and row['gids'] == [gid] * 4
-            and row['groups'] == [] and row['capabilities'] == ['0'] * 5
-            and row['noNewPrivs'] == '1', 'KERNEL_PRIVILEGES')
+def credentials(row, uid, gid, role='member'):
+    expected = {'uids': [uid] * 4, 'gids': [gid] * 4, 'groups': {'oneOf': [[], [gid]]},
+                'capabilities': ['0'] * 5, 'noNewPrivs': '1'}
+    mismatches = [key for key, value in expected.items()
+                  if (row[key] not in ([], [gid]) if key == 'groups' else row[key] != value)]
+    # Local policy successor: the already held primary GID may be represented
+    # once in the supplementary list. Never erase or canonicalize the raw list.
+    # Diagnostics contain only bounded parsed fields, not raw /proc text.
+    if uid <= 0 or gid <= 0 or mismatches:
+        actual = {key: list(row[key]) for key in ('uids', 'gids', 'groups', 'capabilities')}
+        actual['noNewPrivs'] = row['noNewPrivs'] if row['noNewPrivs'] in ('', '0', '1') else 'invalid'
+        raise Refusal('KERNEL_PRIVILEGES', {'role': role, 'pid': row['pid'],
+                      'expected': expected, 'actual': actual, 'mismatches': mismatches,
+                      'expectedOwnerNonroot': uid > 0 and gid > 0})
+
+
+def failure_result(error):
+    code = str(error) if isinstance(error, Refusal) else 'KERNEL_READ_UNAVAILABLE'
+    result = {'kind': 'local-cgroup-observation-1', 'credentialPolicy': CREDENTIAL_POLICY,
+              'status': 'FAIL', 'code': code}
+    if isinstance(error, Refusal) and error.credential_refusal is not None:
+        result['credentialRefusal'] = error.credential_refusal
+    return result
 
 
 def identity_fields(value, directory=False):
@@ -211,11 +235,11 @@ def observe(view, writer_uid, writer_gid, observer_uid, observer_gid, expected, 
     require(expected in (0, 1), 'KERNEL_EXPECTED_STATE')
     self_pid = os.getpid() if self_pid is None else self_pid
     observer = process(view, self_pid)
-    credentials(observer, observer_uid, observer_gid)
+    credentials(observer, observer_uid, observer_gid, 'observer')
     mount_raw = view.text('/proc/' + str(self_pid) + '/mountinfo')
     mount = hierarchy(mount_raw)
     writer = process(view, 1)
-    credentials(writer, writer_uid, writer_gid)
+    credentials(writer, writer_uid, writer_gid, 'writer')
     group_path = writer['cgroupPath']
     require(not inside(observer['cgroupPath'], group_path), 'KERNEL_OBSERVER_OVERLAP')
     path, ancestry = authenticate(view, mount, group_path)
@@ -243,7 +267,8 @@ def observe(view, writer_uid, writer_gid, observer_uid, observer_gid, expected, 
             'KERNEL_OBSERVER_DRIFT')
     require(event_values(view.text(path + '/cgroup.events')) == events, 'KERNEL_FREEZE_DRIFT')
     view.check()
-    return {'kind': 'local-cgroup-observation-1', 'status': 'PASS', 'frozen': expected,
+    return {'kind': 'local-cgroup-observation-1', 'credentialPolicy': CREDENTIAL_POLICY,
+            'status': 'PASS', 'frozen': expected,
             'binding': {'writer': {'pid': 1, 'startTime': writer['startTime']},
                         'cgroup': {'path': group_path, 'dev': ancestry[0]['directory']['dev'],
                                    'ino': ancestry[0]['directory']['ino'], 'mountId': mount['mountId']},
@@ -264,8 +289,7 @@ def main():
         result = observe(KernelView(), args.writer_uid, args.writer_gid, args.observer_uid,
                          args.observer_gid, args.expect_frozen)
     except (Refusal, OSError, UnicodeError) as error:
-        code = str(error) if isinstance(error, Refusal) else 'KERNEL_READ_UNAVAILABLE'
-        print(json.dumps({'kind': 'local-cgroup-observation-1', 'status': 'FAIL', 'code': code}))
+        print(json.dumps(failure_result(error), separators=(',', ':')))
         return 1
     print(json.dumps(result, separators=(',', ':')))
     return 0

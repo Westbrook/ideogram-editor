@@ -3,6 +3,7 @@
 import {createHash} from 'node:crypto';
 
 export const TOOLCHAIN_SCHEDULING = 'local-toolchain-quiescent-inodes-1';
+export const CREDENTIAL_POLICY = 'local-primary-group-authority-1';
 export const SYNCHRONIZATION_WINDOW_MS = 1000;
 export const COMMAND_ALLOWANCE_MS = 2000;
 export const OBSERVATION_CADENCE_MS = 2000;
@@ -16,7 +17,10 @@ const positive = value => Number.isSafeInteger(value) && value > 0;
 const processShape = row => positive(row?.pid) && typeof row.startTime === 'string' && /^[0-9]{1,20}$/.test(row.startTime)
   && Number.isSafeInteger(row.parent) && row.parent >= 0
   && ['uids', 'gids'].every(key => Array.isArray(row[key]) && row[key].length === 4 && row[key].every(positive))
-  && Array.isArray(row.groups) && row.groups.length === 0
+  && row.gids.every(gid => gid === row.gids[0])
+  // Docker may list the already-required primary GID once in Groups. Retain
+  // that raw representation; never admit another group or duplicate entries.
+  && (same(row.groups, []) || same(row.groups, [row.gids[0]]))
   && same(row.capabilities, ['0', '0', '0', '0', '0']) && row.noNewPrivs === '1' && typeof row.cgroupPath === 'string';
 function owner(value) {
   require(typeof value === 'string' && /^[1-9][0-9]*:[1-9][0-9]*$/.test(value), 'LOCAL_QUIESCENCE_OWNER');
@@ -33,6 +37,7 @@ export function parseKernelObservation(raw, expectedFrozen) {
   let value;
   try { value = JSON.parse(raw); } catch { throw Error('LOCAL_QUIESCENCE_KERNEL_JSON'); }
   require(value?.kind === 'local-cgroup-observation-1' && value.status === 'PASS' && value.frozen === expectedFrozen, 'LOCAL_QUIESCENCE_KERNEL_STATE');
+  require(value.credentialPolicy === CREDENTIAL_POLICY, 'LOCAL_QUIESCENCE_CREDENTIAL_POLICY');
   const binding = value.binding, group = binding?.cgroup;
   require(binding?.writer?.pid === 1 && typeof binding.writer.startTime === 'string' && /^[0-9]+$/.test(binding.writer.startTime) && group && typeof group.path === 'string' && group.path.startsWith('/') && Number.isSafeInteger(group.dev) && group.dev >= 0 && positive(group.ino) && positive(group.mountId), 'LOCAL_QUIESCENCE_KERNEL_BINDING');
   require(Array.isArray(binding.ancestry) && binding.ancestry.length > 0 && binding.ancestry.length <= 128 && typeof binding.observerCgroup?.path === 'string' && binding.observerCgroup.path !== group.path && Number.isSafeInteger(binding.observerCgroup.dev) && positive(binding.observerCgroup.ino), 'LOCAL_QUIESCENCE_KERNEL_INDEPENDENCE');
@@ -71,7 +76,7 @@ export function createToolchainQuiescence({writer, kernelObserver, command, reta
     require(value.members.every(row => row.uids.every(uid => uid === writerOwner.uid) && row.gids.every(gid => gid === writerOwner.gid)) && value.observer.uids.every(uid => uid === observerOwner.uid) && value.observer.gids.every(gid => gid === observerOwner.gid), 'LOCAL_QUIESCENCE_KERNEL_OWNER');
     if (binding) require(same(value.binding, binding), 'LOCAL_QUIESCENCE_IDENTITY_DRIFT');
     lastKernel = value;
-    return {value, evidence: {sha256: hash(raw), frozen, bindingSHA256: hash(JSON.stringify(value.binding)), membersSHA256: hash(JSON.stringify(value.members))}};
+    return {value, evidence: {sha256: hash(raw), frozen, credentialPolicy: CREDENTIAL_POLICY, bindingSHA256: hash(JSON.stringify(value.binding)), membersSHA256: hash(JSON.stringify(value.members))}};
   }
   async function thaw(trace, deadlineMs) {
     trace.thawRequestedMs = clock();
@@ -95,7 +100,7 @@ export function createToolchainQuiescence({writer, kernelObserver, command, reta
       const result = await kernel(0, deadlineMs);
       check(deadlineMs);
       binding = structuredClone(result.value.binding);
-      await retain({kind: 'local-toolchain-admission-1', policy: TOOLCHAIN_SCHEDULING, writer: selected, observer, startedMs, endedMs: clock(), kernel: result.evidence});
+      await retain({kind: 'local-toolchain-admission-1', policy: TOOLCHAIN_SCHEDULING, credentialPolicy: CREDENTIAL_POLICY, writer: selected, observer, startedMs, endedMs: clock(), kernel: result.evidence});
       check(deadlineMs);
       admitted = true;
       return result.value;
@@ -107,7 +112,7 @@ export function createToolchainQuiescence({writer, kernelObserver, command, reta
     let settle;
     active = new Promise(resolve => { settle = resolve; });
     const startedMs = clock(), deadlineMs = startedMs + SYNCHRONIZATION_WINDOW_MS;
-    const trace = {kind: 'local-toolchain-coordination-1', policy: TOOLCHAIN_SCHEDULING, sequence: observations++, writerId: selected.id, observerId: observer.id, windowMs: SYNCHRONIZATION_WINDOW_MS, commandAllowanceMs: COMMAND_ALLOWANCE_MS, cadenceMs: OBSERVATION_CADENCE_MS, coverageBoundMs: COVERAGE_BOUND_MS, startedMs, pauseRequestedMs: null, frozenMs: null, scanStartedMs: null, scanEndedMs: null, recheckedMs: null, thawRequestedMs: null, thawedMs: null, endedMs: null, frozen: null, rechecked: null, thawed: null, failure: null, cleanupFailure: null};
+    const trace = {kind: 'local-toolchain-coordination-1', policy: TOOLCHAIN_SCHEDULING, credentialPolicy: CREDENTIAL_POLICY, sequence: observations++, writerId: selected.id, observerId: observer.id, windowMs: SYNCHRONIZATION_WINDOW_MS, commandAllowanceMs: COMMAND_ALLOWANCE_MS, cadenceMs: OBSERVATION_CADENCE_MS, coverageBoundMs: COVERAGE_BOUND_MS, startedMs, pauseRequestedMs: null, frozenMs: null, scanStartedMs: null, scanEndedMs: null, recheckedMs: null, thawRequestedMs: null, thawedMs: null, endedMs: null, frozen: null, rechecked: null, thawed: null, failure: null, cleanupFailure: null};
     let observation, primary = null;
     try {
       check(deadlineMs);
@@ -150,7 +155,7 @@ export function createToolchainQuiescence({writer, kernelObserver, command, reta
     require(!closing, 'LOCAL_QUIESCENCE_CLOSE_OVERLAP');
     closing = true;
     if (active) await active;
-    const startedMs = clock(), trace = {kind: 'local-toolchain-close-1', policy: TOOLCHAIN_SCHEDULING, writerId: selected.id, observerId: observer.id, startedMs, endedMs: null, failure: null};
+    const startedMs = clock(), trace = {kind: 'local-toolchain-close-1', policy: TOOLCHAIN_SCHEDULING, credentialPolicy: CREDENTIAL_POLICY, writerId: selected.id, observerId: observer.id, startedMs, endedMs: null, failure: null};
     let primary = null;
     try {
       if (needsThaw) await thaw(trace, startedMs + COMMAND_ALLOWANCE_MS);
@@ -163,5 +168,5 @@ export function createToolchainQuiescence({writer, kernelObserver, command, reta
     if (primary) throw fail(primary);
     return {complete: !cleanupUncertain, thawed: !needsThaw, cleanupUncertain, kernelObservation: lastKernel};
   }
-  return {admit, observe, close, summary: () => ({policy: TOOLCHAIN_SCHEDULING, admitted, closed, observations, failure, cleanupUncertain, needsThaw})};
+  return {admit, observe, close, summary: () => ({policy: TOOLCHAIN_SCHEDULING, credentialPolicy: CREDENTIAL_POLICY, admitted, closed, observations, failure, cleanupUncertain, needsThaw})};
 }
