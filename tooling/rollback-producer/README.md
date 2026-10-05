@@ -106,6 +106,13 @@ claim protection from a hostile external root process or Docker daemon. The
 minimal observer refuses child cgroup directories rather than inferring a
 recursive membership census from the direct `cgroup.procs` file.
 
+Immutable image accounting remains available during failure cleanup; it preserves
+the primary failure and still checks the exact image identity and command bound.
+Controller observation timeouts floor the remaining milliseconds and refuse
+expired or sub-millisecond budgets, preserving the two-second command maximum.
+These corrections passed their complete owners in the combined 142-case run 09;
+they do not establish another actual capability result.
+
 The maintained entries are `local-capability-probe.mjs` and `local-control.mjs`.
 Both require pinned Node 26.10.0, the existing `tests/store/no-network.mjs`
 preload, an absolute private `--config` path and its exact `--grant` SHA-256.

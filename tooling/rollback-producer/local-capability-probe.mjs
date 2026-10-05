@@ -69,6 +69,12 @@ export function probeCreateArguments(role,expected) {
 export function heartbeatMembers(heartbeat,kernel) {
   check(kernel.members.length===2 && Object.values(heartbeat.ready).every(row=>kernel.members.some(member=>member.pid===row.pid && member.startTime===row.startTime && member.parent===row.parent)), 'HEARTBEAT_KERNEL_JOIN');
 }
+export async function observeProbeImageSize(run) {
+  // This fixed immutable-image read remains available during failure cleanup.
+  // The caller retains its original abort/failure and unchanged command bounds.
+  const value=JSON.parse(await run('image-size',['image','inspect','--format',ENGINE_IMAGE_FIELDS,IMAGE],{cleanup:true}));
+  return {bytes:imageSize(value,IMAGE).reportedBytes};
+}
 export function validateProbeConfig(config) {
   const user=value=>typeof value==='string' && /^[1-9][0-9]*:[1-9][0-9]*$/.test(value) && value.split(':').every(x=>Number.isSafeInteger(Number(x))&&Number(x)<=2147483647);
   check(config?.kind==='local-capability-probe-config-1' && /^ie-linux-[a-f0-9]{32}$/.test(config.runId) && user(config.writerUser) && user(config.observerUser) && config.writerUser.split(':')[0]!==config.observerUser.split(':')[0] && config.image===IMAGE && config.docker?.path==='/Applications/Docker.app/Contents/Resources/bin/docker','FIXED_PROBE_CONFIGURATION');
@@ -168,7 +174,7 @@ async function main() {
     owner=await acquireTimingLock(await timingLockDirectory(),{receiptId:config.runId});
     monitor=await startEvidenceMonitor({allocationPath:config.allocation.path,output:config.output,campaignId:config.runId,intervalMs:2000,onAlarm:alarm=>{if(alarm.status!=='PASS')aborter.abort('HOST_STORAGE_UNAVAILABLE');}});
     journal=openSync(join(config.output,'engine-observations.jsonl'),'wx',0o600);
-    accounting=createAccounting({observe:async target=>{if(target.key==='image'){const value=JSON.parse(await run('image-size',['image','inspect','--format',ENGINE_IMAGE_FIELDS,IMAGE]));return {bytes:imageSize(value,IMAGE).reportedBytes};}await inspect(target.role,true);const e=expected(target.role),value=JSON.parse(await run('container-size',['container','inspect','--size','--format',ENGINE_CONTAINER_FIELDS,e.id],{cleanup:true}));return {bytes:containerSize(value,{id:e.id,name:e.name,runId:config.runId,image:IMAGE}).writableBytes};},retain:record=>{const raw=Buffer.from(JSON.stringify(record)+'\n');writeSync(journal,raw);fsyncSync(journal);},onFailure:error=>aborter.abort('ENGINE_ACCOUNTING_UNAVAILABLE: '+String(error.message))});
+    accounting=createAccounting({observe:async target=>{if(target.key==='image')return observeProbeImageSize(run);await inspect(target.role,true);const e=expected(target.role),value=JSON.parse(await run('container-size',['container','inspect','--size','--format',ENGINE_CONTAINER_FIELDS,e.id],{cleanup:true}));return {bytes:containerSize(value,{id:e.id,name:e.name,runId:config.runId,image:IMAGE}).writableBytes};},retain:record=>{const raw=Buffer.from(JSON.stringify(record)+'\n');writeSync(journal,raw);fsyncSync(journal);},onFailure:error=>aborter.abort('ENGINE_ACCOUNTING_UNAVAILABLE: '+String(error.message))});
     const image=JSON.parse(await run('image-admission',['image','inspect','--format',ENGINE_IMAGE_FIELDS,IMAGE]));check(imageSize(image,IMAGE).reportedBytes===154383912,'IMAGE_SIZE_DIFFERS');
     state.imageLabels=JSON.parse(await run('image-labels',['image','inspect','--format','{{json .Config.Labels}}',IMAGE]));
     await accounting.add({key:'image',capacityBytes:engineGrant.engine.imageReportedCapacityBytes,meaning:'engine-reported-nonexclusive-image-bytes'});

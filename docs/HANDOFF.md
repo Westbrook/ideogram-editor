@@ -2,7 +2,21 @@
 
 ## Current continuation — Main consolidated; implementation slices accepted; full-plan holds recorded
 
-The local ARM64 rollback controller checkpoint is pushed to `main` at `c07286f`.
+A completed follow-up improves retained diagnostics and command accounting. Long
+storage-mutation paths keep the entire previous message prefix and add a bounded
+sanitized tail plus full relative-path digest; short messages remain unchanged.
+Seven of nine WC preparation failure paths had been truncated, preventing exact
+attribution. The diagnostic does not repair those failures or change scanning,
+retry or timing behavior. Immutable image accounting can now finish after a
+parent cancellation without clearing the original failure. Controller observation
+timeouts round remaining milliseconds down, reject expired/sub-millisecond
+budgets and preserve the two-second cap. The combined four-owner validation
+`local-successor-tests-09` passed all 142 cases and eight gates, with 21 complete storage observations
+and an independent retained-evidence review; no new native
+capability or WC preparation attempt was made.
+
+The local ARM64 rollback controller and explicit credential policy are pushed
+to `main` through `d7acbcc` (initial controller checkpoint `c07286f`).
 Its original local inode scanner, 4 GiB host and 32 GiB volume allocations, failed
 trees and timing limits remain intact. Scoped whole-owner controls and retained
 storage passed independent review; failed test-message assertions in runs 04/05
@@ -24,7 +38,7 @@ root or duplicate group. The sealed native transport already records authority a
 `sorted(set([gid, *os.getgroups()]))`; no sealed or hosted policy was edited. Both
 worker and scheduler require the new marker, with all other privilege, identity,
 freeze and timing checks preserved. Their combined 27 Node cases passed run 08; 93 distinct Node cases are
-source-current across the scoped runs. Probe 05 verified exact credentials and
+verified across the scoped runs at that checkpoint. Probe 05 verified exact credentials and
 member identities through kernel frozen/thawed readbacks, but its 1,076.213875 ms
 interval exceeded the unchanged 1,000 ms limit. The required resumed-heartbeat
 check was not reached. Cleanup and host accounting passed; engine accounting

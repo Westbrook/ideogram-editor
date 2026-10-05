@@ -293,10 +293,10 @@ function descendantRace(f,{target=join(f.volume,'seed.bin'),phase='stat-before',
   }
  }};
 }
-function descendantFailure(observation,{phase,member,code='EVIDENCE_MUTATION',original='ENOENT'}){
+function descendantFailure(observation,{phase,member,code='EVIDENCE_MUTATION',original='ENOENT',detail=''}){
  const sample=observation.attempts[0].sample;
  assert.equal(sample.completeTraversal,false);assert.equal(sample.failures.length,1);
- assert.deepEqual(sample.failures[0],{code,message:'Evidence observation unavailable; phase='+phase+'; code='+original+'; member='+member});
+ assert.deepEqual(sample.failures[0],{code,message:'Evidence observation unavailable; phase='+phase+'; code='+original+'; member='+member+detail});
  assert.deepEqual(Object.keys(sample.failures[0]).sort(),['code','message']);
  assert.equal(observation.maxAttempts,3);assert.equal(observation.maxWindowMs,1000);verifyAttemptChain(observation);
  return sample.failures[0];
@@ -390,8 +390,10 @@ for(const [phase,code]of [['stat-before','EIO'],['open-directory','EACCES'],['re
 test('descendant diagnostics bound and sanitize the actual enumerated member without exposing absolute or error-supplied paths',async t=>{
  const f=await fixture(t);clock(t);const name='member\\with\ncontrol"'+ 'x'.repeat(180),target=join(f.volume,name);await writeFile(target,'private');
  const scan=descendantRace(f,{target}),observation=await observeVolume(f.allocation,scan.sampleOptions);
- const member=name.replace(/[^\x20-\x7e]|[\\"]/g,'?').slice(0,160),failure=descendantFailure(observation,{phase:'stat-before',member});
- assert.equal(member.length,160);assert(!failure.message.includes(f.root));assert(!/[\x00-\x1f\x7f\\"]/.test(failure.message));
+ const sanitized=name.replace(/[^\x20-\x7e]|[\\"]/g,'?'),member=sanitized.slice(0,160),descriptor={truncated:true,tail:sanitized.slice(-96),sha256:digest(name)},detail='; member-v2='+JSON.stringify(descriptor);
+ const failure=descendantFailure(observation,{phase:'stat-before',member,detail});
+ assert.equal(member.length,160);assert(!failure.message.includes(f.root));assert(!/[\x00-\x1f\x7f\\"]/.test(failure.message.slice(0,-detail.length)));
+ assert.deepEqual(JSON.parse(failure.message.split('; member-v2=')[1]),descriptor);assert(!/[\x00-\x1f\x7f\\"]/.test(descriptor.tail));assert(Buffer.byteLength(detail)<=224);
  assert.equal(scan.starts,2);assert.equal(observation.selectedAttempt,1);assert.equal(validateEvidenceObservation(observation).failedAttempts,1);await assertClosed(scan.handles);
 });
 

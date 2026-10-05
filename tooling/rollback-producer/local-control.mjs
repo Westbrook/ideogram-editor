@@ -41,6 +41,14 @@ const errorRecord = e => ({name: String(e?.name ?? 'Error'), message: String(e?.
 const asRef = x => ({path: x.path, bytes: Number(x.byteLength), sha256: x.hash.replace(/^sha256:/, '')});
 export function successfulChild(value) { return value?.code === 0 && value.signal === null && !value.timedOut && !value.interrupted && !value.error; }
 export function childClosureUncertain(value) { return Boolean(value?.error || ((value?.timedOut || value?.interrupted) && value.exitObserved !== true)); }
+export function observationTimeoutMs(deadlineMs, nowMs) {
+  require(Number.isFinite(nowMs) && nowMs >= 0 && Number.isFinite(deadlineMs) && deadlineMs >= 0, 'Observation deadline must be finite');
+  // boundedChild accepts whole milliseconds only. Round down so no command
+  // receives time beyond its enclosing deadline, including a sub-ms remainder.
+  const timeoutMs = Math.min(2000, Math.floor(deadlineMs - nowMs));
+  require(Number.isSafeInteger(timeoutMs) && timeoutMs > 0, 'Observation command deadline expired');
+  return timeoutMs;
+}
 export async function settleChild(invoke, onUncertain, finalize) {
   let result=null,primary=null;
   try { result=await invoke(); if(childClosureUncertain(result))onUncertain(); }
@@ -374,10 +382,14 @@ async function main() {
     // boundaries and finalization; timing gaps caused by hashing stay failures.
     held(known.docker.path, known.docker, false); held(known.volumeWorker.path, known.volumeWorker, false); held(known.kernelWorker.path, known.kernelWorker, false);
     const sequence = observationOrdinal++, args = ['--context', 'desktop-linux', ...argv], startedMs = performance.now(), chunks = [[], []], counts = [0, 0], limits = [65536, 16384], local = new AbortController();
-    let result = null, failure = null;
+    let result = null, failure = null, childInvoked = false;
     const collect = i => bytes => { const count = Math.min(bytes.length, limits[i] - counts[i]); if (count > 0) { chunks[i].push(Buffer.from(bytes.subarray(0, count))); counts[i] += count; } if (count !== bytes.length) { failure = {message: 'Observer output cap exceeded'}; local.abort('Observer output cap'); } };
-    try { result = await boundedChild(known.docker.path, args, {cwd: known.repo, env, timeoutMs: Math.max(1, Math.min(2000, (options.deadlineMs ?? (startedMs + 2000)) - startedMs)), graceMs: 1000, abortSignal: local.signal, onStdout: collect(0), onStderr: collect(1)}); }
-    catch (error) { result = {code: null, signal: null, error: errorRecord(error)}; uncertain = true; }
+    try {
+      const timeoutMs = observationTimeoutMs(options.deadlineMs ?? (startedMs + 2000), performance.now());
+      childInvoked = true;
+      result = await boundedChild(known.docker.path, args, {cwd: known.repo, env, timeoutMs, graceMs: 1000, abortSignal: local.signal, onStdout: collect(0), onStderr: collect(1)});
+    }
+    catch (error) { result = {code: null, signal: null, error: errorRecord(error)}; if (childInvoked) uncertain = true; }
     if ((result.timedOut || result.interrupted) && result.exitObserved !== true) uncertain = true;
     const stdout = Buffer.concat(chunks[0]), stderr = Buffer.concat(chunks[1]);
     await retainObservation({kind: 'linux-docker-observation-command-1', sequence, label, binary: known.docker, argv: args, startedMs, endedMs: performance.now(), result, failure, stdoutBase64: stdout.toString('base64'), stderrBase64: stderr.toString('base64')});

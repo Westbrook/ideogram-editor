@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
-import {PHASES,roleNames,containerLabels,containerLabelArgs,expectedContainerLabels,initializerCommand,activeCommand,checkContainer,checkMounts,projectedMounts,validateLocalConfig,validateCapabilityEvidence,bootstrapPayloadArgs,bootstrapLaunch,BOOTSTRAP_MARKER,BOOTSTRAP_READY_MS,successfulChild,childClosureUncertain,settleChild,closeLogHandles,drainOwnedContainer,linkCancellation} from '../../tooling/rollback-producer/local-control.mjs';
+import {PHASES,roleNames,containerLabels,containerLabelArgs,expectedContainerLabels,initializerCommand,activeCommand,checkContainer,checkMounts,projectedMounts,validateLocalConfig,validateCapabilityEvidence,bootstrapPayloadArgs,bootstrapLaunch,BOOTSTRAP_MARKER,BOOTSTRAP_READY_MS,successfulChild,childClosureUncertain,observationTimeoutMs,settleChild,closeLogHandles,drainOwnedContainer,linkCancellation} from '../../tooling/rollback-producer/local-control.mjs';
 
 const runId='ie-linux-'+'a'.repeat(32),attemptId='attempt-'+'b'.repeat(32),id='c'.repeat(64),image='sha256:'+'d'.repeat(64),names=roleNames(runId,attemptId);
 const volume={Type:'volume',Source:names.volume,Destination:'/capsule',RW:true,Subpath:attemptId};
@@ -103,6 +103,22 @@ test('cleanup signals only authenticated full CID and retains stop failures',asy
 test('interrupted zero exit remains unsuccessful and cleanup cancellation stays separate',()=>{
   assert.equal(successfulChild({code:0,signal:null,interrupted:true,exitObserved:true}),false);
   const parent=new AbortController();parent.abort('signal');const work=new AbortController(),cleanup=new AbortController();linkCancellation(parent.signal,work);linkCancellation(parent.signal,cleanup,true);assert.equal(work.signal.aborted,true);assert.equal(cleanup.signal.aborted,false);
+});
+test('fractional observation deadlines round down without exceeding the enclosing clock or two-second allowance',()=>{
+  for(const [deadline,now,expected] of [[4590.58325,3609.385,981],[1001.5,1000.5,1],[1001.75,1000.5,1],[5000.25,1000.125,2000],[3000.125,1000.25,1999]]){
+    const timeout=observationTimeoutMs(deadline,now);
+    assert.equal(timeout,expected);assert.equal(Number.isSafeInteger(timeout),true);
+    assert.ok(timeout>0 && timeout<=2000 && now+timeout<=deadline);
+  }
+  // Time spent between command admission and launch consumes the original
+  // deadline rather than resetting a fresh two-second allowance.
+  assert.equal(observationTimeoutMs(3000.25,1000.25),2000);
+  assert.equal(observationTimeoutMs(3000.25,1123.75),1876);
+});
+test('expired, sub-millisecond or malformed observation deadlines refuse instead of inventing one millisecond',()=>{
+  for(const [deadline,now] of [[1000,1000],[999,1000],[1000.99,1000],[Infinity,1000],[1001,NaN],[1001,Infinity],[NaN,1000],[-1,0],[1,-1],['2000',1000],[2000,undefined]]){
+    assert.throws(()=>observationTimeoutMs(deadline,now),/Observation (command deadline expired|deadline must be finite)/);
+  }
 });
 test('maintained local scanner exactly preserves the failed local scanner policy bytes',async()=>{
   const raw=await readFile(new URL('../../tooling/rollback-producer/local-volume-observer.py',import.meta.url));

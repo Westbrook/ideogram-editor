@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {parseHeartbeat,heartbeatMembers,validateContainer,validateProbeConfig,needsQuiescenceClosure,runCapabilityInterval,boundedLoggedCommand,probeCreateArguments} from '../../tooling/rollback-producer/local-capability-probe.mjs';
+import {parseHeartbeat,heartbeatMembers,validateContainer,validateProbeConfig,needsQuiescenceClosure,runCapabilityInterval,boundedLoggedCommand,probeCreateArguments,observeProbeImageSize} from '../../tooling/rollback-producer/local-capability-probe.mjs';
 import {requestedImageLabels,projectedContainerLabels,containerImageLabelsMatch,imageLabelArgs} from '../../tooling/rollback-producer/local-image-labels.mjs';
+import {createAccounting,ENGINE_IMAGE_FIELDS} from '../../tooling/rollback-producer/local-accounting.mjs';
 
 const image='sha256:2d4f521035336480bf68d7790f242d0abeba90f8116c4443262269ec0d7e8910',runId='ie-linux-'+'a'.repeat(32),id='b'.repeat(64);
 const registrations=[{type:'ready',role:'writer',pid:1,parent:0,session:1,startTime:'123'},{type:'ready',role:'descendant',pid:7,parent:1,session:7,startTime:'124'}];
@@ -110,4 +111,20 @@ test('child exception stays primary through close failures and observed exits do
   await assert.rejects(boundedLoggedCommand({openLog:channel=>channel,before:()=>{},execute:async()=>{throw primary;},onUncertain:()=>trace.push('uncertain'),syncLog:()=>{},closeLog:handle=>{trace.push('close '+handle);throw Error('secondary close error');}}),error=>error===primary);
   assert.deepEqual(trace,['uncertain','close out','close err']);
   const result={timedOut:true,exitObserved:true};assert.equal(await boundedLoggedCommand({openLog:channel=>channel,before:()=>{},execute:async()=>result,onUncertain:()=>assert.fail('actual exit observed'),syncLog:()=>{},closeLog:()=>{}}),result);
+});
+test('fixed image accounting still observes after abort without clearing the original failed campaign',async()=>{
+  const aborter=new AbortController(),primary=Error('original coordination failure'),records=[],calls=[];let time=0;
+  const accounting=createAccounting({observe:()=>observeProbeImageSize(async(label,argv,options)=>{
+    if(aborter.signal.aborted&&!options.cleanup)throw Error('ordinary command refused after abort');
+    assert.equal(label,'image-size');assert.deepEqual(argv,['image','inspect','--format',ENGINE_IMAGE_FIELDS,image]);assert.deepEqual(options,{cleanup:true});calls.push({aborted:aborter.signal.aborted});
+    return JSON.stringify({Id:image,Os:'linux',Architecture:'arm64',Size:154383912});
+  }),retain:record=>records.push(record),onFailure:error=>aborter.abort(error),clock:()=>++time,schedule:()=>1,cancel:()=>{}});
+  await accounting.add({key:'image',capacityBytes:4*1024**3,meaning:'nonexclusive image bytes'});
+  await assert.rejects(accounting.coordinate(async()=>{throw primary;}),error=>error===primary);
+  const result=await accounting.finish();
+  assert.deepEqual(calls,[{aborted:false},{aborted:true}]);assert.equal(aborter.signal.reason,primary);assert.equal(result.status,'FAIL');assert.equal(result.scopes[0].unknownSamples,0);assert.equal(records.at(-1).boundary,'final');
+});
+test('cleanup-authorized image reads still refuse changed identity and propagate observation failure',async()=>{
+  await assert.rejects(observeProbeImageSize(async()=>JSON.stringify({Id:'sha256:'+'f'.repeat(64),Os:'linux',Architecture:'arm64',Size:154383912})),/identity/);
+  const failure=Error('bounded image observation expired');await assert.rejects(observeProbeImageSize(async()=>{throw failure;}),error=>error===failure);
 });

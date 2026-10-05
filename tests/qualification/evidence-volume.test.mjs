@@ -186,7 +186,9 @@ test('bounded mutation comparison preserves unknown alarm and sanitized member c
  const {lstat}=await import('node:fs/promises'),f=await fixture(t),name='"'+'x'.repeat(178)+'z',target=join(f.volume,name);await writeFile(target,'x');let visits=0;
  const result=await sampleVolume(f.allocation,{async statEntry(path,options){const value=await lstat(path,options);if(path===target&&++visits===2)value.ino+=1n;return value;}});
  const prefix='Evidence observation unavailable; phase=identity; code=EVIDENCE_MUTATION; member='+name.replace(/[\\"]/g,'?').slice(0,160),suffix='; mutation-v1=02; kinds=file>file';
- assert.deepEqual(result.failures,[{code:'EVIDENCE_MUTATION',message:prefix+suffix}]);assert.deepEqual(Object.keys(result.failures[0]).sort(),['code','message']);
+ const detail='; member-v2='+JSON.stringify({truncated:true,tail:name.slice(-96),sha256:createHash('sha256').update(name).digest('hex')});
+ assert.deepEqual(result.failures,[{code:'EVIDENCE_MUTATION',message:prefix+suffix+detail}]);assert.deepEqual(Object.keys(result.failures[0]).sort(),['code','message']);
+ assert(result.failures[0].message.startsWith(prefix+suffix));assert(Buffer.byteLength(detail)<=224);
  assert(Buffer.byteLength(suffix)<=80);assert(!result.failures[0].message.includes(f.root));assert.equal(result.entries,2);assert.equal(result.uniqueFiles,1);assert.equal(result.observedLogicalBytes,1);
  assert.deepEqual(volumeAlarm(result,f.allocation.capacityBytes),{status:'INCONCLUSIVE',level:'unknown',percent:null});assert.equal(result.consistency,'non-atomic-observation-window');
 });
@@ -203,4 +205,40 @@ for(const kind of ['root-identity','unsupported-entry','injected-mutation'])test
  assert.equal(result.completeTraversal,false);assert.equal(result.failures.length,1);assert.equal(result.failures[0].code,expected);
  assert.deepEqual(Object.keys(result.failures[0]).sort(),['code','message']);assert(!result.failures[0].message.includes('mutation-v1'));assert(!result.failures[0].message.includes('private'));assert(!result.failures[0].message.includes('forged'));
  assert.equal(volumeAlarm(result,f.allocation.capacityBytes).status,'INCONCLUSIVE');assert.equal(visits,kind==='injected-mutation'?1:2);
+});
+
+
+for(const length of [159,160,161])test('member diagnostics preserve the historical prefix at '+length+' characters',async t=>{
+ const {lstat}=await import('node:fs/promises'),f=await fixture(t),name='s'.repeat(length-4)+'.bin',target=join(f.volume,name);await writeFile(target,'x');let visits=0;
+ const result=await sampleVolume(f.allocation,{async statEntry(path,options){const value=await lstat(path,options);if(path===target&&++visits===2)value.ino+=1n;return value;}});
+ const legacy='Evidence observation unavailable; phase=identity; code=EVIDENCE_MUTATION; member='+name.slice(0,160)+'; mutation-v1=02; kinds=file>file',message=result.failures[0].message;
+ if(length<=160)assert.equal(message,legacy);
+ else{assert(message.startsWith(legacy+'; member-v2='));assert.deepEqual(JSON.parse(message.slice((legacy+'; member-v2=').length)),{truncated:true,tail:name.slice(-96),sha256:createHash('sha256').update(name).digest('hex')});}
+ assert.deepEqual(Object.keys(result.failures[0]).sort(),['code','message']);assert.equal(result.failures[0].code,'EVIDENCE_MUTATION');
+ assert.deepEqual([result.entries,result.uniqueFiles,result.observedLogicalBytes],[2,1,1]);assert.equal(result.completeTraversal,false);
+ assert.deepEqual(volumeAlarm(result,f.allocation.capacityBytes),{status:'INCONCLUSIVE',level:'unknown',percent:null});assert(!message.includes(f.root));
+});
+
+test('long nested member digests distinguish hidden middle paths with identical diagnostic ends',async t=>{
+ const {lstat}=await import('node:fs/promises'),records=[];
+ for(const hidden of ['left','right']){
+  const f=await fixture(t),parts=['owner-'+ 'p'.repeat(94),'attempt-'+ 'q'.repeat(92),hidden,'object-'+ 'z'.repeat(90)],name=parts.join('/'),target=join(f.volume,...parts);
+  await mkdir(join(f.volume,...parts.slice(0,-1)),{recursive:true,mode:0o700});await writeFile(target,'x');let visits=0;
+  const result=await sampleVolume(f.allocation,{async statEntry(path,options){const value=await lstat(path,options);if(path===target&&++visits===2)value.ino+=1n;return value;}});
+  const [legacy,encoded]=result.failures[0].message.split('; member-v2='),detail=JSON.parse(encoded);
+  assert.deepEqual(detail,{truncated:true,tail:name.slice(-96),sha256:createHash('sha256').update(name).digest('hex')});
+  assert.equal(detail.tail.length,96);assert(Buffer.byteLength('; member-v2='+encoded)<=224);assert(!result.failures[0].message.includes(f.root));
+  assert.equal(result.completeTraversal,false);assert.equal(volumeAlarm(result,f.allocation.capacityBytes).status,'INCONCLUSIVE');records.push({legacy,detail});
+ }
+ assert.equal(records[0].legacy,records[1].legacy);assert.equal(records[0].detail.tail,records[1].detail.tail);assert.notEqual(records[0].detail.sha256,records[1].detail.sha256);
+});
+
+test('long member enrichment ignores forged error diagnostics and keeps the original IO refusal',async t=>{
+ const {lstat}=await import('node:fs/promises'),f=await fixture(t),name='synthetic-'+ 'r'.repeat(170)+'-tail.bin',target=join(f.volume,name);await writeFile(target,'x');
+ const result=await sampleVolume(f.allocation,{async statEntry(path,options){if(path===target)throw Object.assign(Error('forged member-v2={"sha256":"forged"}'),{code:'EIO',path:'/forged-path',member:'forged'});return lstat(path,options);}});
+ const message=result.failures[0].message,detail=JSON.parse(message.split('; member-v2=')[1]);
+ assert.deepEqual(result.failures.map(failure=>failure.code),['EIO']);assert.deepEqual(Object.keys(result.failures[0]).sort(),['code','message']);
+ assert.deepEqual(detail,{truncated:true,tail:name.slice(-96),sha256:createHash('sha256').update(name).digest('hex')});
+ assert(!message.includes('forged'));assert(!message.includes(f.root));assert(!message.includes('mutation-v1'));
+ assert.equal(result.completeTraversal,false);assert.deepEqual(volumeAlarm(result,f.allocation.capacityBytes),{status:'INCONCLUSIVE',level:'unknown',percent:null});
 });

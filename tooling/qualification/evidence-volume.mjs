@@ -31,9 +31,17 @@ function observationError(error, root, path, phase, originalCode = error?.code) 
   const code = typeof error?.code === 'string' ? error.code : 'EVIDENCE_IO';
   const rawCode = typeof originalCode === 'string' && /^[A-Z0-9_]{1,48}$/.test(originalCode) ? originalCode : 'EVIDENCE_IO';
   const owned = path === root ? '.' : relative(root, path);
-  const member = (owned === '..' || owned.startsWith('../') || isAbsolute(owned) ? '<outside>' : owned).replace(/[^\x20-\x7e]|[\\"]/g, '?').slice(0, 160);
+  const safeOwned = owned === '..' || owned.startsWith('../') || isAbsolute(owned) ? '<outside>' : owned;
+  const sanitized = safeOwned.replace(/[^\x20-\x7e]|[\\"]/g, '?'), member = sanitized.slice(0, 160);
+  // Preserve the complete historical message as a prefix. Only long members
+  // gain bounded sampler-owned context: 96 ASCII tail bytes and a relative-path
+  // digest distinguish hidden descendants without retaining absolute paths.
+  let memberDetail = '';
+  if (sanitized.length > 160) try {
+    memberDetail = '; member-v2=' + JSON.stringify({ truncated: true, tail: sanitized.slice(-96), sha256: hash(safeOwned) });
+  } catch { /* Diagnostic enrichment must never replace the original refusal. */ }
   const failure = Object.assign(Error('Evidence observation unavailable'), { code });
-  observationDiagnostics.set(failure, `Evidence observation unavailable; phase=${phase}; code=${rawCode}; member=${member}${mutationComparisons.get(error) ?? ''}`);
+  observationDiagnostics.set(failure, `Evidence observation unavailable; phase=${phase}; code=${rawCode}; member=${member}${mutationComparisons.get(error) ?? ''}${memberDetail}`);
   return failure;
 }
 
