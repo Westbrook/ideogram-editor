@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {DatabaseSync} from 'node:sqlite';
+import {readdirSync,readFileSync,existsSync} from 'node:fs';
 import {join,resolve} from 'node:path';
 import {unlink,writeFile,readFile,cp,readdir,mkdir} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
@@ -160,9 +161,9 @@ test('export font scan fences cancellation before work and after the actual insp
  await assert.rejects(f.run(()=>{if(finished)throw cancelled;}),error=>error===cancelled);assert.equal(f.calls.length,1);await f.unchanged();
 });
 
-async function ownedFontStore(t,f){
+async function ownedFontStore(t,f,barrier=()=>{}){
  await f.server.close();const owner=await acquireRoot(f.root);let db;
- try{db=new StoreDatabase(f.root,()=>{});}catch(error){owner.close();throw error;}
+ try{db=new StoreDatabase(f.root,barrier);}catch(error){owner.close();throw error;}
  t.after(async()=>{try{await db.storageRepairs.close();db.storageLibrary.close();db.storageMemory.close();await db.displays.close();await db.candidates.close();await db.queue.close();await db.portables.close();await db.histories.close();await db.rasters.close();await db.assets.close();await db.recovery.settle();db.close();}finally{owner.close();}});
  return db;
 }
@@ -393,4 +394,30 @@ test('the same unapplied alias shape without AssetRegistered copies and imports 
  await execute({type:'ImportBundle',reviewId:review.reviewId,reviewHash:review.reviewHash});assert(db.document(review.documentId));assert.deepEqual(db.document(before.id),before);assert.deepEqual(db.queue.view(),beforeQueue);
  await new Promise(resolve=>setImmediate(resolve));assert.equal(db.texts.reservedCPU,0);assert.deepEqual(db.objects.reservationInventory(),{reservedBytes:'0',activeTransfers:0});assert.equal(db.db.prepare('SELECT count(*) n FROM portable_pins').get().n,0);
  assert.deepEqual(await readFile(db.objects.path(font.bytes)),original.bytes);
+});
+
+for(const recovery of [false,true])test('real '+(recovery?'recovery':'full')+' copy emits generated entity payloads without scratch objects and reopens its proved archive',async t=>{
+ const f=await setup(t);await terminal(f,f.command({}, {width:3,height:2}));const {asset}=await importRaster(f,'hidden-alpha.png');await edit(f,{type:'ImportAsset',assetId:asset.id,layerId:'picture',name:'Café 東京',draft:null});
+ const before=await doc(f);let captured;
+ const db=await ownedFontStore(t,f,phase=>{
+  if(phase!=='portable-export-before-commit')return;
+  const directory=join(f.root,'portable'),attempts=[];
+  for(const capture of readdirSync(directory,{withFileTypes:true}))if(capture.isDirectory())for(const attempt of readdirSync(join(directory,capture.name),{withFileTypes:true}))if(attempt.isDirectory()){
+   const path=join(directory,capture.name,attempt.name);if(existsSync(join(path,'export.sqlite')))attempts.push(path);
+  }
+  assert.equal(attempts.length,1);const attempt=attempts[0],members=readdirSync(attempt);
+  assert(members.includes('export.sqlite'));assert(members.includes('manifest.json'));assert(members.some(name=>/^records-[0-9]+\.jsonl$/.test(name)));
+  assert.deepEqual(members.filter(name=>/^[a-f0-9]{64}$/.test(name)),[],'Generated payloads must not churn the attempt directory');
+  captured=readFileSync(join(attempt,'manifest.json'));
+ });
+ const auth={clientId:f.paired.json.clientId,sessionHash:'f'.repeat(64),now:Date.now(),expires:Date.now()+1800000};db.rememberClient(auth.sessionHash,auth.clientId,auth.expires);
+ const body=recovery?{type:'SaveRecoveryCopy',acknowledgementId:'generated_payload_recovery'}:{type:'SaveCopy'},c=f.command({expectedDocumentRevision:before.revision,body});assert.equal(db.portables.command(encode(c),auth),null);let record;
+ for(let n=0;n<1000;n++){record=db.lookup(c.command.commandId);if(record)break;await pause();}
+ assert(record,'Actual export must reach its terminal receipt');assert.equal(record.receipt.status,'accepted',JSON.stringify(record.receipt));assert(captured);
+ const event=db.events(String(BigInt(record.receipt.fromSeq)-1n),100).events.find(event=>event.commandId===c.command.commandId),bundle=event.payload.bundle;
+ assert.equal(bundle.complete,!recovery);assert.equal(bundle.status,recovery?'recovery-copy-ready':'copy-ready');const archive=await readFile(db.objects.path(bundle.blob));assert.equal(bundle.blob.hash,hashBytes(archive));db.objects.verify(bundle.blob);
+ const entries=await unpack(f.root,archive),entityRows=records(entries).values.filter(row=>row.kind==='entity');assert.deepEqual(entries.get('manifest.json'),captured);assert(entityRows.length>1);
+ for(const row of entityRows){const bytes=entries.get('objects/'+row.payloadRef.hash.slice(7));assert(bytes);assert.equal(bytes.length,Number(row.payloadRef.byteLength));assert.equal(hashBytes(bytes),row.payloadRef.hash);assert.equal(canonical(JSON.parse(bytes)),bytes.toString());}
+ assert.deepEqual(entries.get('objects/'+asset.raster.pixels.hash.slice(7)),await readFile(db.objects.path(asset.raster.pixels)));assert.deepEqual(db.document(before.id),before);
+ await new Promise(resolve=>setImmediate(resolve));assert.equal(db.db.prepare('SELECT count(*) n FROM portable_pins').get().n,0);assert.deepEqual(db.objects.reservationInventory(),{reservedBytes:'0',activeTransfers:0});
 });

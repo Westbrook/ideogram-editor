@@ -160,6 +160,16 @@ export async function sampleVolume(allocation, { maxEntries = LIMIT, statEntry, 
   if (!Number.isSafeInteger(maxEntries) || maxEntries < 1 || maxEntries > LIMIT) throw Error('Evidence traversal limit must remain bounded');
   try { await checkRoot(allocation); } catch (error) { throw observationError(error, allocation.root, allocation.root, 'root-before'); }
   const startedAt = new Date().toISOString(), startMs = performance.now(), seen = new Set();
+  // Diagnostic attribution only: no additional filesystem operations, paths or
+  // per-entry records. Root guards and other JS work remain in elapsed time.
+  // Explicit test backends keep their existing uninstrumented behavior.
+  const timing = synchronousDirectory ? {kind:'default-traversal-timing-2',...Object.fromEntries(['stat','open','read','close','cooperativeYield'].map(key=>[key,{count:0,totalMs:0,maxMs:0}]))} : null;
+  const recordTime = (key, started) => {
+    const elapsed=performance.now()-started,row=timing[key];row.count++;row.totalMs+=elapsed;row.maxMs=Math.max(row.maxMs,elapsed);
+  };
+  const timedSync = (key, operation) => {
+    const started=performance.now();try{return operation();}finally{recordTime(key,started);}
+  };
   let logicalBytes = 0n, allocatedBytes = 0n, entries = 0, files = 0, hardLinks = 0, concurrentChanges = 0, blocksAvailable = true;
   const failures = [];
   // Four traversal branches share one entry counter and inode set. Keep one
@@ -178,31 +188,40 @@ export async function sampleVolume(allocation, { maxEntries = LIMIT, statEntry, 
   // its one-entry lookahead never enumerates a directory ahead of that walk.
   if (openDirectory === undefined) openDirectory = statEntry === undefined ? path => {
     // Open eagerly so native open failures retain the open-directory phase.
-    const directory = opendirSync(path, { bufferSize: 32, recursive: false });
+    const directory = timedSync('open',()=>opendirSync(path, { bufferSize: 32, recursive: false }));
     return (function* () {
       try {
         for (;;) {
-          const entry = directory.readSync();
+          const entry = timedSync('read',()=>directory.readSync());
           if (entry === null) return;
           yield entry;
         }
-      } finally { directory.closeSync(); }
+      } finally { timedSync('close',()=>directory.closeSync()); }
     })();
   } : opendir;
-  // Default stats avoid per-entry thread-pool dispatch. All four branches
-  // share one turn budget; none can bypass an already pending cooperative yield.
-  // Explicit statEntry injections retain their own scheduling and error behavior.
+  // Each of the existing four branches awaits its one issued stat. Branch
+  // leases remain held through descendant draining, including on failure, so
+  // no more than four default native stats can be outstanding. Their v2 timing
+  // is overlapping issue-to-settlement latency, including scheduling time.
+  // Explicit I/O injections retain their existing scheduling and backend.
   if (statEntry === undefined) {
     let statCalls = 0, statTurn;
     statEntry = async (path, options) => {
       if (traversalFailed) throw traversalFailure;
       while (statCalls >= 32) {
-        statTurn ??= new Promise(resolve => setImmediate(resolve)).then(() => { statCalls = 0; statTurn = undefined; });
+        // All branches await one real yield. Count that promise once, not each
+        // waiter; its duration can overlap directory work in another branch.
+        if (!statTurn) {
+          const yieldStarted=timing?performance.now():null;
+          statTurn = new Promise(resolve => setImmediate(resolve)).then(() => { if(timing)recordTime('cooperativeYield',yieldStarted);statCalls = 0; statTurn = undefined; });
+        }
         await statTurn;
         if (traversalFailed) throw traversalFailure;
       }
       statCalls++;
-      return lstatSync(path, options);
+      if (!timing) return lstatSync(path, options);
+      const started = performance.now();
+      try { return await lstat(path, options); } finally { recordTime('stat', started); }
     };
   }
   async function walk(path, depth, ancestors = []) {
@@ -293,7 +312,7 @@ export async function sampleVolume(allocation, { maxEntries = LIMIT, statEntry, 
   return { kind: 'evidence-volume-sample-1', startedAt, finishedAt: new Date().toISOString(), startMs, endMs: performance.now(),
     method: 'bounded-nofollow-streaming-lstat', consistency: 'non-atomic-observation-window', completeTraversal: failures.length === 0 && safe && blocksAvailable,
     entries, concurrentChanges, uniqueFiles: files, repeatedInodes: hardLinks, observedLogicalBytes: safe ? Number(logicalBytes) : null,
-    observedAllocatedBytes: safe && blocksAvailable ? Number(allocatedBytes) : null, failures,
+    observedAllocatedBytes: safe && blocksAvailable ? Number(allocatedBytes) : null, failures, ...(timing?{defaultTraversalTiming:timing}:{}),
     limitations: ['Changes between samples are not observed.', 'Concurrent directory membership or identity changes make that sample incomplete; file byte counts are measured at their individual stat observations.', 'Allocated bytes count unique filesystem inodes, including directory blocks; filesystem-wide metadata is unavailable.'] };
 }
 export function volumeAlarm(sample, capacityBytes) {
@@ -526,7 +545,8 @@ const sha256 = value => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value
 const identityValid = value => value && integer(value.bytes) && sha256(value.sha256) && Object.keys(value).every(key => ['bytes', 'sha256'].includes(key));
 const keysAre = (value, allowed) => value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).every(key => allowed.includes(key)) && allowed.every(key => Object.hasOwn(value, key));
 function validateCounterSample(sample) {
-  if (!keysAre(sample, ['kind','startedAt','finishedAt','startMs','endMs','method','consistency','completeTraversal','entries','concurrentChanges','uniqueFiles','repeatedInodes','observedLogicalBytes','observedAllocatedBytes','failures','limitations']) ||
+  const timingPresent=sample && Object.hasOwn(sample,'defaultTraversalTiming');
+  if (!keysAre(sample, ['kind','startedAt','finishedAt','startMs','endMs','method','consistency','completeTraversal','entries','concurrentChanges','uniqueFiles','repeatedInodes','observedLogicalBytes','observedAllocatedBytes','failures','limitations',...(timingPresent?['defaultTraversalTiming']:[])]) ||
       sample.kind !== 'evidence-volume-sample-1' || !utc(sample.startedAt) || !utc(sample.finishedAt) || Date.parse(sample.finishedAt) < Date.parse(sample.startedAt) ||
       !nonnegative(sample.startMs) || !nonnegative(sample.endMs) || sample.endMs < sample.startMs || sample.method !== 'bounded-nofollow-streaming-lstat' || sample.consistency !== 'non-atomic-observation-window' ||
       typeof sample.completeTraversal !== 'boolean' || !['entries','concurrentChanges','uniqueFiles','repeatedInodes'].every(key => integer(sample[key]) && sample[key] <= LIMIT + 1) ||
@@ -534,6 +554,17 @@ function validateCounterSample(sample) {
       !Array.isArray(sample.failures) || sample.failures.length > 1 || sample.failures.some(value => !keysAre(value, ['code','message']) || typeof value.code !== 'string' || typeof value.message !== 'string') ||
       !Array.isArray(sample.limitations) || sample.limitations.length > 8 || sample.limitations.some(value => typeof value !== 'string' || value.length > 512) ||
       sample.completeTraversal && (sample.failures.length || sample.observedAllocatedBytes === null || sample.observedLogicalBytes === null)) throw Error('Invalid evidence sample schema');
+  if(timingPresent){
+    const timing=sample.defaultTraversalTiming,operations=['stat','open','read','close','cooperativeYield'],asyncStats=timing?.kind==='default-traversal-timing-2',span=sample.endMs-sample.startMs;
+    if(!keysAre(timing,['kind',...operations])||!['default-traversal-timing-1','default-traversal-timing-2'].includes(timing.kind)||operations.some(key=>{
+      const row=timing[key],tolerance=1e-6+Number.EPSILON*Math.max(1,sample.endMs)*(2*(row?.count??0)+4),overlap=asyncStats&&key==='stat'?4:1;
+      return !keysAre(row,['count','totalMs','maxMs'])||!integer(row.count)||row.count>2*(LIMIT+1)||!nonnegative(row.totalMs)||!nonnegative(row.maxMs)||row.maxMs>row.totalMs||row.maxMs>span+tolerance||row.totalMs>overlap*span+tolerance||row.count===0&&(row.totalMs!==0||row.maxMs!==0);
+    }))throw Error('Invalid default traversal timing');
+    // Only synchronous calls are additive: v2 async stats and real yields can
+    // overlap directory work. Preserve v1's original synchronous-stat rules.
+    const sync=operations.slice(asyncStats?1:0,4).map(key=>timing[key]),count=sync.reduce((n,row)=>n+row.count,0),total=sync.reduce((n,row)=>n+row.totalMs,0);
+    if(total>sample.endMs-sample.startMs+1e-6+Number.EPSILON*Math.max(1,sample.endMs)*(2*count+4))throw Error('Invalid default traversal timing');
+  }
 }
 /** Offline replay of every actual attempt, including mutation failures. An
  * accepted sample always names the final complete scan within the fixed window;

@@ -16,6 +16,7 @@ import { canonical, hashBytes, isId, isSeq, validateBlob } from '../storage/cano
 import { parseControlJSON } from '../../src/protocol/json.js';
 import { keys, requireValue as ok, entity, event } from '../../src/protocol/validate.js';
 import { privateFile } from '../storage/files.js';
+import { StoreError } from '../storage/errors.js';
 import { ZipIndex, crc32, write, tick, invalid, type ZipSource } from './zip.js';
 export const SEGMENT_BYTES=128*1024*1024;
 export const RECORD_BYTES=16384;
@@ -35,6 +36,15 @@ export async function fileSource(name:string,path:string,check:()=>void):Promise
  const fd=openSync(path,constants.O_RDONLY|constants.O_NOFOLLOW),h=createHash('sha256'),b=Buffer.alloc(1048576);let size=0n,crc=0xffffffff;
  try{for(;;){check();const n=readSync(fd,b);if(!n)break;h.update(b.subarray(0,n));crc=crc32(b.subarray(0,n),crc);size+=BigInt(n);await tick();}}finally{closeSync(fd);}
  return {name,bytes:size,crc:(crc^0xffffffff)>>>0,sha256:h.digest('hex'),chunks:async function*(){const f=openSync(path,constants.O_RDONLY|constants.O_NOFOLLOW),b=Buffer.alloc(1048576);try{for(;;){check();const n=readSync(f,b);if(!n)break;yield b.subarray(0,n);}}finally{closeSync(f);}}};
+}
+// One entity row at a time: encodeRecords already bounds these exact UTF-8
+// bytes. Keep the immutable snapshot through ZIP emission, without scratch files.
+export function generatedPayloadSource(ref:BlobRef,payload:string,check:()=>void):ZipSource{
+ check();validateBlob(ref);const length=Buffer.byteLength(payload);if(length>65536)invalid();
+ const sha256=createHash('sha256').update(payload,'utf8').digest('hex');
+ if(BigInt(length)!==BigInt(ref.byteLength)||'sha256:'+sha256!==ref.hash)throw new StoreError('CORRUPT_OBJECT');
+ const bytes=Buffer.from(payload),crc=(crc32(bytes)^0xffffffff)>>>0;check();
+ return {name:'objects/'+sha256,bytes:BigInt(bytes.length),crc,sha256,chunks:async function*(){check();yield bytes;check();}};
 }
 export async function encodeRecords(db:DatabaseSync,directory:string,sourceNamespace:string,highWater:string,check:()=>void,segmentBytes=SEGMENT_BYTES,recovery?:RecoveryDisclosure){
  if(segmentBytes<32768||segmentBytes>SEGMENT_BYTES)invalid();if(recovery)recoveryDisclosure(recovery);else await validateTransactions(db,highWater,check);let number=0;

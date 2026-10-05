@@ -5,7 +5,21 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { inflateSync } from 'node:zlib';
-import { brushCorpus, crc32, deterministicChunks, fileIdentity, rasterRow, setupFixture, textFrames, validateObserved, verifyFixtureManifest, FIXTURE_VERSION, workloadDefinition, writeExactSizePNG, writeRasterPNG } from '../../tooling/qualification/campaigns/fixtures.mjs';
+import { brushCorpus, crc32, deterministicChunks, fileIdentity, portableFixtureFailure, rasterRow, setupFixture, textFrames, validateObserved, verifyFixtureManifest, FIXTURE_VERSION, workloadDefinition, writeExactSizePNG, writeRasterPNG } from '../../tooling/qualification/campaigns/fixtures.mjs';
+
+test('portable preparation reports the actual abort code and message when missing inputs are empty',()=>{
+  const built={status:'fail',missing:[],error:{code:'ABORT_ERR',message:'Synthetic export was cancelled'}};
+  assert.equal(portableFixtureFailure(built).message,'Portable fixture incomplete: {"code":"ABORT_ERR","message":"Synthetic export was cancelled"}');
+  assert.deepEqual(built,{status:'fail',missing:[],error:{code:'ABORT_ERR',message:'Synthetic export was cancelled'}});
+});
+test('portable preparation retains nonempty missing-input diagnostics ahead of a generic error',()=>{
+  const built={status:'inconclusive',missing:['Synthetic seed requires a font','Synthetic seed requires an adapter'],error:{code:'FIXTURE_REQUIRED',message:'Incomplete seed'}};
+  assert.equal(portableFixtureFailure(built).message,'Portable fixture incomplete: ["Synthetic seed requires a font","Synthetic seed requires an adapter"]');
+});
+test('portable preparation reports errors without missing inputs and falls back to status when no error exists',()=>{
+  assert.equal(portableFixtureFailure({status:'fail',error:{code:'EIO',message:'Synthetic write failed'}}).message,'Portable fixture incomplete: {"code":"EIO","message":"Synthetic write failed"}');
+  for(const built of [{status:'inconclusive',missing:[]},{status:'inconclusive',missing:[],error:null},{status:'inconclusive'}])assert.equal(portableFixtureFailure(built).message,'Portable fixture incomplete: "inconclusive"');
+});
 
 test('workload dimensions and histories cannot silently shrink',()=>{
   const n=workloadDefinition('W1'),s=workloadDefinition('W2');assert.deepEqual([n.width,n.height,n.layers,n.visibleLayers,n.events,n.snapshotTail,n.queued],[2048,2048,20,5,10000,500,100]);assert.deepEqual([s.width,s.height,s.layers,s.visibleLayers,s.events,s.snapshotTail,s.candidates],[5000,5000,100,10,100000,500,4]);assert.equal(workloadDefinition('WC',{closureBytes:'4294967296'}).assets,10000);assert.throws(()=>workloadDefinition('WC',{closureBytes:100}));assert.throws(()=>workloadDefinition('scaled-W1'));

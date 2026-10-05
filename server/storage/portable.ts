@@ -43,7 +43,7 @@ import type { Objects, Barrier } from './objects.js';
 import type { Rasters } from './raster.js';
 import { assertPrivate, privateDirectory, privateFile, syncDirectory } from './files.js';
 import { ZipIndex, writeZip, spool, tick, write, invalid, crc32 } from '../portable/zip.js';
-import { defineIndex, references, addRef, json, fileSource, encodeRecords, decodeRecords } from '../portable/format.js';
+import { defineIndex, references, addRef, json, fileSource, generatedPayloadSource, encodeRecords, decodeRecords } from '../portable/format.js';
 import { validateClosure, validateUI } from '../portable/closure.js';
 import { imageState } from '../../src/protocol/history-validation.js';
 import { entity, event, rasterManifest } from '../../src/protocol/validate.js';
@@ -233,11 +233,9 @@ export class Portables {
    await encodeRecords(db,attempt,frozen.document.id,frozen.highWater,check,undefined,frozen.recovery);
    safe();
    const objectSource=async(row:any)=>{
-    const ref=refFrom(row),payload=db.prepare('SELECT json FROM payloads WHERE hash=?').get(ref.hash);let path:string;
-    if(payload){path=join(attempt,ref.hash.slice(7));const fd=privateFile(path);try{write(fd,Buffer.from(String(payload.json)));fsyncSync(fd);}finally{closeSync(fd);}}
-    else path=this.objects.path(ref);
+    const ref=refFrom(row),payload=db.prepare('SELECT json FROM payloads WHERE hash=?').get(ref.hash);
     if(this.db.prepare('SELECT 1 FROM portable_quarantined_hashes WHERE hash=?').get(ref.hash))throw new AssetRejection('INVALID_INPUT','RECOVERY_CONTENT_CHANGED');
-    const source=await fileSource('objects/'+ref.hash.slice(7),path,check);if(source.bytes!==BigInt(ref.byteLength)||source.sha256!==ref.hash.slice(7))throw new StoreError('CORRUPT_OBJECT');return source;
+    const source=payload?generatedPayloadSource(ref,String(payload.json),check):await fileSource('objects/'+ref.hash.slice(7),this.objects.path(ref),check);if(source.bytes!==BigInt(ref.byteLength)||source.sha256!==ref.hash.slice(7))throw new StoreError('CORRUPT_OBJECT');return source;
    };
    await writeZip(join(attempt,'archive.partial'),db,(async function*(){yield await fileSource('manifest.json',join(attempt,'manifest.json'),check);for(const row of db.prepare('SELECT path FROM segments ORDER BY path').iterate())yield await fileSource(String(row.path),join(attempt,String(row.path).replace('/','-')),check);for(const row of db.prepare('SELECT * FROM refs ORDER BY hash').iterate())yield await objectSource(row);})(),check,()=>this.barrier('portable-archive-before-write'));
    const archive=await fileSource('archive',join(attempt,'archive.partial'),check),ref={hash:'sha256:'+archive.sha256,byteLength:String(archive.bytes),mediaType:'application/x-ideogram-project'};
@@ -262,10 +260,8 @@ export class Portables {
    await this.verifyAncestorTransactions(db,null,attempt,slot,check,true);
    let total=0n;for(const r of db.prepare('SELECT bytes FROM refs').iterate())total+=BigInt(String(r.bytes));const metadataBytes=BigInt(assertPrivate(join(sourceDir,'capture.sqlite'),false).size);this.objects.reserve(slot,total+metadataBytes*8n+1048576n);
    await encodeRecords(db,attempt,frozen.document.id,frozen.highWater,check);const document=await validateClosure(db,async ref=>{if(BigInt(ref.byteLength)>8388608n)throw new StoreError('PAYLOAD_TOO_LARGE');this.texts.guardMetadata(Number(ref.byteLength));this.objects.verify(ref);const b=Buffer.alloc(Number(ref.byteLength));for(let at=0;at<b.length;at+=1048576)b.set(this.objects.readRange(ref,String(at),Math.min(1048576,b.length-at)),at);return b;},check,this.rasters.compositionMemory);if(canonical(document)!==canonical(frozen.document))throw new StoreError('CORRUPT_OBJECT');
-   const objectSource=async(r:any)=>{const ref=refFrom(r),payload=db.prepare('SELECT json FROM payloads WHERE hash=?').get(ref.hash);let path:string;
-    if(payload){path=join(attempt,ref.hash.slice(7));const fd=privateFile(path);try{write(fd,Buffer.from(String(payload.json)));fsyncSync(fd);}finally{closeSync(fd);}}
-    else path=this.objects.path(ref);
-    let s;try{s=await fileSource('objects/'+ref.hash.slice(7),path,check);}catch(e){if((e as NodeJS.ErrnoException)?.code==='ENOENT')throw new AssetRejection('MISSING_ASSET','PORTABLE_REQUIRED_OBJECT_MISSING',null,'objects/'+ref.hash.slice(7));throw e;}if(s.bytes!==BigInt(ref.byteLength)||s.sha256!==ref.hash.slice(7))throw new StoreError('CORRUPT_OBJECT');return s;
+   const objectSource=async(r:any)=>{const ref=refFrom(r),payload=db.prepare('SELECT json FROM payloads WHERE hash=?').get(ref.hash);
+    let s;try{s=payload?generatedPayloadSource(ref,String(payload.json),check):await fileSource('objects/'+ref.hash.slice(7),this.objects.path(ref),check);}catch(e){if((e as NodeJS.ErrnoException)?.code==='ENOENT')throw new AssetRejection('MISSING_ASSET','PORTABLE_REQUIRED_OBJECT_MISSING',null,'objects/'+ref.hash.slice(7));throw e;}if(s.bytes!==BigInt(ref.byteLength)||s.sha256!==ref.hash.slice(7))throw new StoreError('CORRUPT_OBJECT');return s;
    };
    await this.inspectExportFonts(db,check);
    await writeZip(join(attempt,'archive.partial'),db,(async function*(){yield await fileSource('manifest.json',join(attempt,'manifest.json'),check);for(const r of db.prepare('SELECT path FROM segments ORDER BY path').iterate())yield await fileSource(String(r.path),join(attempt,String(r.path).replace('/','-')),check);for(const r of db.prepare('SELECT * FROM refs ORDER BY hash').iterate())yield await objectSource(r);})(),check,()=>this.barrier('portable-archive-before-write'));

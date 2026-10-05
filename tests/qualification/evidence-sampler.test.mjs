@@ -1,12 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import fsp from 'node:fs/promises';
 import {syncBuiltinESMExports} from 'node:module';
 import {mkdtemp,mkdir,writeFile,rm,realpath,lstat,opendir,open,link} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {performance} from 'node:perf_hooks';
-import {loadAllocation,sampleVolume,startEvidenceMonitor,retainEvidenceAudit,verifyEvidenceAudit} from '../../tooling/qualification/evidence-volume.mjs';
+import {loadAllocation,sampleVolume,validateEvidenceObservation,startEvidenceMonitor,retainEvidenceAudit,verifyEvidenceAudit} from '../../tooling/qualification/evidence-volume.mjs';
+import {createHash} from 'node:crypto';
 
 const gate=()=>{let resolve;const promise=new Promise(done=>{resolve=done;});return {promise,resolve};};
 async function within(promise){let timer;try{return await Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Observation did not reach the intended boundary')),5000);})]);}finally{clearTimeout(timer);}}
@@ -24,6 +26,16 @@ function observeDefaultStats(t,observe){
  const original=fs.lstatSync,stub=t.mock.method(fs,'lstatSync',(...args)=>observe(original,...args));syncBuiltinESMExports();
  return ()=>{stub.mock.restore();syncBuiltinESMExports();};
 }
+// The allocation root has a guard before and after traversal, outside the
+// attributed walk. Observe only traversal calls, leaving both guards native.
+function observeDefaultAsyncStats(t,root,observe){
+ const original=fsp.lstat;let rootCalls=0;
+ const stub=t.mock.method(fsp,'lstat',(path,...args)=>{
+  if(path===root&&[1,4].includes(++rootCalls))return original(path,...args);
+  return observe(original,path,...args);
+ });syncBuiltinESMExports();
+ return ()=>{stub.mock.restore();syncBuiltinESMExports();};
+}
 // Finite real fixture entries without intervening read I/O turns. The native
 // handles still close through iterator return, including a sibling's failure.
 function bufferedDirectories(){
@@ -38,21 +50,97 @@ function bufferedDirectories(){
 function observeDefaultDirectories(t,{beforeOpen=()=>{},beforeRead=()=>{},afterClose=()=>{}}={}){
  const records=[],original=fs.opendirSync;
  const stub=t.mock.method(fs,'opendirSync',(path,options)=>{
-  beforeOpen(path);const handle=original(path,options),record={path,handle,yielded:0,closeCalls:0,closed:false};records.push(record);
+  beforeOpen(path);const handle=original(path,options),record={path,handle,yielded:0,readCalls:0,closeCalls:0,closed:false};records.push(record);
   const read=handle.readSync.bind(handle),close=handle.closeSync.bind(handle);
-  t.mock.method(handle,'readSync',()=>{beforeRead(record);const entry=read();if(entry!==null)record.yielded++;return entry;});
+  t.mock.method(handle,'readSync',()=>{record.readCalls++;beforeRead(record);const entry=read();if(entry!==null)record.yielded++;return entry;});
   t.mock.method(handle,'closeSync',()=>{record.closeCalls++;const result=close();record.closed=true;afterClose(record);return result;});
   return handle;
  });syncBuiltinESMExports();
  return {records,restore(){stub.mock.restore();syncBuiltinESMExports();}};
 }
 
+// Synthetic clock increments attribute known work; these are correctness
+// controls, never filesystem performance or cold/warm qualification evidence.
+test('default timing counts actual native operations and each shared yield once',async t=>{
+ const f=await fixture(t,64);let now=100,yields=0;const immediate=globalThis.setImmediate;
+ const time=t.mock.method(performance,'now',()=>now),scheduled=t.mock.method(globalThis,'setImmediate',callback=>{yields++;return immediate(()=>{now+=11;callback();});});
+ const dirs=observeDefaultDirectories(t,{beforeOpen(){now+=3;},beforeRead(){now+=5;},afterClose(){now+=7;}});
+ const restore=observeDefaultAsyncStats(t,f.volume,async(original,...args)=>{const value=await original(...args);now+=2;return value;});
+ try{
+  const result=await sampleVolume(f.allocation),timing=result.defaultTraversalTiming;
+  assert.equal(result.completeTraversal,true);assert.equal(result.entries,65);
+  assert.equal(timing.kind,'default-traversal-timing-2');assert.equal(timing.stat.count,130);
+  assert(timing.stat.totalMs>=260&&timing.stat.maxMs>=2,'Async stat latency includes overlapping branch work');
+  assert.deepEqual(timing.open,{count:1,totalMs:3,maxMs:3});
+  assert.deepEqual(timing.read,{count:65,totalMs:325,maxMs:5});
+  assert.deepEqual(timing.close,{count:1,totalMs:7,maxMs:7});
+  assert.equal(yields,4);assert.equal(timing.cooperativeYield.count,yields);
+  assert(timing.cooperativeYield.totalMs>=44&&timing.cooperativeYield.maxMs>=11);
+  assert(result.endMs-result.startMs>=639,'All attributed time stays in the original sample clock');
+  assert(Buffer.byteLength(JSON.stringify(timing))<1024);assert(!JSON.stringify(timing).includes(f.volume));
+ }finally{restore();dirs.restore();scheduled.mock.restore();time.mock.restore();}
+});
+
+function observationFor(sample){
+ const body={sequence:0,previous:null,startMs:sample.startMs,endMs:sample.endMs,sample};
+ return {kind:'evidence-volume-observation-2',windowStartMs:sample.startMs,windowEndMs:sample.endMs,maxAttempts:3,maxWindowMs:1000,attempts:[{...body,hash:createHash('sha256').update(JSON.stringify(body)).digest('hex')}],selectedAttempt:sample.completeTraversal?0:null};
+}
+for(const phase of ['before','after'])for(const fail of [false,true])test('default async '+phase+' stats stay within four issued operations and drain '+(fail?'a rejected sibling':'before parent post-stat'),async t=>{
+ const f=await fixture(t,12),entered=gate(),failed=gate(),release=gate(),rejectOne=gate(),dirs=observeDefaultDirectories(t),visits=new Map();
+ let active=0,peak=0,issued=0,held=0,settled=false,parentPost=false;
+ const restore=observeDefaultAsyncStats(t,f.volume,async(original,path,options)=>{
+  assert.deepEqual(options,{bigint:true});const count=(visits.get(path)??0)+1;visits.set(path,count);
+  if(path===f.volume&&count===2){assert.equal(active,0,'All descendant I/O drains before parent post-stat');parentPost=true;}
+  active++;issued++;peak=Math.max(peak,active);assert(active<=4,'No fifth native traversal stat may issue');
+  try{
+   const value=await original(path,options);
+   if(value.isFile()&&count===(phase==='before'?1:2)){
+    const slot=++held;if(held===4)entered.resolve();
+    if(fail&&slot===1){await rejectOne.promise;failed.resolve();throw Object.assign(Error('held native stat failed'),{code:'EIO'});}
+    await release.promise;
+   }
+   return value;
+  }finally{active--;}
+ });
+ const pending=sampleVolume(f.allocation).then(result=>{settled=true;return result;});
+ try{
+  await within(entered.promise);assert.equal(active,4);assert.equal(held,4);assert.equal(peak,4);assert.equal(settled,false);assert.equal(parentPost,false);
+  const boundary=issued;await new Promise(resolve=>setImmediate(resolve));assert.equal(issued,boundary,'Four held branches cannot issue a fifth stat');
+  if(fail){rejectOne.resolve();await within(failed.promise);await new Promise(resolve=>setImmediate(resolve));assert.equal(active,3);assert.equal(settled,false,'A rejection cannot abandon the other issued I/O');assert.equal(issued,boundary);}
+  release.resolve();const result=await pending;
+  assert.equal(result.completeTraversal,!fail);assert.equal(active,0);assert.equal(peak,4);assert.equal(parentPost,!fail);
+  assert.equal(result.defaultTraversalTiming.stat.count,issued,'Every issued stat, including a rejection, settles before return');
+  if(fail){assert.deepEqual(result.failures.map(row=>row.code),['EIO']);assert.equal(issued,boundary,'Observed failure prevents further stat issuance');}
+  else{assert.equal(result.entries,13);assert.equal(result.uniqueFiles,12);assert.equal(issued,26);}
+  for(const record of dirs.records)assert.equal(record.closed,true);await closed(dirs.records.map(record=>record.handle));
+ }finally{rejectOne.resolve();release.resolve();try{await pending;}finally{restore();dirs.restore();}}
+});
+test('default timing survives a native stat failure and replay admits old samples but rejects malformed attribution',async t=>{
+ const f=await fixture(t,1);let now=0;
+ const time=t.mock.method(performance,'now',()=>now),restore=observeDefaultAsyncStats(t,f.volume,()=>{now+=7;throw Object.assign(Error('test-owned native stat failure'),{code:'EIO'});});
+ let result;
+ try{result=await sampleVolume(f.allocation);}finally{restore();time.mock.restore();}
+ assert.equal(result.completeTraversal,false);assert.equal(result.failures[0].code,'EIO');
+ assert.deepEqual(result.defaultTraversalTiming.stat,{count:1,totalMs:7,maxMs:7});
+ for(const key of ['open','read','close','cooperativeYield'])assert.deepEqual(result.defaultTraversalTiming[key],{count:0,totalMs:0,maxMs:0});
+ assert.doesNotThrow(()=>validateEvidenceObservation(observationFor(result)));
+ const legacy=structuredClone(result);delete legacy.defaultTraversalTiming;assert.doesNotThrow(()=>validateEvidenceObservation(observationFor(legacy)));
+ const v1=structuredClone(result);v1.defaultTraversalTiming.kind='default-traversal-timing-1';assert.doesNotThrow(()=>validateEvidenceObservation(observationFor(v1)));
+ const overlapping=structuredClone(result);overlapping.defaultTraversalTiming.stat={count:4,totalMs:28,maxMs:7};assert.doesNotThrow(()=>validateEvidenceObservation(observationFor(overlapping)));
+ overlapping.defaultTraversalTiming.kind='default-traversal-timing-1';assert.throws(()=>validateEvidenceObservation(observationFor(overlapping)),/Invalid default traversal timing/);
+ const v1Sum=structuredClone(v1);v1Sum.defaultTraversalTiming.read={count:1,totalMs:1,maxMs:1};assert.throws(()=>validateEvidenceObservation(observationFor(v1Sum)),/Invalid default traversal timing/);
+ for(const mutate of [v=>{v.kind='other';},v=>{v.path='/private/unbounded';},v=>{v.stat.count=200003;},v=>{v.stat.totalMs=Infinity;},v=>{v.stat.maxMs=8;},v=>{v.stat.totalMs=29;},v=>{v.open={count:0,totalMs:1,maxMs:1};},v=>{v.read={count:1,totalMs:4,maxMs:4};v.close={count:1,totalMs:4,maxMs:4};}]){
+  const changed=structuredClone(result);mutate(changed.defaultTraversalTiming);
+  assert.throws(()=>validateEvidenceObservation(observationFor(changed)),/Invalid default traversal timing/);
+ }
+});
+
 test('default directory stream counts every entry without pre-enumeration and closes before post-stat',async t=>{
  const f=await fixture(t,70),leaf=join(f.volume,'branch','leaf');await mkdir(leaf,{recursive:true});await mkdir(join(f.volume,'empty'));
  await writeFile(join(leaf,'payload'),Buffer.alloc(7));await link(join(f.volume,'entry-0'),join(f.volume,'alias'));
  const dirs=observeDefaultDirectories(t),visits=new Map(),beforeStats=new Map(),order=[];let firstFileReadAhead;
- const restore=observeDefaultStats(t,(original,path,options)=>{
-  const value=original(path,options),count=(visits.get(path)??0)+1;visits.set(path,count);order.push({path,count});
+ const restore=observeDefaultAsyncStats(t,f.volume,async(original,path,options)=>{
+  const value=await original(path,options),count=(visits.get(path)??0)+1;visits.set(path,count);order.push({path,count});
   if(count===1)beforeStats.set(path,value);
   if(value.isFile()&&count===1&&firstFileReadAhead===undefined)firstFileReadAhead=dirs.records.find(record=>record.path===f.volume).yielded;
   if(value.isDirectory()&&count===2)assert.equal(dirs.records.find(record=>record.path===path).closed,true,'Directory closes before its post-stat');
@@ -63,6 +151,11 @@ test('default directory stream counts every entry without pre-enumeration and cl
   assert.equal(result.completeTraversal,true);assert.equal(result.entries,76);assert.equal(result.uniqueFiles,71);assert.equal(result.repeatedInodes,1);assert.equal(result.observedLogicalBytes,137);assert.deepEqual(result.failures,[]);
   assert(firstFileReadAhead<70,'A real child is observed before the directory is fully enumerated');
   assert.equal(visits.size,76);for(const count of visits.values())assert.equal(count,2);
+  const timing=result.defaultTraversalTiming;
+  assert.equal(timing.kind,'default-traversal-timing-2');assert.equal(timing.stat.count,152);
+  assert.equal(timing.open.count,dirs.records.length);assert.equal(timing.close.count,dirs.records.length);
+  assert.equal(timing.read.count,dirs.records.reduce((total,row)=>total+row.readCalls,0));
+  assert.equal(timing.read.count,75+dirs.records.length,'Terminal null reads are included');
   for(const directory of dirs.records){
    const parentPost=order.findIndex(item=>item.path===directory.path&&item.count===2);
    for(const [index,item]of order.entries())if(item.path.startsWith(directory.path+'/'))assert(index<parentPost,'Every descendant completes before its ancestor post-stat');
@@ -76,14 +169,14 @@ test('default directory stream counts every entry without pre-enumeration and cl
 for(const readFailure of [false,true])test('default directory traversal yields at the shared stat bound '+(readFailure?'and drains a subsequent read failure':'before completing'),async t=>{
  const f=await fixture(t,96),observed=gate();let calls=0,queued=false,failReads=false,settled=false;
  const dirs=observeDefaultDirectories(t,{beforeRead(){if(failReads)throw Object.assign(Error('test-owned read failure'),{code:'EIO'});}});
- const restore=observeDefaultStats(t,(original,path,options)=>{
-  const value=original(path,options);calls++;
+ const restore=observeDefaultAsyncStats(t,f.volume,async(original,path,options)=>{
+  const value=await original(path,options);calls++;
   if(value.isFile()&&!queued){queued=true;setImmediate(()=>{failReads=readFailure;observed.resolve({calls,settled});});}
   return value;
  });
  const pending=sampleVolume(f.allocation).then(result=>{settled=true;return result;});
  try{
-  const boundary=await within(observed.promise);assert.equal(boundary.settled,false);assert.equal(boundary.calls,32);
+  const boundary=await within(observed.promise);assert.equal(boundary.settled,false);assert(boundary.calls>0&&boundary.calls<=32,'Native async stats cannot bypass the shared turn budget');
   const result=await pending;assert.equal(result.completeTraversal,!readFailure);
   if(readFailure){assert.deepEqual(result.failures.map(value=>value.code),['EIO']);assert.match(result.failures[0].message,/phase=read-directory/);}
   else{assert.equal(result.entries,97);assert.equal(result.uniqueFiles,96);assert.deepEqual(result.failures,[]);}
@@ -93,15 +186,19 @@ for(const readFailure of [false,true])test('default directory traversal yields a
 
 for(const phase of ['open','read','close'])test('default native directory '+phase+' failure retains its phase and closes every opened handle',async t=>{
  const f=await fixture(t,1),target=join(f.volume,'target');await mkdir(target);await writeFile(join(target,'payload'),'x');
- const code=phase==='open'?'EACCES':'EIO',fault=()=>{throw Object.assign(Error('private directory diagnostic'),{code});};
+ const code=phase==='open'?'EACCES':'EIO',fault=()=>{throw Object.assign(Error('private directory diagnostic'),{code});};let openCalls=0;
  const dirs=observeDefaultDirectories(t,{
-  beforeOpen(path){if(phase==='open'&&path===target)fault();},
+  beforeOpen(path){openCalls++;if(phase==='open'&&path===target)fault();},
   beforeRead(record){if(phase==='read'&&record.path===target)fault();},
   afterClose(record){if(phase==='close'&&record.path===target)fault();},
  });
  try{
   const result=await sampleVolume(f.allocation);assert.equal(result.completeTraversal,false);assert.equal(result.failures.length,1);assert.equal(result.failures[0].code,code);
   assert.match(result.failures[0].message,new RegExp('phase='+(phase==='open'?'open-directory':'read-directory')));assert.match(result.failures[0].message,/member=target/);assert(!result.failures[0].message.includes('private directory diagnostic'));
+  const timing=result.defaultTraversalTiming;assert.equal(timing.open.count,openCalls);
+  assert.equal(timing.read.count,dirs.records.reduce((total,row)=>total+row.readCalls,0));
+  assert.equal(timing.close.count,dirs.records.reduce((total,row)=>total+row.closeCalls,0));
+  for(const row of Object.values(timing).filter(value=>typeof value==='object'))assert(row.totalMs>=row.maxMs&&row.maxMs>=0);
   for(const record of dirs.records){assert.equal(record.closeCalls,1);assert.equal(record.closed,true);}await closed(dirs.records.map(record=>record.handle));
  }finally{dirs.restore();}
 });
@@ -137,7 +234,7 @@ test('an explicit synchronous iterator still unwraps promise-valued directory en
   return (function*(){try{for(let entry=handle.readSync();entry;entry=handle.readSync())yield Promise.resolve(entry);}finally{handle.closeSync();closeCalls++;}})();
  }});
  assert.equal(result.completeTraversal,true);assert.equal(result.entries,7);assert.equal(result.uniqueFiles,6);assert.deepEqual(result.failures,[]);
- assert.equal(closeCalls,1);await closed(handles);
+ assert.equal(closeCalls,1);assert.equal(Object.hasOwn(result,'defaultTraversalTiming'),false);await closed(handles);
 });
 
 test('an explicit async iterator return remains awaited while a bound failure drains',async t=>{
@@ -159,6 +256,7 @@ test('explicit stat injection retains the asynchronous default directory backend
  try{
   const result=await sampleVolume(f.allocation,{statEntry(path,options){calls++;return fs.lstatSync(path,options);}});
   assert.equal(result.completeTraversal,true);assert.equal(result.entries,65);assert.equal(result.uniqueFiles,64);assert.equal(calls,130);assert.equal(dirs.records.length,0);assert.deepEqual(result.failures,[]);
+  assert.equal(Object.hasOwn(result,'defaultTraversalTiming'),false,'Injected backend timing is not reported as native default I/O');
  }finally{dirs.restore();}
 });
 

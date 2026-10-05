@@ -2,6 +2,61 @@
 
 ## Current continuation — Main consolidated; implementation slices accepted; full-plan holds recorded
 
+The generated-payload export correction, preparation error diagnostic and bounded
+asynchronous default-stat scanner passed the combined affected-owner boundary in
+`artifacts/evidence-observation-slots-20261004-01/generated-payload-export-04`.
+All 11 gates executed successfully, including typecheck and a fresh server build;
+all 243 cases passed (74 portable, 156 qualification, 13 campaign), with no skips
+and stable source/dependencies. The separate storage audit passed with 73 complete
+observations/attempts, no failed attempts or unknown samples, and maximum gap
+2,007.806041 ms. Receipt SHA-256:
+`c2d7f43984ab1573b7ae966bba4be9fe94dc2bab709e2b6885b71e6a6de56e22`.
+This establishes the selected correctness checkpoint, not actual WC512 completion
+or native/hardware/resource qualification. Prior failures remain retained.
+Attempt 03 was a distinct sandbox `spawn EPERM` refusal before storage/gates;
+attempt 04 changed host process permissions, not source or timing policy.
+Next: commit this completed checkpoint to main, then perform a fresh admitted
+WC512 preparation using the original allocation and seed. No Sites publication;
+this backend/tooling change does not require a new gh-pages editor artifact.
+
+The validated correction removes per-entity scratch files from normal and recovery
+Save Copy export. Generated entity metadata already has an exact 64 KiB UTF-8
+limit; a serial ZIP source now binds each owned snapshot to its captured length
+and SHA-256 and supplies its CRC. Ordinary object-file checks, ZIP revalidation,
+archive fsync/hash/adoption and commit fences remain in place. The separate WC
+diagnostic fix reports the producer error when its missing-input list is empty.
+The combined affected-owner validation is recorded above; a new actual
+preparation result remains required. Prior failures and qualification holds remain unchanged.
+The first combined attempt, `generated-payload-export-01`, executed no gates:
+its initial complete zero-mutation storage scan exceeded the one-second window
+(1,075.402875 ms). The later 478.921458 ms observation does not repair it.
+Source/dependency comparison was not reached, so false comparison flags do not
+establish drift. Preserve the pre-gate INCONCLUSIVE result. Bounded aggregate
+timing attribution in the actual default scan is the next diagnostic change;
+it must preserve filesystem operations, replay compatibility and all limits.
+The reviewed diagnostic implementation adds five fixed aggregate buckets for
+native stat/open/read/close calls and shared cooperative yields. It adds no
+filesystem operations or warmup, and injected backends retain their old shape.
+Replay accepts historical samples without the field and validates its bounded
+shape when present. Yield time can overlap other branches' directory work, so it
+must not be added to synchronous operation totals. No performance fix is claimed.
+The changed monitor source identity also makes prior native capability/grant
+references historical; they require genuine current-source refresh before use.
+
+The diagnostic successor, `generated-payload-export-02`, also executed no gates.
+Its initial complete 4,680-entry scan took 1,160.203750 ms at the observation
+boundary. The 9,360 synchronous stat calls accounted for 956.226483 ms of the
+1,160.045542 ms sample, identifying the dominant measured stage without proving
+a cold-cache or operating-system cause. The final 117.174250 ms observation does
+not repair initial admission. Both pre-gate failures and their original allocation
+remain retained. A bounded asynchronous default-stat successor is now under
+independent source review: the existing four traversal branches await at most
+four issued stats, retain before/after checks and drain outstanding work before
+returning. Timing v2 describes overlapping issue-to-settlement latency and
+retains v1 replay. No additional scan, warmup, timing waiver or qualification
+credit is introduced. Its three affected qualification owners and six
+portable/campaign owners subsequently passed in attempt 04 above.
+
 Two bounded continuation attempts remain failures. Copy-only restoration stopped
 before launching a child or creating any destination: its initial complete,
 zero-mutation host scan took 1,449.934792 ms against the unchanged 1,000 ms
