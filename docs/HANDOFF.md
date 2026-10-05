@@ -2,6 +2,32 @@
 
 ## Current continuation — Main consolidated; implementation slices accepted; full-plan holds recorded
 
+The completed correctness checkpoint is pushed to `main` at
+`4bbaafbdc8698856d936d71474e2a7ff8022a5ea`; the working source was clean for
+actual WC512 preparation 04. Independent validation review is sealed as
+`e939881c7f7166d53ebe0ee00e5fbe81fda4ebf0f156a10ed78a871f6e01527b`.
+
+Actual preparation 04 remains FAIL with INCONCLUSIVE storage. It stopped after
+24.5 seconds, with 14 observations, 18 attempts, five failed attempts and one
+unknown observation. The terminal observation exhausted three attempts in
+679.955333 ms: two private import-directory membership changes, then disappearance
+of that directory's `index.sqlite-journal`. The separate maximum coverage gap was
+4,002.692167 ms. No export completed. Retained accepted receipts confirm that
+ImportBundle committed; its following verification SaveCopy was interrupted.
+Two exact target inode/stamp matches place import-object adoption renames inside
+the first two failed windows. The third overlaps final SQLite journal removal.
+A journal-mode change addresses only the final unlink and is not established as
+a complete correction. No further product journal change is made. Independent
+retained-failure review is sealed as
+`2410ea872016a56f265634d7e3f6f4dc5b4bcf7d74560c3f172b311eb7e20f49`.
+Source/dependencies stayed stable, producer exit was observed and both exclusions
+released. Original allocation, seed and failure evidence remain retained. The
+new preparation diagnostic correctly surfaced `ABORT_ERR` instead of an empty
+missing-input list. Do not rerun unchanged, weaken monitoring or modify product
+journal behavior before establishing a concrete correction. Next unblocked work
+is the native capability/grant source refresh needed to resume guarded input
+restoration, preserving all original allocations and failed attempts.
+
 The generated-payload export correction, preparation error diagnostic and bounded
 asynchronous default-stat scanner passed the combined affected-owner boundary in
 `artifacts/evidence-observation-slots-20261004-01/generated-payload-export-04`.
@@ -15,8 +41,8 @@ This establishes the selected correctness checkpoint, not actual WC512 completio
 or native/hardware/resource qualification. Prior failures remain retained.
 Attempt 03 was a distinct sandbox `spawn EPERM` refusal before storage/gates;
 attempt 04 changed host process permissions, not source or timing policy.
-Next: commit this completed checkpoint to main, then perform a fresh admitted
-WC512 preparation using the original allocation and seed. No Sites publication;
+The checkpoint was committed and the actual preparation outcome is recorded
+above. No Sites publication;
 this backend/tooling change does not require a new gh-pages editor artifact.
 
 The validated correction removes per-entity scratch files from normal and recovery
@@ -49,8 +75,7 @@ boundary. The 9,360 synchronous stat calls accounted for 956.226483 ms of the
 1,160.045542 ms sample, identifying the dominant measured stage without proving
 a cold-cache or operating-system cause. The final 117.174250 ms observation does
 not repair initial admission. Both pre-gate failures and their original allocation
-remain retained. A bounded asynchronous default-stat successor is now under
-independent source review: the existing four traversal branches await at most
+remain retained. A bounded asynchronous default-stat successor was independently reviewed: the existing four traversal branches await at most
 four issued stats, retain before/after checks and drain outstanding work before
 returning. Timing v2 describes overlapping issue-to-settlement latency and
 retains v1 replay. No additional scan, warmup, timing waiver or qualification
@@ -117,8 +142,10 @@ The bounded independent WC03 review is sealed as
 it verifies selected bodies, audit copies and chains, not the complete unfinished
 archive. The 4,001.043167 ms coverage gap also exceeds the unchanged 4,000 ms bound.
 
-The bounded local capability probe now has an actual **CAPABILITY_AVAILABLE**
-result under its reviewed Docker integrity policy. Probe 06 completed the full
+The historical bounded local capability probe has an actual **CAPABILITY_AVAILABLE**
+result under its reviewed Docker integrity policy. Its monitor-source pins predate
+the current async scanner, so this result does not admit current execution.
+Probe 06 completed the full
 freeze/quiet/thaw/resumed-heartbeat interval in 755.954250 ms against the unchanged
 1,000 ms limit. Kernel identity/membership, host and engine accounting, final
 binary digest/descriptor closure, container cleanup and timing-lease release
@@ -140,7 +167,8 @@ hash and close result. All clocks, ceilings and earlier failed attempts remain.
 Native continuation still requires exact custody restoration of the four missing
 schema17/18 source archive/manifest files from the retained input tag, followed by
 the fresh local bootstrap grant/config against actual restored bytes. The failed
-initial scan above requires diagnosis before another restoration attempt. These are fixed external
+initial scan above is preserved; the validated async scanner now requires fresh
+source/grant admission before another restoration attempt. These are fixed external
 source inputs at their original paths, not generated evidence inside the 4 GiB
 receipt root. Preserve the original schema16 successor seal/recipe and the
 original 32 GiB volume. No native attempt is admitted by a draft configuration.
