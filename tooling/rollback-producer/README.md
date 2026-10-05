@@ -58,6 +58,23 @@ included in whole-volume accounting and cannot become toolchain inputs or a
 successful resume checkpoint. The original local scanner is retained unchanged;
 the hosted scanner has different retry spacing and is not a substitute.
 
+Probe 06 established this scoped capability on the current Mac: the full
+freeze/quiet/thaw/resumed-heartbeat interval took 755.954250 ms within the unchanged
+1,000 ms bound, with successful kernel, accounting, integrity and cleanup checks.
+This does not establish producer integration, repeatability or physical/native
+qualification. Earlier failed probes remain unchanged.
+
+The probe's invocation-local Docker digest lease retains one canonical ordinary
+file descriptor, performs full original-pin SHA verification initially and on
+finalization, and compares descriptor/path device, inode, mode, owner, link count,
+size and nanosecond timestamps around every command, including cleanup. Drift
+is sticky; final digest and close run even after earlier audit errors. The final
+integrity result is in the finalization, separate from the sealed raw receipt.
+This is boundary integrity for the trusted static local CLI, not descriptor-bound
+execution proof or detection of wholly inter-snapshot hostile substitution. No
+worker, source or configuration digest is reused; no cross-invocation cache or
+clock exclusion is introduced. Controller per-command full hashing is unchanged.
+
 Source implementation and synthetic controls do not establish Docker Desktop
 capability. Before any producer execution, a bounded probe must demonstrate
 frozen and thawed kernel state, contained nonroot descendants, an independent
@@ -69,7 +86,7 @@ physical qualification follows from this source work.
 The implementation checkpoint at `c07286f` has 86 distinct source-current
 passing controls. A later diagnostic-only worker update passed its six whole-owner
 Node wrappers (including twelve new inner Python checks); retained storage was
-independently verified. Actual Desktop capability remains unavailable. The first
+independently verified. Actual Desktop capability was unavailable through probe 05. The first
 two attempts stopped at image-label representation admission; the third refused
 an unidentified `KERNEL_PRIVILEGES` check. The fourth retained the exact mismatch:
 the observer's supplementary group list contained its already-required primary

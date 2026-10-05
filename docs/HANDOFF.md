@@ -2,6 +2,33 @@
 
 ## Current continuation — Main consolidated; implementation slices accepted; full-plan holds recorded
 
+The bounded local capability probe now has an actual **CAPABILITY_AVAILABLE**
+result under its reviewed Docker integrity policy. Probe 06 completed the full
+freeze/quiet/thaw/resumed-heartbeat interval in 755.954250 ms against the unchanged
+1,000 ms limit. Kernel identity/membership, host and engine accounting, final
+binary digest/descriptor closure, container cleanup and timing-lease release
+passed. The complete probe test owner passed 26 cases in run 10. Finalization
+`d6e6b5924c22b0fcf42beff5b903b9857b9d08ee9a43a47b1fa15cba09feddf7`
+is the runtime reference. Independent retained-evidence review passed; its
+SHA-256 is `b35152fa4b4a4f85d23a65b8baeea86ba2ae81f6f85c941fb8370963451c85c2`.
+No native producer, retained-volume scan or physical qualification follows.
+
+The probe holds the canonical Docker descriptor for one invocation, hashes it
+fully at admission and finalization, and checks descriptor/path identity before
+and after every command. It does not reuse worker/configuration/source digests
+or cache across invocations. This is an explicit boundary-integrity policy for
+the trusted local operator, not proof of descriptor-bound executed bytes or
+protection from wholly inter-snapshot hostile replacement. The raw receipt keeps
+its pre-finalization integrity snapshot; the finalization carries the full final
+hash and close result. All clocks, ceilings and earlier failed attempts remain.
+
+Next, complete exact custody restoration of the four missing schema17/18 source
+archive/manifest files from the retained input tag, then finalize the fresh local
+bootstrap grant/config against actual restored bytes. These are fixed external
+source inputs at their original paths, not generated evidence inside the 4 GiB
+receipt root. Preserve the original schema16 successor seal/recipe and the
+original 32 GiB volume. No native attempt is admitted by a draft configuration.
+
 A completed follow-up improves retained diagnostics and command accounting. Long
 storage-mutation paths keep the entire previous message prefix and add a bounded
 sanitized tail plus full relative-path digest; short messages remain unchanged.
@@ -22,7 +49,7 @@ trees and timing limits remain intact. Scoped whole-owner controls and retained
 storage passed independent review; failed test-message assertions in runs 04/05
 remain failures.
 
-Actual capability remains **UNAVAILABLE** through probe 04. The first two probes
+Earlier capability attempts remained **UNAVAILABLE** through probe 04. The first two probes
 stopped before payload start because Docker omitted one declared metadata label;
 only the exact observed `v2` representation difference is admitted now. Probe 03
 reached the kernel observer but lacked field-specific refusal details. The tested

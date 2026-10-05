@@ -1,6 +1,6 @@
 // Operational, finite Desktop capability experiment. Root executes only after review.
 import {createHash} from 'node:crypto';
-import {constants, closeSync, fsyncSync, fstatSync, lstatSync, openSync, readFileSync, writeSync} from 'node:fs';
+import {constants, closeSync, fsyncSync, fstatSync, lstatSync, openSync, readFileSync, readSync, realpathSync, writeSync} from 'node:fs';
 import {mkdir, realpath} from 'node:fs/promises';
 import {dirname, join, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -18,6 +18,48 @@ const err = error => ({name:String(error?.name ?? 'Error'), message:String(error
 const IMAGE = 'sha256:2d4f521035336480bf68d7790f242d0abeba90f8116c4443262269ec0d7e8910';
 const MAX_LOG = 512 * 1024;
 const stamp = stat => [stat.dev,stat.ino,stat.mode,stat.nlink,stat.size,stat.mtimeNs,stat.ctimeNs].map(String);
+const dockerStamp=stat=>[stat.dev,stat.ino,stat.mode,stat.uid,stat.gid,stat.nlink,stat.size,stat.mtimeNs,stat.ctimeNs].map(String);
+function descriptorDigest(fd,size) {
+  const hash=createHash('sha256'),buffer=Buffer.alloc(1024*1024);let position=0;
+  while(position<size){const count=readSync(fd,buffer,0,Math.min(buffer.length,size-position),position);check(count>0,'DOCKER_DIGEST_SHORT_READ');hash.update(buffer.subarray(0,count));position+=count;}
+  check(readSync(fd,buffer,0,1,position)===0,'DOCKER_DIGEST_EXTRA_BYTES');return hash.digest('hex');
+}
+const dockerIO={open:path=>openSync(path,constants.O_RDONLY|constants.O_NOFOLLOW),close:closeSync,lstat:path=>lstatSync(path,{bigint:true}),fstat:fd=>fstatSync(fd,{bigint:true}),realpath:realpathSync,digest:descriptorDigest};
+// Invocation-local integrity boundaries for the operator-controlled Docker CLI.
+// This is not FD-bound execution attestation: a wholly inter-snapshot hostile
+// substitution can evade the checks. No worker/config/source digest is reused.
+export function createDockerDigestLease(ref,io=dockerIO) {
+  io={...dockerIO,...io};
+  check(ref?.path==='/Applications/Docker.app/Contents/Resources/bin/docker'&&Number.isSafeInteger(ref.bytes)&&ref.bytes>0&&ref.bytes<=256*1024**2&&/^[a-f0-9]{64}$/.test(ref.sha256),'DOCKER_LEASE_PIN');
+  const selected={...ref};let fd=null,identity=null,primary=null,finished=false;
+  const evidence={kind:'local-docker-digest-lease-1',ref:selected,identity:null,checks:0,initialDigest:null,finalDigest:null,closed:false,errors:[],status:'PENDING',limitation:'Boundary integrity for an operator-controlled static CLI; not proof of FD-bound executed bytes or detection of wholly inter-snapshot hostile replacement.'};
+  const retain=(stage,error)=>{primary??=error;evidence.errors.push({stage,...err(error)});return error;};
+  const boundary=()=>{
+    evidence.checks++;
+    check(io.realpath(selected.path)===selected.path,'DOCKER_LEASE_CANONICAL_PATH');
+    const pathStat=io.lstat(selected.path),descriptorStat=io.fstat(fd);
+    check(pathStat.isFile()&&descriptorStat.isFile()&&pathStat.nlink===1n&&descriptorStat.nlink===1n&&same(dockerStamp(pathStat),identity)&&same(dockerStamp(descriptorStat),identity),'DOCKER_LEASE_IDENTITY_DRIFT');
+  };
+  const fullDigest=stage=>{
+    // Even a failed pre-boundary cannot suppress the final descriptor hash.
+    try{boundary();}catch(error){retain(stage+'-before',error);}
+    try{evidence[stage==='initial'?'initialDigest':'finalDigest']=io.digest(fd,selected.bytes);check(evidence[stage==='initial'?'initialDigest':'finalDigest']===selected.sha256,'DOCKER_LEASE_DIGEST_DIFFERS');}catch(error){retain(stage+'-digest',error);}
+    try{boundary();}catch(error){retain(stage+'-after',error);}
+  };
+  try {
+    check(io.realpath(selected.path)===selected.path,'DOCKER_LEASE_CANONICAL_PATH');const before=io.lstat(selected.path);
+    check(before.isFile()&&before.nlink===1n&&before.size===BigInt(selected.bytes),'DOCKER_LEASE_ORDINARY_FILE');identity=dockerStamp(before);evidence.identity=Object.fromEntries(['dev','ino','mode','uid','gid','nlink','size','mtimeNs','ctimeNs'].map((field,index)=>[field,identity[index]]));
+    fd=io.open(selected.path);boundary();fullDigest('initial');if(primary)throw primary;
+  } catch(error) {
+    retain('admission',error);if(fd!==null)try{io.close(fd);evidence.closed=true;}catch(closeError){retain('admission-close',closeError);}
+    evidence.status='FAIL';error.dockerIntegrity=structuredClone(evidence);throw error;
+  }
+  return {
+    verify(stage){check(!finished,'DOCKER_LEASE_FINISHED');if(primary)throw primary;try{boundary();}catch(error){throw retain(stage,error);}},
+    finish(){if(finished)return structuredClone(evidence);finished=true;try{fullDigest('final');}finally{try{io.close(fd);evidence.closed=true;}catch(error){retain('final-close',error);}}evidence.status=primary?'FAIL':'PASS';return structuredClone(evidence);},
+    summary:()=>structuredClone(evidence),
+  };
+}
 function held(path, expected) {
   check(resolve(path) === path, 'ABSOLUTE_INPUT_REQUIRED');
   const before = lstatSync(path, {bigint:true});
@@ -99,7 +141,7 @@ export async function runCapabilityInterval({quiescence,heartbeat,initial,clock=
   const endedMs=clock();check(endedMs-startedMs<=1000,'TOTAL_SYNCHRONIZATION_WINDOW');
   return {startedMs,endedMs,windowMs:1000};
 }
-export async function boundedLoggedCommand({openLog,syncLog,closeLog,before,execute,onUncertain,onSettled=()=>{}}) {
+export async function boundedLoggedCommand({openLog,syncLog,closeLog,before,execute,onUncertain,onSettled=()=>{},afterChild=()=>{}}) {
   const handles=[];let result,primary=null;
   try {
     for(const channel of ['out','err'])handles.push(await openLog(channel));
@@ -109,9 +151,11 @@ export async function boundedLoggedCommand({openLog,syncLog,closeLog,before,exec
       // Child ownership is latched at settlement, before any fallible receipt
       // write, log flush or handle close can interrupt finalization.
       if((result.timedOut||result.interrupted)&&result.exitObserved!==true)onUncertain();
-    } catch(error) {onUncertain();throw error;}
-    onSettled(result);
-  } catch(error) {primary=error;}
+    } catch(error) {onUncertain();primary=error;}
+    try{onSettled(result);}catch(error){primary??=error;}
+    try{afterChild();}catch(error){primary??=error;}
+    if(primary)throw primary;
+  } catch(error) {primary??=error;}
   finally {
     for(const handle of handles) {
       try {await syncLog(handle);}catch(error){primary??=error;}
@@ -143,19 +187,19 @@ async function main() {
   check(engineGrant.kind==='linux-docker-accounting-allocation-1' && engineGrant.context==='desktop-linux' && engineGrant.engine?.meaning==='per-object-engine-reported-nonexclusive-bytes' && [engineGrant.engine.containerWritableCapacityBytes,engineGrant.engine.imageReportedCapacityBytes].every(x=>Number.isSafeInteger(x)&&x>0),'EXISTING_ENGINE_ALLOCATION');
   await mkdir(config.output,{mode:0o700});
   const state={kind:'local-capability-probe-receipt-1',runId:config.runId,startedAt:new Date().toISOString(),config:configInput.ref,sources:refs,status:'UNAVAILABLE',qualification:false,producerExecuted:false,nativeAllocationsTouched:false,commands:[],containers:{},trace:[],heartbeat:[],cleanup:[],limitations:['No producer or whole-volume scan executed.','Docker daemon logs/metadata and VM backing-file physical allocation are not observable; engine sizes are nonexclusive.','Stopped containers and all failed evidence retained.']};
-  let owner=null,monitor=null,accounting=null,quiescence=null,uncertain=false,ordinal=0,journal=null;
+  let owner=null,monitor=null,accounting=null,quiescence=null,dockerLease=null,uncertain=false,ordinal=0,journal=null;
   const aborter=new AbortController(),onSignal=()=>aborter.abort('PROBE_INTERRUPTED');
   process.on('SIGINT',onSignal);process.on('SIGTERM',onSignal);
   const totalTimer=setTimeout(()=>aborter.abort('PROBE_45_SECOND_DEADLINE'),45000);
   const run=async(label,argv,{deadlineMs=performance.now()+2000,cleanup=false}={})=>{
-    held(config.docker.path,config.docker);
+    dockerLease.verify('before-child');
     if(label.startsWith('toolchain-kernel-')){const worker=config.sources.find(x=>x.path.endsWith('/local-cgroup-observer.py'));held(worker.path,worker);}
     if(!cleanup)check(!aborter.signal.aborted,'PROBE_INTERRUPTED');
     const allowance=Math.min(2000,Math.floor(deadlineMs-performance.now()));check(allowance>0,'COMMAND_DEADLINE');
     const stem=join(config.output,String(++ordinal).padStart(3,'0')+'-'+label),chunks=[[],[]],counts=[0,0],local=new AbortController();
     let outputError=null,result; const cancel=()=>local.abort(aborter.signal.reason);if(!cleanup){aborter.signal.addEventListener('abort',cancel,{once:true});if(aborter.signal.aborted)cancel();}
     const record={label,argv,startedMs:performance.now(),deadlineMs,cleanup};state.commands.push(record);
-    try {result=await boundedLoggedCommand({openLog:channel=>openSync(stem+'.'+channel,'wx',0o600),syncLog:fsyncSync,closeLog:closeSync,before:()=>save(stem+'.started.json',record),onUncertain:()=>{uncertain=true;},onSettled:value=>Object.assign(record,{result:value,endedMs:performance.now()}),execute:async fds=>{
+    try {result=await boundedLoggedCommand({openLog:channel=>openSync(stem+'.'+channel,'wx',0o600),syncLog:fsyncSync,closeLog:closeSync,before:()=>save(stem+'.started.json',record),onUncertain:()=>{uncertain=true;},onSettled:value=>Object.assign(record,{result:value,endedMs:performance.now()}),afterChild:()=>dockerLease.verify('after-child'),execute:async fds=>{
       const append=i=>bytes=>{try{check(counts[i]+bytes.length<=MAX_LOG,'CHILD_OUTPUT_BOUND');let at=0;while(at<bytes.length){const count=writeSync(fds[i],bytes,at,bytes.length-at);check(count>0,'CHILD_LOG_SHORT_WRITE');at+=count;}counts[i]+=bytes.length;chunks[i].push(Buffer.from(bytes));}catch(error){outputError=err(error);local.abort('CHILD_OUTPUT_BOUND');}};
       return boundedChild(config.docker.path,['--context','desktop-linux',...argv],{cwd:repo,env:{PATH:'/usr/local/bin:/usr/bin:/bin',HOME:config.dockerHome,LANG:'C',TZ:'UTC'},timeoutMs:allowance,graceMs:1000,abortSignal:local.signal,onStdout:append(0),onStderr:append(1)});
     }});}
@@ -171,6 +215,7 @@ async function main() {
   const create=async role=>{const e=expected(role);check((await run('absent-'+role,['container','ls','--all','--filter','name=^/'+e.name+'$','--format','{{.ID}}'])).trim()==='','NAME_COLLISION');const argv=probeCreateArguments(role,e);state.containers[role]={intent:save(join(config.output,'intent-'+role+'.json'),{...e,argv})};const id=(await run('create-'+role,argv)).trim();check(/^[a-f0-9]{64}$/.test(id),'CREATE_CID');state.containers[role].id=id;save(join(config.output,'owned-'+role+'.json'),{...expected(role),recovered:false});await inspect(role);await accounting.add({key:'container:'+id,role,capacityBytes:engineGrant.engine.containerWritableCapacityBytes,meaning:'engine-reported-nonexclusive-writable-bytes'});await run('start-'+role,['start',id]);check((await inspect(role)).State.Running,'START_FAILED');};
   const heartbeat=async(label,deadlineMs=performance.now()+2000)=>{const value=parseHeartbeat(await run('logs-'+label,['logs',state.containers.writer.id],{deadlineMs}));state.heartbeat.push({label,atMs:performance.now(),...value});return value;};
   try {
+    dockerLease=createDockerDigestLease(config.docker);
     owner=await acquireTimingLock(await timingLockDirectory(),{receiptId:config.runId});
     monitor=await startEvidenceMonitor({allocationPath:config.allocation.path,output:config.output,campaignId:config.runId,intervalMs:2000,onAlarm:alarm=>{if(alarm.status!=='PASS')aborter.abort('HOST_STORAGE_UNAVAILABLE');}});
     journal=openSync(join(config.output,'engine-observations.jsonl'),'wx',0o600);
@@ -183,7 +228,7 @@ async function main() {
     heartbeatMembers(initial,await quiescence.admit());
     await accounting.coordinate(async()=>{state.synchronization=await runCapabilityInterval({quiescence,heartbeat,initial});});
     check(Object.values(globalThis.__storeNetworkCounters.read()).every(n=>n===0),'PARENT_NETWORK_EFFECT');guard();state.status='CAPABILITY_OBSERVED_PENDING_CLEANUP';
-  } catch(error) {state.failure=err(error);}
+  } catch(error) {state.failure=err(error);if(error.dockerIntegrity)state.dockerIntegrity=error.dockerIntegrity;}
   finally {
     clearTimeout(totalTimer);
     if(quiescence)try{const summary=quiescence.summary();state.quiescenceClosure=needsQuiescenceClosure(summary)?await quiescence.close():{notAdmitted:true,pauseNeverAttempted:true,summary};}catch(error){uncertain=true;state.cleanup.push({operation:'thaw',error:err(error)});}
@@ -197,13 +242,14 @@ async function main() {
       else state.cleanup.push({role,id,neverStarted:true,complete:true});
     }catch(error){uncertain=true;state.cleanup.push({role,error:err(error),complete:false});}
     if(accounting)try{state.engineAccounting=await accounting.finish();}catch(error){state.engineAccounting={status:'FAIL',error:err(error)};}
-    if(journal!==null){fsyncSync(journal);closeSync(journal);}
+    if(journal!==null){try{fsyncSync(journal);}catch(error){state.failure??=err(error);}finally{try{closeSync(journal);}catch(error){state.failure??=err(error);}}}
   }
   state.cleanupComplete=!uncertain;state.finishedAt=new Date().toISOString();state.timingLock=owner?{path:owner.path,identity:owner.identity,heldAtReceiptSeal:true}:null;
   if(aborter.signal.aborted)state.failure??={message:String(aborter.signal.reason)};
   const rawPass=state.status==='CAPABILITY_OBSERVED_PENDING_CLEANUP'&&!state.failure&&!uncertain&&state.engineAccounting?.status==='PASS';state.status=rawPass?'CAPABILITY_OBSERVED':'UNAVAILABLE';
-  const receipt=save(join(config.output,'receipt.json'),state),final={kind:'local-capability-probe-finalization-1',receipt,status:'UNAVAILABLE',qualification:false,producerExecuted:false,nativeAllocationsTouched:false,timingLockReleased:false};
-  try{check(monitor,'HOST_MONITOR_UNAVAILABLE');final.hostAudit=await monitor.finish({receiptPath:receipt.path,outcome:state.status});await retainEvidenceAudit(monitor.reference,config.output);final.hostVerification=await verifyEvidenceAudit(monitor.reference,receipt.path);guard();check(final.hostAudit.status==='PASS'&&final.hostVerification.status==='PASS','HOST_STORAGE_AUDIT_FAILED');if(rawPass)final.status='CAPABILITY_AVAILABLE';}catch(error){final.failure=err(error);}
+  let receipt=null;const final={kind:'local-capability-probe-finalization-1',receipt:null,status:'UNAVAILABLE',qualification:false,producerExecuted:false,nativeAllocationsTouched:false,timingLockReleased:false};
+  try{state.dockerIntegrity=dockerLease?.summary()??state.dockerIntegrity??null;receipt=save(join(config.output,'receipt.json'),state);final.receipt=receipt;check(monitor,'HOST_MONITOR_UNAVAILABLE');final.hostAudit=await monitor.finish({receiptPath:receipt.path,outcome:state.status});await retainEvidenceAudit(monitor.reference,config.output);final.hostVerification=await verifyEvidenceAudit(monitor.reference,receipt.path);guard();check(final.hostAudit.status==='PASS'&&final.hostVerification.status==='PASS','HOST_STORAGE_AUDIT_FAILED');if(rawPass)final.status='CAPABILITY_AVAILABLE';}catch(error){final.failure=err(error);}
+  finally{if(dockerLease){final.dockerIntegrity=dockerLease.finish();if(final.dockerIntegrity.status!=='PASS'){uncertain=true;final.status='UNAVAILABLE';final.failure??={message:'DOCKER_LEASE_INTEGRITY_FAILED'};}}}
   if(owner&&!uncertain)try{await owner.release();final.timingLockReleased=true;}catch(error){final.failure??=err(error);}
   if(!final.timingLockReleased||aborter.signal.aborted||final.failure)final.status='UNAVAILABLE';
   process.off('SIGINT',onSignal);process.off('SIGTERM',onSignal);

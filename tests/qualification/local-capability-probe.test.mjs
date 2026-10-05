@@ -1,6 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {parseHeartbeat,heartbeatMembers,validateContainer,validateProbeConfig,needsQuiescenceClosure,runCapabilityInterval,boundedLoggedCommand,probeCreateArguments,observeProbeImageSize} from '../../tooling/rollback-producer/local-capability-probe.mjs';
+import {createHash} from 'node:crypto';
+import {constants,closeSync,fstatSync,lstatSync,mkdtempSync,openSync,renameSync,rmSync,symlinkSync,writeFileSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {parseHeartbeat,heartbeatMembers,validateContainer,validateProbeConfig,needsQuiescenceClosure,runCapabilityInterval,boundedLoggedCommand,probeCreateArguments,observeProbeImageSize,createDockerDigestLease} from '../../tooling/rollback-producer/local-capability-probe.mjs';
 import {requestedImageLabels,projectedContainerLabels,containerImageLabelsMatch,imageLabelArgs} from '../../tooling/rollback-producer/local-image-labels.mjs';
 import {createAccounting,ENGINE_IMAGE_FIELDS} from '../../tooling/rollback-producer/local-accounting.mjs';
 
@@ -127,4 +131,58 @@ test('fixed image accounting still observes after abort without clearing the ori
 test('cleanup-authorized image reads still refuse changed identity and propagate observation failure',async()=>{
   await assert.rejects(observeProbeImageSize(async()=>JSON.stringify({Id:'sha256:'+'f'.repeat(64),Os:'linux',Architecture:'arm64',Size:154383912})),/identity/);
   const failure=Error('bounded image observation expired');await assert.rejects(observeProbeImageSize(async()=>{throw failure;}),error=>error===failure);
+});
+function digestFixture(){
+  const ref={path:'/Applications/Docker.app/Contents/Resources/bin/docker',bytes:4,sha256:'a'.repeat(64)},calls=[];
+  const stat={dev:1n,ino:2n,mode:0o100755n,uid:0n,gid:0n,nlink:1n,size:4n,mtimeNs:3n,ctimeNs:4n,isFile:()=>true};
+  const state={path:stat,fd:stat,canonical:ref.path,digest:ref.sha256,closeError:null};
+  const io={open:value=>{assert.equal(value,ref.path);calls.push('open');return 9;},close:fd=>{assert.equal(fd,9);calls.push('close');if(state.closeError)throw state.closeError;},lstat:()=>state.path,fstat:()=>state.fd,realpath:()=>state.canonical,digest:(fd,size)=>{assert.equal(fd,9);assert.equal(size,4);calls.push('digest');return state.digest;}};
+  return {ref,state,calls,io};
+}
+test('Docker digest lease hashes only its initial and final immutable descriptor boundaries',()=>{
+  const fixture=digestFixture(),lease=createDockerDigestLease(fixture.ref,fixture.io);
+  lease.verify('before-child');lease.verify('after-child');assert.deepEqual(fixture.calls,['open','digest']);
+  const result=lease.finish();assert.equal(result.status,'PASS');assert.equal(result.closed,true);assert.equal(result.initialDigest,fixture.ref.sha256);assert.equal(result.finalDigest,fixture.ref.sha256);assert.deepEqual(fixture.calls,['open','digest','digest','close']);assert.deepEqual(lease.finish(),result);assert.throws(()=>lease.verify('reuse'),/FINISHED/);
+});
+test('Docker digest lease refuses bad initial pin and always closes an opened descriptor',()=>{
+  const fixture=digestFixture();fixture.state.digest='b'.repeat(64);
+  assert.throws(()=>createDockerDigestLease(fixture.ref,fixture.io),error=>error.dockerIntegrity.status==='FAIL'&&error.dockerIntegrity.closed===true);
+  assert.deepEqual(fixture.calls,['open','digest','close']);
+});
+test('Docker identity drift is sticky for inode, symlink, permissions, owner, group, links and timestamps',()=>{
+  for(const field of ['ino','mode','uid','gid','nlink','size','mtimeNs','ctimeNs','canonical','symlink']){
+    const fixture=digestFixture(),lease=createDockerDigestLease(fixture.ref,fixture.io),original=fixture.state.path;
+    if(field==='canonical')fixture.state.canonical='/another/docker';else if(field==='symlink')fixture.state.path={...original,isFile:()=>false};else fixture.state.path={...original,[field]:original[field]+1n};
+    assert.throws(()=>lease.verify('before-child'));
+    fixture.state.path=original;fixture.state.canonical=fixture.ref.path;
+    assert.throws(()=>lease.verify('cleanup-before-child'));const result=lease.finish();assert.equal(result.status,'FAIL');assert.equal(result.closed,true);assert.equal(fixture.calls.filter(x=>x==='digest').length,2);
+  }
+});
+test('Docker final full digest detects changed bytes despite simulated unchanged boundary metadata',()=>{
+  const fixture=digestFixture(),lease=createDockerDigestLease(fixture.ref,fixture.io);fixture.state.digest='b'.repeat(64);
+  lease.verify('before-child');lease.verify('after-child');const result=lease.finish();assert.equal(result.status,'FAIL');assert.equal(result.closed,true);assert.ok(result.errors.some(row=>row.stage==='final-digest'));
+});
+test('child primary failure and uncertainty survive secondary post-child integrity and close failures',async()=>{
+  const fixture=digestFixture(),lease=createDockerDigestLease(fixture.ref,fixture.io),primary=Error('owned child failed'),trace=[];
+  await assert.rejects(boundedLoggedCommand({openLog:channel=>channel,before:()=>lease.verify('before-child'),execute:async()=>{fixture.state.fd={...fixture.state.fd,ctimeNs:99n};throw primary;},onUncertain:()=>trace.push('uncertain'),afterChild:()=>{trace.push('integrity');lease.verify('after-child');},syncLog:handle=>trace.push('sync '+handle),closeLog:handle=>trace.push('close '+handle)}),error=>error===primary);
+  assert.deepEqual(trace,['uncertain','integrity','sync out','close out','sync err','close err']);
+  fixture.state.closeError=Error('descriptor close failed');const result=lease.finish();assert.equal(result.status,'FAIL');assert.equal(result.closed,false);assert.ok(result.errors.some(row=>row.stage==='after-child'));assert.ok(result.errors.some(row=>row.stage==='final-close'));assert.equal(fixture.calls.filter(x=>x==='digest').length,2);
+});
+test('final digest and descriptor close still execute when an independent audit fails',()=>{
+  const fixture=digestFixture(),lease=createDockerDigestLease(fixture.ref,fixture.io),primary=Error('audit failed');let failure,result;
+  try{throw primary;}catch(error){failure=error;}finally{fixture.state.digest='b'.repeat(64);result=lease.finish();}
+  assert.equal(failure,primary);assert.equal(result.status,'FAIL');assert.equal(result.closed,true);assert.deepEqual(fixture.calls,['open','digest','digest','close']);
+});
+test('real descriptor hashing refuses same-size content change, inode replacement and symlink substitution',()=>{
+  for(const mutation of ['contents','replacement','symlink']){
+    const root=mkdtempSync(join(tmpdir(),'ideogram-docker-lease-')),target=join(root,'docker'),other=join(root,'other');
+    writeFileSync(target,'data');const ref={path:'/Applications/Docker.app/Contents/Resources/bin/docker',bytes:4,sha256:createHash('sha256').update('data').digest('hex')};
+    let lease;
+    try{
+      lease=createDockerDigestLease(ref,{open:()=>openSync(target,constants.O_RDONLY|constants.O_NOFOLLOW),close:closeSync,lstat:()=>lstatSync(target,{bigint:true}),fstat:fd=>fstatSync(fd,{bigint:true}),realpath:()=>ref.path});
+      if(mutation==='contents')writeFileSync(target,'else');
+      else{renameSync(target,other);if(mutation==='replacement')writeFileSync(target,'data');else symlinkSync(other,target);}
+      assert.throws(()=>lease.verify('after-child'));const result=lease.finish();assert.equal(result.status,'FAIL');assert.equal(result.closed,true);if(mutation==='contents')assert.notEqual(result.finalDigest,ref.sha256);
+    }finally{lease?.finish();rmSync(root,{recursive:true,force:true});}
+  }
 });
