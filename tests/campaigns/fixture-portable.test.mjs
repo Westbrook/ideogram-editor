@@ -4,10 +4,10 @@ import { createHash, randomUUID } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
 import { fstatSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { mkdtemp, readdir, rm, writeFile } from 'node:fs/promises';
+import { lstat, mkdir, mkdtemp, readdir, realpath, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { archiveFeatureEvidence, buildPortableFixture, inspectPortableArchive, portableFixturePlan } from '../../tooling/qualification/campaigns/fixture-portable.mjs';
+import { archiveFeatureEvidence, buildPortableFixture, inspectPortableArchive, portableFixturePlan, withClosedSeedDatabase } from '../../tooling/qualification/campaigns/fixture-portable.mjs';
 import { fileIdentity, productFor, verifyArchive } from '../../tooling/qualification/campaigns/backend-portable.mjs';
 import * as portableCommon from '../../tooling/qualification/campaigns/backend-common.mjs';
 import { ownTestRoot } from '../../tooling/qualification/owned-test-roots.mjs';
@@ -323,4 +323,105 @@ for (const helper of ['inspectPortableArchive', 'verifyArchive']) test(helper + 
   const after = await inspectPortableArchive({repo: f.repo, path: f.path, output: f.output, product: f.product});
   assert.deepEqual(after, baseline);
   assert.deepEqual(await fileIdentity(f.path), {sha256: f.bundle.blob.hash.slice(7), byteLength: f.bundle.blob.byteLength});
+});
+
+
+// Tiny actual WAL-mode databases exercise only the copied inspection boundary.
+// These are not product rows, mixed seeds, WC admission or timing evidence.
+async function inspectionFiles(root, directory = '') {
+  const files = [];
+  for (const entry of (await readdir(join(root, directory), { withFileTypes: true })).sort((a, b) => a.name.localeCompare(b.name))) {
+    const path = directory ? directory + '/' + entry.name : entry.name;
+    assert(!entry.isSymbolicLink());
+    if (entry.isDirectory()) files.push(...await inspectionFiles(root, path));
+    else { assert(entry.isFile()); files.push({ path, ...await fileIdentity(join(root, path)) }); }
+  }
+  return files;
+}
+async function closedWALInspection(t) {
+  const parent = ownTestRoot(await realpath(await mkdtemp(join(tmpdir(), 'wc-seed-inspection-'))));
+  t.diagnostic('Retained inspection-boundary control: ' + parent);
+  const root = join(parent, 'source'), output = join(parent, 'output');
+  await mkdir(root, { mode: 0o700 }); await mkdir(output, { mode: 0o700 });
+  const db = new DatabaseSync(join(root, 'metadata.sqlite'));
+  try {
+    assert.equal(db.prepare('PRAGMA journal_mode=WAL').get().journal_mode, 'wal');
+    db.exec('PRAGMA synchronous=FULL; CREATE TABLE inspection_values(id TEXT PRIMARY KEY, value TEXT) STRICT;');
+    db.prepare('INSERT INTO inspection_values VALUES (?,?)').run('retained', 'exact closed WAL value');
+    db.exec('PRAGMA wal_checkpoint(TRUNCATE)');
+  } finally { db.close(); }
+  await mkdir(join(root, 'objects'), { mode: 0o700 }); await writeFile(join(root, 'objects', 'opaque'), 'Independent retained bytes', { mode: 0o600, flag: 'wx' });
+  const sourceFiles = await inspectionFiles(root);
+  assert(!sourceFiles.some(file => /^metadata\.sqlite-(wal|shm)$/.test(file.path)));
+  return { root, output, sourceFiles, scratch: join(output, 'seed-source-inspection') };
+}
+const inspectedValue = db => db.prepare('SELECT value FROM inspection_values WHERE id=?').get('retained').value;
+const assertInspectionClosed = db => assert.throws(() => db.prepare('SELECT 1'), /not open|closed/i);
+
+test('closed-WAL seed inspection uses an exact read-only private copy and preserves every source file', async t => {
+  const f = await closedWALInspection(t); let observed;
+  const result = await withClosedSeedDatabase(f, db => {
+    observed = db; assert.equal(db.prepare('PRAGMA journal_mode').get().journal_mode, 'wal');
+    assert.throws(() => db.prepare('UPDATE inspection_values SET value=?').run('must not write'), /readonly|read.only/i);
+    return inspectedValue(db);
+  });
+  assert.equal(result, 'exact closed WAL value'); assertInspectionClosed(observed);
+  assert.deepEqual(await inspectionFiles(f.root), f.sourceFiles);
+  const metadata = f.sourceFiles.find(file => file.path === 'metadata.sqlite');
+  assert.deepEqual(await fileIdentity(join(f.scratch, 'metadata.sqlite')), { sha256: metadata.sha256, byteLength: metadata.byteLength });
+  assert.equal((await lstat(f.scratch)).mode & 0o777, 0o700);
+});
+
+test('closed-WAL seed inspection preserves the actual query error, closes its copy and retains unchanged failure custody', async t => {
+  const f = await closedWALInspection(t); let observed, original;
+  await assert.rejects(withClosedSeedDatabase(f, db => {
+    observed = db; assert.equal(inspectedValue(db), 'exact closed WAL value');
+    try { db.prepare('SELECT missing_column FROM inspection_values').get(); }
+    catch (error) { original = error; throw error; }
+  }), error => error === original && error.code === 'ERR_SQLITE_ERROR');
+  assertInspectionClosed(observed); assert.deepEqual(await inspectionFiles(f.root), f.sourceFiles);
+  assert((await lstat(join(f.scratch, 'metadata.sqlite'))).isFile(), 'Failed inspection copy remains in owned evidence');
+});
+
+test('closed-WAL seed inspection fails closed on source mutation and preserves the ordered query and integrity failures', async t => {
+  for (const queryFails of [false, true]) {
+    const f = await closedWALInspection(t), original = Error('Original inspected-query failure'); let observed;
+    await assert.rejects(withClosedSeedDatabase(f, async db => {
+      observed = db; assert.equal(inspectedValue(db), 'exact closed WAL value');
+      await writeFile(join(f.root, 'objects', 'opaque'), 'Changed source remains retained');
+      if (queryFails) throw original;
+    }), error => queryFails ? error instanceof AggregateError && error.errors.length === 2 && error.errors[0] === original && error.errors[1].code === 'ERR_ASSERTION' : error.code === 'ERR_ASSERTION');
+    assertInspectionClosed(observed); assert.notDeepEqual(await inspectionFiles(f.root), f.sourceFiles);
+    assert((await lstat(join(f.scratch, 'metadata.sqlite'))).isFile());
+  }
+});
+
+test('closed-WAL seed inspection refuses stale or contaminated sources and reused, overlapping or symlinked scratch roots', async t => {
+  for (const kind of ['stale', 'wal', 'shm', 'reused', 'overlap', 'symlink']) {
+    const f = await closedWALInspection(t); let output = f.output, calls = 0;
+    if (kind === 'stale') await writeFile(join(f.root, 'objects', 'opaque'), 'Changed before capture admission');
+    if (kind === 'wal' || kind === 'shm') { await writeFile(join(f.root, 'metadata.sqlite-' + kind), '', { flag: 'wx', mode: 0o600 }); f.sourceFiles = await inspectionFiles(f.root); }
+    if (kind === 'reused') { await mkdir(f.scratch, { mode: 0o700 }); await writeFile(join(f.scratch, 'sentinel'), 'Existing evidence', { flag: 'wx', mode: 0o600 }); }
+    if (kind === 'overlap') output = f.root;
+    if (kind === 'symlink') { output = join(f.output, 'alias'); await symlink(f.output, output, 'dir'); }
+    const before = await inspectionFiles(f.root);
+    await assert.rejects(withClosedSeedDatabase({ ...f, output }, () => { calls++; }), error =>
+      kind === 'reused' ? error.code === 'EEXIST' : kind === 'wal' || kind === 'shm' ? error.code === 'FIXTURE_REQUIRED' : error.code === 'ERR_ASSERTION');
+    assert.equal(calls, 0); assert.deepEqual(await inspectionFiles(f.root), before);
+    if (kind === 'reused') assert.deepEqual(await readdir(f.scratch), ['sentinel']);
+    else assert(!((await readdir(output)).includes('seed-source-inspection')), kind);
+  }
+});
+
+test('closed-WAL seed inspection preserves exact cancellation before admission and after a real query', async t => {
+  for (const timing of ['before', 'after-query']) {
+    const f = await closedWALInspection(t), controller = new AbortController(), original = Error('Selected inspection cancellation'); let observed;
+    if (timing === 'before') controller.abort(original);
+    await assert.rejects(withClosedSeedDatabase({ ...f, signal: controller.signal }, db => {
+      observed = db; assert.equal(inspectedValue(db), 'exact closed WAL value'); controller.abort(original);
+    }), error => error === original);
+    assert.deepEqual(await inspectionFiles(f.root), f.sourceFiles);
+    if (observed) assertInspectionClosed(observed);
+    else assert.deepEqual(await readdir(f.output), []);
+  }
 });

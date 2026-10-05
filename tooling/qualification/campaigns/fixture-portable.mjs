@@ -215,6 +215,49 @@ async function treeFiles(root, directory = '', signal) {
   return files;
 }
 
+/** SQLite can create WAL/SHM even for read-only connections. Inspect only an
+ * authenticated private copy; no connection ever touches the sealed source.
+ * This boundary supplies no product/seed qualification by itself. */
+export async function withClosedSeedDatabase({ root, output, sourceFiles, signal }, inspect) {
+  abort(signal);
+  const sourceRoot = await realpath(root), parent = await realpath(output);
+  assert.equal(sourceRoot, resolve(root), 'Seed root must have canonical real ancestors');
+  assert.equal(parent, resolve(output), 'Inspection output must have canonical real ancestors');
+  assert((await lstat(parent)).isDirectory(), 'Inspection output must be a real directory');
+  const scratch = join(parent, 'seed-source-inspection');
+  assert(scratch !== sourceRoot && !scratch.startsWith(sourceRoot + sep) && !sourceRoot.startsWith(scratch + sep), 'Inspection scratch must be outside the seed');
+  assert.deepEqual(await treeFiles(sourceRoot, '', signal), sourceFiles, 'Captured seed inventory must still match');
+  requireValue(sourceFiles.some(file => file.path === 'metadata.sqlite') && !sourceFiles.some(file => /^metadata\.sqlite-(wal|shm)$/.test(file.path)), 'Mixed seed must be a clean closed writer root');
+  const metadata = join(sourceRoot, 'metadata.sqlite');
+  const stamp = value => ({ dev: value.dev, ino: value.ino, size: value.size, mode: value.mode, mtimeMs: value.mtimeMs, ctimeMs: value.ctimeMs });
+  const before = stamp(await lstat(metadata)), identity = await fileIdentity(metadata, signal);
+  assert.deepEqual(sourceFiles.find(file => file.path === 'metadata.sqlite'), { path: 'metadata.sqlite', ...identity });
+  let database, result;
+  const failures = [];
+  try {
+    abort(signal); await mkdir(scratch, { mode: 0o700 });
+    const copied = join(scratch, 'metadata.sqlite');
+    await copyFile(metadata, copied, constants.COPYFILE_EXCL); abort(signal);
+    assert.deepEqual(stamp(await lstat(metadata)), before, 'Source metadata identity changed around copy');
+    assert.deepEqual(await fileIdentity(metadata, signal), identity);
+    assert.deepEqual(await fileIdentity(copied, signal), identity, 'Inspection copy must contain the exact source bytes');
+    database = new DatabaseSync(copied, { readOnly: true });
+    result = await inspect(database); abort(signal);
+  } catch (error) { failures.push(error); }
+  finally {
+    try { database?.close(); } catch (error) { failures.push(error); }
+    // Cleanup cannot skip source verification because the caller cancelled or
+    // its query failed. Preserve every failure in original-operation order.
+    try {
+      assert.deepEqual(stamp(await lstat(metadata)), before, 'Source metadata identity changed during inspection');
+      assert.deepEqual(await treeFiles(sourceRoot), sourceFiles, 'Inspection must preserve the complete sealed source');
+    } catch (error) { failures.push(error); }
+  }
+  if (failures.length === 1) throw failures[0];
+  if (failures.length) throw new AggregateError(failures, 'Seed inspection failed and closure or source verification failed');
+  return result;
+}
+
 async function newOutput(repo, requested) {
   requireValue(typeof requested === 'string' && isAbsolute(requested), 'Fixture output must be an absolute new directory');
   const base = join(await realpath(repo), 'artifacts'), output = resolve(requested);
@@ -254,13 +297,11 @@ export async function buildPortableFixture(options = {}) {
     assert.equal(sourceArchive.sha256, rawHash(seed.archive.sha256)); assert.equal(sourceArchive.byteLength, seed.archive.byteLength);
     const product = await modules(repo), initial = await inspectPortableArchive({ repo, path: seed.archive.path, output, signal, product });
     assert.equal(initial.document.id, seed.documentId, 'Mixed seed archive identity matches selected document');
-    const sourceDatabase = new DatabaseSync(join(sourceRoot, 'metadata.sqlite'), { readOnly: true });
-    try {
+    await withClosedSeedDatabase({ root: sourceRoot, output, sourceFiles, signal }, sourceDatabase => {
       const local = sourceDatabase.prepare('SELECT json FROM documents WHERE id=?').get(seed.documentId);
       const retained = local ?? sourceDatabase.prepare("SELECT json FROM portable_rows WHERE kind='document' AND id=?").get(seed.documentId);
       assert.deepEqual(JSON.parse(retained?.json ?? 'null'), initial.document, 'Source writer and presealed archive retain the same document');
-    }
-    finally { sourceDatabase.close(); }
+    });
     const featureNames = ['originals', 'retainedCandidates', 'rawCaptions', 'derivedCaptions', 'editableText', 'licensedFonts', 'frozenLayouts', 'contributions', 'adapters'];
     const missing = featureNames.filter(name => initial.features[name].length === 0);
     requireValue(missing.length === 0, 'Real mixed seed lacks typed retained features: ' + missing.join(', '));
