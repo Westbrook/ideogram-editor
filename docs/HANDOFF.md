@@ -34,8 +34,33 @@ leaving setup, shard-content and other mutations fully observable. The complete
 `wc-shard-preparation-01`, including five new real-writer/refusal/cancellation
 controls. All eight gates passed; 19 complete storage observations had no failed
 attempts or unknown samples, and source/dependencies stayed stable. Independent
-source review is clear. A new actual preparation must establish whether this
-correction resolves the observed failure; no successful fixture is yet established.
+source and retained-storage review are clear, with result review SHA-256
+`816e42b8a22c371d34cffd1d7628e295777acb308f5a0ef51e1eae92f448b3f3`.
+The tested correction is pushed to `main` at `745d0a6`.
+
+That changed-source preparation 03 ran for 151 seconds and remains FAIL with
+INCONCLUSIVE storage. It reached draft-asset progress 897/979, then exhausted
+three mutation attempts in 733.27275 ms at a private portable-copy spool
+directory. The retained preparation error is `ABORT_ERR` from supervisor SIGTERM;
+the outer `Portable fixture incomplete: []` message hides it because an empty
+missing-items array takes precedence over the error. Only the initial imported
+seed export completed. The interrupted copy's retained manifest/records contain
+1,000 asset entities and captured high-water 982: failure occurred in the later
+asset-inventory export, not unfinished draft growth. `exportCopy` creates small
+hash-named entity-payload files in that same staging directory while constructing
+the ZIP. Source/dependencies stayed stable, producer exit was
+observed and both exclusions released. This is a new observed mutation location,
+not a successful fixture or proof that every object-directory observation is
+resolved. Preserve the output and diagnose the copy-spool operation before another
+attempt; do not repeat unchanged or relax accounting limits. Evaluate whether
+bounded generated metadata can feed the ZIP directly from its authenticated
+disk-backed rows, preserving byte/hash/CRC, memory, cancellation and final-object
+proofs; this requires a reviewed product change, not random staging-file
+precreation or an observation exception.
+The bounded independent WC03 review is sealed as
+`25411775fbf06a2d2c0c7655e654b536bbad5b35639d4ef11512fe41a52e183d`;
+it verifies selected bodies, audit copies and chains, not the complete unfinished
+archive. The 4,001.043167 ms coverage gap also exceeds the unchanged 4,000 ms bound.
 
 The bounded local capability probe now has an actual **CAPABILITY_AVAILABLE**
 result under its reviewed Docker integrity policy. Probe 06 completed the full
