@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "package": "history-archive-v1",
+  "subject": "Independent Progress Report source only",
+  "sourceManifestSha256": "faaeae2de5ea10367939aa1d92f9bbe5e17ce4655f8bb5207aab1f5c1165629a",
+  "pathBasis": "All target and prerequisite paths are relative to the independent report workspace root. The patch path is relative to this metadata directory.",
+  "patch": {
+    "path": "../history-archive-v1.patch",
+    "bytes": 57095,
+    "sha256": "cf8f09ff52ae639fedec76ed738a6dd9269f010276c9012d0a6ccfefccc9926b"
+  },
+  "targets": [
+    {
+      "path": "report.py",
+      "before": {
+        "bytes": 19710,
+        "sha256": "10e3cc0c3c5f262e0a7d26c39c8b3c190ebd071ed6f915fd826a172c3c1caba3"
+      },
+      "expectedAbsent": false,
+      "after": {
+        "bytes": 22481,
+        "sha256": "3f35f9f17cf30a9bbb673c887441a85bf79dd46407f1b96a6494832f38f2d3a5"
+      },
+      "role": "independent-report-runtime"
+    },
+    {
+      "path": "public/app.js",
+      "before": {
+        "bytes": 12402,
+        "sha256": "ed5212de59477ed24801f1e8e40aa07832961e9d8033fd50aac59601e3a3a7de"
+      },
+      "expectedAbsent": false,
+      "after": {
+        "bytes": 13226,
+        "sha256": "8c99a278658723362414e4b032d19e0caa80418226ed357c679d8f9f76b160d5"
+      },
+      "role": "independent-report-runtime"
+    },
+    {
+      "path": "report_archive.py",
+      "before": null,
+      "expectedAbsent": true,
+      "after": {
+        "bytes": 19270,
+        "sha256": "6662082cdd87bbc05c1fb21b9da24efb6b54c2db845dda5182a49ff5704c0853"
+      },
+      "role": "independent-report-runtime"
+    },
+    {
+      "path": "test_archive.py",
+      "before": null,
+      "expectedAbsent": true,
+      "after": {
+        "bytes": 22668,
+        "sha256": "8f666ba7b5025807c4fc70522b54141f48668211af32139e6719a0f7df80b7a5"
+      },
+      "role": "synthetic-tests"
+    }
+  ],
+  "unchangedPrerequisites": [
+    {
+      "path": "test_compact.py",
+      "bytes": 4095,
+      "sha256": "861ef55e7c20dd8fc29d8b5bde65df9292d63260006542543f6a73c831059334",
+      "role": "Existing synthetic compact-regression helper; required by test_archive.py and unchanged by this patch."
+    }
+  ],
+  "verification": {
+    "patchAppliedToFreshBaselineSource": true,
+    "allAfterBytesMatchedFrozenManifest": true,
+    "testCompactUnchanged": true,
+    "testsExecutedDuringPackaging": false,
+    "serverStartedDuringPackaging": false,
+    "realStateIncluded": false,
+    "liveReportChanged": false
+  },
+  "excluded": [
+    "Live report state",
+    "Real selection metadata",
+    "Archive chunks and indexes",
+    "Raw runtime receipts",
+    "User feedback payloads",
+    "Machine-specific private paths"
+  ],
+  "independentSourceReview": {
+    "status": "CLEAR_SOURCE_ONLY_REHEARSAL_PENDING",
+    "bytes": 13089,
+    "sha256": "efd2af4b9a0124815faa35d26cea9047f4670ebd66cba80d310002d6b256e94f",
+    "findings": [],
+    "scope": "Frozen source review only; no real-data migration, deployment or packaging-time test result is implied."
+  }
+}

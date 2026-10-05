@@ -1,0 +1,812 @@
+diff --git a/report.py b/report.py
+--- a/report.py
++++ b/report.py
+@@ -7,0 +8 @@
++from report_archive import HistoryArchive, META as ARCHIVE_META
+@@ -84,0 +86 @@
++    out['hasHistoryArchive']=ARCHIVE_META in s
+@@ -102,2 +104,44 @@
+-    def __init__(self,path): self.path=Path(path)
+-    def read(self): return json.loads(self.path.read_text())
++    def __init__(self,path):
++        self.path=Path(path)
++        self.history_archive=HistoryArchive(self.path)
++    def read_active(self):
++        """Physical representation, only for archive-aware transport code."""
++        return json.loads(self.path.read_text())
++    def read(self):
++        """Backward-compatible logical state for Store subclasses and writers."""
++        return self.history_archive.hydrate(self.read_active())
++    def detail(self,query):
++        s=self.read_active()
++        kind=query.get('kind',[''])[0]; identity=query.get('id',[''])[0]
++        if kind=='archive-index':return self.history_archive.catalog(s)
++        if kind=='archive-record':return self.history_archive.record(s,identity)
++        if kind=='handoff-index':return self.history_archive.handoff_index(s)
++        if kind=='handoff':self.history_archive.hydrate(s,field=identity)
++        return record_detail(s,query)
++    def export_state(self,include_archive_metadata=True):
++        s=self.read()
++        if not include_archive_metadata:s.pop(ARCHIVE_META,None)
++        return s
++    def prepare_history_archive(self,selections,anchor_id,expected_revision):
++        """Write immutable objects and verify recovery; canonical stays untouched."""
++        with self.path.with_suffix('.lock').open('a') as lock:
++            fcntl.flock(lock,fcntl.LOCK_EX)
++            s=self.read()
++            if expected_revision!=s['revision']:raise Conflict('Archive preparation revision changed')
++            return self.history_archive.prepare(s,selections,anchor_id)
++    def commit_history_archive(self,plan,request_id):
++        """Explicit local maintenance API; not exposed through HTTP actions."""
++        require(isinstance(request_id,str) and bool(request_id),'requestId is required')
++        with self.path.with_suffix('.lock').open('a') as lock:
++            fcntl.flock(lock,fcntl.LOCK_EX)
++            s=self.read()
++            if request_id in s['appliedRequests']:return s
++            if plan.get('expectedRevision')!=s['revision']:raise Conflict('Archive commit revision changed')
++            proposed=self.history_archive.verify_plan(s,plan)
++            proposed['revision']+=1
++            proposed['updatedAt']=now()
++            proposed['appliedRequests'].append(request_id)
++            # The immutable index has the maintenance receipt. Tasks, events,
++            # burndown, reviews, feedback and lastWorkUpdate remain exact.
++            self.write(proposed)
++            return proposed
+@@ -123,0 +168 @@
++        physical=self.history_archive.compact(s)
+@@ -127 +172 @@
+-                json.dump(s,f,indent=2,ensure_ascii=False); f.write('\n'); f.flush(); os.fsync(f.fileno())
++                json.dump(physical,f,indent=2,ensure_ascii=False); f.write('\n'); f.flush(); os.fsync(f.fileno())
+@@ -131,0 +177,2 @@
++            if ARCHIVE_META in physical:
++                s[ARCHIVE_META]=copy.deepcopy(physical[ARCHIVE_META])
+@@ -216 +263 @@
+-                self.dashboard_cache=dashboard(self.store.read()); self.dashboard_signature=signature
++                self.dashboard_cache=dashboard(self.store.read_active()); self.dashboard_signature=signature
+@@ -230,2 +277,2 @@
+-            try: result=record_detail(self.server.store.read(),parse_qs(urlsplit(self.path).query))
+-            except ValueError as e: return self.reply(400,{'error':str(e)})
++            try: result=self.server.store.detail(parse_qs(urlsplit(self.path).query))
++            except (ValueError,OSError) as e: return self.reply(400,{'error':str(e)})
+@@ -233,0 +281 @@
++        if path=='/api/archive-export': return self.reply(200,self.server.store.export_state(include_archive_metadata=False))
+diff --git a/public/app.js b/public/app.js
+--- a/public/app.js
++++ b/public/app.js
+@@ -36 +36 @@
+- root.innerHTML=`<section class="hero"><div><span class="status">${esc(label(state.project.sessionState))}</span><h1>Building a recoverable<br>image editor.</h1><p>${esc(state.project.summary)}</p><p>${state.project.apps.local?.url?`<a href="${safeUrl(state.project.apps.local.url)}">Open historical editor preview ↗</a><br><small>${esc(state.project.apps.local.availability)}</small>`:'<span class="muted">Editor preview unavailable.</span>'}</p><small>Last work update ${esc(date(state.project.lastWorkUpdate))}<br>Report availability does not indicate an active agent.</small></div><div class="panel"><div class="kicker">${esc(state.project.activeMilestone)} · independently verified effort</div><p class="metric">${p.percent===null?'—':Math.round(p.percent)+'%'} <small>${p.verified} / ${p.total} points</small></p>${chart()}<small>${p.remaining} points remain · relative effort, no estimated finish date</small></div></section><section><h2>Ready to review</h2><p class="muted">Review each named version. Open feedback stays visible until answered. Full records load when opened.</p><div class="review-grid">${active.map(card).join('')||'<p class="empty">No new deliverable is waiting for review.</p>'}</div></section><section class="panel"><h2>${esc(state.project.activeMilestone)} work plan</h2>${currentTasks.map(task).join('')}<details id="earlier-tasks"><summary>Earlier completed work · ${earlierTasks.length}</summary>${earlierTasks.map(task).join('')}</details></section><section><h2>Required later scope</h2><p class="muted">Outstanding work; tracked separately from the active milestone denominator.</p><div class="scope-list">${state.futureScope.map(s=>`<div class="panel"><h3>${esc(s.id)}</h3><a href="${safeUrl(s.url)}">${esc(s.title)}</a><p class="muted">${esc(s.status)}</p></div>`).join('')}</div></section><details id="reviewed"><summary>Reviewed · ${reviewed.length} report items, ${state.provenance.reviewed.length} historical checkpoints</summary><div class="review-grid">${reviewed.map(card).join('')}</div>${state.provenance.reviewed.map(x=>`<p class="historical-review">${esc(x.label)}<br><small>Preserved historical checkpoint; original review time and viewer were not recorded.</small></p>`).join('')}${lazy('Persisted review checkpoints','checkpoints')}<a href="/history/planning-final.txt">Read the archived review source</a></details><details id="older"><summary>Earlier activity · ${older.length} deliverables, ${earlierEvents.length} events</summary><div class="review-grid">${older.map(card).join('')}</div>${activity([...earlierEvents].reverse())}</details><details id="archive"><summary>Archive · ${archived.length} deliverables, ${archivedTasks.length} tasks, ${archiveEvents.length} events</summary><p class="muted">Older preserved content. Opening a record does not mark it reviewed, change its age or earn progress.</p><div class="review-grid">${archived.map(card).join('')}</div>${archivedTasks.map(task).join('')}${activity([...archiveEvents].reverse())}<p><a href="/api/state" download="ideogram-progress-canonical.json">Download complete canonical state and all preserved history</a></p></details><details id="details"><summary>Details and continuation</summary><p><strong>Planning independently complete.</strong> SPEC-A3 at ${esc(state.provenance.technicalCommit.slice(0,7))}. Handoff packaging at ${esc(state.provenance.archiveCommit.slice(0,7))}. These do not establish application completion.</p><p><a href="${safeUrl(state.provenance.sourceNote)}">Archived planning note</a> · <a href="/history/planning-final.txt">Final source copy</a> · <a href="/history/planning-frozen.txt">Frozen snapshot</a></p><details id="handoff"><summary>Current machine-readable handoff</summary><pre>${esc(JSON.stringify(state.handoff,null,2))}</pre><a href="/api/handoff" download="ideogram-handoff.json">Download complete preserved handoff</a>${lazy(`Browse all ${state.handoffFieldCount} preserved handoff fields`,'handoff-index')}</details><details id="events"><summary>Recent activity and scope changes · ${currentEvents.length}</summary>${activity([...currentEvents].reverse())}</details><details id="burndown"><summary>All burndown records</summary><pre>${esc(JSON.stringify(state.burndown,null,2))}</pre></details><details id="integration"><summary>App links, constraints and visibility policy</summary><pre>${esc(JSON.stringify({apps:state.project.apps,constraints:state.project.constraints,theme:state.project.themeSource,lifecycle:state.lifecycle},null,2))}</pre></details></details>`;
++ root.innerHTML=`<section class="hero"><div><span class="status">${esc(label(state.project.sessionState))}</span><h1>Building a recoverable<br>image editor.</h1><p>${esc(state.project.summary)}</p><p>${state.project.apps.local?.url?`<a href="${safeUrl(state.project.apps.local.url)}">Open historical editor preview ↗</a><br><small>${esc(state.project.apps.local.availability)}</small>`:'<span class="muted">Editor preview unavailable.</span>'}</p><small>Last work update ${esc(date(state.project.lastWorkUpdate))}<br>Report availability does not indicate an active agent.</small></div><div class="panel"><div class="kicker">${esc(state.project.activeMilestone)} · independently verified effort</div><p class="metric">${p.percent===null?'—':Math.round(p.percent)+'%'} <small>${p.verified} / ${p.total} points</small></p>${chart()}<small>${p.remaining} points remain · relative effort, no estimated finish date</small></div></section><section><h2>Ready to review</h2><p class="muted">Review each named version. Open feedback stays visible until answered. Full records load when opened.</p><div class="review-grid">${active.map(card).join('')||'<p class="empty">No new deliverable is waiting for review.</p>'}</div></section><section class="panel"><h2>${esc(state.project.activeMilestone)} work plan</h2>${currentTasks.map(task).join('')}<details id="earlier-tasks"><summary>Earlier completed work · ${earlierTasks.length}</summary>${earlierTasks.map(task).join('')}</details></section><section><h2>Required later scope</h2><p class="muted">Outstanding work; tracked separately from the active milestone denominator.</p><div class="scope-list">${state.futureScope.map(s=>`<div class="panel"><h3>${esc(s.id)}</h3><a href="${safeUrl(s.url)}">${esc(s.title)}</a><p class="muted">${esc(s.status)}</p></div>`).join('')}</div></section><details id="reviewed"><summary>Reviewed · ${reviewed.length} report items, ${state.provenance.reviewed.length} historical checkpoints</summary><div class="review-grid">${reviewed.map(card).join('')}</div>${state.provenance.reviewed.map(x=>`<p class="historical-review">${esc(x.label)}<br><small>Preserved historical checkpoint; original review time and viewer were not recorded.</small></p>`).join('')}${lazy('Persisted review checkpoints','checkpoints')}<a href="/history/planning-final.txt">Read the archived review source</a></details><details id="older"><summary>Earlier activity · ${older.length} deliverables, ${earlierEvents.length} events</summary><div class="review-grid">${older.map(card).join('')}</div>${activity([...earlierEvents].reverse())}</details><details id="archive"><summary>Archive · ${archived.length} deliverables, ${archivedTasks.length} tasks, ${archiveEvents.length} events</summary><p class="muted">Older preserved content. Opening a record does not mark it reviewed, change its age or earn progress.</p>${state.hasHistoryArchive?lazy('Browse preserved handoff snapshots','archive-index'):''}<div class="review-grid">${archived.map(card).join('')}</div>${archivedTasks.map(task).join('')}${activity([...archiveEvents].reverse())}<p><a href="/api/state" download="ideogram-progress-canonical.json">Download complete canonical state and all preserved history</a>${state.hasHistoryArchive?' · <a href="/api/archive-export" download="ideogram-progress-reconstructed.json">Download reconstructed report without archive references</a>':''}</p></details><details id="details"><summary>Details and continuation</summary><p><strong>Planning independently complete.</strong> SPEC-A3 at ${esc(state.provenance.technicalCommit.slice(0,7))}. Handoff packaging at ${esc(state.provenance.archiveCommit.slice(0,7))}. These do not establish application completion.</p><p><a href="${safeUrl(state.provenance.sourceNote)}">Archived planning note</a> · <a href="/history/planning-final.txt">Final source copy</a> · <a href="/history/planning-frozen.txt">Frozen snapshot</a></p><details id="handoff"><summary>Current machine-readable handoff</summary><pre>${esc(JSON.stringify(state.handoff,null,2))}</pre><a href="/api/handoff" download="ideogram-handoff.json">Download complete preserved handoff</a>${lazy(`Browse all ${state.handoffFieldCount} preserved handoff fields`,'handoff-index')}</details><details id="events"><summary>Recent activity and scope changes · ${currentEvents.length}</summary>${activity([...currentEvents].reverse())}</details><details id="burndown"><summary>All burndown records</summary><pre>${esc(JSON.stringify(state.burndown,null,2))}</pre></details><details id="integration"><summary>App links, constraints and visibility policy</summary><pre>${esc(JSON.stringify({apps:state.project.apps,constraints:state.project.constraints,theme:state.project.themeSource,lifecycle:state.lifecycle},null,2))}</pre></details></details>`;
+@@ -44 +44,3 @@
+- if(new URL(url,location.origin).searchParams.get('kind')==='handoff-index'){
++ if(new URL(url,location.origin).searchParams.get('kind')==='archive-index'){
++  body.innerHTML='<label>Find a preserved snapshot <input type="search" data-handoff-search placeholder="Search field, label or date"></label><div class="handoff-fields">'+data.map(x=>`<p data-field="${esc((x.field+' '+x.label+' '+x.at).toLowerCase())}"><a href="${esc(recordUrl('archive-record',x.id))}">${esc(x.label)}</a> <small>${esc(x.at)} · ${Math.ceil(x.bytes/1024)} KiB · ${x.active?'archived current record':'preserved prior record'}</small></p>`).join('')+'</div>';
++ }else if(new URL(url,location.origin).searchParams.get('kind')==='handoff-index'){
+diff --git a/report_archive.py b/report_archive.py
+--- /dev/null
++++ b/report_archive.py
+@@ -0,0 +1,392 @@
++"""Explicit archival of selected historical handoff entries, never read-time aging.
++
++The index and chunks are immutable JSON objects. The canonical document is the
++only mutable root. Existing writers receive fully reconstructed ordinary Python
++values; their updates may append to histories or change a formerly archived
++entry. Changed entries become inline again, retaining the old archived version.
++"""
++import copy
++import hashlib
++import json
++import os
++import re
++import stat
++import tempfile
++from datetime import datetime
++from pathlib import Path
++
++META = '_reportHistoryArchive'
++MARKER = '$reportHistoryArchive'
++FORMAT = 'report-handoff-history-v1'
++FIELDS = frozenset({
++    'p1cExecutionPlanHistory', 'p1cMasksLayersAssignmentHistory',
++    'p1bBrowserCheckpointHistory', 'p1bBrowserCorrectionCheckpointHistory',
++    'p1cMasksLayersImplementationCheckpointHistory', 'p1cMasksLayersCheckpoints',
++})
++NON_MATERIAL = frozenset({'review', 'maintenance', 'archive', 'health-check',
++                          'backup', 'page-view', 'read-receipt'})
++
++
++def check(condition, message):
++    if not condition:
++        raise ValueError(message)
++
++
++def encoded(value):
++    return json.dumps(value, ensure_ascii=False, sort_keys=True,
++                      separators=(',', ':'), allow_nan=False).encode('utf-8')
++
++
++def digest(value):
++    result = hashlib.sha256()
++    for piece in json.JSONEncoder(ensure_ascii=False, sort_keys=True,
++                                  separators=(',', ':'), allow_nan=False).iterencode(value):
++        result.update(piece.encode('utf-8'))
++    return result.hexdigest()
++
++
++def descriptor(raw):
++    return {'sha256': hashlib.sha256(raw).hexdigest(), 'bytes': len(raw)}
++
++
++def stamp(value):
++    check(isinstance(value, str) and 'T' in value, 'Exact activity timestamp required')
++    try:
++        parsed = datetime.fromisoformat(value.replace('Z', '+00:00'))
++    except ValueError as error:
++        raise ValueError('Invalid activity timestamp') from error
++    check(parsed.tzinfo is not None, 'Activity timestamp needs an explicit timezone')
++    return parsed
++
++
++def latest_activity(record):
++    check(isinstance(record, dict), 'Historical entries must be objects')
++    values = [record[key] for key in ('at', 'recordedAt', 'updatedAt') if key in record]
++    check(values, 'Undated history must remain inline')
++    # A malformed/date-only direct field is ambiguous even if another is valid.
++    return max(values, key=stamp)
++
++
++def marker(row):
++    return {MARKER: row['id']}
++
++
++def record_id(field, offset, chunk):
++    return digest({'field': field, 'offset': offset, 'chunk': chunk})
++
++
++def logical_digest(state):
++    return digest({key: value for key, value in state.items() if key != META})
++
++
++class HistoryArchive:
++    def __init__(self, state_path):
++        self.root = Path(state_path).parent / 'history-archive-v1'
++
++    def _directory(self, kind, create=False):
++        check(kind in ('chunks', 'indexes'), 'Unknown archive object kind')
++        for path in (self.root, self.root / kind):
++            if create:
++                try:
++                    path.mkdir(mode=0o700)
++                    parent = os.open(path.parent, os.O_RDONLY)
++                    try:
++                        os.fsync(parent)
++                    finally:
++                        os.close(parent)
++                except FileExistsError:
++                    pass
++            info = path.lstat()
++            check(stat.S_ISDIR(info.st_mode) and not path.is_symlink(),
++                  'Archive directories must be real directories')
++        return self.root / kind
++
++    def _path(self, kind, ref, create=False):
++        check(isinstance(ref, dict) and set(ref) == {'sha256', 'bytes'},
++              'Invalid archive object descriptor')
++        check(isinstance(ref['sha256'], str) and re.fullmatch('[0-9a-f]{64}', ref['sha256']),
++              'Invalid archive digest')
++        check(type(ref['bytes']) is int and ref['bytes'] > 0, 'Invalid archive byte count')
++        return self._directory(kind, create) / (ref['sha256'] + '.json')
++
++    def get(self, kind, ref):
++        path = self._path(kind, ref)
++        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
++        try:
++            before = os.fstat(fd)
++            check(stat.S_ISREG(before.st_mode) and before.st_nlink == 1,
++                  'Archive object must be a regular single-link file')
++            check(before.st_size == ref['bytes'], 'Archive byte count mismatch')
++            with os.fdopen(fd, 'rb', closefd=False) as stream:
++                raw = stream.read(ref['bytes'] + 1)
++            after = os.fstat(fd)
++            check((before.st_size, before.st_mtime_ns, before.st_ctime_ns) ==
++                  (after.st_size, after.st_mtime_ns, after.st_ctime_ns),
++                  'Archive object changed during read')
++            check(descriptor(raw) == ref, 'Archive content digest mismatch')
++            return json.loads(raw)
++        finally:
++            os.close(fd)
++
++    def put(self, kind, value):
++        raw = encoded(value)
++        ref = descriptor(raw)
++        path = self._path(kind, ref, create=True)
++        # Link an already fsynced temp file into its immutable digest name. A
++        # crash can leave an unreferenced object, never a partial referenced one.
++        fd, temp = tempfile.mkstemp(prefix='.pending-', dir=path.parent)
++        try:
++            with os.fdopen(fd, 'wb') as stream:
++                stream.write(raw)
++                stream.flush()
++                os.fsync(stream.fileno())
++                os.fchmod(stream.fileno(), 0o400)
++            try:
++                os.link(temp, path)
++            except FileExistsError:
++                pass
++        finally:
++            os.unlink(temp)
++        self._recover_interrupted_publication(path, ref)
++        directory = os.open(path.parent, os.O_RDONLY)
++        try:
++            os.fsync(directory)
++        finally:
++            os.close(directory)
++        check(self.get(kind, ref) == value, 'Archive readback mismatch')
++        return ref
++
++    def _recover_interrupted_publication(self, path, ref):
++        """Explicit put retry only: retire authenticated same-inode temp links.
++
++        A crash can occur after link(temp, digest) and before unlink(temp). Never
++        overwrite a digest object or delete arbitrary links. Every extra link
++        must be accounted for by this directory's owned publication temp names,
++        and the retained digest bytes must verify before any temp is removed.
++        """
++        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
++        try:
++            before = os.fstat(fd)
++            if before.st_nlink == 1:
++                return
++            check(stat.S_ISREG(before.st_mode) and before.st_uid == os.getuid()
++                  and before.st_mode & 0o777 == 0o400 and before.st_size == ref['bytes'],
++                  'Cannot recover unowned or mutable publication links')
++            with os.fdopen(fd, 'rb', closefd=False) as stream:
++                raw = stream.read(ref['bytes'] + 1)
++            check(descriptor(raw) == ref, 'Interrupted publication content mismatch')
++            candidates = []
++            for pending in path.parent.iterdir():
++                if not re.fullmatch(r'\.pending-[a-z0-9_]{8}', pending.name):
++                    continue
++                info = pending.lstat()
++                if (info.st_dev, info.st_ino) == (before.st_dev, before.st_ino):
++                    check(stat.S_ISREG(info.st_mode) and info.st_uid == before.st_uid,
++                          'Unowned pending publication link')
++                    candidates.append(pending)
++            check(len(candidates) == before.st_nlink - 1,
++                  'Unaccounted archive hardlink; recovery refused')
++            checked = os.fstat(fd)
++            stable = ('st_dev', 'st_ino', 'st_mode', 'st_uid', 'st_gid', 'st_size',
++                      'st_mtime_ns', 'st_ctime_ns', 'st_nlink')
++            check(all(getattr(checked, name) == getattr(before, name) for name in stable),
++                  'Publication inode changed during recovery validation')
++            for offset, pending in enumerate(candidates):
++                current = os.fstat(fd)
++                linked = pending.lstat()
++                check((current.st_dev, current.st_ino, current.st_size, current.st_mtime_ns,
++                       current.st_nlink) ==
++                      (before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns,
++                       before.st_nlink - offset) and
++                      (linked.st_dev, linked.st_ino) == (before.st_dev, before.st_ino),
++                      'Publication links changed during recovery')
++                os.unlink(pending)
++        finally:
++            os.close(fd)
++
++    def index(self, state):
++        meta = state.get(META)
++        if meta is None:
++            return {'format': FORMAT, 'records': [], 'receipts': []}
++        check(isinstance(meta, dict) and set(meta) == {'format', 'index'},
++              'Invalid history archive root')
++        check(meta['format'] == FORMAT, 'Unsupported history archive format')
++        index = self.get('indexes', meta['index'])
++        check(index.get('format') == FORMAT and isinstance(index.get('records'), list)
++              and isinstance(index.get('receipts'), list), 'Invalid archive index')
++        ids, active = set(), set()
++        for row in index['records']:
++            check(row['field'] in FIELDS and type(row['offset']) is int and row['offset'] >= 0,
++                  'Index is outside historical handoff scope')
++            check(row['id'] == record_id(row['field'], row['offset'], row['chunk']),
++                  'Archive record identity mismatch')
++            check(type(row.get('logicalJsonBytes')) is int and row['logicalJsonBytes'] > 0,
++                  'Missing logical history byte count')
++            check(row['id'] not in ids and type(row['active']) is bool, 'Duplicate archive identity')
++            ids.add(row['id'])
++            location = (row['field'], row['offset'])
++            if row['active']:
++                check(location not in active, 'Duplicate active archive location')
++                active.add(location)
++        return index
++
++    def hydrate(self, state, field=None):
++        """Mutate this freshly read physical state, loading only requested field."""
++        index = self.index(state)
++        for row in index['records']:
++            if not row['active'] or (field is not None and row['field'] != field):
++                continue
++            entries = state['handoff'][row['field']]
++            check(isinstance(entries, list) and row['offset'] < len(entries),
++                  'Archive location is missing')
++            check(entries[row['offset']] == marker(row), 'Archive marker mismatch')
++            # Separate get() per occurrence intentionally avoids introducing
++            # Python aliases when equal snapshots share an immutable chunk.
++            entries[row['offset']] = self.get('chunks', row['chunk'])
++        return state
++
++    def compact(self, logical):
++        """Return a shallow copy with only archived history arrays replaced."""
++        if META not in logical:
++            return logical
++        index = self.index(logical)
++        physical = dict(logical)
++        physical['handoff'] = dict(logical['handoff'])
++        changed_index = False
++        copied = set()
++        for row in index['records']:
++            if not row['active']:
++                continue
++            values = logical['handoff'].get(row['field'])
++            current = values[row['offset']] if isinstance(values, list) and row['offset'] < len(values) else None
++            check(current != marker(row), 'Store.write requires reconstructed logical values')
++            original = self.get('chunks', row['chunk'])
++            if digest(current) != row['chunk']['sha256']:
++                # Ordinary Store/subclass edits retain their original semantics.
++                # The edited value is inline; the old immutable version remains
++                # discoverable in the index with its original identity/date.
++                row['active'] = False
++                row['inlineReason'] = 'Logical history entry changed or moved'
++                changed_index = True
++                continue
++            if row['field'] not in copied:
++                physical['handoff'][row['field']] = list(values)
++                copied.add(row['field'])
++            physical['handoff'][row['field']][row['offset']] = marker(row)
++        if changed_index:
++            index['previousIndex'] = logical[META]['index']
++            root = {'format': FORMAT, 'index': self.put('indexes', index)}
++            physical[META] = root
++        return physical
++
++    def catalog(self, physical):
++        return [{'id': row['id'], 'field': row['field'], 'offset': row['offset'],
++                 'at': row['at'], 'bytes': row['chunk']['bytes'],
++                 'active': row['active'], 'label': row['label']}
++                for row in self.index(physical)['records']]
++
++    def handoff_index(self, physical):
++        """Preserve the legacy default-json UTF-8 size without chunk reads."""
++        by_field = {}
++        for row in self.index(physical)['records']:
++            if row['active']:
++                by_field.setdefault(row['field'], {})[row['offset']] = row
++        result = []
++        for field, value in physical['handoff'].items():
++            selected = by_field.get(field)
++            if not selected:
++                count = len(json.dumps(value, ensure_ascii=False).encode('utf-8'))
++            else:
++                check(isinstance(value, list) and max(selected) < len(value),
++                      'Archive location is missing')
++                count = 2 + max(0, len(value) - 1) * 2  # '[' + ', ' separators + ']'
++                for offset, entry in enumerate(value):
++                    row = selected.get(offset)
++                    if row is not None:
++                        check(entry == marker(row), 'Archive marker mismatch')
++                        count += row['logicalJsonBytes']
++                    else:
++                        count += len(json.dumps(entry, ensure_ascii=False).encode('utf-8'))
++            result.append({'key': field, 'bytes': count})
++        return result
++
++    def record(self, physical, identity):
++        row = next((r for r in self.index(physical)['records'] if r['id'] == identity), None)
++        return None if row is None else self.get('chunks', row['chunk'])
++
++    def prepare(self, logical, selections, anchor_id):
++        check(isinstance(selections, list) and selections, 'Explicit nonempty selection required')
++        anchor = next((e for e in logical['events'] if e['id'] == anchor_id), None)
++        check(anchor is not None and anchor.get('type') not in NON_MATERIAL,
++              'A retained genuine material event is required')
++        evaluated = stamp(anchor.get('at'))
++        index = self.index(logical)
++        selected_locations = set()
++        active = {(r['field'], r['offset']) for r in index['records'] if r['active']}
++        selected_rows = []
++        for selection in selections:
++            field, offset = selection.get('field'), selection.get('offset')
++            check(field in FIELDS and type(offset) is int and offset >= 0,
++                  'Only allowed historical handoff array entries may be selected')
++            location = (field, offset)
++            check(location not in active and location not in selected_locations,
++                  'History entry already archived or selected twice')
++            selected_locations.add(location)
++            check(selection.get('liveContextReviewed') is True and
++                  isinstance(selection.get('liveContextNote'), str) and
++                  0 < len(selection['liveContextNote']) <= 2000,
++                  'Explicit live-context review required for every selected entry')
++            values = logical['handoff'].get(field)
++            check(isinstance(values, list) and offset < len(values), 'Missing history entry')
++            value = values[offset]
++            check(digest(value) == selection.get('sha256'), 'Selected logical record changed')
++            at = latest_activity(value)
++            check((evaluated - stamp(at)).total_seconds() > 168 * 3600,
++                  'History entry is not strictly older than 168 hours at the material anchor')
++            chunk = self.put('chunks', value)
++            row = {'id': record_id(field, offset, chunk), 'field': field, 'offset': offset,
++                   'chunk': chunk, 'at': at, 'active': True,
++                   'logicalJsonBytes': len(json.dumps(value, ensure_ascii=False).encode('utf-8')),
++                   'label': str(selection.get('label', field + '[' + str(offset) + ']'))[:240],
++                   'liveContextNote': selection['liveContextNote']}
++            check(not any(old['id'] == row['id'] for old in index['records']),
++                  'This exact version already exists in archive history')
++            index['records'].append(row)
++            selected_rows.append(row)
++        source_digest = logical_digest(logical)
++        receipt = {'kind': 'archive-maintenance', 'sourceRevision': logical['revision'],
++                   'sourceLogicalSha256': source_digest, 'anchorId': anchor_id,
++                   'evaluatedAt': anchor['at'], 'selectedIds': [r['id'] for r in selected_rows],
++                   'selection': copy.deepcopy(selections), 'affectsMaterialActivity': False}
++        index['receipts'].append(receipt)
++        if META in logical:
++            index['previousIndex'] = logical[META]['index']
++        ref = self.put('indexes', index)
++        proposed = copy.deepcopy(logical)
++        proposed[META] = {'format': FORMAT, 'index': ref}
++        physical = self.compact(proposed)
++        restored = self.hydrate(copy.deepcopy(physical))
++        check(logical_digest(restored) == source_digest, 'Complete recovery verification failed')
++        return {'format': FORMAT, 'expectedRevision': logical['revision'],
++                'sourceLogicalSha256': source_digest, 'index': ref,
++                'recoveryVerified': True, 'selectedCount': len(selected_rows)}
++
++    def verify_plan(self, logical, plan):
++        check(plan.get('format') == FORMAT and plan.get('recoveryVerified') is True,
++              'Verified archive plan required')
++        check(logical_digest(logical) == plan['sourceLogicalSha256'], 'Archive source state changed')
++        proposed = dict(logical)
++        proposed[META] = {'format': FORMAT, 'index': plan['index']}
++        candidate = self.index(proposed)
++        old = self.index(logical)
++        check(candidate['records'][:len(old['records'])] == old['records'] and
++              candidate['receipts'][:-1] == old['receipts'], 'Existing archive history changed')
++        receipt = candidate['receipts'][-1]
++        check(receipt['sourceRevision'] == logical['revision'] and
++              receipt['sourceLogicalSha256'] == plan['sourceLogicalSha256'],
++              'Archive receipt source mismatch')
++        # Regenerate/verify every eligibility and source binding. Content-addressed
++        # puts only verify existing objects here; no canonical mutation occurs.
++        replay = self.prepare(logical, receipt['selection'], receipt['anchorId'])
++        check(replay == plan, 'Archive plan failed deterministic replay')
++        return proposed
+diff --git a/test_archive.py b/test_archive.py
+--- /dev/null
++++ b/test_archive.py
+@@ -0,0 +1,329 @@
++"""Staged tests. All state and immutable objects stay inside this packet."""
++import copy
++import hashlib
++import importlib.util
++import json
++import os
++from pathlib import Path
++import tempfile
++import threading
++import unittest
++from unittest.mock import patch
++
++ROOT = Path(__file__).resolve().parent
++import report as m
++import report_archive as a
++
++FIELD = 'p1cExecutionPlanHistory'
++SECOND = 'p1bBrowserCheckpointHistory'
++
++
++def fixture():
++    old = {'at':'2026-09-20T00:00:00+00:00','itemId':'foreign-v1',
++           'value':{'nested':'retained—history'*3000,'review':{'accepted':False}}}
++    return {'schemaVersion':1,'revision':1,'updatedAt':'2026-10-05T10:53:17+00:00',
++            'project':{'activeMilestone':'P','lastWorkUpdate':'2026-10-05T10:53:17+00:00'},
++            'tasks':[{'id':'t','title':'Still owed','milestone':'P','weight':12,'status':'blocked','note':'pending'}],
++            'events':[{'id':'event-2855','sequence':1,'at':'2026-10-05T10:53:17+00:00','type':'checkpoint','summary':'genuine verification'}],
++            'cards':[{'itemId':'foreign-v1','version':'original','contentRevision':1,'eventIds':['event-2855'],'current':True,'inspect':[],'title':'old','summary':'pending'}],
++            'cardHistory':[],'deliverables':[],'futureScope':[],'burndown':[],
++            'feedback':[{'id':'A-R01','itemId':'foreign-v1','version':'original','contentRevision':1,'status':'open','disposition':None,'text':'still open'}],
++            'checkpoints':{'local-user':{'items':[],'eventIds':[]}},'appliedRequests':[],
++            'handoff':{FIELD:[copy.deepcopy(old),copy.deepcopy(old)],SECOND:[copy.deepcopy(old)],
++                       'goal':'current goal','currentWork':'blocked','nextAction':'explicit decision',
++                       'codexFullImplementation':{'milestones':[],'checkpoints':{},'scopeAccounting':{'unchanged':True}},
++                       'modelPlanReview':{'status':'in_progress','discussion':['retain all foreign stream']}},
++            'provenance':{}}
++
++
++def selection(s, field=FIELD, offset=0):
++    return {'field':field,'offset':offset,'sha256':a.digest(s['handoff'][field][offset]),
++            'liveContextReviewed':True,'liveContextNote':'Historical snapshot; governing fields stay inline.'}
++
++
++class ArchiveTests(unittest.TestCase):
++    def setUp(self):
++        self.tmp = tempfile.TemporaryDirectory(prefix='.archive-test-',dir=ROOT)
++        self.path = Path(self.tmp.name)/'project.json'
++        self.before = fixture()
++        self.path.write_text(json.dumps(self.before,ensure_ascii=False))
++        self.store = m.Store(self.path)
++    def tearDown(self):
++        self.tmp.cleanup()
++    def prepare(self, selections=None):
++        return self.store.prepare_history_archive(selections or [selection(self.store.read())], 'event-2855',1)
++    def commit(self, selections=None):
++        return self.store.commit_history_archive(self.prepare(selections),'archive-once')
++    def test_prepare_never_changes_canonical_and_exact_reconstruction(self):
++        original_bytes = self.path.read_bytes()
++        plan = self.prepare([selection(self.before),selection(self.before,offset=1)])
++        self.assertEqual(self.path.read_bytes(),original_bytes)
++        self.assertTrue(plan['recoveryVerified'])
++        result = self.store.commit_history_archive(plan,'archive-once')
++        self.assertEqual(self.store.read(),result)
++        restored = self.store.export_state(False)
++        for key in self.before:
++            if key not in {'revision','updatedAt','appliedRequests'}:
++                self.assertEqual(restored[key],self.before[key],key)
++        self.assertLess(self.path.stat().st_size,len(original_bytes)//2)
++        self.assertIn(a.MARKER,self.store.read_active()['handoff'][FIELD][0])
++    def test_feedback_reviews_accounting_events_and_foreign_stream_unchanged(self):
++        after = self.commit()
++        for key in ('tasks','events','feedback','checkpoints','burndown','cards','cardHistory','deliverables'):
++            self.assertEqual(after[key],self.before[key])
++        self.assertEqual(m.effort(after),m.effort(self.before))
++        self.assertEqual(after['project'],self.before['project'])
++        self.assertEqual(after['handoff']['modelPlanReview'],self.before['handoff']['modelPlanReview'])
++        self.assertEqual(m.dashboard(after)['lifecycle'],m.dashboard(self.before)['lifecycle'])
++    def test_duplicates_deduplicate_storage_without_python_aliasing(self):
++        self.commit([selection(self.before),selection(self.before,offset=1)])
++        rows=self.store.history_archive.catalog(self.store.read_active())
++        self.assertNotEqual(rows[0]['id'],rows[1]['id'])
++        self.assertEqual(len(list((self.path.parent/'history-archive-v1'/'chunks').glob('*.json'))),1)
++        s=self.store.read();s['handoff'][FIELD][0]['value']['review']['accepted']=True
++        self.assertFalse(s['handoff'][FIELD][1]['value']['review']['accepted'])
++    def test_subclass_update_receives_full_values_and_compacts_again(self):
++        self.commit()
++        class ExistingMilestoneStore(m.Store):
++            def apply(self,s,p):
++                self.test.assertEqual(s['handoff'][FIELD][0],self.test.before['handoff'][FIELD][0])
++                impl=s['handoff']['codexFullImplementation']
++                milestone={'at':m.now(),'fact':'new material evidence'}
++                impl['milestones'].append(milestone);impl['checkpoints']['latest']=milestone
++                m.event(s,'checkpoint','new evidence')
++        store=ExistingMilestoneStore(self.path);store.test=self
++        store.update({'op':'owner-milestone','requestId':'milestone','expectedRevision':2})
++        self.assertIn(a.MARKER,store.read_active()['handoff'][FIELD][0])
++        self.assertEqual(store.read()['handoff']['codexFullImplementation']['milestones'][0]['fact'],'new material evidence')
++        self.assertEqual(store.read()['feedback'],self.before['feedback'])
++    def test_logical_edit_becomes_inline_and_old_version_stays_accessible(self):
++        self.commit();old_id=self.store.history_archive.catalog(self.store.read_active())[0]['id']
++        class CorrectingStore(m.Store):
++            def apply(self,s,p):s['handoff'][FIELD][0]['value']['correction']='later correction'
++        CorrectingStore(self.path).update({'op':'correction','requestId':'correct','expectedRevision':2})
++        physical=self.store.read_active()
++        self.assertNotIn(a.MARKER,physical['handoff'][FIELD][0])
++        self.assertEqual(self.store.detail({'kind':['archive-record'],'id':[old_id]}),self.before['handoff'][FIELD][0])
++        self.assertFalse(self.store.history_archive.catalog(physical)[0]['active'])
++    def test_stale_cas_refuses_before_publication(self):
++        plan=self.prepare();self.store.update({'op':'handoff','requestId':'newer','expectedRevision':1,'handoff':{'nextAction':'newer'}})
++        current=self.path.read_bytes()
++        with self.assertRaises(m.Conflict):self.store.commit_history_archive(plan,'stale')
++        self.assertEqual(self.path.read_bytes(),current)
++    def test_concurrent_feedback_wins_and_stale_plan_cannot_replace_it(self):
++        plan=self.prepare()
++        feedback={'op':'feedback','requestId':'user-comment','expectedRevision':1,
++                  'itemId':'foreign-v1','version':'original','contentRevision':1,'text':'new user feedback'}
++        self.store.update(feedback)
++        winner=self.path.read_bytes()
++        with self.assertRaises(m.Conflict):self.store.commit_history_archive(plan,'stale-archive')
++        self.assertEqual(self.path.read_bytes(),winner)
++        self.assertEqual(self.store.read()['feedback'][-1]['text'],'new user feedback')
++        self.assertEqual(self.store.read()['checkpoints'],self.before['checkpoints'])
++    def test_append_to_history_preserves_archive_and_logical_shape(self):
++        self.commit()
++        class AppendingStore(m.Store):
++            def apply(self,s,p):s['handoff'][FIELD].append({'at':'2026-10-05T12:00:00Z','value':'new'})
++        store=AppendingStore(self.path)
++        store.update({'op':'append','requestId':'append','expectedRevision':2})
++        self.assertIn(a.MARKER,store.read_active()['handoff'][FIELD][0])
++        self.assertEqual(len(store.read()['handoff'][FIELD]),3)
++        self.assertEqual(store.read()['handoff'][FIELD][:2],self.before['handoff'][FIELD])
++    def test_boolean_to_number_edit_is_not_lost_to_python_equality(self):
++        self.commit();state=self.store.read()
++        state['handoff'][FIELD][0]['value']['review']['accepted']=0
++        self.store.write(state)
++        actual=self.store.read()['handoff'][FIELD][0]['value']['review']['accepted']
++        self.assertIs(type(actual),int)
++        self.assertNotIn(a.MARKER,self.store.read_active()['handoff'][FIELD][0])
++    def test_archive_commit_is_idempotent(self):
++        plan=self.prepare();first=self.store.commit_history_archive(plan,'archive-once')
++        raw=self.path.read_bytes();again=self.store.commit_history_archive(plan,'archive-once')
++        self.assertEqual(first,again);self.assertEqual(raw,self.path.read_bytes())
++    def test_exact_record_hash_and_scope_guards(self):
++        for change in ({'sha256':'0'*64},{'field':'codexFullImplementation'},{'offset':True},{'liveContextReviewed':False},{'liveContextNote':''}):
++            chosen=selection(self.before);chosen.update(change)
++            with self.subTest(change=change),self.assertRaises(ValueError):self.prepare([chosen])
++        with self.assertRaises(ValueError):self.prepare([selection(self.before),selection(self.before)])
++    def test_latest_direct_activity_and_ambiguous_dates_remain_inline(self):
++        for dates in ({'at':'2026-09-28T10:53:17+00:00'}, # exact168 hours
++                      {'updatedAt':'2026-10-05T00:00:00+00:00'},
++                      {'recordedAt':'2026-09-20'}, {'at':'2026-09-20T00:00:00'},
++                      {'updatedAt':'invalid'}, {'at':None}):
++            s=copy.deepcopy(self.before);s['handoff'][FIELD][0].update(dates);self.path.write_text(json.dumps(s))
++            with self.subTest(dates=dates),self.assertRaises(ValueError):self.prepare([selection(s)])
++        s=copy.deepcopy(self.before);del s['handoff'][FIELD][0]['at'];self.path.write_text(json.dumps(s))
++        with self.assertRaises(ValueError):self.prepare([selection(s)])
++    def test_maintenance_cannot_supply_material_anchor(self):
++        s=copy.deepcopy(self.before);s['events'][0]['type']='archive';self.path.write_text(json.dumps(s))
++        with self.assertRaises(ValueError):self.prepare()
++    def test_missing_or_corrupt_chunk_fails_closed_without_update(self):
++        self.commit();index=self.store.history_archive.index(self.store.read_active());ref=index['records'][0]['chunk']
++        path=self.path.parent/'history-archive-v1'/'chunks'/(ref['sha256']+'.json')
++        os.chmod(path,0o600);path.write_bytes(b'x'*ref['bytes'])
++        physical=self.path.read_bytes()
++        with self.assertRaises(ValueError):self.store.read()
++        with self.assertRaises(ValueError):self.store.update({'op':'handoff','requestId':'bad','expectedRevision':2,'handoff':{'nextAction':'must not write'}})
++        self.assertEqual(self.path.read_bytes(),physical)
++    def test_missing_chunk_and_tampered_index_are_explicit_failures(self):
++        self.commit();physical=self.store.read_active()
++        index=self.store.history_archive.index(physical);ref=index['records'][0]['chunk']
++        chunk=self.path.parent/'history-archive-v1'/'chunks'/(ref['sha256']+'.json')
++        chunk.unlink()
++        with self.assertRaises(FileNotFoundError):self.store.read()
++        # The intact index still exposes the missing object's retained identity.
++        self.assertEqual(self.store.detail({'kind':['archive-index']})[0]['id'],index['records'][0]['id'])
++        idx=physical[a.META]['index'];index_path=self.path.parent/'history-archive-v1'/'indexes'/(idx['sha256']+'.json')
++        os.chmod(index_path,0o600);index_path.write_bytes(b'x'*idx['bytes'])
++        with self.assertRaises(ValueError):self.store.detail({'kind':['archive-index']})
++    def test_read_only_calls_do_not_create_archives_or_age_records(self):
++        original=self.path.read_bytes()
++        for _ in range(2):
++            self.store.read();self.store.read_active();self.store.export_state()
++            self.assertEqual(self.store.detail({'kind':['archive-index']}),[])
++        self.assertEqual(self.path.read_bytes(),original)
++        self.assertFalse((self.path.parent/'history-archive-v1').exists())
++    def test_modified_index_or_marker_is_not_silently_accepted(self):
++        self.commit();physical=self.store.read_active();physical['handoff'][FIELD][0]={a.MARKER:'other'}
++        self.path.write_text(json.dumps(physical))
++        with self.assertRaises(ValueError):self.store.read()
++    def test_archive_paths_reject_symlink_and_traversal(self):
++        other=Path(self.tmp.name)/'elsewhere';other.mkdir()
++        (self.path.parent/'history-archive-v1').symlink_to(other,target_is_directory=True)
++        with self.assertRaises(ValueError):self.prepare()
++        self.assertEqual(list(other.iterdir()),[])
++        with self.assertRaises(ValueError):self.store.history_archive.get('chunks',{'sha256':'../escape','bytes':1})
++    def test_existing_content_address_cannot_be_overwritten(self):
++        plan=self.prepare();index=self.store.history_archive.get('indexes',plan['index']);ref=index['records'][0]['chunk']
++        path=self.path.parent/'history-archive-v1'/'chunks'/(ref['sha256']+'.json')
++        os.chmod(path,0o600);path.write_bytes(b'x'*ref['bytes'])
++        with self.assertRaises(ValueError):self.prepare()
++        self.assertEqual(path.read_bytes(),b'x'*ref['bytes'])
++    def test_failed_canonical_replace_leaves_original_and_recoverable_objects(self):
++        plan=self.prepare();raw=self.path.read_bytes()
++        with patch.object(m.os,'replace',side_effect=OSError('simulated publication failure')):
++            with self.assertRaises(OSError):self.store.commit_history_archive(plan,'failed')
++        self.assertEqual(self.path.read_bytes(),raw)
++        self.assertTrue(self.store.history_archive.get('indexes',plan['index'])['records'])
++        self.assertEqual(self.store.commit_history_archive(plan,'retry-explicit')['revision'],2)
++    def test_plan_tampering_and_source_drift_refuse(self):
++        plan=self.prepare();bad=copy.deepcopy(plan);bad['selectedCount']=99
++        with self.assertRaises(ValueError):self.store.commit_history_archive(bad,'bad')
++        s=self.store.read();s['handoff']['modelPlanReview']['discussion'].append('new');self.path.write_text(json.dumps(s))
++        with self.assertRaises(ValueError):self.store.commit_history_archive(plan,'drift')
++    def test_second_migration_preserves_prior_index_and_all_entries(self):
++        first=self.commit();old_ref=copy.deepcopy(first[a.META]['index'])
++        plan=self.store.prepare_history_archive([selection(first,SECOND)],'event-2855',2)
++        final=self.store.commit_history_archive(plan,'second')
++        index=self.store.history_archive.index(self.store.read_active())
++        self.assertEqual(index['previousIndex'],old_ref)
++        self.assertEqual(len(index['records']),2)
++        self.assertEqual(final['handoff'],self.before['handoff'])
++    def test_on_demand_detail_loads_only_requested_field(self):
++        self.commit([selection(self.before),selection(self.before,SECOND)])
++        original=self.store.history_archive.get;reads=[]
++        def get(kind,ref):
++            reads.append(kind);return original(kind,ref)
++        with patch.object(self.store.history_archive,'get',side_effect=get):
++            value=self.store.detail({'kind':['handoff'],'id':[FIELD]})
++        self.assertEqual(value,self.before['handoff'][FIELD]);self.assertEqual(reads.count('chunks'),1)
++        reads=[]
++        with patch.object(self.store.history_archive,'get',side_effect=get):
++            rows=self.store.detail({'kind':['archive-index']})
++        self.assertEqual(len(rows),2);self.assertNotIn('chunks',reads)
++    def test_dashboard_cache_uses_active_state_no_archive_reads_or_aging(self):
++        self.commit();raw=self.path.read_bytes()
++        server=object.__new__(m.Server);server.store=self.store;server.dashboard_lock=threading.Lock()
++        server.dashboard_cache=None;server.dashboard_signature=None
++        with patch.object(self.store,'read',side_effect=AssertionError('must not hydrate')):
++            first=server.compact_state();second=server.compact_state()
++        self.assertEqual(first,second);self.assertTrue(first['hasHistoryArchive'])
++        self.assertEqual(raw,self.path.read_bytes())
++    def test_external_historical_id_references_resolve_through_transparent_hydration(self):
++        state=fixture();state['handoff'][FIELD]=[]
++        for i in range(6):
++            for version in ('first','second'):
++                state['handoff'][FIELD].append({'recordedAt':'2026-09-20T00:00:00Z','id':'historical-'+str(i),'version':version,'value':{'proof':i}})
++        state['handoff']['externalHistoricalReferences']=[{'id':'historical-'+str(i),'version':'second'} for i in range(6)]
++        self.path.write_text(json.dumps(state))
++        self.commit([selection(state,offset=i) for i in range(12)])
++        hydrated=self.store.read()
++        for reference in hydrated['handoff']['externalHistoricalReferences']:
++            match=[r for r in hydrated['handoff'][FIELD] if r['id']==reference['id'] and r['version']==reference['version']]
++            self.assertEqual(len(match),1)
++        self.assertEqual(self.store.detail({'kind':['handoff'],'id':[FIELD]}),state['handoff'][FIELD])
++        self.assertEqual(self.store.export_state(False)['handoff'],state['handoff'])
++    def test_ui_exposes_explicit_archive_and_complete_export(self):
++        source=(ROOT/'public'/'app.js').read_text()
++        self.assertIn("lazy('Browse preserved handoff snapshots','archive-index')",source)
++        self.assertIn("recordUrl('archive-record',x.id)",source)
++        self.assertIn('/api/archive-export',source)
++        self.assertIn('data-handoff-search',source)
++    def test_handoff_index_preserves_logical_bytes_for_unicode_and_mixed_rows(self):
++        original=fixture()
++        original['handoff'][FIELD][0]['value']['unicode']='é — 漢字 😀\n\t"quoted"'
++        original['handoff'][FIELD][1]['value']['other']=['slash/','é',None,False,1.0]
++        self.path.write_text(json.dumps(original,ensure_ascii=False))
++        expected=m.record_detail(original,{'kind':['handoff-index']})
++        self.commit([selection(original),selection(original,offset=1)])
++        with patch.object(self.store.history_archive,'get',wraps=self.store.history_archive.get) as get:
++            self.assertEqual(self.store.detail({'kind':['handoff-index']}),expected)
++            self.assertFalse(any(call.args[0]=='chunks' for call in get.call_args_list))
++        edited=self.store.read();edited['handoff'][FIELD][0]['value']['unicode']='changed 😀'
++        edited['handoff'][FIELD].append({'at':'2026-10-05T12:00:00Z','value':'newé'})
++        self.store.write(edited)
++        active=self.store.read_active()
++        self.assertNotIn(a.MARKER,active['handoff'][FIELD][0])
++        self.assertIn(a.MARKER,active['handoff'][FIELD][1])
++        self.assertEqual(self.store.detail({'kind':['handoff-index']}),
++                         m.record_detail(edited,{'kind':['handoff-index']}))
++    def test_interrupted_link_publication_is_recoverable_on_explicit_retry(self):
++        archive=self.store.history_archive;value=self.before['handoff'][FIELD][0]
++        real_unlink=a.os.unlink;interrupted=[]
++        def interrupt(path,*args,**kwargs):
++            if Path(path).name.startswith('.pending-') and not interrupted:
++                interrupted.append(Path(path));raise OSError('simulated crash after link')
++            return real_unlink(path,*args,**kwargs)
++        before=self.path.read_bytes()
++        with patch.object(a.os,'unlink',side_effect=interrupt):
++            with self.assertRaises(OSError):archive.put('chunks',value)
++        target=next((archive.root/'chunks').glob('*.json'))
++        inode=target.stat().st_ino
++        self.assertEqual(target.stat().st_nlink,2)
++        self.assertTrue(interrupted[0].exists())
++        ref=archive.put('chunks',value)
++        self.assertEqual(target.stat().st_ino,inode)
++        self.assertEqual(target.stat().st_nlink,1)
++        self.assertFalse(interrupted[0].exists())
++        self.assertEqual(archive.get('chunks',ref),value)
++        self.assertEqual(self.path.read_bytes(),before)
++    def test_unaccounted_or_corrupt_links_are_not_cleaned_or_overwritten(self):
++        archive=self.store.history_archive;value=self.before['handoff'][FIELD][0]
++        ref=archive.put('chunks',value)
++        target=archive.root/'chunks'/(ref['sha256']+'.json')
++        external=self.path.parent/'unrelated-retained-link';os.link(target,external)
++        with self.assertRaises(ValueError):archive.put('chunks',value)
++        self.assertTrue(external.exists());self.assertEqual(target.stat().st_nlink,2)
++        external.unlink();pending=target.parent/'.pending-aaaaaaaa';os.link(target,pending)
++        os.chmod(target,0o600);target.write_bytes(b'x'*ref['bytes']);os.chmod(target,0o400)
++        with self.assertRaises(ValueError):archive.put('chunks',value)
++        self.assertTrue(pending.exists());self.assertEqual(target.read_bytes(),b'x'*ref['bytes'])
++    def test_changed_archive_failed_write_preserves_caller_metadata_and_disk(self):
++        self.commit();state=self.store.read();state['handoff'][FIELD][0]['value']['edit']='new'
++        before=copy.deepcopy(state);canonical=self.path.read_bytes()
++        with patch.object(m.os,'replace',side_effect=OSError('simulated replace refusal')):
++            with self.assertRaises(OSError):self.store.write(state)
++        self.assertEqual(state,before)
++        self.assertEqual(self.path.read_bytes(),canonical)
++        self.store.write(state)
++        self.assertNotEqual(state[a.META],before[a.META])
++        self.assertEqual(state,self.store.read())
++    def test_existing_compact_behavior_without_http_services(self):
++        spec=importlib.util.spec_from_file_location('compact_tests',ROOT/'test_compact.py')
++        tests=importlib.util.module_from_spec(spec);spec.loader.exec_module(tests)
++        for name in ['test_projection_preserves_canonical_and_accounting','test_material_watermark_frozen_without_wall_clock','test_exact_review_and_open_feedback_remain_independent','test_new_revision_resurfaces_without_changing_checkpoint']:
++            case=tests.CompactTests(name);result=unittest.TestResult();case.run(result)
++            self.assertEqual(result.errors+result.failures,[],name)
++
++
++if __name__=='__main__':unittest.main(verbosity=2)
