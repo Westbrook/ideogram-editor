@@ -33,6 +33,15 @@ verified portable output. The fixture must fail preparation if these producers
 are absent. Merely generating the expected bytes or copying expected counts
 into a manifest is not enough. There is no metadata-only compatibility fallback.
 
+WC preparation creates the destination's fixed 256 private `objects/sha256/00`
+through `ff` directories before opening its new writer. It uses the production
+private-directory checks and parent-directory synchronization; existing stores
+are refused. This avoids introducing new shard names throughout asset growth.
+Empty shards create no object, asset or portable-closure bytes, and their actual
+directory blocks remain in the unchanged evidence accounting. Setup and later
+file membership changes remain observable and can still fail a sample. This is
+preparation topology only, not a writer pause or a qualification result.
+
 The final `fixture.json` records the concrete observed product counts, source
 corpus file identities, and every stopped-root file. `verifyFixtureManifest`
 rehashes those bytes and rejects incomplete preparation or a changed root. Cold

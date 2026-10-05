@@ -39,7 +39,7 @@ async function modules(repo) {
   const load = path => import(pathToFileURL(join(repo, 'dist/local', path)).href);
   const entries = await Promise.all(['server/storage/writer.js', 'server/portable/zip.js', 'server/portable/format.js',
     'server/portable/closure.js', 'src/protocol/store.js', 'src/protocol/json.js', 'src/composition/core.js',
-    'server/storage/composition-memory.js'].map(load));
+    'server/storage/composition-memory.js', 'server/storage/files.js'].map(load));
   return Object.assign({}, ...entries);
 }
 
@@ -224,6 +224,35 @@ async function newOutput(repo, requested) {
   await mkdir(output, { mode: 0o700 }); return output;
 }
 
+// Complete the fixed object-directory topology before starting the new writer.
+// Otherwise growth introduces shard entries throughout traversal of their parent.
+// These empty directories are real, private, durably created and fully accounted;
+// they supply no object, asset, closure or qualification authority.
+export async function openPortableFixtureWriter({ root, product, signal }) {
+  abort(signal);
+  requireValue(isAbsolute(root) && resolve(root) === root, 'Portable store root must be canonical and absolute');
+  product.assertComponents(dirname(root));
+  assert.equal(await realpath(dirname(root)), dirname(root), 'Portable store parent must be canonical');
+  abort(signal);
+  await mkdir(root, { mode: 0o700 }); // Exclusive: never prepare an existing or seed store.
+  product.privateDirectory(root);
+  product.syncDirectory(dirname(root));
+  const objects = join(root, 'objects'), shards = join(objects, 'sha256');
+  product.privateDirectory(objects); product.privateDirectory(shards);
+  for (let prefix = 0; prefix < 256; prefix++) {
+    abort(signal);
+    product.privateDirectory(join(shards, prefix.toString(16).padStart(2, '0')));
+  }
+  abort(signal);
+  const writer = await product.openWriter({ root }, { effectCounters: globalThis.__storeNetworkCounters?.shared });
+  try { abort(signal); return writer; }
+  catch (error) {
+    try { await writer.close(); }
+    catch (closeError) { throw new AggregateError([error, closeError], 'Portable preparation cancelled and writer close failed'); }
+    throw error;
+  }
+}
+
 /** Heavy, explicitly invoked preparation. The real mixed seed is supplied by
  * the caller; missing native/candidate/font/contribution evidence is a durable
  * inconclusive result, never replaced with invented SQL rows or raster bytes. */
@@ -259,8 +288,7 @@ export async function buildPortableFixture(options = {}) {
     requireValue(plan.workload !== 'WC4G' || initial.counts.captionVersions <= plan.captionVersions, 'WC4G seed cannot exceed exactly 4096 retained caption versions');
     requireValue(initial.counts.assets < plan.assets && initial.counts.events < plan.events && BigInt(initial.counts.closureBytes) < BigInt(plan.closureBytes), 'Mixed seed must leave room for exact WC asset/event/byte growth');
     receipt.seed = { root: sourceRoot, documentId: seed.documentId, archive: { ...seed.archive, ...sourceArchive }, files: sourceFiles };
-    await mkdir(root, { mode: 0o700 });
-    writer = await product.openWriter({ root }, { effectCounters: globalThis.__storeNetworkCounters.shared });
+    writer = await openPortableFixtureWriter({ root, product, signal });
     const clientId = 'wc_fixture', sessionHash = createHash('sha256').update(randomUUID()).digest('hex');
     const auth = () => ({ clientId, sessionHash, now: Date.now(), expires: Date.now() + 7 * 86400000 });
     await writer.protocolDefaults(); await writer.rememberClient(sessionHash, clientId, auth().expires);

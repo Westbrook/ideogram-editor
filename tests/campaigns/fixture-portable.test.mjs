@@ -2,12 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash, randomUUID } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
-import { fstatSync, lstatSync } from 'node:fs';
+import { fstatSync, lstatSync, mkdirSync, symlinkSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { lstat, mkdir, mkdtemp, readdir, realpath, rm, symlink, writeFile } from 'node:fs/promises';
+import { lstat, mkdir, mkdtemp, readFile, readdir, realpath, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { archiveFeatureEvidence, buildPortableFixture, inspectPortableArchive, portableFixturePlan, withClosedSeedDatabase } from '../../tooling/qualification/campaigns/fixture-portable.mjs';
+import { archiveFeatureEvidence, buildPortableFixture, inspectPortableArchive, openPortableFixtureWriter, portableFixturePlan, withClosedSeedDatabase } from '../../tooling/qualification/campaigns/fixture-portable.mjs';
 import { fileIdentity, productFor, verifyArchive } from '../../tooling/qualification/campaigns/backend-portable.mjs';
 import * as portableCommon from '../../tooling/qualification/campaigns/backend-common.mjs';
 import { ownTestRoot } from '../../tooling/qualification/owned-test-roots.mjs';
@@ -545,4 +545,115 @@ test('private inspection closes its real SQLite connection before archive entry 
     assert.deepEqual(owners[0].value.resourceOwnership(), owners[0].before); assert.equal(owners[0].value.bytes, 0);
     assertInspectionClosed(database);
   }
+});
+
+async function shardPreparation() {
+  const repo = fileURLToPath(new URL('../../', import.meta.url));
+  const output = ownTestRoot(await realpath(await mkdtemp(join(tmpdir(), 'wc-object-shards-'))));
+  const product = {...await productFor(repo), ...await portableCommon.product({repo}, 'server/storage/files.js')};
+  return {repo, output, root: join(output, 'store'), product};
+}
+const shardStamp = stat => Object.fromEntries(['dev', 'ino', 'mode', 'size', 'mtimeNs', 'ctimeNs'].map(key => [key, stat[key]]));
+
+test('WC preparation opens the real writer only after all private empty shards exist and later publication preserves their parent identity', async () => {
+  const f = await shardPreparation(), shards = join(f.root, 'objects', 'sha256');
+  const {Objects} = await portableCommon.product({repo: f.repo}, 'server/storage/objects.js');
+  let opened = 0, before;
+  const product = {...f.product, async openWriter(...args) {
+    opened++;
+    const names = await readdir(shards);
+    assert.equal(names.length, 256);
+    assert(names.every(name => /^[0-9a-f]{2}$/.test(name)));
+    for (const name of names) {
+      const stat = await lstat(join(shards, name));
+      assert(stat.isDirectory() && !stat.isSymbolicLink());
+      assert.equal(stat.mode & 0o777, 0o700); assert.equal(stat.uid, process.getuid());
+      assert.deepEqual(await readdir(join(shards, name)), []);
+    }
+    const objects = new Objects(f.root, () => {}, () => {});
+    try { assert.deepEqual(objects.inventory(new Set()), {orphanCount: '0', stagingCount: '0'}); }
+    finally { objects.close(); }
+    before = shardStamp(await lstat(shards, {bigint: true}));
+    return f.product.openWriter(...args);
+  }};
+  let writer = await openPortableFixtureWriter({...f, product});
+  const values = [Buffer.from('first real retained object'), Buffer.from('second independent retained object')], refs = [];
+  try {
+    assert.equal(opened, 1);
+    for (const bytes of values) {
+      const ref = await writer.putObject([bytes], {byteLength: String(bytes.length), mediaType: 'text/plain'}, writer.epoch);
+      assert.equal(ref.hash, 'sha256:' + createHash('sha256').update(bytes).digest('hex'));
+      assert.deepEqual(Buffer.from(await writer.readMetadata(ref)), bytes); refs.push(ref);
+      assert.deepEqual(shardStamp(await lstat(shards, {bigint: true})), before);
+    }
+    assert.notEqual(refs[0].hash.slice(7, 9), refs[1].hash.slice(7, 9));
+    await writer.close(); writer = undefined;
+    writer = await f.product.openWriter({root: f.root});
+    for (let i = 0; i < refs.length; i++) assert.deepEqual(Buffer.from(await writer.readMetadata(refs[i])), values[i]);
+    assert.deepEqual(shardStamp(await lstat(shards, {bigint: true})), before);
+  } finally { await writer?.close(); }
+});
+
+test('WC shard preparation refuses existing stores without rewriting retained files or opening a writer', async () => {
+  const f = await shardPreparation(); await mkdir(f.root, {mode: 0o700});
+  const sentinel = join(f.root, 'retained'); await writeFile(sentinel, 'keep this failed or seed store', {mode: 0o600});
+  let opened = 0;
+  await assert.rejects(openPortableFixtureWriter({...f, product: {...f.product, openWriter() {opened++;}}}), {code: 'EEXIST'});
+  assert.equal(opened, 0); assert.deepEqual(await readdir(f.root), ['retained']);
+  assert.equal(await readFile(sentinel, 'utf8'), 'keep this failed or seed store');
+});
+
+test('WC shard preparation rejects aliased ancestry and unsafe shard collisions without repairing or following them', async () => {
+  const alias = await shardPreparation(), target = join(alias.output, 'target'), link = join(alias.output, 'alias');
+  await mkdir(target, {mode: 0o700}); await symlink(target, link);
+  await assert.rejects(openPortableFixtureWriter({...alias, root: join(link, 'store')}), {code: 'ROOT_UNSAFE'});
+  assert.deepEqual(await readdir(target), []);
+  for (const kind of ['symlink', 'file', 'wrong-mode']) {
+    const f = await shardPreparation(), shards = join(f.root, 'objects', 'sha256'), outside = join(f.output, 'outside');
+    await mkdir(outside, {mode: 0o700}); let opened = 0;
+    const product = {...f.product, openWriter() {opened++;}, privateDirectory(path) {
+      f.product.privateDirectory(path);
+      if (path === shards) {
+        if (kind === 'symlink') symlinkSync(outside, join(shards, '00'));
+        else if (kind === 'file') writeFileSync(join(shards, '00'), 'collision', {mode: 0o600});
+        else mkdirSync(join(shards, '00'), {mode: 0o755});
+      }
+    }};
+    await assert.rejects(openPortableFixtureWriter({...f, product}), {code: 'ROOT_UNSAFE'});
+    assert.equal(opened, 0); assert.deepEqual(await readdir(shards), ['00']); assert.deepEqual(await readdir(outside), []);
+    const stat = await lstat(join(shards, '00'));
+    if (kind === 'symlink') assert(stat.isSymbolicLink());
+    else if (kind === 'file') assert.equal(await readFile(join(shards, '00'), 'utf8'), 'collision');
+    else assert.equal(stat.mode & 0o777, 0o755);
+  }
+});
+
+test('WC shard preparation preserves exact cancellation and partial evidence before writer admission', async () => {
+  for (const timing of ['before', 'during']) {
+    const f = await shardPreparation(), controller = new AbortController(), reason = Error('cancel selected shard preparation');
+    let opened = 0;
+    const product = {...f.product, openWriter() {opened++;}, privateDirectory(path) {
+      f.product.privateDirectory(path);
+      if (path === join(f.root, 'objects', 'sha256', '07')) controller.abort(reason);
+    }};
+    if (timing === 'before') controller.abort(reason);
+    await assert.rejects(openPortableFixtureWriter({...f, product, signal: controller.signal}), error => error === reason);
+    assert.equal(opened, 0);
+    if (timing === 'before') assert.deepEqual(await readdir(f.output), []);
+    else assert.deepEqual((await readdir(join(f.root, 'objects', 'sha256'))).sort(), ['00', '01', '02', '03', '04', '05', '06', '07']);
+  }
+});
+
+test('WC shard preparation drains a real writer if cancellation arrives during its opening', async () => {
+  const f = await shardPreparation(), controller = new AbortController(), reason = Error('cancel opening WC writer');
+  let closes = 0;
+  const product = {...f.product, async openWriter(...args) {
+    const writer = await f.product.openWriter(...args); controller.abort(reason);
+    return {...writer, async close() {closes++; await writer.close();}};
+  }};
+  await assert.rejects(openPortableFixtureWriter({...f, product, signal: controller.signal}), error => error === reason);
+  assert.equal(closes, 1);
+  const reopened = await f.product.openWriter({root: f.root});
+  await reopened.close();
+  assert.equal((await readdir(join(f.root, 'objects', 'sha256'))).length, 256);
 });

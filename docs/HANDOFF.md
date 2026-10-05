@@ -2,6 +2,41 @@
 
 ## Current continuation — Main consolidated; implementation slices accepted; full-plan holds recorded
 
+Two bounded continuation attempts remain failures. Copy-only restoration stopped
+before launching a child or creating any destination: its initial complete,
+zero-mutation host scan took 1,449.934792 ms against the unchanged 1,000 ms
+window. The final 18.362875 ms observation does not replace that failure. Both
+exclusions released; the four source inputs remain absent. Independent failure
+review `bc780aec16949382070c60e01a65b7ade83e566dd6e2fdbcd8e302913b565607`
+verifies retained evidence. No scanner defect or basis for an unchanged retry
+was established.
+
+The separately justified WC512 preparation 02 also failed. All four mutation
+diagnostics identify `portable/store/objects/sha256`: creation of object-prefix
+directories changed its size and timestamps during traversal. One observation
+exhausted three attempts in 709.369292 ms; storage remained INCONCLUSIVE and the
+producer stopped without a completed fixture. Source and dependencies remained
+stable, and both exclusions released. The server build used an explicit reviewed
+documentation-only carry from tests10: all compiled sources, dependencies and
+outputs matched, with only the rollback-producer README changed. This was not a
+runner cache hit or fresh build. Preserve both attempts and their allocations.
+Independent WC02 review
+`44d3512d5fe74b3f42af7c564a1d25f0b89b233240a77b37dbcd0ce2ba25feb3`
+also verifies the 4,000.5625 ms coverage gap against the unchanged 4,000 ms bound.
+
+The preparation correction creates all 256 private object-prefix directories in
+the new destination before opening its writer. Existing stores are refused, and
+normal product APIs still create every object and logical row. Empty directories
+remain included in physical accounting; their presence supplies no closure bytes
+or qualification credit. This targets the observed parent-directory growth while
+leaving setup, shard-content and other mutations fully observable. The complete
+`tests/campaigns/fixture-portable.test.mjs` owner passed all 28 cases in
+`wc-shard-preparation-01`, including five new real-writer/refusal/cancellation
+controls. All eight gates passed; 19 complete storage observations had no failed
+attempts or unknown samples, and source/dependencies stayed stable. Independent
+source review is clear. A new actual preparation must establish whether this
+correction resolves the observed failure; no successful fixture is yet established.
+
 The bounded local capability probe now has an actual **CAPABILITY_AVAILABLE**
 result under its reviewed Docker integrity policy. Probe 06 completed the full
 freeze/quiet/thaw/resumed-heartbeat interval in 755.954250 ms against the unchanged
@@ -22,9 +57,10 @@ protection from wholly inter-snapshot hostile replacement. The raw receipt keeps
 its pre-finalization integrity snapshot; the finalization carries the full final
 hash and close result. All clocks, ceilings and earlier failed attempts remain.
 
-Next, complete exact custody restoration of the four missing schema17/18 source
-archive/manifest files from the retained input tag, then finalize the fresh local
-bootstrap grant/config against actual restored bytes. These are fixed external
+Native continuation still requires exact custody restoration of the four missing
+schema17/18 source archive/manifest files from the retained input tag, followed by
+the fresh local bootstrap grant/config against actual restored bytes. The failed
+initial scan above requires diagnosis before another restoration attempt. These are fixed external
 source inputs at their original paths, not generated evidence inside the 4 GiB
 receipt root. Preserve the original schema16 successor seal/recipe and the
 original 32 GiB volume. No native attempt is admitted by a draft configuration.
