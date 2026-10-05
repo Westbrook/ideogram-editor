@@ -8,7 +8,8 @@ import { copyFile, lstat, mkdir, readFile, readdir, realpath, statfs, writeFile 
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { DatabaseSync } from 'node:sqlite';
-import { PORTABLE_WORKLOADS, fileIdentity, safeRelative } from './backend-portable.mjs';
+import { PORTABLE_WORKLOADS, fileIdentity, safeRelative, treeFiles, withClosedSeedDatabase } from './backend-portable.mjs';
+export { withClosedSeedDatabase } from './backend-portable.mjs';
 
 const MiB = 1048576;
 const HASH = /^(?:sha256:)?[a-f0-9]{64}$/;
@@ -126,6 +127,10 @@ export async function inspectPortableArchive({ repo, path, output, signal, produ
   const db = product.spool(join(output, `inspect-${randomUUID()}.sqlite`));
   let zip;
   try {
+    // Private preparation index only: retain the rollback journal across commits
+    // and closure. Product spool durability/cache/temp settings stay unchanged.
+    assert.equal(db.prepare('PRAGMA journal_mode=PERSIST').get().journal_mode, 'persist',
+      'Private portable inspection spool requires PERSIST journaling');
     zip = new product.ZipIndex(path, db);
     const check = () => abort(signal);
     await zip.headers(check); await zip.hashes(check);
@@ -202,60 +207,6 @@ export async function portableReopenFontProjection(db, read, document) {
   return {text: {schema: 'browser-reopen-text-fixture-1', documentId: document.id, revision: document.revision,
     imageState: document.image.state, semanticDigest: document.image.semanticDigest, orderedLayerIds: document.orderedLayerIds},
   native: {schema: 'browser-reopen-native-fixture-1', textFacts, fonts: typed, fontAssetIds}};
-}
-
-async function treeFiles(root, directory = '', signal) {
-  const files = [];
-  for (const entry of (await readdir(join(root, directory), { withFileTypes: true })).sort((a, b) => a.name.localeCompare(b.name))) {
-    abort(signal); const path = directory ? directory + '/' + entry.name : entry.name;
-    assert(safeRelative(path) && !entry.isSymbolicLink(), 'Seed tree must contain no symbolic links');
-    if (entry.isDirectory()) files.push(...await treeFiles(root, path, signal));
-    else { assert(entry.isFile(), 'Seed entries must be ordinary files'); files.push({ path, ...await fileIdentity(join(root, path), signal) }); }
-  }
-  return files;
-}
-
-/** SQLite can create WAL/SHM even for read-only connections. Inspect only an
- * authenticated private copy; no connection ever touches the sealed source.
- * This boundary supplies no product/seed qualification by itself. */
-export async function withClosedSeedDatabase({ root, output, sourceFiles, signal }, inspect) {
-  abort(signal);
-  const sourceRoot = await realpath(root), parent = await realpath(output);
-  assert.equal(sourceRoot, resolve(root), 'Seed root must have canonical real ancestors');
-  assert.equal(parent, resolve(output), 'Inspection output must have canonical real ancestors');
-  assert((await lstat(parent)).isDirectory(), 'Inspection output must be a real directory');
-  const scratch = join(parent, 'seed-source-inspection');
-  assert(scratch !== sourceRoot && !scratch.startsWith(sourceRoot + sep) && !sourceRoot.startsWith(scratch + sep), 'Inspection scratch must be outside the seed');
-  assert.deepEqual(await treeFiles(sourceRoot, '', signal), sourceFiles, 'Captured seed inventory must still match');
-  requireValue(sourceFiles.some(file => file.path === 'metadata.sqlite') && !sourceFiles.some(file => /^metadata\.sqlite-(wal|shm)$/.test(file.path)), 'Mixed seed must be a clean closed writer root');
-  const metadata = join(sourceRoot, 'metadata.sqlite');
-  const stamp = value => ({ dev: value.dev, ino: value.ino, size: value.size, mode: value.mode, mtimeMs: value.mtimeMs, ctimeMs: value.ctimeMs });
-  const before = stamp(await lstat(metadata)), identity = await fileIdentity(metadata, signal);
-  assert.deepEqual(sourceFiles.find(file => file.path === 'metadata.sqlite'), { path: 'metadata.sqlite', ...identity });
-  let database, result;
-  const failures = [];
-  try {
-    abort(signal); await mkdir(scratch, { mode: 0o700 });
-    const copied = join(scratch, 'metadata.sqlite');
-    await copyFile(metadata, copied, constants.COPYFILE_EXCL); abort(signal);
-    assert.deepEqual(stamp(await lstat(metadata)), before, 'Source metadata identity changed around copy');
-    assert.deepEqual(await fileIdentity(metadata, signal), identity);
-    assert.deepEqual(await fileIdentity(copied, signal), identity, 'Inspection copy must contain the exact source bytes');
-    database = new DatabaseSync(copied, { readOnly: true });
-    result = await inspect(database); abort(signal);
-  } catch (error) { failures.push(error); }
-  finally {
-    try { database?.close(); } catch (error) { failures.push(error); }
-    // Cleanup cannot skip source verification because the caller cancelled or
-    // its query failed. Preserve every failure in original-operation order.
-    try {
-      assert.deepEqual(stamp(await lstat(metadata)), before, 'Source metadata identity changed during inspection');
-      assert.deepEqual(await treeFiles(sourceRoot), sourceFiles, 'Inspection must preserve the complete sealed source');
-    } catch (error) { failures.push(error); }
-  }
-  if (failures.length === 1) throw failures[0];
-  if (failures.length) throw new AggregateError(failures, 'Seed inspection failed and closure or source verification failed');
-  return result;
 }
 
 async function newOutput(repo, requested) {
@@ -383,7 +334,7 @@ export async function buildPortableFixture(options = {}) {
       await execute({ type: 'ApprovePromptProjection', composition: { id: composition.id, value, bindings: {} }, draft: null }, 'historyCommand', true);
       if (i % 128 === 0) await onProgress({ phase: 'retained-caption-versions', versions: i + 1, target: plan.captionVersions });
     }
-    current = await snapshot('caption-versions-verified');
+    if (current.counts.captionVersions < plan.captionVersions) current = await snapshot('caption-versions-verified');
     requireValue(current.counts.assets < plan.assets && current.counts.events < plan.events, 'Caption history leaves insufficient WC inventory');
     const draftSlots = plan.assets - current.counts.assets;
     const document = await writer.document(documentId), generations = new Map();

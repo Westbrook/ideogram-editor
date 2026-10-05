@@ -4,9 +4,12 @@ import { createHash } from 'node:crypto';
 import { lstat, mkdir, mkdtemp, readFile, realpath, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { FIXTURE_VERSION, workloadDefinition } from '../../tooling/qualification/campaigns/fixtures.mjs';
+import { pathToFileURL } from 'node:url';
+import { boundedChild } from '../../tooling/qualification/container/bounded-child.mjs';
+import { ownTestRoot } from '../../tooling/qualification/owned-test-roots.mjs';
+import { FIXTURE_VERSION, REPO, workloadDefinition } from '../../tooling/qualification/campaigns/fixtures.mjs';
 import { selectFixtureDescriptor } from '../../tooling/qualification/campaigns/fixture-catalog.mjs';
-import { createFixtureCatalog, descriptorFor, fixtureKey, main, parseFixtureArguments, prepareFixtureInput, prepareSeedInput, readFixtureDescriptor } from '../../tooling/qualification/campaigns/fixtures-run.mjs';
+import { createFixtureCatalog, descriptorFor, fixtureKey, main, parseFixtureArguments, prepareFixtureInput, prepareSeedInput, readFixtureDescriptor, withFixtureTermination } from '../../tooling/qualification/campaigns/fixtures-run.mjs';
 
 async function temporary(t) {
   const root = await realpath(await mkdtemp(join(tmpdir(), 'fixture-cli-')));
@@ -156,4 +159,136 @@ test('programmatic small seed refuses implicit heavy preparation without importi
   assert.equal(await main(['prepare-seed', '--output', output], {stdout: {write: v => {out += v;}}, stderr: {write: v => {error += v;}}}), 1);
   assert.equal(out, ''); assert.match(error, /allow-heavy/);
   await assert.rejects(lstat(output), {code: 'ENOENT'});
+});
+
+
+// These owned children verify CLI cancellation/lifetime only. No heavy fixture,
+// WC counts, product qualification or supervisor deadline result is claimed.
+async function fixtureSignalChild(t, body, onEvent = () => {}, { expectedInterrupted = false } = {}) {
+  const root = ownTestRoot(await realpath(await mkdtemp(join(tmpdir(), 'fixture-signal-'))));
+  t.diagnostic('Owned signal control: ' + root);
+  const tmp = join(root, 'tmp'); await mkdir(tmp, { mode: 0o700 });
+  const path = join(root, 'child.mjs');
+  await writeFile(path, `import assert from 'node:assert/strict';
+import {mkdir,writeFile} from 'node:fs/promises';
+import {join} from 'node:path';
+const root=${JSON.stringify(root)};
+const cliURL=${JSON.stringify(pathToFileURL(join(REPO, 'tooling/qualification/campaigns/fixtures-run.mjs')).href)};
+const writerURL=${JSON.stringify(pathToFileURL(join(REPO, 'dist/local/server/storage/writer.js')).href)};
+const ownerURL=${JSON.stringify(pathToFileURL(join(REPO, 'dist/local/server/storage/ownership.js')).href)};
+const emit=value=>process.stdout.write(JSON.stringify(value)+'\\n');
+${body}
+`, { mode: 0o600, flag: 'wx' });
+  const controller = new AbortController(), events = []; let stdout = '', stderr = '', pending = '', callbackError;
+  const child = await boundedChild(process.execPath, ['--import', join(REPO, 'tests/session/no-egress.mjs'), path], {
+    cwd: REPO, env: { ...process.env, TMPDIR: tmp, TMP: tmp, TEMP: tmp }, timeoutMs: 20000, graceMs: 5000, abortSignal: controller.signal,
+    onStdout(bytes) {
+      const text = bytes.toString(); stdout += text; pending += text;
+      for (let newline; (newline = pending.indexOf('\n')) !== -1;) {
+        const line = pending.slice(0, newline); pending = pending.slice(newline + 1); if (!line) continue;
+        try { const event = JSON.parse(line); events.push(event); onEvent(event, controller); }
+        catch (error) { callbackError ??= error; controller.abort(error); }
+      }
+    },
+    onStderr: bytes => { stderr += bytes.toString(); },
+  });
+  await writeFile(join(root, 'child-output.json'), JSON.stringify({ child, events, stdout, stderr }, null, 2) + '\n', { mode: 0o600, flag: 'wx' });
+  if (callbackError) throw callbackError;
+  assert.equal(child.timedOut, false, stderr); assert.equal(child.interrupted, expectedInterrupted, stderr); assert.equal(pending, '');
+  return { root, child, events, stderr };
+}
+
+for (const { signalName, mode } of [
+  { signalName: 'SIGTERM', mode: 'direct' }, { signalName: 'SIGINT', mode: 'direct' },
+  { signalName: 'SIGTERM', mode: 'duplicate' }, { signalName: 'SIGTERM', mode: 'supervisor' },
+]) test(signalName + ' ' + mode + ' reaches the preparation signal and waits for actual writer closure before reporting interruption', async t => {
+  const result = await fixtureSignalChild(t, `
+const {withFixtureTermination}=await import(cliURL), {openWriter}=await import(writerURL), {acquireRoot}=await import(ownerURL);
+const writerRoot=join(root,'writer');await mkdir(writerRoot,{mode:0o700});
+let closed=false,seen;
+try {
+  await withFixtureTermination(async signal=>{
+    const writer=await openWriter({root:writerRoot});
+    try {
+      await writer.protocolDefaults();
+      const stopped=new Promise((_,reject)=>signal.addEventListener('abort',()=>{seen=signal.reason;reject(seen);},{once:true}));
+      emit({ready:true,pid:process.pid});
+      await stopped;
+    } finally {
+      let repeated;
+      const duplicateArrival=${JSON.stringify(mode)}==='duplicate' ? new Promise(resolve=>{
+        repeated=()=>{emit({repeatedSignalObserved:true});resolve();};process.once('SIGTERM',repeated);
+      }) : null;
+      try {
+        emit({draining:true,pid:process.pid});
+        if(duplicateArrival)await duplicateArrival;else await new Promise(resolve=>setTimeout(resolve,30));
+        assert.equal(signal.reason,seen);
+        await writer.close();
+        const owner=await acquireRoot(writerRoot);owner.check();owner.close();
+        closed=true;await writeFile(join(root,'cleanup.json'),JSON.stringify({closed:true,reacquired:true}),{flag:'wx'});
+      } finally {if(repeated)process.off('SIGTERM',repeated);}
+    }
+  });
+  throw Error('Interrupted preparation must not succeed');
+} catch(error) {
+  assert.equal(error,seen);assert.equal(error.code,'ABORT_ERR');assert.equal(error.signal,${JSON.stringify(signalName)});assert(closed);
+  assert.equal(process.listenerCount('SIGTERM'),0);assert.equal(process.listenerCount('SIGINT'),0);
+  emit({interrupted:true,signal:error.signal,closed});process.exitCode=1;
+}`, (event, controller) => {
+    if (event.ready) {
+      assert(Number.isSafeInteger(event.pid) && event.pid > 0);
+      if (mode === 'supervisor') controller.abort(Error('Selected actual supervisor cancellation'));
+      else process.kill(event.pid, signalName);
+    } else if (event.draining && mode === 'duplicate') process.kill(event.pid, signalName);
+  }, { expectedInterrupted: mode === 'supervisor' });
+  assert.equal(result.child.code, 1, result.stderr); assert.equal(result.child.signal, null);
+  if (mode === 'supervisor') {
+    assert.equal(result.child.exitObserved, true); assert.deepEqual(result.child.requestedSignals, ['SIGTERM', 'SIGKILL']);
+    assert.equal(result.child.processTree, process.platform === 'linux' ? 'owned-group-and-proc-descendants' : 'owned-group');
+  }
+  assert.deepEqual(result.events.map(event => event.ready ? 'ready' : event.draining ? 'draining' : event.repeatedSignalObserved ? 'repeated-signal' : 'closed'),
+    mode === 'duplicate' ? ['ready', 'draining', 'repeated-signal', 'closed'] : ['ready', 'draining', 'closed']);
+  assert.deepEqual(result.events.at(-1), { interrupted: true, signal: signalName, closed: true });
+  assert.deepEqual(JSON.parse(await readFile(join(result.root, 'cleanup.json'), 'utf8')), { closed: true, reacquired: true });
+});
+
+test('termination scope preserves successful values and original errors and removes only its own listeners', async () => {
+  const term = () => {}, interrupt = () => {};
+  process.on('SIGTERM', term); process.on('SIGINT', interrupt);
+  const before = { term: process.listeners('SIGTERM'), interrupt: process.listeners('SIGINT') };
+  try {
+    assert.equal(await withFixtureTermination(async signal => { assert.equal(signal.aborted, false); return 'closed'; }), 'closed');
+    const original = Error('Original producer failure after cleanup');
+    await assert.rejects(withFixtureTermination(async () => { throw original; }), error => error === original);
+    assert.deepEqual(process.listeners('SIGTERM'), before.term); assert.deepEqual(process.listeners('SIGINT'), before.interrupt);
+  } finally { process.off('SIGTERM', term); process.off('SIGINT', interrupt); }
+});
+
+test('late OS cancellation cannot convert a resolved preparation result into success', async t => {
+  const result = await fixtureSignalChild(t, `
+const {withFixtureTermination}=await import(cliURL);let seen;
+try {
+  await withFixtureTermination(async signal=>{
+    signal.addEventListener('abort',()=>{seen=signal.reason;},{once:true});
+    process.kill(process.pid,'SIGTERM');
+    await new Promise(resolve=>setTimeout(resolve,20));
+    return {wouldOtherwiseSucceed:true};
+  });
+  throw Error('Late cancellation incorrectly succeeded');
+} catch(error) {assert.equal(error,seen);assert.equal(error.code,'ABORT_ERR');emit({lateAbort:true});process.exitCode=1;}
+`);
+  assert.equal(result.child.code, 1, result.stderr); assert.equal(result.child.signal, null); assert.deepEqual(result.events, [{ lateAbort: true }]);
+});
+
+test('CLI import is inert and no-argument help leaves no owned signal handlers', async t => {
+  const result = await fixtureSignalChild(t, `
+const before={term:process.listenerCount('SIGTERM'),interrupt:process.listenerCount('SIGINT')};
+const {main}=await import(cliURL);
+assert.equal(process.listenerCount('SIGTERM'),before.term);assert.equal(process.listenerCount('SIGINT'),before.interrupt);
+let stdout='',stderr='';assert.equal(await main([],{stdout:{write:value=>{stdout+=value;}},stderr:{write:value=>{stderr+=value;}}}),0);
+assert.match(stdout,/Sealed performance fixtures/);assert.equal(stderr,'');
+assert.equal(process.listenerCount('SIGTERM'),before.term);assert.equal(process.listenerCount('SIGINT'),before.interrupt);
+emit({inert:true,help:true});
+`);
+  assert.equal(result.child.code, 0, result.stderr); assert.equal(result.child.signal, null); assert.deepEqual(result.events, [{ inert: true, help: true }]);
 });

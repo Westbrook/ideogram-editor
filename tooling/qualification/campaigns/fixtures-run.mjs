@@ -186,6 +186,7 @@ export async function createFixtureCatalog({ output, fixtures = [], cells = [] }
 }
 
 export async function prepareFixtureInput(options) {
+  options.signal?.throwIfAborted();
   // Reuse parser validation for programmatic callers, before any filesystem IO.
   const argv = ['prepare', '--workload', options.workload ?? '', '--output', options.output ?? ''];
   for (const [name, flag] of [['repo', '--repo'], ['fontCorpus', '--font-corpus'], ['officialAdapter', '--official-adapter'], ['seed', '--seed'], ['closureBytes', '--closure-bytes'], ['catalogOutput', '--catalog-output']]) if (options[name] !== undefined) argv.push(flag, String(options[name]));
@@ -206,16 +207,21 @@ export async function prepareFixtureInput(options) {
     ...(checked.closureBytes ? { closureBytes: checked.closureBytes } : {}),
     ...(seed ? { seed } : {}), signal: options.signal, onProgress: options.onProgress,
   });
+  options.signal?.throwIfAborted();
   const descriptor = descriptorFor(prepared), verified = await verifyFixtureManifest(descriptor);
+  options.signal?.throwIfAborted();
   const descriptorPath = await exclusiveJSON(join(output, 'fixture-input.json'), descriptor);
+  options.signal?.throwIfAborted();
   let catalog;
   if (catalogOutput) catalog = await createFixtureCatalog({ output: catalogOutput, fixtures: [[fixtureKey(verified), descriptorPath]] });
+  options.signal?.throwIfAborted();
   return { descriptorPath, descriptor, workload: verified.workload, ...(catalog ? { catalogPath: catalog.catalogPath } : {}) };
 }
 
 // The seed is a separate, ordinary product preparation. It is never substituted
 // for a full WC fixture and does not inherit its zero-network-attempt claim.
 export async function prepareSeedInput(options = {}) {
+  options.signal?.throwIfAborted();
   const argv = ['prepare-seed', '--output', options.output ?? ''];
   for (const [name, flag] of [['repo', '--repo'], ['officialAdapter', '--official-adapter']]) if (options[name] !== undefined) argv.push(flag, String(options[name]));
   if (options.allowHeavy === true) argv.push('--allow-heavy');
@@ -228,17 +234,37 @@ export async function prepareSeedInput(options = {}) {
     ...(checked.officialAdapter ? {officialAdapterPath: resolve(checked.officialAdapter)} : {}), signal: options.signal, onProgress: options.onProgress});
 }
 
+// CLI-owned cooperative cancellation. The first OS signal reaches existing
+// producer abort checkpoints and awaited cleanup. Duplicate supervisor signals
+// keep the first reason and cannot skip drain. Its existing SIGKILL bound stays
+// authoritative; this scope adds no timeout or forced-exit policy.
+export async function withFixtureTermination(work) {
+  const controller = new AbortController();
+  const remove = () => { process.off('SIGINT', onInterrupt); process.off('SIGTERM', onTerminate); };
+  const stop = name => {
+    if (!controller.signal.aborted) controller.abort(Object.assign(Error('Fixture preparation interrupted by ' + name), { code: 'ABORT_ERR', signal: name }));
+  };
+  const onInterrupt = () => stop('SIGINT'), onTerminate = () => stop('SIGTERM');
+  process.on('SIGINT', onInterrupt); process.on('SIGTERM', onTerminate);
+  try { const result = await work(controller.signal); controller.signal.throwIfAborted(); return result; }
+  finally { remove(); }
+}
+
 export async function main(argv = process.argv.slice(2), { stdout = process.stdout, stderr = process.stderr } = {}) {
   try {
-    const options = parseFixtureArguments(argv);
-    if (options.command === 'help') { stdout.write(usage); return 0; }
-    const result = options.command === 'prepare'
-      ? await prepareFixtureInput({ ...options, onProgress: value => stderr.write(JSON.stringify({ preparation: value }) + '\n') })
-      : options.command === 'prepare-seed'
-        ? await prepareSeedInput({ ...options, onProgress: value => stderr.write(JSON.stringify({ preparation: value }) + '\n') })
-        : await createFixtureCatalog(options);
-    stdout.write(JSON.stringify(result, null, 2) + '\n');
-    return 0;
+    return await withFixtureTermination(async signal => {
+      const options = parseFixtureArguments(argv);
+      signal.throwIfAborted();
+      if (options.command === 'help') { stdout.write(usage); return 0; }
+      const result = options.command === 'prepare'
+        ? await prepareFixtureInput({ ...options, signal, onProgress: value => stderr.write(JSON.stringify({ preparation: value }) + '\n') })
+        : options.command === 'prepare-seed'
+          ? await prepareSeedInput({ ...options, signal, onProgress: value => stderr.write(JSON.stringify({ preparation: value }) + '\n') })
+          : await createFixtureCatalog(options);
+      signal.throwIfAborted();
+      stdout.write(JSON.stringify(result, null, 2) + '\n');
+      return 0;
+    });
   } catch (error) {
     stderr.write(JSON.stringify({ error: error?.message ?? String(error), ...(error?.fixtureReceipt ? { fixtureReceipt: error.fixtureReceipt } : {}) }) + '\n');
     return 1;

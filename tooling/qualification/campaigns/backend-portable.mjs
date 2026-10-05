@@ -21,6 +21,9 @@ const encode = value => Buffer.from(JSON.stringify(value));
 const pause = () => new Promise(resolve => setTimeout(resolve, 2));
 const checkSignal = signal => { if (signal?.aborted) throw signal.reason ?? failure('ABORTED', 'Portable campaign was aborted'); };
 const RETAINED_SESSION = Symbol('owned-portable-warm-session');
+// Preserve the seed inspector's exact cancellation and FIXTURE_REQUIRED behavior.
+const abort = signal => signal?.throwIfAborted();
+const requireValue = required;
 
 export const PORTABLE_FAULTS = Object.freeze(['missing-closure', 'font-restriction', 'hash-mismatch', 'disk-pressure', 'interruption']);
 export const PORTABLE_WORKLOADS = Object.freeze({
@@ -72,6 +75,60 @@ export async function fileIdentity(path, signal) {
     throw failure('FIXTURE_IDENTITY', `File changed during verification: ${path}`);
   }
   return { sha256: sha.digest('hex'), byteLength: String(bytes) };
+}
+
+export async function treeFiles(root, directory = '', signal) {
+  const files = [];
+  for (const entry of (await readdir(join(root, directory), { withFileTypes: true })).sort((a, b) => a.name.localeCompare(b.name))) {
+    abort(signal); const path = directory ? directory + '/' + entry.name : entry.name;
+    assert(safeRelative(path) && !entry.isSymbolicLink(), 'Seed tree must contain no symbolic links');
+    if (entry.isDirectory()) files.push(...await treeFiles(root, path, signal));
+    else { assert(entry.isFile(), 'Seed entries must be ordinary files'); files.push({ path, ...await fileIdentity(join(root, path), signal) }); }
+  }
+  return files;
+}
+
+/** SQLite can create WAL/SHM even for read-only connections. Inspect only an
+ * authenticated private copy; no connection ever touches the sealed source.
+ * This boundary supplies no product/seed qualification by itself. */
+export async function withClosedSeedDatabase({ root, output, sourceFiles, signal }, inspect) {
+  abort(signal);
+  const sourceRoot = await realpath(root), parent = await realpath(output);
+  assert.equal(sourceRoot, resolve(root), 'Seed root must have canonical real ancestors');
+  assert.equal(parent, resolve(output), 'Inspection output must have canonical real ancestors');
+  assert((await lstat(parent)).isDirectory(), 'Inspection output must be a real directory');
+  const scratch = join(parent, 'seed-source-inspection');
+  assert(scratch !== sourceRoot && !scratch.startsWith(sourceRoot + sep) && !sourceRoot.startsWith(scratch + sep), 'Inspection scratch must be outside the seed');
+  assert.deepEqual(await treeFiles(sourceRoot, '', signal), sourceFiles, 'Captured seed inventory must still match');
+  requireValue(sourceFiles.some(file => file.path === 'metadata.sqlite') && !sourceFiles.some(file => /^metadata\.sqlite-(wal|shm)$/.test(file.path)), 'Mixed seed must be a clean closed writer root');
+  const metadata = join(sourceRoot, 'metadata.sqlite');
+  const stamp = value => ({ dev: value.dev, ino: value.ino, size: value.size, mode: value.mode, mtimeMs: value.mtimeMs, ctimeMs: value.ctimeMs });
+  const before = stamp(await lstat(metadata)), identity = await fileIdentity(metadata, signal);
+  assert.deepEqual(sourceFiles.find(file => file.path === 'metadata.sqlite'), { path: 'metadata.sqlite', ...identity });
+  let database, result;
+  const failures = [];
+  try {
+    abort(signal); await mkdir(scratch, { mode: 0o700 });
+    const copied = join(scratch, 'metadata.sqlite');
+    await copyFile(metadata, copied, constants.COPYFILE_EXCL); abort(signal);
+    assert.deepEqual(stamp(await lstat(metadata)), before, 'Source metadata identity changed around copy');
+    assert.deepEqual(await fileIdentity(metadata, signal), identity);
+    assert.deepEqual(await fileIdentity(copied, signal), identity, 'Inspection copy must contain the exact source bytes');
+    database = new DatabaseSync(copied, { readOnly: true });
+    result = await inspect(database); abort(signal);
+  } catch (error) { failures.push(error); }
+  finally {
+    try { database?.close(); } catch (error) { failures.push(error); }
+    // Cleanup cannot skip source verification because the caller cancelled or
+    // its query failed. Preserve every failure in original-operation order.
+    try {
+      assert.deepEqual(stamp(await lstat(metadata)), before, 'Source metadata identity changed during inspection');
+      assert.deepEqual(await treeFiles(sourceRoot), sourceFiles, 'Inspection must preserve the complete sealed source');
+    } catch (error) { failures.push(error); }
+  }
+  if (failures.length === 1) throw failures[0];
+  if (failures.length) throw new AggregateError(failures, 'Seed inspection failed and closure or source verification failed');
+  return result;
 }
 
 async function checkFile(path, identity, signal) {
@@ -439,6 +496,25 @@ function assertClosedFixtureReset(db) {
   }
 }
 
+/** Only the already-admitted fixture is inspected here. This small boundary
+ * neither opens a writer nor grants WC workload/qualification credit. */
+export async function readClosedFixtureDocument({ fixture, output, direction, signal }) {
+  required(direction === 'copy' || direction === 'import', 'Expected a copy or import source inspection');
+  const sourceFiles = await treeFiles(fixture.root, '', signal);
+  // WC seals accept either hash spelling, decimal lengths and arbitrary file
+  // order. Authenticate those same semantics before using the exact captured
+  // traversal expected by the shared seed inspector.
+  const normalized = files => files.map(file => ({ path: file.path, sha256: hashText(file.sha256), byteLength: String(file.byteLength) }))
+    .sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
+  assert.deepEqual(normalized(sourceFiles), normalized(fixture.seal.files), 'WC inspection requires the exact sealed source inventory');
+  return withClosedSeedDatabase({ root: fixture.root, output, sourceFiles, signal }, sourceDatabase => {
+    if (direction === 'copy') assertClosedFixtureReset(sourceDatabase);
+    const sourceDocument = JSON.parse((sourceDatabase.prepare('SELECT json FROM documents WHERE id=?').get(fixture.seal.documentId) ?? sourceDatabase.prepare("SELECT json FROM portable_rows WHERE kind='document' AND id=?").get(fixture.seal.documentId))?.json ?? 'null');
+    assert(sourceDocument, 'Sealed fixture retains its source document');
+    return sourceDocument;
+  });
+}
+
 // Uses the existing no-network writer harness: the only child is the actual
 // production writer, killed at a durable preparation barrier rather than a timer.
 async function crashWriter(repo, root, signal, barrierPhase) {
@@ -497,12 +573,7 @@ export async function runCell(context, cell) {
       fixture = await phase('fixture-seal-verify', () => loadFixture(context.fixture, workload, signal));
       product = await productFor(repo);
       if (fault) await phase('fault-baseline-full-closure-verification', () => verifyArchive(product, fixture.archive, output, fixture.seal, signal));
-      const sourceDatabase = new DatabaseSync(join(fixture.root, 'metadata.sqlite'), { readOnly: true });
-      try {
-        if (direction === 'copy') assertClosedFixtureReset(sourceDatabase);
-        sourceDocument = JSON.parse((sourceDatabase.prepare('SELECT json FROM documents WHERE id=?').get(fixture.seal.documentId) ?? sourceDatabase.prepare("SELECT json FROM portable_rows WHERE kind='document' AND id=?").get(fixture.seal.documentId))?.json ?? 'null');
-      } finally { sourceDatabase.close(); }
-      assert(sourceDocument, 'Sealed fixture retains its source document');
+      sourceDocument = await phase('sealed-source-inspection', () => readClosedFixtureDocument({ fixture, output, direction, signal }));
       targetRoot = join(output, 'owned-root');
       await phase('owned-root-reset', () => direction === 'copy' ? cloneRoot(fixture, targetRoot, signal) : mkdir(targetRoot, { mode: 0o700 }));
       auth = { clientId: 'wc_campaign', sessionHash: createHash('sha256').update(randomUUID()).digest('hex'), now: Date.now(), expires: Date.now() + 3_600_000 };

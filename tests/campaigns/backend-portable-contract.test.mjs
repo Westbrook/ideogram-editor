@@ -3,11 +3,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { mkdtemp, mkdir, writeFile, rm, symlink } from 'node:fs/promises';
+import { mkdtemp, mkdir, writeFile, rm, symlink, readdir, realpath, lstat, unlink } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
-import { validateSeal, safeRelative, fileIdentity, loadFixture, runCell, createPortableFixture, portableInputIdentity, PORTABLE_FAULTS } from '../../tooling/qualification/campaigns/backend-portable.mjs';
+import { validateSeal, safeRelative, fileIdentity, loadFixture, runCell, createPortableFixture, portableInputIdentity, PORTABLE_FAULTS, readClosedFixtureDocument } from '../../tooling/qualification/campaigns/backend-portable.mjs';
+import { ownTestRoot } from '../../tooling/qualification/owned-test-roots.mjs';
 
 const sha = value => createHash('sha256').update(value).digest('hex');
 const identity = value => ({ sha256: sha(value), byteLength: String(Buffer.byteLength(value)) });
@@ -223,4 +224,99 @@ test('font-negative preparation rejects unsupported direction and absent baselin
   }
   assert.equal(closes,0);
   assert.deepEqual(await (await import('node:fs/promises')).readdir(parent),[], 'No output or alternate root is created for an inadmissible request');
+});
+
+
+// Real, tiny closed WAL databases exercise the exact campaign inspection
+// consumer. They are not WC fixtures, archive validation or performance proof.
+async function campaignSourceFiles(root, directory = '') {
+  const files = [];
+  for (const entry of (await readdir(join(root, directory), { withFileTypes: true })).sort((a, b) => a.name.localeCompare(b.name))) {
+    const path = directory ? directory + '/' + entry.name : entry.name;
+    assert(!entry.isSymbolicLink());
+    if (entry.isDirectory()) files.push(...await campaignSourceFiles(root, path));
+    else { assert(entry.isFile()); files.push({ path, ...await fileIdentity(join(root, path)) }); }
+  }
+  return files;
+}
+async function campaignInspectionSource(t, { current = { id: 'document_1', revision: '7' }, portable = { id: 'document_1', revision: '3' }, pendingTable, invalidJson = false, missingDocumentsTable = false } = {}) {
+  const parent = ownTestRoot(await realpath(await mkdtemp(join(tmpdir(), 'wc-campaign-inspection-'))));
+  t.diagnostic('Retained campaign inspection control: ' + parent);
+  const root = join(parent, 'source'), output = join(parent, 'output');
+  await mkdir(root, { mode: 0o700 }); await mkdir(output, { mode: 0o700 });
+  const db = new DatabaseSync(join(root, 'metadata.sqlite'));
+  try {
+    assert.equal(db.prepare('PRAGMA journal_mode=WAL').get().journal_mode, 'wal');
+    db.exec('PRAGMA synchronous=FULL; CREATE TABLE portable_rows(kind TEXT,id TEXT,json TEXT,PRIMARY KEY(kind,id)) STRICT;');
+    if (!missingDocumentsTable) {
+      db.exec('CREATE TABLE documents(id TEXT PRIMARY KEY,json TEXT) STRICT;');
+      if (current) db.prepare('INSERT INTO documents VALUES (?,?)').run(current.id, invalidJson ? '{invalid' : JSON.stringify(current));
+    }
+    if (portable) db.prepare('INSERT INTO portable_rows VALUES (?,?,?)').run('document', portable.id, JSON.stringify(portable));
+    if (pendingTable) { db.exec(`CREATE TABLE ${pendingTable}(id TEXT PRIMARY KEY) STRICT;`); db.prepare(`INSERT INTO ${pendingTable} VALUES (?)`).run('unresolved-intent'); }
+    db.exec('PRAGMA wal_checkpoint(TRUNCATE)');
+  } finally { db.close(); }
+  await mkdir(join(root, 'objects'), { mode: 0o700 }); await writeFile(join(root, 'objects', 'opaque'), 'Independent retained bytes', { mode: 0o600, flag: 'wx' });
+  const files = await campaignSourceFiles(root);
+  assert(!files.some(file => /^metadata\.sqlite-(wal|shm)$/.test(file.path)));
+  return { parent, root, output, files, scratch: join(output, 'seed-source-inspection'), fixture: { root, seal: { documentId: 'document_1', files } } };
+}
+async function preservedCampaignSource(f) {
+  assert.deepEqual(await campaignSourceFiles(f.root), f.files);
+  const metadata = f.files.find(file => file.path === 'metadata.sqlite');
+  assert.deepEqual(await fileIdentity(join(f.scratch, 'metadata.sqlite')), { sha256: metadata.sha256, byteLength: metadata.byteLength });
+  assert.equal((await lstat(f.scratch)).mode & 0o777, 0o700);
+}
+
+test('portable campaign inspection preserves current-document precedence and import fallback on an authenticated private WAL copy', async t => {
+  for (const [direction, fallback] of [['copy', false], ['import', false], ['import', true]]) {
+    const f = await campaignInspectionSource(t, fallback ? { current: null } : {});
+    // Preserve the existing seal contract: ordering, hash prefix and numeric
+    // decimal lengths do not change the identity of already admitted bytes.
+    f.fixture.seal.files = f.files.slice().reverse().map(file => ({ ...file, sha256: 'sha256:' + file.sha256, byteLength: Number(file.byteLength) }));
+    assert.deepEqual(await readClosedFixtureDocument({ ...f, direction }), { id: 'document_1', revision: fallback ? '3' : '7' });
+    await preservedCampaignSource(f);
+  }
+});
+
+test('portable campaign copy inspection retains every quiescent-reset assertion without applying it to import inspection', async t => {
+  for (const pendingTable of ['asset_preparations', 'raster_preparations', 'history_preparations', 'portable_preparations', 'deletion_work', 'deletion_files']) {
+    const f = await campaignInspectionSource(t, { pendingTable });
+    await assert.rejects(readClosedFixtureDocument({ ...f, direction: 'copy' }), error => error.code === 'FIXTURE_REQUIRED' && error.message.includes(pendingTable));
+    await preservedCampaignSource(f);
+    const output = join(f.parent, 'import-output'); await mkdir(output, { mode: 0o700 });
+    assert.deepEqual(await readClosedFixtureDocument({ ...f, output, direction: 'import' }), { id: 'document_1', revision: '7' });
+    await preservedCampaignSource({ ...f, scratch: join(output, 'seed-source-inspection') });
+  }
+});
+
+test('portable campaign inspection retains missing-document, JSON and actual SQL failures with unchanged sealed bytes', async t => {
+  for (const kind of ['missing', 'json', 'sql']) {
+    const f = await campaignInspectionSource(t, kind === 'missing' ? { current: null, portable: null } : kind === 'json' ? { invalidJson: true } : { missingDocumentsTable: true });
+    await assert.rejects(readClosedFixtureDocument({ ...f, direction: 'import' }), error =>
+      kind === 'missing' ? error.code === 'ERR_ASSERTION' && /retains its source document/.test(error.message) : kind === 'json' ? error instanceof SyntaxError : error.code === 'ERR_SQLITE_ERROR');
+    await preservedCampaignSource(f);
+  }
+});
+
+test('portable campaign inspection authenticates all sealed files before opening its private copy', async t => {
+  for (const kind of ['changed', 'extra', 'missing', 'hash', 'length']) {
+    const f = await campaignInspectionSource(t);
+    if (kind === 'changed') await writeFile(join(f.root, 'objects', 'opaque'), 'Changed after seal admission');
+    if (kind === 'extra') await writeFile(join(f.root, 'unsealed'), 'Retain this unexpected entry');
+    if (kind === 'missing') await unlink(join(f.root, 'objects', 'opaque'));
+    if (kind === 'hash' || kind === 'length') f.fixture.seal.files = f.files.map(file => file.path === 'metadata.sqlite' ? { ...file, ...(kind === 'hash' ? { sha256: '0'.repeat(64) } : { byteLength: String(Number(file.byteLength) + 1) }) } : file);
+    const before = await campaignSourceFiles(f.root);
+    await assert.rejects(readClosedFixtureDocument({ ...f, direction: 'copy' }), /exact sealed source inventory/);
+    assert.deepEqual(await readdir(f.output), []);
+    assert.deepEqual(await campaignSourceFiles(f.root), before, 'Refusal preserves the actual changed-source evidence');
+  }
+});
+
+test('portable campaign inspection preserves exact pre-admission cancellation and refuses unknown direction without scratch', async t => {
+  const f = await campaignInspectionSource(t), controller = new AbortController(), original = Error('Selected campaign inspection cancellation');
+  controller.abort(original);
+  await assert.rejects(readClosedFixtureDocument({ ...f, direction: 'copy', signal: controller.signal }), error => error === original);
+  await assert.rejects(readClosedFixtureDocument({ ...f, direction: 'other' }), { code: 'FIXTURE_REQUIRED' });
+  assert.deepEqual(await readdir(f.output), []); assert.deepEqual(await campaignSourceFiles(f.root), f.files);
 });

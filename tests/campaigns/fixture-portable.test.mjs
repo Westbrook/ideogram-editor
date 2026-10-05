@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash, randomUUID } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
-import { fstatSync } from 'node:fs';
+import { fstatSync, lstatSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { lstat, mkdir, mkdtemp, readdir, realpath, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -423,5 +423,126 @@ test('closed-WAL seed inspection preserves exact cancellation before admission a
     assert.deepEqual(await inspectionFiles(f.root), f.sourceFiles);
     if (observed) assertInspectionClosed(observed);
     else assert.deepEqual(await readdir(f.output), []);
+  }
+});
+
+// Observe real SQLite commits made by the actual archive validator. The journal
+// stays in the owned preparation output, including on failure; these small
+// controls do not establish WC capacity, timing or storage-monitor conformance.
+const inspectionPragmas = db => ({
+  journalMode: db.prepare('PRAGMA journal_mode').get().journal_mode,
+  synchronous: db.prepare('PRAGMA synchronous').get().synchronous,
+  cacheSize: db.prepare('PRAGMA cache_size').get().cache_size,
+  tempStore: db.prepare('PRAGMA temp_store').get().temp_store,
+});
+function persistentInspectionProduct(actual, options) {
+  const observed = observedArchiveProduct(actual, options), phases = [];
+  let database, path, initial;
+  const retain = label => {
+    const info = lstatSync(path + '-journal');
+    assert(info.isFile() && !info.isSymbolicLink() && info.size > 0);
+    phases.push({label, dev: info.dev, ino: info.ino, settings: inspectionPragmas(database),
+      changes: database.prepare('SELECT total_changes() n').get().n,
+      entries: database.prepare('SELECT count(*) n FROM zip_entries').get().n,
+      hashed: database.prepare('SELECT count(*) n FROM zip_entries WHERE sha256 IS NOT NULL').get().n});
+  };
+  class RetainedJournalZip extends observed.product.ZipIndex {
+    constructor(...args) {super(...args); retain('schema');}
+    async headers(check) {await super.headers(check); retain('headers');}
+    async hashes(check) {await super.hashes(check); retain('hashes');}
+    close() {try {retain('before-close');} finally {super.close();}}
+  }
+  const product = {...observed.product, ZipIndex: RetainedJournalZip,
+    spool(value) {path = value; database = observed.product.spool(value); initial = inspectionPragmas(database); return database;},
+  };
+  const retained = () => {
+    observed.drained();
+    assert.deepEqual(initial, {journalMode: 'delete', synchronous: 2, cacheSize: -2048, tempStore: 1});
+    assert.deepEqual(phases.map(phase => phase.label), ['schema', 'headers', 'hashes', 'before-close']);
+    for (const phase of phases) {
+      assert.deepEqual(phase.settings, {journalMode: 'persist', synchronous: 2, cacheSize: -2048, tempStore: 1});
+      assert.equal(phase.dev, phases[0].dev); assert.equal(phase.ino, phases[0].ino);
+    }
+    assert.equal(phases[0].entries, 0);
+    assert(phases[1].entries > 0 && phases[1].changes > phases[0].changes);
+    assert.equal(phases[1].hashed, 0);
+    assert.equal(phases[2].entries, phases[1].entries); assert.equal(phases[2].hashed, phases[1].entries);
+    assert(phases[2].changes > phases[1].changes, 'Real entry hashing commits update the same retained journal');
+    const closed = lstatSync(path + '-journal');
+    assert(closed.isFile() && !closed.isSymbolicLink() && closed.size > 0);
+    assert.equal(closed.dev, phases[0].dev); assert.equal(closed.ino, phases[0].ino);
+  };
+  return {product, retained, injected: observed.injected};
+}
+
+test('private portable inspection retains one real journal through commits and close without changing archive results or product defaults', async t => {
+  const f = await smallCompositionArchive(t), observed = persistentInspectionProduct(f.product);
+  const inspected = await inspectPortableArchive({repo: f.repo, path: f.path, output: f.output, product: observed.product});
+  observed.retained();
+  const checked = await verifyArchive(f.product, f.path, f.output, smallArchiveSeal(inspected));
+  assert.deepEqual(inspected.counts, Object.fromEntries(['closureBytes', 'events', 'assets', 'captionVersions', 'manifestBytes'].map(name => [name, checked[name]])));
+  assert.equal(inspected.document.id, f.expectedDocument.id);
+  assert.equal(inspected.document.compositionVersion, f.expectedDocument.compositionVersion);
+  assert.equal(inspected.formatVersion, checked.formatVersion);
+  assert.equal(inspected.fullHashesVerified, true); assert.equal(inspected.semanticClosureVerified, true); assert.equal(inspected.typedFeaturesVerified, true);
+  assert.deepEqual(inspected.features.rawCaptions, [f.raw.hash]);
+  assert.deepEqual(inspected.features.derivedCaptions, [f.reviewedGraph.hash, f.prompt.hash].sort());
+  assert.deepEqual(await fileIdentity(f.path), {sha256: f.bundle.blob.hash.slice(7), byteLength: f.bundle.blob.byteLength});
+  // A separate unmodified production spool still uses DELETE journaling after
+  // actual commits. No global spool or campaign-validator policy was changed.
+  const path = join(f.output, 'unchanged-product-spool.sqlite'), db = f.product.spool(path);
+  try {
+    db.exec('CREATE TABLE kept(value INTEGER) STRICT; INSERT INTO kept VALUES (1); INSERT INTO kept VALUES (2);');
+    assert.deepEqual(inspectionPragmas(db), {journalMode: 'delete', synchronous: 2, cacheSize: -2048, tempStore: 1});
+    assert.equal(db.prepare('SELECT sum(value) n FROM kept').get().n, 3);
+    assert.throws(() => lstatSync(path + '-journal'), {code: 'ENOENT'});
+  } finally {db.close();}
+});
+
+test('private portable inspection retains journal custody and exact protected-read or cancellation errors', async t => {
+  const f = await smallCompositionArchive(t);
+  const baseline = await inspectPortableArchive({repo: f.repo, path: f.path, output: f.output, product: f.product});
+  for (const fault of ['read-failure', 'abort']) {
+    const controller = new AbortController(), observed = persistentInspectionProduct(f.product, {fault, controller});
+    await assert.rejects(inspectPortableArchive({repo: f.repo, path: f.path, output: f.output,
+      product: observed.product, signal: controller.signal}), error => error === observed.injected);
+    observed.retained(); assert.equal(controller.signal.aborted, fault === 'abort');
+  }
+  const after = await inspectPortableArchive({repo: f.repo, path: f.path, output: f.output, product: f.product});
+  assert.deepEqual(after, baseline);
+  assert.deepEqual(await fileIdentity(f.path), {sha256: f.bundle.blob.hash.slice(7), byteLength: f.bundle.blob.byteLength});
+});
+
+test('private inspection closes its real SQLite connection before archive entry when PERSIST is refused or its query throws', async t => {
+  const repo = fileURLToPath(new URL('../../', import.meta.url)), actual = await productFor(repo);
+  const output = ownTestRoot(await realpath(await mkdtemp(join(tmpdir(), 'portable-inspection-mode-'))));
+  for (const mode of ['refused', 'throws']) {
+    let database, closes = 0, opened = 0;
+    const owners = [], sentinel = Error('PERSIST mode query failed');
+    class Memory extends actual.CompositionMemory {
+      constructor(...args) {super(...args); owners.push({value: this, before: this.resourceOwnership()});}
+    }
+    const product = {...actual, CompositionMemory: Memory,
+      ZipIndex: class {constructor() {opened++; throw Error('Archive must not open before mode admission');}},
+      spool(path) {
+        // SQLite itself returns "memory" for PERSIST on an in-memory database.
+        // The other branch uses the actual private disk spool and injects only
+        // its one mode-query error to check original exception preservation.
+        database = mode === 'refused' ? new DatabaseSync(':memory:') : actual.spool(path);
+        return new Proxy(database, {get(target, name) {
+          if (name === 'close') return () => {closes++; target.close();};
+          if (name === 'prepare' && mode === 'throws') return sql => {
+            if (sql === 'PRAGMA journal_mode=PERSIST') return {get() {throw sentinel;}};
+            return target.prepare(sql);
+          };
+          const value = Reflect.get(target, name, target); return typeof value === 'function' ? value.bind(target) : value;
+        }});
+      },
+    };
+    await assert.rejects(inspectPortableArchive({repo, path: join(output, 'never-opened.zip'), output, product}),
+      mode === 'throws' ? error => error === sentinel : {code: 'ERR_ASSERTION', message: /Private portable inspection spool requires PERSIST journaling/});
+    assert.equal(opened, 0); assert.equal(closes, 1); assert.equal(owners.length, 1);
+    assert.deepEqual(owners[0].value.resourceOwnership(), owners[0].before); assert.equal(owners[0].value.bytes, 0);
+    assertInspectionClosed(database);
   }
 });
